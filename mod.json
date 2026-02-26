@@ -1,5 +1,5 @@
 {
-	"geode": "5.0.0",
+	"geode": "5.1.0",
 	"gd": {
         "android": "2.2081",
         "win": "2.2081",
@@ -79,6 +79,13 @@
 			"type": "folder",
 			"name": "Save Path",
 			"default": "{mod_save_dir}/levels"
+		},
+		"date-format": {
+			"name": "Date format",
+			"description": "Changes how the session date is displayed.",
+			"type": "string",
+			"default": "MM/DD/YYYY",
+			"one-of": ["MM/DD/YYYY", "DD/MM/YYYY"]
 		}
 	},
 	"dependencies": {

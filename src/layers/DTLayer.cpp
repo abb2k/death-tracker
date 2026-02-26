@@ -855,7 +855,8 @@ std::string DTLayer::modifyString(std::string ToModify){
                 time_t time = m_SharedLevelStats.sessions[m_SessionSelected - 1].sessionStartDate;
                 auto tp = std::chrono::system_clock::from_time_t(time);
 
-                std::string dateStr = fmt::format("{:%m/%d/%Y}", tp);
+
+                std::string dateStr = (Settings::getDateFormat() == -1) ? fmt::format("{:%d/%m/%Y}", tp) : fmt::format("{:%m/%d/%Y}", tp);
 
                 ToModify.insert(inctences[i], dateStr);
                 overallOffset += dateStr.length();

@@ -10,6 +10,18 @@ int64_t Settings::getMaxSessionLength() {
         return Mod::get()->getSettingValue<int64_t>("session-length");
 }
 
+int64_t Settings::getDateFormat() {
+    auto dateFormat = Mod::get()->getSettingValue<std::string>("date-format");
+    
+    if (dateFormat == "MM/DD/YYYY") {
+        return -2;
+    } else if (dateFormat == "DD/MM/YYYY") {
+        return -1;
+    }
+    //exception
+    return 1;
+}
+
 bool Settings::isCompletedLevelTrackingDisabled() {
     return Mod::get()->getSettingValue<bool>("disable-tracking-completed-levels");
 }
