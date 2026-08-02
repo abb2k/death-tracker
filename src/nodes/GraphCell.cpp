@@ -376,6 +376,7 @@ void GraphCell::setEnabledInfo(bool b, bool changeToggler, bool callback){
 }
 
 void GraphCell::deleteMe(){
+    beforeDeletion(graphInfo, this);
     this->removeMeAndCleanup();
     
     onDeleted(graphInfo);

@@ -24,6 +24,7 @@ class GraphCell : public CCNode {
 
         geode::Function<bool(const std::string&, GraphCell*)> canChangeNameTo;
 
+        geode::Function<void(DTGraphInfo, GraphCell*)> beforeDeletion;
         geode::Function<void(DTGraphInfo)> onDeleted;
         
         geode::Function<void(GraphCell* cell, std::optional<Session>)> onNewSession = NULL;

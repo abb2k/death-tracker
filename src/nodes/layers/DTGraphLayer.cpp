@@ -482,13 +482,13 @@ void DTGraphLayer::OnPointSelected(GraphPoint* point){
     if (!displaysForPoints.size()){
         auto pointPosConverted = m_mainLayer->convertToNodeSpace(point->convertToWorldSpace({point->getContentWidth() / 2, 0}));
 
-        position = pointPosConverted - ccp(
-            display->getContentWidth() / 2, 
-            display->getContentHeight()
+        float heightOffset = display->getContentHeight();
 #if defined(GEODE_IS_MOBILE)
-                + 15
+        heightOffset += 15;
 #endif
-        );
+
+        position = pointPosConverted - ccp(display->getContentWidth() / 2, heightOffset);
+
     }
     else{
         GraphPointDisplay* lowestOther = *displays.rbegin();
@@ -693,6 +693,8 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info){
             updateGRapgCellLayout();
 
         graphNode->setInfo(cell->getinfo());
+        cell->resendSession();
+
         saveAllGraphs();
     };
 
@@ -710,18 +712,21 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info){
         return cellWithName == nullptr || cellWithName == cell;
     };
 
-    graphCell->onDeleted = [&](DTGraphInfo info){
+    graphCell->beforeDeletion = [&](DTGraphInfo info, GraphCell* deletingCell){
+        graph->removeGraph(info.name);
+
         int indexZ = 0;
         for (const auto& child : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
         {
+            if (child == deletingCell) continue;
+
             child->setOrderPos(indexZ);
             indexZ++;
         }
+    };
 
+    graphCell->onDeleted = [&](DTGraphInfo info){
         updateGRapgCellLayout();
-
-        graph->removeGraph(info.name);
-        
         saveAllGraphs();
     };
 
@@ -740,6 +745,13 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info){
 
         graphNode->updateDeaths();
     };
+
+    if (graphCell->getinfo().isEnabled && !holdingShift) {
+        for (const auto& cell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren())) {
+            if (cell == graphCell) continue;
+            cell->setEnabledInfo(false, true, false);
+        }
+    }
 
     graphsScroll->m_contentLayer->addChild(graphCell);
 
