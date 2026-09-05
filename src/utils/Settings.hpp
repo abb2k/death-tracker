@@ -22,4 +22,5 @@ public:
     static bool getSafeMode();
     static bool getCheatDetect();
     static bool getDisablePractice();
+    static bool is12HourClockFormat();
 };

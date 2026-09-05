@@ -76,3 +76,9 @@ bool Settings::getCheatDetect(){
 bool Settings::getDisablePractice(){
     return Mod::get()->getSettingValue<bool>("disable-practice-tracking");
 }
+
+bool Settings::is12HourClockFormat(){
+    auto clockFormat = Mod::get()->getSettingValue<std::string>("clock-format");
+
+    return clockFormat == "12-hour";
+}

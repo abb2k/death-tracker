@@ -11,6 +11,7 @@
 #include <arc/task/Yield.hpp>
 #include <arc/time/Sleep.hpp>
 
+#include <utils/DateFormatter.hpp>
 #include <utils/Settings.hpp>
 #include <nodes/layers/ChangelogPopup.hpp>
 #include <nodes/layers/TextInputPopup.hpp>
@@ -3700,7 +3701,7 @@ UpdateFuture DTLayer::onSessionDateKey(std::map<std::string, std::any> payload){
         localtime_r(&time, &tp);
     #endif
 
-    auto dateStr = fmt::format("{:%m/%d/%Y %H:%M%p}", tp);
+    auto dateStr = DateFormatter::format(tp);
 
     co_return Ok(dateStr);
 }
