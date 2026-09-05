@@ -1,5 +1,6 @@
 #include "BackupCell.hpp"
 #include <managers/StatsManager.hpp>
+#include <utils/DateFormatter.hpp>
 
 BackupCell* BackupCell::create(float width, const std::string& levelKey, const long long backupTime){
     auto ret = new BackupCell();
@@ -128,7 +129,7 @@ void BackupCell::onBackupLoaded(GetBackupFuture::Output out){
     gmtime_r(&timeTDate, &timeInfo);
 #endif
 
-    titleLabel->setString(fmt::format("{:%Y-%m-%d %H:%M:%S}", timeInfo).c_str());
+    titleLabel->setString(DateFormatter::format(timeInfo).c_str());
     descriptionLabel->setString(
         fmt::format(
             "Attempts: {}, Sessions: {}, Size: {:.2f} KB", 

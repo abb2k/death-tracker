@@ -70,6 +70,13 @@
 			"type": "bool",
 			"default": false
 		},
+		"clock-format": {
+			"name": "Clock Format",
+			"description": "Select either 12-hour or 24-hour time display.",
+			"type": "string",
+			"default": "12-hour",
+			"one-of": ["12-hour", "24-hour"]
+		},
 		"bakcups-title":{
 			"type": "title",
 			"name": "Backups"

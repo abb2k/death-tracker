@@ -1,5 +1,6 @@
 #include "SessionCell.hpp"
 #include <managers/StatsManager.hpp>
+#include <utils/DateFormatter.hpp>
 
 SessionCell* SessionCell::create(float width, Session const& session){
     auto ret = new SessionCell();
@@ -27,7 +28,7 @@ bool SessionCell::init(float width, Session const& session){
 
     auto tp = std::chrono::system_clock::from_time_t(session.sessionStartDate);
 
-    std::string dateStr = fmt::format("{:%m/%d/%Y} {:%I:%M%p}", tp, tp);
+    std::string dateStr = DateFormatter::format(tp);
 
     auto dateLabel = CCLabelBMFont::create(dateStr.c_str(), "bigFont.fnt");
     dateLabel->setPosition({5, this->getContentHeight() - 7.5f});
