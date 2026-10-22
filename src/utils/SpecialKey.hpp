@@ -53,7 +53,7 @@ class SpecialKey : public CCObject, public std::enable_shared_from_this<SpecialK
 
     public:
         SpecialKey(const std::string& key, const std::string& description);
-        ~SpecialKey(){
+        ~SpecialKey() {
             //log::info("destroyed special key {}", key);
             cancel();
         }

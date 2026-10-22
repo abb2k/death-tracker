@@ -3,7 +3,7 @@
 #include <nodes/layers/DTLayer.hpp>
 #include <utils/Settings.hpp>
 
-bool DTLevelInfoLayer::init(GJGameLevel* p0, bool p1){
+bool DTLevelInfoLayer::init(GJGameLevel* p0, bool p1) {
     if (!LevelInfoLayer::init(p0, p1)) return false;
 
     auto s = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
@@ -36,15 +36,15 @@ bool DTLevelInfoLayer::init(GJGameLevel* p0, bool p1){
     return true;
 }
 
-void DTLevelInfoLayer::checkIfPlayVisible(float delta){
-    if (this->m_playBtnMenu->isVisible()){
+void DTLevelInfoLayer::checkIfPlayVisible(float delta) {
+    if (this->m_playBtnMenu->isVisible()) {
         m_fields->btn->setVisible(true);
         
         unschedule(schedule_selector(DTLevelInfoLayer::checkIfPlayVisible));
     }
 }
 
-void DTLevelInfoLayer::openDTLayer(CCObject*){
+void DTLevelInfoLayer::openDTLayer(CCObject*) {
     auto dtLayer = DTLayer::create(this->m_level);
     dtLayer->show();
 }

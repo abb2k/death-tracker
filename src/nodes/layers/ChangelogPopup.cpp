@@ -23,7 +23,7 @@ bool ChangelogPopup::init() {
     auto version = Mod::get()->getVersion();
     std::string changes = "-1";
 
-    if (changelogOpt.has_value()){
+    if (changelogOpt.has_value()) {
         auto changelog = changelogOpt.value();
 
         bool validHeader = false;

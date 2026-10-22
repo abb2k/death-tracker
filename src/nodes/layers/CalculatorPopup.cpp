@@ -59,8 +59,8 @@ bool CalculatorPopup::init() {
         (modeLabel->getPositionY() - modeLabel->getScaledContentHeight() / 2) / 1.5f - calcBtn->getPositionY()
     );
     
-    addMode(PastCalcMode::create(modeSize, [&](auto str){ this->varsChanged(str); }, [&](auto str){ this->onCalc(str); }));
-    addMode(BeforeCalcMode::create(modeSize, [&](auto str){ this->varsChanged(str); }, [&](auto str){ this->onCalc(str); }));
+    addMode(PastCalcMode::create(modeSize, [&](auto str) { this->varsChanged(str); }, [&](auto str) { this->onCalc(str); }));
+    addMode(BeforeCalcMode::create(modeSize, [&](auto str) { this->varsChanged(str); }, [&](auto str) { this->onCalc(str); }));
 
     std::vector<std::string> modesTexts{};
     for (const auto& mode : modes)
@@ -73,7 +73,7 @@ bool CalculatorPopup::init() {
         m_size.width / 2,
         modeLabel->getPositionY() - modeLabel->getScaledContentHeight() / 2 - modeButton->getScaledContentHeight() / 2 - 5
     });
-    modeButton->setOptionChangedCallback([&](auto currOption){
+    modeButton->setOptionChangedCallback([&](auto currOption) {
         modes[currentMode]->close();
         currentMode = currOption;
         modes[currentMode]->open();
@@ -100,25 +100,25 @@ bool CalculatorPopup::init() {
     return true;
 }
 
-void CalculatorPopup::onModeInfo(CCObject*){
+void CalculatorPopup::onModeInfo(CCObject*) {
     auto modeID = modeButton->getCurrentOptionIndex();
 
     FLAlertLayer::create(modes[modeID]->getName().c_str(), modes[modeID]->getDescription().c_str(), "OK")->show();
 }
 
-void CalculatorPopup::varsChanged(std::string const& vars){
+void CalculatorPopup::varsChanged(std::string const& vars) {
     currentVars = vars;
     currentCalc = std::nullopt;
 
     updateText();
 }
-void CalculatorPopup::onCalc(std::string const& calculation){
+void CalculatorPopup::onCalc(std::string const& calculation) {
     currentCalc = calculation;
 
     updateText();
 }
 
-void CalculatorPopup::addMode(CalculatorMode* mode){
+void CalculatorPopup::addMode(CalculatorMode* mode) {
 
     m_mainLayer->addChild(mode);
     mode->close();
@@ -127,7 +127,7 @@ void CalculatorPopup::addMode(CalculatorMode* mode){
     modes.push_back(mode);
 }
 
-void CalculatorPopup::updateText(){
+void CalculatorPopup::updateText() {
     std::string str = currentVars;
     if (currentCalc.has_value())
         str += " = " + currentCalc.value();
@@ -135,6 +135,6 @@ void CalculatorPopup::updateText(){
     calcBG->setString(str);
 }
 
-void CalculatorPopup::onCalcBtn(CCObject*){
+void CalculatorPopup::onCalcBtn(CCObject*) {
     modes[modeButton->getCurrentOptionIndex()]->calculate();
 }

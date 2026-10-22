@@ -202,6 +202,65 @@ matjson::Value matjson::Serialize<SessionCategory>::toJson(const SessionCategory
     });
 }
 
+Result<GradientData> matjson::Serialize<GradientData>::fromJson(const matjson::Value& value) {
+    GradientData data;
+    GEODE_UNWRAP_INTO(data.colorA, value["colorA"].as<ccColor4B>());
+    GEODE_UNWRAP_INTO(data.colorB, value["colorB"].as<ccColor4B>());
+    GEODE_UNWRAP_INTO(data.duration, value["duration"].asDouble());
+    GEODE_UNWRAP_INTO(data.stagger, value["stagger"].asDouble());
+    return Ok(data);
+}
+
+matjson::Value matjson::Serialize<GradientData>::toJson(const GradientData& value) {
+    return matjson::makeObject({
+        { "colorA", value.colorA },
+        { "colorB", value.colorB },
+        { "duration", value.duration },
+        { "stagger", value.stagger }
+    });
+}
+
+Result<WaveData> matjson::Serialize<WaveData>::fromJson(const matjson::Value& value) {
+    WaveData data;
+    GEODE_UNWRAP_INTO(data.speed, value["speed"].asDouble());
+    GEODE_UNWRAP_INTO(data.distanceY, value["distanceY"].asDouble());
+    GEODE_UNWRAP_INTO(data.distanceX, value["distanceX"].asDouble());
+    GEODE_UNWRAP_INTO(data.offsetPerIndex, value["offsetPerIndex"].asDouble());
+    return Ok(data);
+}
+
+matjson::Value matjson::Serialize<WaveData>::toJson(const WaveData& value) {
+    return matjson::makeObject({
+        { "speed", value.speed },
+        { "distanceY", value.distanceY },
+        { "distanceX", value.distanceX },
+        { "offsetPerIndex", value.offsetPerIndex }
+    });
+}
+
+Result<CustomizationData> matjson::Serialize<CustomizationData>::fromJson(const matjson::Value& value) {
+    CustomizationData data;
+    GEODE_UNWRAP_INTO(data.color, value["color"].as<ccColor4B>());
+
+    GEODE_UNWRAP_INTO(data.gradientEnabled, value["gradientEnabled"].asBool());
+    GEODE_UNWRAP_INTO(data.gradient, value["gradient"].as<GradientData>());
+
+    GEODE_UNWRAP_INTO(data.waveEnabled, value["waveEnabled"].asBool());
+    GEODE_UNWRAP_INTO(data.wave, value["wave"].as<WaveData>());
+
+    return Ok(data);
+}
+
+matjson::Value matjson::Serialize<CustomizationData>::toJson(const CustomizationData& value) {
+    return matjson::makeObject({
+        { "color", value.color },
+        { "gradientEnabled", value.gradientEnabled },
+        { "gradient", value.gradient },
+        { "waveEnabled", value.waveEnabled },
+        { "wave", value.wave }
+    });
+}
+
 Result<std::map<int, int>> matjson::Serialize<std::map<int, int>>::fromJson(const matjson::Value& value) {
     std::map<int, int> resMap;
     auto objRes = value.as<std::map<std::string, int>>().unwrapOr(std::map<std::string, int>{});
@@ -293,19 +352,19 @@ matjson::Value matjson::Serialize<DTLayoutV3>::toJson(const DTLayoutV3& value) {
     });
 }
 
-Result<DTLayoutPreset> matjson::Serialize<DTLayoutPreset>::fromJson(const matjson::Value& value){
+Result<DTLayoutPreset> matjson::Serialize<DTLayoutPreset>::fromJson(const matjson::Value& value) {
     DTLayoutPreset preset;
     GEODE_UNWRAP_INTO(preset.name, value["name"].asString());
     GEODE_UNWRAP_INTO(preset.layout, value["layout"].as<DTLayoutV3>());
-    if (value.contains("newBestColor")){
+    if (value.contains("newBestColor")) {
         GEODE_UNWRAP_INTO(preset.newBestColor, value["newBestColor"].as<ccColor3B>());
     }
-    if (value.contains("sessionBestColor")){
+    if (value.contains("sessionBestColor")) {
         GEODE_UNWRAP_INTO(preset.sessionBestColor, value["sessionBestColor"].as<ccColor3B>());
     }
     return Ok(preset);
 }
-matjson::Value matjson::Serialize<DTLayoutPreset>::toJson(const DTLayoutPreset& value){
+matjson::Value matjson::Serialize<DTLayoutPreset>::toJson(const DTLayoutPreset& value) {
     return matjson::makeObject({
         { "name", value.name },
         { "layout", value.layout },
@@ -345,7 +404,7 @@ Result<stringCustomazations> matjson::Serialize<stringCustomazations>::fromJson(
     stringCustomazations sc;
     GEODE_UNWRAP_INTO(sc.seperator, value["seperator"].asString());
     GEODE_UNWRAP_INTO(sc.format, value["format"].asString());
-    if (value.contains("alternateStrength")){
+    if (value.contains("alternateStrength")) {
         GEODE_UNWRAP_INTO(sc.alternateStrength, value["alternateStrength"].asInt());
     }
 

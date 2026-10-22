@@ -11,7 +11,7 @@ SessionOptions* SessionOptions::create(const CCSize& size) {
     return ret;
 }
 
-bool SessionOptions::setup(){
+bool SessionOptions::setup() {
 
     
 
@@ -19,9 +19,9 @@ bool SessionOptions::setup(){
     return true;
 }
 
-void SessionOptions::onOpened(){
+void SessionOptions::onOpened() {
     
 }
-void SessionOptions::onClosed(){
+void SessionOptions::onClosed() {
     
 }

@@ -13,7 +13,7 @@ SectionOptions* SectionOptions::create(const CCSize& size) {
     return ret;
 }
 
-bool SectionOptions::setup(){
+bool SectionOptions::setup() {
 
     auto dtlayer = DTLayer::get();
 
@@ -60,10 +60,10 @@ bool SectionOptions::setup(){
     startPosBtn->setPosition(sectionsLabel->getPosition() - ccp(sectionsLabel->getContentWidth() / 2 + startPosBtn->getContentWidth() / 2 + 5, 0));
     this->addChild(startPosBtn);
 
-    if (dtlayer->m_MyLevelStats.isErr()){
+    if (dtlayer->m_MyLevelStats.isErr()) {
 
     }
-    else{
+    else {
         auto myStats = dtlayer->m_MyLevelStats.unwrap();
         for (const auto& section : myStats.metadata.sections)
         {
@@ -84,7 +84,7 @@ bool SectionOptions::setup(){
     auto sectionsInfo = TutorialButton::create(.75f, "section-overall", [
         &,
         addSectionBtn
-    ](DTTutorialLayer* tutorialLayer){
+    ](DTTutorialLayer* tutorialLayer) {
         tutorialLayer->appendDialogue("Here you can <cy>name</c> ranges of percentages as sections!", TutorialCharacterFace::TCFHappy)
             ->appendDialogue("You can click the <cg>+</c> button to add a <cy>new section</c>", TutorialCharacterFace::TCFNormal)
             ->joinTransform(TutorialBoxPlacement::TBPTop, .75f)
@@ -120,7 +120,7 @@ bool SectionOptions::setup(){
     return true;
 }
 
-void SectionOptions::onOpened(){
+void SectionOptions::onOpened() {
     float fadeTime = .2f;
     this->setEnabled(true);
     this->runAction(CCFadeTo::create(fadeTime, 255));
@@ -134,7 +134,7 @@ void SectionOptions::onOpened(){
         cell->fade(true, fadeTime);
     }
 }
-void SectionOptions::onClosed(){
+void SectionOptions::onClosed() {
     float fadeTime = .2f;
     this->setEnabled(false);
     this->runAction(CCFadeTo::create(fadeTime, 0));
@@ -148,7 +148,7 @@ void SectionOptions::onClosed(){
     }
 }
 
-void SectionOptions::saveSections(){
+void SectionOptions::saveSections() {
     auto dtlayer = DTLayer::get();
     if (dtlayer->m_MyLevelStats.isErr()) return;
 
@@ -162,7 +162,7 @@ void SectionOptions::saveSections(){
     myStats.metadata.sections = newSections;
     (void)StatsManager::setMetadata(myStats.metadata, myStats.levelKey);
 
-    dtlayer->foreachLinkedLevel([&](auto& lvlData){
+    dtlayer->foreachLinkedLevel([&](auto& lvlData) {
         lvlData.metadata.sections = newSections;
         (void)StatsManager::setMetadata(lvlData.metadata, lvlData.levelKey);
     });
@@ -170,19 +170,19 @@ void SectionOptions::saveSections(){
     DTLayer::get()->specialStrings["section"]->updateContent();
 }
 
-void SectionOptions::onAddSection(CCObject* sender){
+void SectionOptions::onAddSection(CCObject* sender) {
     addSection(Section{});
     mainScroll->m_contentLayer->updateLayout();
     saveSections();
 }
 
-void SectionOptions::addSection(const Section& section){
+void SectionOptions::addSection(const Section& section) {
     auto cell = SectionCell::create(mainScroll->getContentWidth(), section);
-    cell->onDeleted = [&](){
+    cell->onDeleted = [&]() {
         mainScroll->m_contentLayer->updateLayout();
         this->saveSections();
     };
-    cell->onChanged = [&](){
+    cell->onChanged = [&]() {
         this->saveSections();
     };
     mainScroll->m_contentLayer->addChild(cell);
@@ -190,9 +190,9 @@ void SectionOptions::addSection(const Section& section){
     mainScroll->m_contentLayer->setPositionY(0);
 }
 
-void SectionOptions::onStartPoses(CCObject*){
+void SectionOptions::onStartPoses(CCObject*) {
     auto currLvl = PlayLayer::get();
-    if (currLvl == nullptr){
+    if (currLvl == nullptr) {
         FLAlertLayer::create("Cant add StartPos sections", "You must enter the level itself to automatically add StartPos sections!", "OK")->show();
         return;
     }
@@ -201,8 +201,8 @@ void SectionOptions::onStartPoses(CCObject*){
 
     std::set<int> startPosPercents{};
     
-    for (const auto& child : currLvl->m_objects->asExt<GameObject*>()){
-        if (auto sp = typeinfo_cast<StartPosObject*>(child)){
+    for (const auto& child : currLvl->m_objects->asExt<GameObject*>()) {
+        if (auto sp = typeinfo_cast<StartPosObject*>(child)) {
             float LLength = PlayLayer::get()->m_levelLength;
             float startPosX = sp->getPositionX();
 
@@ -218,7 +218,7 @@ void SectionOptions::onStartPoses(CCObject*){
     }
 
     if (startPosPercents.size()) startPosPercents.insert(100);
-    else{
+    else {
         Notification::create("No StartPoses detected!", NotificationIcon::Info)->show();
         return;
     }
@@ -227,7 +227,7 @@ void SectionOptions::onStartPoses(CCObject*){
 
     int index = 0;
 
-    for (const auto& percent : startPosPercents){
+    for (const auto& percent : startPosPercents) {
         Section section{
             .startPercent = prevRunPercent,
             .endPercent = percent,
@@ -245,7 +245,7 @@ void SectionOptions::onStartPoses(CCObject*){
     }
 
     
-    if (anythingAdded){
+    if (anythingAdded) {
         saveSections();
         Notification::create("Added StartPos sections!", NotificationIcon::Success)->show();
     }
@@ -253,7 +253,7 @@ void SectionOptions::onStartPoses(CCObject*){
         Notification::create("StartPos sections were already added", NotificationIcon::Info)->show();
 }
 
-bool SectionOptions::doesSectionExist(const Section& section){
+bool SectionOptions::doesSectionExist(const Section& section) {
     std::vector<Section> newSections;
     for (const auto& cell : mainScroll->m_contentLayer->getChildrenExt<SectionCell*>()) {
         newSections.push_back(cell->getSection());

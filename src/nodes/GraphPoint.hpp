@@ -9,9 +9,9 @@ class DTGraphNode;
 
 class GraphPointDelegate {
     public:
-        virtual void OnPointSelected(GraphPoint* point){};
+        virtual void OnPointSelected(GraphPoint* point) {};
 
-        virtual void OnPointDeselected(GraphPoint* point){};
+        virtual void OnPointDeselected(GraphPoint* point) {};
 };
 
 class GraphPoint : public CCMenuItem {

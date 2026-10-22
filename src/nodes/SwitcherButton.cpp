@@ -1,6 +1,6 @@
 #include "SwitcherButton.hpp"
 
-SwitcherButton* SwitcherButton::create(CCSize size, const std::string& spr, const std::vector<std::string>& options){
+SwitcherButton* SwitcherButton::create(CCSize size, const std::string& spr, const std::vector<std::string>& options) {
     auto ret = new SwitcherButton();
     auto bgSpr = CCScale9Sprite::create(spr.c_str());
 
@@ -13,7 +13,7 @@ SwitcherButton* SwitcherButton::create(CCSize size, const std::string& spr, cons
     return ret;
 }
 
-SwitcherButton* SwitcherButton::createWithSpriteFrameName(CCSize size, const std::string& spr, const std::vector<std::string>& options){
+SwitcherButton* SwitcherButton::createWithSpriteFrameName(CCSize size, const std::string& spr, const std::vector<std::string>& options) {
     auto ret = new SwitcherButton();
     auto bgSpr = CCScale9Sprite::createWithSpriteFrameName(spr.c_str());
 
@@ -26,7 +26,7 @@ SwitcherButton* SwitcherButton::createWithSpriteFrameName(CCSize size, const std
     return ret;
 }
 
-bool SwitcherButton::init(CCSize size, CCScale9Sprite* bgSpr, const std::vector<std::string>& options){
+bool SwitcherButton::init(CCSize size, CCScale9Sprite* bgSpr, const std::vector<std::string>& options) {
     mySpr = bgSpr;
     mySpr->setContentSize(size);
     mySpr->setCascadeOpacityEnabled(true);
@@ -45,7 +45,7 @@ bool SwitcherButton::init(CCSize size, CCScale9Sprite* bgSpr, const std::vector<
     return true;
 }
 
-void SwitcherButton::onClicked(CCObject*){
+void SwitcherButton::onClicked(CCObject*) {
     currentOption++;
 
     if (currentOption == options.size())
@@ -57,7 +57,7 @@ void SwitcherButton::onClicked(CCObject*){
         onOptionChanged(currentOption);
 }
 
-void SwitcherButton::setTextForCurrentOption(){
+void SwitcherButton::setTextForCurrentOption() {
     textLabel->setString(options[currentOption].c_str());
 
     auto calculatedSize = ccp(mySpr->getContentWidth() - 5, mySpr->getContentHeight() - 5) / ccp(textLabel->getContentWidth(), textLabel->getContentHeight());
@@ -65,6 +65,6 @@ void SwitcherButton::setTextForCurrentOption(){
     textLabel->setScale(calculatedSize.x > calculatedSize.y ? calculatedSize.y : calculatedSize.x);
 }
 
-void SwitcherButton::setOptionChangedCallback(geode::Function<void(int)> callback){
+void SwitcherButton::setOptionChangedCallback(geode::Function<void(int)> callback) {
     onOptionChanged = std::move(callback);
 }

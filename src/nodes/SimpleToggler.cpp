@@ -1,6 +1,6 @@
 #include <nodes/SimpleToggler.hpp>
 
-SimpleToggler* SimpleToggler::create(CCNode* offSprite, CCNode* onSprite, float scale, bool startState){
+SimpleToggler* SimpleToggler::create(CCNode* offSprite, CCNode* onSprite, float scale, bool startState) {
     auto ret = new SimpleToggler();
     if (ret && ret->init(offSprite, onSprite, scale, startState)) {
         ret->autorelease();
@@ -10,7 +10,7 @@ SimpleToggler* SimpleToggler::create(CCNode* offSprite, CCNode* onSprite, float 
     return nullptr;
 }
 
-SimpleToggler* SimpleToggler::createWithDefaults(float scale, bool startState){
+SimpleToggler* SimpleToggler::createWithDefaults(float scale, bool startState) {
     return create(
         CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
         CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
@@ -19,7 +19,7 @@ SimpleToggler* SimpleToggler::createWithDefaults(float scale, bool startState){
     );
 }
 
-bool SimpleToggler::init(CCNode* offSprite, CCNode* onSprite, float scale, bool startState){
+bool SimpleToggler::init(CCNode* offSprite, CCNode* onSprite, float scale, bool startState) {
     this->offSprite = offSprite;
     this->onSprite = onSprite;
 
@@ -36,16 +36,16 @@ bool SimpleToggler::init(CCNode* offSprite, CCNode* onSprite, float scale, bool 
     return true;
 }
 
-void SimpleToggler::setCallback(geode::Function<void(bool)> callback){
+void SimpleToggler::setCallback(geode::Function<void(bool)> callback) {
     this->callback = std::move(callback);
 }
 
-void SimpleToggler::onToggled(CCObject* sender){
+void SimpleToggler::onToggled(CCObject* sender) {
     if (this->callback != NULL)
         this->callback(!static_cast<CCMenuItemToggler*>(sender)->isToggled());
 }
 
-void SimpleToggler::setOpacity(GLubyte opacity){
+void SimpleToggler::setOpacity(GLubyte opacity) {
     if (auto rgba = typeinfo_cast<CCRGBAProtocol*>(offSprite))
         rgba->setOpacity(opacity);
     

@@ -3,7 +3,7 @@
 #include <nodes/layers/DTLayer.hpp>
 #include <utils/Settings.hpp>
 
-bool DTEditLevelLayer::init(GJGameLevel* level){
+bool DTEditLevelLayer::init(GJGameLevel* level) {
     if (!EditLevelLayer::init(level)) return false;
 
     auto s = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
@@ -29,7 +29,7 @@ bool DTEditLevelLayer::init(GJGameLevel* level){
     return true;
 }
 
-void DTEditLevelLayer::openDTLayer(CCObject*){
+void DTEditLevelLayer::openDTLayer(CCObject*) {
     auto dtLayer = DTLayer::create(this->m_level);
     dtLayer->show();
 }

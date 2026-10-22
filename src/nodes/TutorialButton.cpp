@@ -12,7 +12,7 @@ TutorialButton* TutorialButton::create(float size, const std::string& id, geode:
     return ret;
 }
 
-bool TutorialButton::init(float size, const std::string& id, geode::Function<void(DTTutorialLayer*)> initilizeTutorial){
+bool TutorialButton::init(float size, const std::string& id, geode::Function<void(DTTutorialLayer*)> initilizeTutorial) {
     this->size = size;
 
     spr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
@@ -24,7 +24,7 @@ bool TutorialButton::init(float size, const std::string& id, geode::Function<voi
 
     this->id = id;
 
-    if (!Save::wasTutorialSeen(id)){
+    if (!Save::wasTutorialSeen(id)) {
         auto action = CCRepeatForever::create(CCSequence::create(
             CCEaseInOut::create(CCScaleTo::create(.5f, size + .1f), 2),
             CCEaseInOut::create(CCScaleTo::create(.5f, size), 2),
@@ -38,14 +38,14 @@ bool TutorialButton::init(float size, const std::string& id, geode::Function<voi
     return true;
 }
 
-void TutorialButton::onClicked(CCObject*){
+void TutorialButton::onClicked(CCObject*) {
     auto layer = DTTutorialLayer::create();
 
     initilizeTutorial(layer);
 
     layer->show();
 
-    if (!Save::wasTutorialSeen(id)){
+    if (!Save::wasTutorialSeen(id)) {
         Save::setTutorialSeen(id);
 
         spr->stopActionByTag(1);

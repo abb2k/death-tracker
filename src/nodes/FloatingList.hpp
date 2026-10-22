@@ -12,7 +12,7 @@ struct FloatingListItem {
     std::string BGTexture = "GJ_button_01.png";
 
     CCNode* sideButtonSprite = nullptr;
-    std::function<void(int id)> sideButtonCallback = [](int){};
+    std::function<void(int id)> sideButtonCallback = [](int) {};
 };
 
 class FloatingList : public CCNode, public CCTouchDelegate {
@@ -39,6 +39,8 @@ class FloatingList : public CCNode, public CCTouchDelegate {
         void setEnabled(bool b);
 
         void updateListLayout();
+
+        void setListOpenAnchor(CCPoint const& anchor);
 
     private:
         bool init(CCSize const& size, bool startOpen);

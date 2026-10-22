@@ -8,14 +8,14 @@ using namespace geode::prelude;
 $execute {
     (void)file::createDirectory(Mod::get()->getSaveDir() / "levels");
 
-    GameEvent(GameEventType::Exiting).listen([](){
+    GameEvent(GameEventType::Exiting).listen([]() {
         StatsManager::isGameClosing = true;
         return false;
     }).leak();
 
     // StatsManager::logGameOpening();
 
-    if (Save::getLayout().isEmpty()){
+    if (Save::getLayout().isEmpty()) {
         Save::setLayout(Save::getDefaultLayout());
 
         auto graphs = std::vector<DTGraphInfo>{
@@ -91,12 +91,12 @@ $execute {
 
         Save::setGraphs(graphs);
 
-        Save::setNewBestColor({255, 255, 0});
-        Save::setSessionBestColor({ 255, 136, 0 });
+        Save::setNewBestCustomizations(CustomizationData{.color = {255, 255, 0, 255}});
+        Save::setSessionBestCustomizations(CustomizationData{.color = {255, 136, 0, 255}});
     }
 };
 
-$on_mod(Loaded){
+$on_mod(Loaded) {
     //load fonts
     auto allFonts = StatsManager::getAllFonts();
 

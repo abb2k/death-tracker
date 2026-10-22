@@ -83,10 +83,10 @@ bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _s
     info.wrapping = WrappingMode::SPACE_WRAP;
     info.isExpanded = true;
 
-    if (data.from0.isErr()){
+    if (data.from0.isErr()) {
         info.text = "No found general data!";
     }
-    else{
+    else {
         auto& f0 = data.from0.unwrap();
 
         std::string str = "Playtime{nl}" + StatsManager::workingTime(
@@ -103,7 +103,7 @@ bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _s
             Save::getFrom0Customazations(),
             f0Str,
             f0.newBests,
-            Save::getNewBestColor(),
+            Save::getNewBestCustomizations(),
             true
         );
 
@@ -141,9 +141,7 @@ bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _s
     btnMenu->setPosition({0,0});
     m_mainLayer->addChild(btnMenu);
 
-    DoAddGeneralToggler = SimpleToggler::create(
-        CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
-        CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
+    DoAddGeneralToggler = SimpleToggler::createWithDefaults(
         .6f,
         true
     );
@@ -218,7 +216,7 @@ bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _s
     return true;
 }
 
-void ImportCompletePopup::update(float dt){
+void ImportCompletePopup::update(float dt) {
     float prevHeight = generalView->m_contentLayer->getContentHeight();
     generalView->m_contentLayer->updateLayout();
     if (generalView->m_contentLayer->getContentHeight() != prevHeight)
@@ -230,40 +228,40 @@ void ImportCompletePopup::update(float dt){
 
     CCRect sessionViewRect = {sessionView->getPositionX(), sessionView->getPositionY(), sessionView->getScaledContentSize().width, sessionView->getScaledContentSize().height};
 
-    if (generalViewRect.containsPoint(generalView->getParent()->convertToNodeSpace(mousePos))){
+    if (generalViewRect.containsPoint(generalView->getParent()->convertToNodeSpace(mousePos))) {
         generalView->setMouseEnabled(true);
         sessionView->setMouseEnabled(false);
     }
-    else if (sessionViewRect.containsPoint(sessionView->getParent()->convertToNodeSpace(mousePos))){
+    else if (sessionViewRect.containsPoint(sessionView->getParent()->convertToNodeSpace(mousePos))) {
         generalView->setMouseEnabled(false);
         sessionView->setMouseEnabled(true);
     }
 }
 
-void ImportCompletePopup::selectAllSessions(CCObject*){
+void ImportCompletePopup::selectAllSessions(CCObject*) {
     for (const auto& SCell : sessionView->m_contentLayer->getChildrenExt<SessionCell*>())
     {
         SCell->setSelected(true);
     }
 }
-void ImportCompletePopup::deselectAllSessions(CCObject*){
+void ImportCompletePopup::deselectAllSessions(CCObject*) {
     for (const auto& SCell : sessionView->m_contentLayer->getChildrenExt<SessionCell*>())
     {
         SCell->setSelected(false);
     }
 }
 
-void ImportCompletePopup::onCombine(CCObject*){
+void ImportCompletePopup::onCombine(CCObject*) {
     combineAlert = FLAlertLayer::create(this, "Warning!", "Are you sure you want to combine these saves?\n \nCombining would merge this imported save with your existing data.\n \nThis change is not easily revertible.", "Cancel", "Combine");
     combineAlert->show();
 }
 
-void ImportCompletePopup::onOverride(CCObject*){
+void ImportCompletePopup::onOverride(CCObject*) {
     overrideAlert = FLAlertLayer::create(this, "Warning!", "Are you sure you want to override your save with this imported one?\n \nOverriding would erase all existing data from the level and replace it with the data from the imported save.\n \nThis change is irrevertible.", "Cancel", "Override");
     overrideAlert->show();
 }
 
-void ImportCompletePopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2){
+void ImportCompletePopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     if (!btn2) return;
 
     std::vector<Session> selectedSessions{};
@@ -274,14 +272,14 @@ void ImportCompletePopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2){
     }
     
 
-    if (combineAlert == layer){
+    if (combineAlert == layer) {
         auto& stats = DTLayer::get()->m_MyLevelStats.unwrap();
         auto key = stats.levelKey;
 
-        if (DoAddGeneralToggler->isToggled()){
+        if (DoAddGeneralToggler->isToggled()) {
             if (stats.from0.isErr() && data.from0.isOk())
                 (void)StatsManager::setGeneral(data.from0.unwrap(), key);
-            else if (data.from0.isOk()){
+            else if (data.from0.isOk()) {
                 auto generalData = stats.from0.unwrap();
                 generalData += data.from0.unwrap();
                 (void)StatsManager::setGeneral(generalData, key);
@@ -290,34 +288,34 @@ void ImportCompletePopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2){
 
         for (auto& session : selectedSessions)
         {
-            if (DTLayer::get()->m_MyLevelStats.unwrap().sessionNames.contains(session.sessionStartDate)){
+            if (DTLayer::get()->m_MyLevelStats.unwrap().sessionNames.contains(session.sessionStartDate)) {
                 auto currSession = StatsManager::getSession(key, session.sessionStartDate);
                 if (currSession.isErr())
                     (void)StatsManager::setSession(session, key, session.sessionStartDate, false);
-                else{
+                else {
                     auto sess = currSession.unwrap();
                     sess.data += session.data;
                     (void)StatsManager::setSession(sess, key, session.sessionStartDate, false);
                 }
             }
-            else{
+            else {
                 (void)StatsManager::setSession(session, key, session.sessionStartDate, false);
             }
         }
     }
-    else if (overrideAlert == layer){
+    else if (overrideAlert == layer) {
         auto& stats = DTLayer::get()->m_MyLevelStats.unwrap();
         auto key = stats.levelKey;
-        if (selectedSessions.size()){
+        if (selectedSessions.size()) {
             auto deleteRes = StatsManager::deleteAllSessions(key);
             if (deleteRes.isErr()) return;
         }
 
-        if (DoAddGeneralToggler->isToggled()){
-            if (data.from0.isErr()){
+        if (DoAddGeneralToggler->isToggled()) {
+            if (data.from0.isErr()) {
                 stats.from0 = Ok(GeneralData{});
             }
-            else{
+            else {
                 stats.from0 = Ok(data.from0.unwrap());
             }
 

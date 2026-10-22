@@ -1,6 +1,6 @@
 #include <nodes/OptionsNode.hpp>
 
-bool OptionsNode::initWithSetup(const CCSize& size){
+bool OptionsNode::initWithSetup(const CCSize& size) {
     if (!CCMenu::init()) return false;
     this->size = size;
 

@@ -1,6 +1,6 @@
 #include "SpecialKeyCell.hpp"
 
-SpecialKeyCell* SpecialKeyCell::create(std::shared_ptr<SpecialKey> key, geode::Function<void(const std::string&)> onSelected){
+SpecialKeyCell* SpecialKeyCell::create(std::shared_ptr<SpecialKey> key, geode::Function<void(const std::string&)> onSelected) {
     auto ret = new SpecialKeyCell();
     if (ret && ret->init(key, std::move(onSelected))) {
         ret->autorelease();
@@ -11,7 +11,7 @@ SpecialKeyCell* SpecialKeyCell::create(std::shared_ptr<SpecialKey> key, geode::F
     return ret;
 }
 
-bool SpecialKeyCell::init(std::shared_ptr<SpecialKey> key, geode::Function<void(const std::string&)> onSelected){
+bool SpecialKeyCell::init(std::shared_ptr<SpecialKey> key, geode::Function<void(const std::string&)> onSelected) {
     if (!CCMenu::init()) return false;
 
     this->setContentSize({135, 30});
@@ -58,7 +58,7 @@ bool SpecialKeyCell::init(std::shared_ptr<SpecialKey> key, geode::Function<void(
     return true;
 }
 
-void SpecialKeyCell::onAddClicked(CCObject*){
+void SpecialKeyCell::onAddClicked(CCObject*) {
     if (onSelected != NULL)
         onSelected(key->getKey());
 }

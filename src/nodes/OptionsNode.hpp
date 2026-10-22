@@ -17,7 +17,7 @@ class OptionsNode : public CCMenu {
         virtual void onOpened() = 0;
         virtual void onClosed() = 0;
 
-        void setSettingsLayer(DTLevelSpecificSettingsLayer* settingsLayer){
+        void setSettingsLayer(DTLevelSpecificSettingsLayer* settingsLayer) {
             this->settingsLayer = settingsLayer;
         }
     protected:

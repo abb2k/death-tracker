@@ -1,6 +1,6 @@
 #include "DTPauseLayer.hpp"
 
-void DTPauseLayer::customSetup(){
+void DTPauseLayer::customSetup() {
     PauseLayer::customSetup();
 
     if (!Settings::getPauseMenuEnabled()) return;
@@ -26,7 +26,7 @@ void DTPauseLayer::customSetup(){
     sideMenu->updateLayout();
 }
 
-void DTPauseLayer::onDTMiniMenuOpened(CCObject*){
+void DTPauseLayer::onDTMiniMenuOpened(CCObject*) {
     auto level = StatsManager::getCurrentLevel();
     if (level == nullptr) {
         Notification::create("Error! No level data found!", NotificationIcon::Error)->show();
@@ -39,7 +39,7 @@ void DTPauseLayer::onDTMiniMenuOpened(CCObject*){
 
 #if defined(GEODE_IS_MACOS)
 
-void DTPauseLayer::onNormalMode(cocos2d::CCObject* sender){
+void DTPauseLayer::onNormalMode(cocos2d::CCObject* sender) {
     PauseLayer::onNormalMode(sender);
 
     static_cast<DTPlayLayer*>(GameManager::get()->getPlayLayer())->m_fields->currentRun.end = 0;

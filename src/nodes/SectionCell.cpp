@@ -2,7 +2,7 @@
 #include <managers/StatsManager.hpp>
 #include <utils/Dev.hpp>
 
-SectionCell* SectionCell::create(float width, const Section& section){
+SectionCell* SectionCell::create(float width, const Section& section) {
     auto ret = new SectionCell();
     if (ret && ret->init(width, section)) {
         ret->autorelease();
@@ -13,7 +13,7 @@ SectionCell* SectionCell::create(float width, const Section& section){
     return ret;
 }
 
-bool SectionCell::init(float width, const Section& section){
+bool SectionCell::init(float width, const Section& section) {
     if (!CCMenu::init()) return false;
 
     this->section = section;
@@ -31,7 +31,7 @@ bool SectionCell::init(float width, const Section& section){
     nameInput->setAnchorPoint({0, .5});
     nameInput->setScale(.8f);
     nameInput->setPosition({3, this->getContentHeight() / 2});
-    nameInput->setCallback([&](const std::string& newText){
+    nameInput->setCallback([&](const std::string& newText) {
         this->section.name = newText;
 
         if (this->onChanged) this->onChanged();
@@ -55,7 +55,7 @@ bool SectionCell::init(float width, const Section& section){
     endPercentInput->setScale(.75f);
     endPercentInput->setCommonFilter(CommonFilter::Uint);
     endPercentInput->setPosition({this->getContentWidth() - deleteButton->getContentWidth() - 3, this->getContentHeight() / 2});
-    endPercentInput->setCallback([&](const std::string& newText){
+    endPercentInput->setCallback([&](const std::string& newText) {
         auto newPercentRes = utils::numFromString<int>(newText);
         if (newPercentRes.isErr()) return;
         int newPercent = newPercentRes.unwrap();
@@ -90,7 +90,7 @@ bool SectionCell::init(float width, const Section& section){
     startPercentInput->setScale(.75f);
     startPercentInput->setCommonFilter(CommonFilter::Uint);
     startPercentInput->setPosition({runSeperator->getPositionX() - 5 - runSeperator->getScaledContentWidth() / 2, this->getContentHeight() / 2});
-    startPercentInput->setCallback([&](const std::string& newText){
+    startPercentInput->setCallback([&](const std::string& newText) {
         auto newPercentRes = utils::numFromString<int>(newText);
         if (newPercentRes.isErr()) return;
         int newPercent = newPercentRes.unwrap();
@@ -122,7 +122,7 @@ void SectionCell::onDelete(CCObject* sender) {
     if (this->onDeleted) this->onDeleted();
 }
 
-void SectionCell::checkValidity(){
+void SectionCell::checkValidity() {
     if (section.isValid()) {
         bg->setColor({255, 255, 255});
     } else {
@@ -130,15 +130,15 @@ void SectionCell::checkValidity(){
     }
 }
 
-void SectionCell::fade(bool in, float time){
-    if (in){
+void SectionCell::fade(bool in, float time) {
+    if (in) {
         this->runAction(CCFadeTo::create(time, 255));
         this->setEnabled(true);
         Dev::fadeTextInput(startPercentInput, true, time);
         Dev::fadeTextInput(endPercentInput, true, time);
         Dev::fadeTextInput(nameInput, true, time);
     }
-    else{
+    else {
         this->runAction(CCFadeTo::create(time, 0));
         this->setEnabled(false);
         Dev::fadeTextInput(startPercentInput, false, time);

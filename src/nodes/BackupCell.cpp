@@ -2,7 +2,7 @@
 #include <managers/StatsManager.hpp>
 #include <utils/DateFormatter.hpp>
 
-BackupCell* BackupCell::create(float width, const std::string& levelKey, const long long backupTime){
+BackupCell* BackupCell::create(float width, const std::string& levelKey, const long long backupTime) {
     auto ret = new BackupCell();
     if (ret && ret->init(width, levelKey, backupTime)) {
         ret->autorelease();
@@ -13,7 +13,7 @@ BackupCell* BackupCell::create(float width, const std::string& levelKey, const l
     return ret;
 }
 
-bool BackupCell::init(float width, const std::string& levelKey, const long long backupTime){
+bool BackupCell::init(float width, const std::string& levelKey, const long long backupTime) {
     if (!CCMenu::init()) return false;
 
     this->levelKey = levelKey;
@@ -79,7 +79,7 @@ bool BackupCell::init(float width, const std::string& levelKey, const long long 
     return true;
 }
 
-void BackupCell::LoadBackupData(){
+void BackupCell::LoadBackupData() {
     getBackupListener.spawn(
         "DT-load-backups-data-task",
         LoadBackupDataFuture(),
@@ -89,11 +89,11 @@ void BackupCell::LoadBackupData(){
     );
 }
 
-GetBackupFuture BackupCell::LoadBackupDataFuture(){
+GetBackupFuture BackupCell::LoadBackupDataFuture() {
     auto backup = StatsManager::getBackupData(this->levelKey, this->backupTime);
 
     int deathCount = -1;
-    if (backup.isOk() && backup.unwrap().from0.has_value()){
+    if (backup.isOk() && backup.unwrap().from0.has_value()) {
         auto deaths = backup.unwrap().from0.value();
 
         for (const auto& death : deaths.deaths)
@@ -112,8 +112,8 @@ GetBackupFuture BackupCell::LoadBackupDataFuture(){
     };
 }
 
-void BackupCell::onBackupLoaded(GetBackupFuture::Output out){
-    if (out.backup.isErr()){
+void BackupCell::onBackupLoaded(GetBackupFuture::Output out) {
+    if (out.backup.isErr()) {
         titleLabel->setString("Failed to load backup data.");
         return;
     }
@@ -140,12 +140,12 @@ void BackupCell::onBackupLoaded(GetBackupFuture::Output out){
     );
 }
 
-void BackupCell::onRevert(CCObject* sender){
+void BackupCell::onRevert(CCObject* sender) {
     if (onRevertCallback != NULL)
         onRevertCallback(this);
 }
 
-void BackupCell::onDelete(CCObject* sender){
+void BackupCell::onDelete(CCObject* sender) {
     if (onDeleteCallback != NULL)
         onDeleteCallback(this);
 }

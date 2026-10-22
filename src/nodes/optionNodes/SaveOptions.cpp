@@ -26,7 +26,7 @@ SaveOptions* SaveOptions::create(const CCSize& size) {
     return ret;
 }
 
-bool SaveOptions::setup(){
+bool SaveOptions::setup() {
 
     auto deleteBtnSpr = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
     auto deleteBtn = CCMenuItemSpriteExtra::create(
@@ -83,7 +83,7 @@ bool SaveOptions::setup(){
         .6f,
         DTLayer::get()->m_MyLevelStats.isOk() ? DTLayer::get()->m_MyLevelStats.unwrap().metadata.autoBackup : false
     );
-    autoBackupToggler->setCallback([&](bool toggled){
+    autoBackupToggler->setCallback([&](bool toggled) {
         if (DTLayer::get()->m_MyLevelStats.isErr()) return;
 
         auto& stats = DTLayer::get()->m_MyLevelStats.unwrap();
@@ -178,7 +178,7 @@ bool SaveOptions::setup(){
         importBtnLabel,
         deleteBtn,
         deleteBtnLabel
-    ](DTTutorialLayer* tutorialLayer){
+    ](DTTutorialLayer* tutorialLayer) {
         tutorialLayer->appendDialogue("Here you have some options to manage your save", TutorialCharacterFace::TCFNormal)
             ->appendDialogue("Here you are able to <cy>create backups</c> of your save", TutorialCharacterFace::TCFNormalTilted)
             ->joinHighlight(backupBtn)
@@ -202,7 +202,7 @@ bool SaveOptions::setup(){
     saveOverallInfo->setPosition(size - saveOverallInfo->getScaledContentSize() / 2 + ccp(2, 2));
     this->addChild(saveOverallInfo);
 
-    auto saveBackupsInfo = TutorialButton::create(.75f, "save-backup", [&, backupsScrollLabel](DTTutorialLayer* tutorialLayer){
+    auto saveBackupsInfo = TutorialButton::create(.75f, "save-backup", [&, backupsScrollLabel](DTTutorialLayer* tutorialLayer) {
         tutorialLayer->appendDialogue("Here you have a list of all your backups for this level", TutorialCharacterFace::TCFNormal)
             ->joinTransform(TutorialBoxPlacement::TBPBottomLeft, .65f)
             ->joinHighlight(backupsScrollLabel)
@@ -229,7 +229,7 @@ bool SaveOptions::setup(){
     this->setEnabled(false);
     this->setOpacity(0);
     backupsScrollBG->setOpacity(0);
-    for (const auto& child : CCArrayExt<BackupCell*>(backupsScrollLayer->m_contentLayer->getChildren())){
+    for (const auto& child : CCArrayExt<BackupCell*>(backupsScrollLayer->m_contentLayer->getChildren())) {
         child->setOpacity(0);
         child->setEnabled(false);
     }
@@ -239,24 +239,24 @@ bool SaveOptions::setup(){
     return true;
 }
 
-void SaveOptions::onOpened(){
+void SaveOptions::onOpened() {
     float fadeTime = .2f;
     this->setEnabled(true);
     this->runAction(CCFadeTo::create(fadeTime, 255));
     backupsScrollLayer->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 100));
-    for (const auto& child : backupsScrollLayer->m_contentLayer->getChildrenExt<BackupCell*>()){
+    for (const auto& child : backupsScrollLayer->m_contentLayer->getChildrenExt<BackupCell*>()) {
         child->runAction(CCFadeTo::create(fadeTime, 255));
         child->setEnabled(true);
     }
 
     backupsScrollLayer->setMouseEnabled(true);
 }
-void SaveOptions::onClosed(){
+void SaveOptions::onClosed() {
     float fadeTime = .2f;
     this->setEnabled(false);
     this->runAction(CCFadeTo::create(fadeTime, 0));
     backupsScrollLayer->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 0));
-    for (const auto& child : backupsScrollLayer->m_contentLayer->getChildrenExt<BackupCell*>()){
+    for (const auto& child : backupsScrollLayer->m_contentLayer->getChildrenExt<BackupCell*>()) {
         child->runAction(CCFadeTo::create(fadeTime, 0));
         child->setEnabled(false);
     }
@@ -264,16 +264,16 @@ void SaveOptions::onClosed(){
     backupsScrollLayer->setMouseEnabled(false);
 }
 
-void SaveOptions::onDelete(CCObject*){
-    createChoiceAlert("WARNING!", "Doing this will delete ALL saved progress from this levels death tracker save.\nAre you sure you want to do this?", "No", "Yes", [&](bool btn2){
-        if (btn2){
+void SaveOptions::onDelete(CCObject*) {
+    createChoiceAlert("WARNING!", "Doing this will delete ALL saved progress from this levels death tracker save.\nAre you sure you want to do this?", "No", "Yes", [&](bool btn2) {
+        if (btn2) {
             if (DTLayer::get()->DeleteSave())
                 settingsLayer->keyBackClicked();
         }
     });
 }
 
-void SaveOptions::onBackup(CCObject*){
+void SaveOptions::onBackup(CCObject*) {
     if (DTLayer::get()->m_MyLevelStats.isErr()) return;
 
     auto popup = CreateBackupPopup::create();
@@ -287,7 +287,7 @@ void SaveOptions::onBackup(CCObject*){
 }
 
 
-void SaveOptions::FLAlert_Clicked(FLAlertLayer* layer, bool btn2){
+void SaveOptions::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     if (!choiceAlertsMap.contains(layer)) return;
 
     choiceAlertsMap[layer](btn2);
@@ -295,17 +295,17 @@ void SaveOptions::FLAlert_Clicked(FLAlertLayer* layer, bool btn2){
     choiceAlertsMap.erase(layer);
 }
 
-void SaveOptions::createChoiceAlert(const std::string& title, const std::string& desc, const std::string& btn1, const std::string& btn2, geode::Function<void(bool)> callback){
+void SaveOptions::createChoiceAlert(const std::string& title, const std::string& desc, const std::string& btn1, const std::string& btn2, geode::Function<void(bool)> callback) {
     auto alert = FLAlertLayer::create(this, title.c_str(), desc, btn1.c_str(), btn2.c_str());
     alert->show();
     choiceAlertsMap.insert({alert, std::move(callback)});
 }
 
-void SaveOptions::onBackupRevert(BackupCell* cell){
+void SaveOptions::onBackupRevert(BackupCell* cell) {
     if (cell->getBackupData() == nullptr) return;
 
-    createChoiceAlert("WARNING!", "Reverting to this backup will overwrite your current death tracker save for this level.\nAre you sure you want to do this?", "No", "Yes", [&, cell](bool btn2){
-        if (btn2){
+    createChoiceAlert("WARNING!", "Reverting to this backup will overwrite your current death tracker save for this level.\nAre you sure you want to do this?", "No", "Yes", [&, cell](bool btn2) {
+        if (btn2) {
             Result<> metaRes = Ok();
             Result<> generalRes = Ok();
             Result<> sessionsRes = Ok();
@@ -314,11 +314,11 @@ void SaveOptions::onBackupRevert(BackupCell* cell){
                 metaRes = StatsManager::setMetadata(cell->getBackupData()->meta.value(), cell->getLevelKey());
             if (cell->getBackupData()->from0.has_value())
                 generalRes = StatsManager::setGeneral(cell->getBackupData()->from0.value(), cell->getLevelKey());
-            if (cell->getBackupData()->sessionNames.has_value()){
+            if (cell->getBackupData()->sessionNames.has_value()) {
                 sessionsRes = StatsManager::reveretBackupSessions(cell->getLevelKey(), cell->getBackupTime());
             }
 
-            if (generalRes.isErr() || sessionsRes.isErr() || metaRes.isErr()){
+            if (generalRes.isErr() || sessionsRes.isErr() || metaRes.isErr()) {
                 if (metaRes.isErr())
                     log::error("{}", metaRes.unwrapErr());
                 if (generalRes.isErr())
@@ -335,11 +335,11 @@ void SaveOptions::onBackupRevert(BackupCell* cell){
         }
     });
 }
-void SaveOptions::onBackupDelete(BackupCell* cell){
-    createChoiceAlert("WARNING!", "Deleting this backup is irreversible.\nAre you sure you want to do this?", "No", "Yes", [&, cell](bool btn2){
-        if (btn2){
+void SaveOptions::onBackupDelete(BackupCell* cell) {
+    createChoiceAlert("WARNING!", "Deleting this backup is irreversible.\nAre you sure you want to do this?", "No", "Yes", [&, cell](bool btn2) {
+        if (btn2) {
             auto deleteBackupRes = StatsManager::deleteBackup(cell->getLevelKey(), cell->getBackupTime());
-            if (deleteBackupRes.isErr()){
+            if (deleteBackupRes.isErr()) {
                 log::error("{}", deleteBackupRes.unwrapErr());
                 return;
             }
@@ -349,21 +349,21 @@ void SaveOptions::onBackupDelete(BackupCell* cell){
     });
 }
 
-void SaveOptions::updateBackupsList(){
+void SaveOptions::updateBackupsList() {
     backupsScrollLayer->m_contentLayer->removeAllChildren();
 
     auto lvlKey = StatsManager::getLevelKey(DTLayer::get()->m_Level);
 
-    if (lvlKey.isOk()){
+    if (lvlKey.isOk()) {
         auto backupsList = StatsManager::getBackupsCount(lvlKey.unwrap());
         int z = 0;
-        for (const auto& backupTime : backupsList){
+        for (const auto& backupTime : backupsList) {
             auto cell = BackupCell::create(backupsScrollLayer->getContentWidth() - 5, lvlKey.unwrap(), backupTime);
             cell->onRevertCallback = std::bind(&SaveOptions::onBackupRevert, this, std::placeholders::_1);
             cell->onDeleteCallback = std::bind(&SaveOptions::onBackupDelete, this, std::placeholders::_1);
             backupsScrollLayer->m_contentLayer->addChild(cell);
 
-            if (!this->isEnabled()){
+            if (!this->isEnabled()) {
                 cell->setOpacity(0);
                 cell->setEnabled(false);
             }
@@ -376,7 +376,7 @@ void SaveOptions::updateBackupsList(){
     backupsScrollLayer->moveToTop();
 }
 
-void SaveOptions::onExport(CCObject*){
+void SaveOptions::onExport(CCObject*) {
     auto dtLayer = DTLayer::get();
     if (dtLayer == nullptr || dtLayer->m_MyLevelStats.isErr()) return;
 
@@ -399,11 +399,11 @@ void SaveOptions::onExport(CCObject*){
                 }
             }
         }),
-        [&](file::PickResult result){
+        [&](file::PickResult result) {
             auto dtLayer = DTLayer::get();
             if (dtLayer == nullptr || dtLayer->m_MyLevelStats.isErr()) return;
 
-            if (result.isErr()){
+            if (result.isErr()) {
                 log::error("{}", result.unwrapErr());
                 return;
             }
@@ -413,7 +413,7 @@ void SaveOptions::onExport(CCObject*){
 
             auto source = StatsManager::getSavesFolderPath() / dtLayer->m_MyLevelStats.unwrap().levelKey;
 
-            // if (pick.extension() == ".csv"){
+            // if (pick.extension() == ".csv") {
             //     saveToCSV(pick, source);
             //     return;
             // }
@@ -425,13 +425,13 @@ void SaveOptions::onExport(CCObject*){
     );
 }
 
-void SaveOptions::onImport(CCObject*){
+void SaveOptions::onImport(CCObject*) {
     ImportPopup::create()->show();
 }
 
-void SaveOptions::saveToDT(std::filesystem::path const& pick, std::filesystem::path const& source){
+void SaveOptions::saveToDT(std::filesystem::path const& pick, std::filesystem::path const& source) {
     auto zipFileRes = geode::utils::file::Zip::create(pick);
-    if (zipFileRes.isErr()){
+    if (zipFileRes.isErr()) {
         Notification::create("Failed to create zip file!", NotificationIcon::Error)->show();
         log::error("{}", zipFileRes.unwrapErr());
         return;
@@ -444,21 +444,21 @@ void SaveOptions::saveToDT(std::filesystem::path const& pick, std::filesystem::p
         
         if (entry.path().filename() == "backups") continue;
 
-        if (std::filesystem::is_directory(entry)){
+        if (std::filesystem::is_directory(entry)) {
             didFileWrite = zip.addAllFrom(entry);
         }
         else {
             didFileWrite = zip.addFrom(entry);
         }
 
-        if (didFileWrite.isErr()){
+        if (didFileWrite.isErr()) {
             Notification::create("Failed to write zip file!", NotificationIcon::Error)->show();
             return;
         }
     }
 }
 
-void SaveOptions::openSaveDir(CCObject*){
+void SaveOptions::openSaveDir(CCObject*) {
     auto dtLayer = DTLayer::get();
     if (dtLayer == nullptr) return;
 

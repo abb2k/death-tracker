@@ -15,12 +15,12 @@ PastCalcMode* PastCalcMode::create(CCSize const& size, geode::Function<void(std:
     return ret;
 }
 
-bool PastCalcMode::init(CCSize const& size, geode::Function<void(std::string const&)>&& onVariablesChanged, geode::Function<void(std::string const&)>&& onCalculate){
+bool PastCalcMode::init(CCSize const& size, geode::Function<void(std::string const&)>&& onVariablesChanged, geode::Function<void(std::string const&)>&& onCalculate) {
     if (!CalculatorMode::init(size, std::move(onVariablesChanged), std::move(onCalculate))) return false;
 
     passPercentInput = TextInput::create(size.width / 1.2f, "pass%");
     passPercentInput->setCommonFilter(CommonFilter::Uint);
-    passPercentInput->setCallback([&](auto newStr){
+    passPercentInput->setCallback([&](auto newStr) {
         sendVars();
     });
     passPercentInput->setPosition({size.width / 2, size.height});
@@ -36,7 +36,7 @@ bool PastCalcMode::init(CCSize const& size, geode::Function<void(std::string con
 
     auto sf0Btn = SwitcherButton::create({size.width / 1.5f / (1 / .85f), 25 / (1 / .85f)}, "GJ_button_01.png", {"General", "Session"});
     sf0Btn->setPosition({size.width / 2, sf0Btn->getScaledContentHeight() / 2 + 2});
-    sf0Btn->setOptionChangedCallback([&](int opt){
+    sf0Btn->setOptionChangedCallback([&](int opt) {
         isGeneral = opt == 0;
     });
 
@@ -47,7 +47,7 @@ bool PastCalcMode::init(CCSize const& size, geode::Function<void(std::string con
     return true;
 }
 
-void PastCalcMode::calculate(){
+void PastCalcMode::calculate() {
     if (passPercentInput->getString() == "" || DTLayer::get()->m_MyLevelStats.isErr()) return;
 
     auto numRes = geode::utils::numFromString<int>(passPercentInput->getString());
@@ -59,12 +59,12 @@ void PastCalcMode::calculate(){
     if (meStats.from0.isErr()) return; 
     auto& meGen = meStats.from0.unwrap();
 
-    auto deadsHandle = async::spawn(DTLayer::get()->getTFor<Deaths>([](GeneralData const& data){
+    auto deadsHandle = async::spawn(DTLayer::get()->getTFor<Deaths>([](GeneralData const& data) {
         Deaths runs{};
         StatsManager::mergeMapsAdd(runs, data.deaths);
         return runs;
     },
-    [](auto const& a, auto const& b){
+    [](auto const& a, auto const& b) {
         auto map = a;
         StatsManager::mergeMapsAdd(map, b);
         return map;
@@ -98,18 +98,18 @@ std::string PastCalcMode::getDescription() const{
     return "The amount of times you have passed a percentage from the target run";
 }
 
-void PastCalcMode::open(){
+void PastCalcMode::open() {
     passPercentInput->setEnabled(true);
     this->setVisible(true);
 
     sendVars();
 }
-void PastCalcMode::close(){
+void PastCalcMode::close() {
     passPercentInput->setEnabled(false);
     this->setVisible(false);
 }
 
-void PastCalcMode::sendVars(){
+void PastCalcMode::sendVars() {
     onVariablesChanged(passPercentInput->getString() != "" ? fmt::format(
         "{}>",
         passPercentInput->getString()

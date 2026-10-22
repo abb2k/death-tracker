@@ -12,7 +12,7 @@ SessionSelector* SessionSelector::create(int count) {
     return ret;
 }
 
-bool SessionSelector::init(int count){
+bool SessionSelector::init(int count) {
     if (!CCMenu::init()) return false;
 
     this->setContentSize({ 180, 30 });
@@ -54,29 +54,29 @@ bool SessionSelector::init(int count){
     return true;
 }
 
-void SessionSelector::leftArrowClicked(CCObject*){
+void SessionSelector::leftArrowClicked(CCObject*) {
     setCurrentCount(currentCount - 1, true, true);
 }
-void SessionSelector::rightArrowClicked(CCObject*){
+void SessionSelector::rightArrowClicked(CCObject*) {
     setCurrentCount(currentCount + 1, true, true);
 }
 
-void SessionSelector::setCallback(geode::Function<void(int)> callback){
+void SessionSelector::setCallback(geode::Function<void(int)> callback) {
     this->callback = std::move(callback);
 }
 
-void SessionSelector::setMaximumCount(int count, bool runCallback){
+void SessionSelector::setMaximumCount(int count, bool runCallback) {
     count = std::max(count, 1);
     maxCount = count;
 
-    if (currentCount > maxCount){
+    if (currentCount > maxCount) {
         setCurrentCount(maxCount, runCallback);
     }
 
     if (!isInputOpened)
         inputNode->setString(fmt::format("{}/{}", currentCount, maxCount));
 }
-void SessionSelector::setCurrentCount(int count, bool ignoreIfUnchanged, bool runCallback){
+void SessionSelector::setCurrentCount(int count, bool ignoreIfUnchanged, bool runCallback) {
     if (currentCount == count && ignoreIfUnchanged) return;
     count = std::clamp(count, 1, maxCount);
     currentCount = count;
@@ -94,15 +94,15 @@ void SessionSelector::setCurrentCount(int count, bool ignoreIfUnchanged, bool ru
         callback(currentCount);
 }
 
-int SessionSelector::getCurrentCount(){
+int SessionSelector::getCurrentCount() {
     return currentCount;
 }
 
-void SessionSelector::textInputOpened(CCTextInputNode* input){
+void SessionSelector::textInputOpened(CCTextInputNode* input) {
     isInputOpened = true;
     setCurrentCount(currentCount, false);
 }
-void SessionSelector::textInputClosed(CCTextInputNode* input){
+void SessionSelector::textInputClosed(CCTextInputNode* input) {
     isInputOpened = false;
     setCurrentCount(currentCount, false);
 }
@@ -115,7 +115,7 @@ void SessionSelector::textChanged(CCTextInputNode* input) {
     setCurrentCount(numRes.unwrap(), true, true);
 }
 
-void SessionSelector::setEnabled(bool value){
+void SessionSelector::setEnabled(bool value) {
     inputNode->setEnabled(value);
     CCMenu::setEnabled(value);
 }

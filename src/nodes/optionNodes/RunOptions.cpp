@@ -15,7 +15,7 @@ RunOptions* RunOptions::create(const CCSize& size) {
     return ret;
 }
 
-bool RunOptions::setup(){
+bool RunOptions::setup() {
     auto TARLabel = CCLabelBMFont::create("Show any run", "gjFont17.fnt");
     TARLabel->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
     TARLabel->setAnchorPoint({.5f, .5f});
@@ -29,7 +29,7 @@ bool RunOptions::setup(){
         .75f,
         dtlayer == nullptr ? false : (dtlayer->m_MyLevelStats.isOk() ? dtlayer->m_MyLevelStats.unwrap().metadata.showAnyRun : false)
     );
-    TARToggler->setCallback([&](bool isToggled){
+    TARToggler->setCallback([&](bool isToggled) {
         auto dtlayer = DTLayer::get();
         if (dtlayer == nullptr || dtlayer->m_MyLevelStats.isErr()) return;
 
@@ -37,7 +37,7 @@ bool RunOptions::setup(){
         stats.metadata.showAnyRun = isToggled;
         (void)StatsManager::setMetadata(stats.metadata, stats.levelKey);
 
-        dtlayer->foreachLinkedLevel([&isToggled](auto& lvlData){
+        dtlayer->foreachLinkedLevel([&isToggled](auto& lvlData) {
             lvlData.metadata.showAnyRun = isToggled;
             (void)StatsManager::setMetadata(lvlData.metadata, lvlData.levelKey);
         });
@@ -53,7 +53,7 @@ bool RunOptions::setup(){
     runAdditionInput = TextInput::create(size.width / 4.f, "Start %");
     runAdditionInput->setPosition({size.width / 4, TARLabel->getPositionY() - runAdditionInput->getContentHeight()});
     runAdditionInput->setCommonFilter(CommonFilter::Uint);
-    runAdditionInput->setCallback([&](const std::string& newText){
+    runAdditionInput->setCallback([&](const std::string& newText) {
         auto numRes = geode::utils::numFromString<int>(newText);
 
         if (numRes.isErr()) return;
@@ -111,7 +111,7 @@ bool RunOptions::setup(){
     );
     this->addChild(runsScrollLayer);
 
-    if (dtlayer != nullptr && dtlayer->m_MyLevelStats.isOk()){
+    if (dtlayer != nullptr && dtlayer->m_MyLevelStats.isOk()) {
         auto& stats = dtlayer->m_MyLevelStats.unwrap();
         for (const auto& [startPercent, maxToShow] : stats.metadata.runsToShow)
         {
@@ -140,7 +140,7 @@ bool RunOptions::setup(){
     sharedRunsToShowInput->setString(dtlayer == nullptr ? "" : (dtlayer->m_MyLevelStats.isOk() ? std::to_string(dtlayer->m_MyLevelStats.unwrap().metadata.sharedRunToShow) : ""));
     sharedRunsToShowInput->setCommonFilter(CommonFilter::Uint);
     sharedRunsToShowInput->setPosition(sharedHideScroll->getPosition() + ccp(110, 10));
-    sharedRunsToShowInput->setCallback([&](const std::string& newText){
+    sharedRunsToShowInput->setCallback([&](const std::string& newText) {
         auto dtlayer = DTLayer::get();
         auto numRes = geode::utils::numFromString<int>(newText);
 
@@ -175,7 +175,7 @@ bool RunOptions::setup(){
     HidUpToInput->setPosition({size.width - HidUpToInput->getContentWidth() / 2 - rightOffset, size.height / 8 * 6});
     HidUpToInput->setString(dtlayer == nullptr ? "" : (dtlayer->m_MyLevelStats.isOk() ? std::to_string(dtlayer->m_MyLevelStats.unwrap().metadata.hideUpto) : ""));
     HidUpToInput->setCommonFilter(CommonFilter::Uint);
-    HidUpToInput->setCallback([&](const std::string& newText){
+    HidUpToInput->setCallback([&](const std::string& newText) {
         auto dtlayer = DTLayer::get();
         auto numRes = geode::utils::numFromString<int>(newText);
         
@@ -204,7 +204,7 @@ bool RunOptions::setup(){
     RealEndPerInput->setPosition({size.width - RealEndPerInput->getContentWidth() / 2 - rightOffset, size.height / 8 * 4});
     RealEndPerInput->setString(dtlayer == nullptr ? "" : (dtlayer->m_MyLevelStats.isOk() ? std::to_string(dtlayer->m_MyLevelStats.unwrap().metadata.realEndPercent) : ""));
     RealEndPerInput->setCommonFilter(CommonFilter::Uint);
-    RealEndPerInput->setCallback([&](const std::string& newText){
+    RealEndPerInput->setCallback([&](const std::string& newText) {
         auto dtlayer = DTLayer::get();
         auto numRes = geode::utils::numFromString<int>(newText);
 
@@ -236,7 +236,7 @@ bool RunOptions::setup(){
         .75f,
         dtlayer == nullptr ? false : (dtlayer->m_MyLevelStats.isOk() ? dtlayer->m_MyLevelStats.unwrap().metadata.resetAsDeath : false)
     );
-    ResetAsDeathToggler->setCallback([&](bool isToggled){
+    ResetAsDeathToggler->setCallback([&](bool isToggled) {
         auto dtlayer = DTLayer::get();
         if (dtlayer == nullptr || dtlayer->m_MyLevelStats.isErr()) return;
 
@@ -254,7 +254,7 @@ bool RunOptions::setup(){
     ResetAsDeathLabel->setAnchorPoint({1, .5f});
     this->addChild(ResetAsDeathLabel);
 
-    auto runsHidingTutorial = TutorialButton::create(.75f, "run-hiding", [&, sharedHideLabel, TARToggler, TARLabel, plusBtn](DTTutorialLayer* tutorial){
+    auto runsHidingTutorial = TutorialButton::create(.75f, "run-hiding", [&, sharedHideLabel, TARToggler, TARLabel, plusBtn](DTTutorialLayer* tutorial) {
         int randomPer = 7 + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * (95.f - 7.f);
         int randomMaxToHide = (randomPer + 2) + (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * (93.f - (randomPer + 2.f));
 
@@ -263,7 +263,7 @@ bool RunOptions::setup(){
             randomPer, 
             randomMaxToHide, 
             CCSprite::createWithSpriteFrameName("minus_button.png"_spr),
-            [](PercentCell* _){}
+            [](PercentCell* _) {}
         );
         emptyPer->setPositionX(this->getContentWidth() / 2);
         emptyPer->setAnchorPoint({.5f, 0});
@@ -296,7 +296,7 @@ bool RunOptions::setup(){
             ->appendDialogue("You can <cr>remove</c> the percent from the list", TutorialCharacterFace::TCFNormal)
             ->joinTransform(TutorialBoxPlacement::TBPTop, .75f)
             ->joinHighlight(emptyPer->getChildByID("btn"))
-            ->joinCallback([emptyPer](){emptyPer->show();}, true)
+            ->joinCallback([emptyPer]() {emptyPer->show();}, true)
             ->appendDialogue("And you can edit the <cy>\"Max to Hide\"</c> percent.", TutorialCharacterFace::TCFNormalTilted)
             ->joinHighlight(emptyPer->getSilderBG())
             ->joinHighlight(emptyPer->getSilderHandle())
@@ -319,8 +319,8 @@ bool RunOptions::setup(){
             ->joinHighlight(sharedHideScroll->m_groove)
             ->joinHighlight(sharedHideLabel)
             ->joinHighlight(sharedRunsToShowInput)
-            ->joinCallback([emptyPer](){emptyPer->hide();}, true)
-            ->joinCallback([emptyPer](){emptyPer->removeMeAndCleanup();}, false)
+            ->joinCallback([emptyPer]() {emptyPer->hide();}, true)
+            ->joinCallback([emptyPer]() {emptyPer->removeMeAndCleanup();}, false)
             ->appendDialogue("If you edit this, it will edit all <cy>\"Max To Hide\"</c>s with it relative to the slider location!", TutorialCharacterFace::TCFHappy)
             ->joinPreviousHighlight()
             ->appendDialogue("And if you dont have any specific runs to filter, it will act as a global <cy>\"Max To Hide\"</c> of sorts", TutorialCharacterFace::TCFNormalTilted)
@@ -333,7 +333,7 @@ bool RunOptions::setup(){
     runsHidingTutorial->setPosition(TARLabel->getPosition() + ccp(15 + TARLabel->getScaledContentWidth() / 2, 0));
     this->addChild(runsHidingTutorial);
 
-    auto runsOtherTutorial = TutorialButton::create(.75f, "run-overall", [&, HideUpToLabel, ResetAsDeathToggler, ResetAsDeathLabel, RealEndPerLabel](DTTutorialLayer* tutorial){
+    auto runsOtherTutorial = TutorialButton::create(.75f, "run-overall", [&, HideUpToLabel, ResetAsDeathToggler, ResetAsDeathLabel, RealEndPerLabel](DTTutorialLayer* tutorial) {
         tutorial->appendDialogue("Here we have some extra settings for run managment", TutorialCharacterFace::TCFNormalTilted)
             ->appendDialogue("We have <cy>\"Hide Up To\"</c>, which like <cy>\"Max to Hide\"</c> on runs, will hide all runs up to that percent but from 0", TutorialCharacterFace::TCFNormal)
             ->joinTransform(TutorialBoxPlacement::TBPLeft, .70f)
@@ -368,7 +368,7 @@ bool RunOptions::setup(){
     return true;
 }
 
-void RunOptions::onOpened(){
+void RunOptions::onOpened() {
     float fadeTime = .2f;
     this->runAction(CCFadeIn::create(fadeTime));
 
@@ -381,13 +381,13 @@ void RunOptions::onOpened(){
     Dev::fadeTextInput(sharedRunsToShowInput, true, fadeTime);
     Dev::fadeSlider(sharedHideScroll, true, fadeTime);
 
-    for (const auto& child : CCArrayExt<PercentCell*>(runsScrollLayer->m_contentLayer->getChildren())){
+    for (const auto& child : CCArrayExt<PercentCell*>(runsScrollLayer->m_contentLayer->getChildren())) {
         child->show();
     }
 
     this->setEnabled(true);
 }
-void RunOptions::onClosed(){
+void RunOptions::onClosed() {
     float fadeTime = .2f;
     this->runAction(CCFadeOut::create(fadeTime));
 
@@ -397,14 +397,14 @@ void RunOptions::onClosed(){
     Dev::fadeTextInput(sharedRunsToShowInput, false, fadeTime);
     Dev::fadeSlider(sharedHideScroll, false, fadeTime);
 
-    for (const auto& child : CCArrayExt<PercentCell*>(runsScrollLayer->m_contentLayer->getChildren())){
+    for (const auto& child : CCArrayExt<PercentCell*>(runsScrollLayer->m_contentLayer->getChildren())) {
         child->hide();
     }
 
     this->setEnabled(false);
 }
 
-void RunOptions::onAddNewRun(CCObject*){
+void RunOptions::onAddNewRun(CCObject*) {
     auto dtlayer = DTLayer::get();
     auto numRes = geode::utils::numFromString<int>(runAdditionInput->getString());
 
@@ -415,7 +415,7 @@ void RunOptions::onAddNewRun(CCObject*){
     addNewRun(num);
 }
 
-bool RunOptions::addNewRun(int percent){
+bool RunOptions::addNewRun(int percent) {
     auto dtlayer = DTLayer::get();
     if (dtlayer == nullptr) return false;
 
@@ -429,7 +429,7 @@ bool RunOptions::addNewRun(int percent){
     DTLayer::get()->specialStrings["runs"]->updateContent();
     DTLayer::get()->specialStrings["sruns"]->updateContent();
 
-    dtlayer->foreachLinkedLevel([&](auto& lvlData){
+    dtlayer->foreachLinkedLevel([&](auto& lvlData) {
         if (lvlData.metadata.runsToShow.contains(percent)) return;
 
         lvlData.metadata.runsToShow.insert({percent, percent});
@@ -441,14 +441,14 @@ bool RunOptions::addNewRun(int percent){
     return true;
 }
 
-void RunOptions::PercentCellClicked(PercentCell* cell){
+void RunOptions::PercentCellClicked(PercentCell* cell) {
     auto dtlayer = DTLayer::get();
 
-    if (dtlayer != nullptr){
+    if (dtlayer != nullptr) {
         int percent = cell->getPercent();
 
         auto& stats = dtlayer->m_MyLevelStats.unwrap();
-        if (stats.metadata.runsToShow.contains(percent)){
+        if (stats.metadata.runsToShow.contains(percent)) {
             stats.metadata.runsToShow.erase(percent);
             (void)StatsManager::setMetadata(stats.metadata, stats.levelKey);
 
@@ -456,7 +456,7 @@ void RunOptions::PercentCellClicked(PercentCell* cell){
             DTLayer::get()->specialStrings["sruns"]->updateContent();
         }
 
-        dtlayer->foreachLinkedLevel([&](auto& lvlData){
+        dtlayer->foreachLinkedLevel([&](auto& lvlData) {
             if (!lvlData.metadata.runsToShow.contains(percent)) return;
 
             lvlData.metadata.runsToShow.erase(percent);
@@ -468,14 +468,14 @@ void RunOptions::PercentCellClicked(PercentCell* cell){
     runsScrollLayer->m_contentLayer->updateLayout();
 }
 
-void RunOptions::PercentMaxHideValChanged(PercentCell* cell){
+void RunOptions::PercentMaxHideValChanged(PercentCell* cell) {
     auto dtlayer = DTLayer::get();
 
-    if (dtlayer != nullptr){
+    if (dtlayer != nullptr) {
         int percent = cell->getPercent();
 
         auto& stats = dtlayer->m_MyLevelStats.unwrap();
-        if (stats.metadata.runsToShow.contains(percent)){
+        if (stats.metadata.runsToShow.contains(percent)) {
             stats.metadata.runsToShow[percent] = cell->getMaxToHide();
             (void)StatsManager::setMetadata(stats.metadata, stats.levelKey);
 
@@ -483,30 +483,30 @@ void RunOptions::PercentMaxHideValChanged(PercentCell* cell){
             DTLayer::get()->specialStrings["sruns"]->updateContent();
         }
 
-        dtlayer->foreachLinkedLevel([&](auto& lvlData){
+        dtlayer->foreachLinkedLevel([&](auto& lvlData) {
             lvlData.metadata.runsToShow[percent] = cell->getMaxToHide();
             (void)StatsManager::setMetadata(lvlData.metadata, lvlData.levelKey);
         });
     }
 }
 
-void RunOptions::createRunCell(int percent, int maxToHide){
+void RunOptions::createRunCell(int percent, int maxToHide) {
     auto percentCell = PercentCell::create(
         runsScrollLayer->m_contentLayer->getContentWidth(),
         percent,
         maxToHide,
         CCSprite::createWithSpriteFrameName("minus_button.png"_spr),
-        [&](PercentCell* cell){ RunOptions::PercentCellClicked(cell); }
+        [&](PercentCell* cell) { RunOptions::PercentCellClicked(cell); }
     );
-    percentCell->onMaxToHideChanged = [&](PercentCell* cell){ RunOptions::PercentMaxHideValChanged(cell); };
+    percentCell->onMaxToHideChanged = [&](PercentCell* cell) { RunOptions::PercentMaxHideValChanged(cell); };
     runsScrollLayer->m_contentLayer->addChild(percentCell);
 
     runsScrollLayer->m_contentLayer->updateLayout();
 }
 
-void RunOptions::onStartPoses(CCObject*){
+void RunOptions::onStartPoses(CCObject*) {
     auto currLvl = PlayLayer::get();
-    if (currLvl == nullptr){
+    if (currLvl == nullptr) {
         FLAlertLayer::create("Cant add StartPos runs", "You must enter the level itself to automatically add StartPos runs!", "OK")->show();
         return;
     }
@@ -514,8 +514,8 @@ void RunOptions::onStartPoses(CCObject*){
     int anythingAdded = false;
     bool foundStartPoses = false;
     
-    for (auto child : currLvl->m_objects->asExt<GameObject*>()){
-        if (auto sp = typeinfo_cast<StartPosObject*>(child)){
+    for (auto child : currLvl->m_objects->asExt<GameObject*>()) {
+        if (auto sp = typeinfo_cast<StartPosObject*>(child)) {
             float LLength = PlayLayer::get()->m_levelLength;
             float startPosX = sp->getPositionX();
 
@@ -546,7 +546,7 @@ void RunOptions::onStartPoses(CCObject*){
 }
 
 
-void RunOptions::onSharedHideScroll(CCObject*){
+void RunOptions::onSharedHideScroll(CCObject*) {
     for (const auto& child : runsScrollLayer->m_contentLayer->getChildrenExt<PercentCell*>())
     {
         child->setMaxToHide(sharedHideScroll->getValue());
@@ -555,7 +555,7 @@ void RunOptions::onSharedHideScroll(CCObject*){
     sharedRunsToShowInput->setString(std::to_string(static_cast<int>(sharedHideScroll->getValue() * 100)));
 }
 
-void RunOptions::sliderEnded(Slider* slider){
+void RunOptions::sliderEnded(Slider* slider) {
     for (const auto& child : runsScrollLayer->m_contentLayer->getChildrenExt<PercentCell*>())
     {
         child->sliderEnded(slider);

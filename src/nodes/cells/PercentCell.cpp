@@ -12,7 +12,7 @@ PercentCell* PercentCell::create(float width, int Percent, int maxToHide, CCNode
     return ret;
 }
 
-bool PercentCell::init(float width, int percent, int maxToHide, CCNode* sideButtonSprite, geode::Function<void(PercentCell*)> callback){
+bool PercentCell::init(float width, int percent, int maxToHide, CCNode* sideButtonSprite, geode::Function<void(PercentCell*)> callback) {
     if (!CCMenu::init()) return false;
 
     this->maxToHide = maxToHide;
@@ -73,22 +73,22 @@ bool PercentCell::init(float width, int percent, int maxToHide, CCNode* sideButt
     MTHInput->setString(std::to_string(maxToHide));
     MTHInput->setCommonFilter(CommonFilter::Uint);
     MTHInput->setID("mth-input");
-    MTHInput->setCallback([&](const auto& newStr){
+    MTHInput->setCallback([&](const auto& newStr) {
         auto numRes = utils::numFromString<int>(newStr);
         if (numRes.isErr()) return;
         int num = numRes.unwrap();
 
-        if (num < this->percent){
+        if (num < this->percent) {
             num = this->percent;
         }
-        if (num > 100){
+        if (num > 100) {
             num = 100;
         }
         
         this->maxToHide = num;
 
         MTHScroll->setValue((this->maxToHide - this->percent) / (100.0f - this->percent));
-        if (this->percent == 100){
+        if (this->percent == 100) {
             MTHScroll->setValue(1);
         }
 
@@ -97,7 +97,7 @@ bool PercentCell::init(float width, int percent, int maxToHide, CCNode* sideButt
     });
     this->addChild(MTHInput);
 
-    if (this->percent == 100){
+    if (this->percent == 100) {
         MTHScroll->setValue(1);
         MTHInput->setString("100");
     }
@@ -105,48 +105,48 @@ bool PercentCell::init(float width, int percent, int maxToHide, CCNode* sideButt
     return true;
 }
 
-void PercentCell::RunCallback(CCObject*){
+void PercentCell::RunCallback(CCObject*) {
     if (callback != NULL)
         callback(this);
 }
 
-void PercentCell::hide(){
+void PercentCell::hide() {
     this->runAction(CCFadeTo::create(0.2f, 0));
     Dev::fadeTextInput(MTHInput, false, .2f);
     Dev::fadeSlider(MTHScroll, false, .2f);
     this->setEnabled(false);
 }
-void PercentCell::hideInstant(){
+void PercentCell::hideInstant() {
     this->setOpacity(0);
     this->setEnabled(false);
     Dev::fadeTextInput(MTHInput, false, 0);
     Dev::fadeSlider(MTHScroll, false, 0);
 }
 
-void PercentCell::show(){
+void PercentCell::show() {
     this->runAction(CCFadeTo::create(0.2f, 255));
     Dev::fadeTextInput(MTHInput, true, .2f);
     Dev::fadeSlider(MTHScroll, true, .2f);
     this->setEnabled(true);
 }
 
-void PercentCell::mthScroll(CCObject*){
+void PercentCell::mthScroll(CCObject*) {
     int remappedValue = std::lerp(percent, 100, MTHScroll->getValue());
 
     this->maxToHide = remappedValue;
 
     MTHInput->setString(std::to_string(remappedValue));
-    if (this->percent == 100){
+    if (this->percent == 100) {
         MTHInput->setString("100");
     }
 }
 
-void PercentCell::sliderEnded(Slider* slider){
+void PercentCell::sliderEnded(Slider* slider) {
     if (onMaxToHideChanged != NULL)
         onMaxToHideChanged(this);
 }
 
-void PercentCell::setMaxToHide(float val){
+void PercentCell::setMaxToHide(float val) {
     MTHScroll->setValue(val);
     mthScroll(nullptr);
 }

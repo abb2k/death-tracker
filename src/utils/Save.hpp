@@ -13,11 +13,11 @@ class Save {
         static DTLayoutV3 getLayout();
         static void setLayout(const DTLayoutV3& layout);
 
-        static ccColor3B getNewBestColor();
-        static void setNewBestColor(const ccColor3B& color);
+        static CustomizationData getNewBestCustomizations();
+        static void setNewBestCustomizations(const CustomizationData& data);
 
-        static ccColor3B getSessionBestColor();
-        static void setSessionBestColor(const ccColor3B& color);
+        static CustomizationData getSessionBestCustomizations();
+        static void setSessionBestCustomizations(const CustomizationData& data);
 
         static bool getExportWOutLabels();
         static void setExportWOutLabels(const bool& b);

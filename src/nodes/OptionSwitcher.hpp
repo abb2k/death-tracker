@@ -125,7 +125,7 @@ void OptionSwitcher<E>::setCallback(geode::Function<void(E)> cb) {
 }
 
 template<typename E>
-void OptionSwitcher<E>::setValue(int index, bool runCallback){
+void OptionSwitcher<E>::setValue(int index, bool runCallback) {
     auto prevNode = labels[currentOption];
 
     currentOption = std::clamp(index, 0, static_cast<int>(labels.size() - 1));
@@ -139,7 +139,7 @@ void OptionSwitcher<E>::setValue(int index, bool runCallback){
 }
 
 template<typename E>
-void OptionSwitcher<E>::setValue(E e, bool runCallback){
+void OptionSwitcher<E>::setValue(E e, bool runCallback) {
     for (int i = 0; i < values.size(); i++)
     {
         if (values[i] != e) continue;

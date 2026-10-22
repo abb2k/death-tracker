@@ -12,7 +12,7 @@ GraphPointDisplay* GraphPointDisplay::create() {
     return ret;
 }
 
-bool GraphPointDisplay::init(){
+bool GraphPointDisplay::init() {
 
     this->setContentSize({100, 35});
 
@@ -37,7 +37,7 @@ bool GraphPointDisplay::init(){
     return true;
 }
 
-void GraphPointDisplay::setContent(std::string run, float ratePercent, DTGraphType type, ccColor3B graphInner, ccColor3B graphOuter){
+void GraphPointDisplay::setContent(std::string run, float ratePercent, DTGraphType type, ccColor3B graphInner, ccColor3B graphOuter) {
     auto runInfo = StatsManager::splitRunKey(run).unwrapOr(Run{std::nullopt, -1});
 
     std::string runSprFormatted;

@@ -28,21 +28,21 @@ bool DTPlayLayer::init(GJGameLevel* level, bool p1, bool p2) {
     if (!PlayLayer::init(level, p1, p2)) return false;
 
     auto metaRes = StatsManager::getMetadata(level);
-    if (metaRes.isErr() && metaRes.unwrapErr().code == 1){
+    if (metaRes.isErr() && metaRes.unwrapErr().code == 1) {
         LevelMetadeta newMeta{};
         metaRes = Ok(newMeta);
     }
-    else if (metaRes.isErr()){
+    else if (metaRes.isErr()) {
         geode::Notification::create(fmt::format("Failed to load DT level data! {}", metaRes.unwrapErr().error), NotificationIcon::Error)->show();
     }
 
-    if (metaRes.isOk()){
+    if (metaRes.isOk()) {
         auto metadata = metaRes.unwrap();
         metadata.levelName = level->m_levelName;
         metadata.attempts = level->m_attempts;
         metadata.difficulty = StatsManager::getDifficulty(level);
 
-        if (!metadata.hasGottenDataFromPT){
+        if (!metadata.hasGottenDataFromPT) {
             metadata.hasGottenDataFromPT = StatsManager::transferPlaytimeFromPT(level);
         }
 
@@ -63,7 +63,7 @@ bool DTPlayLayer::init(GJGameLevel* level, bool p1, bool p2) {
         m_fields->timePassedPaused = PlaytimePair{};
 
         StatsManager::currentFrom0 = GeneralData{};
-        if (StatsManager::currentSession.has_value()){
+        if (StatsManager::currentSession.has_value()) {
             StatsManager::currentSession.value().data = GeneralData{};
         }
 
@@ -78,7 +78,7 @@ bool DTPlayLayer::init(GJGameLevel* level, bool p1, bool p2) {
     auto levelKey = StatsManager::getLevelKey(level);
     auto sessionLength = Settings::getMaxSessionLength();
 
-    if (session == nullptr){
+    if (session == nullptr) {
         StatsManager::scheduleCreateNewSession(true);
         DTPlayLayer::updateSessionLastPlayed();
         //log::info("first session created");
@@ -134,30 +134,30 @@ void DTPlayLayer::cutoutPlaytime() {
 
     if (Settings::getSafeMode()) return;
     
-    if (m_fields->currentRun.start == 0){
-        if (m_isPaused || m_fields->levelBeaten){
+    if (m_fields->currentRun.start == 0) {
+        if (m_isPaused || m_fields->levelBeaten) {
             m_fields->timePassedPaused.playtimeF0 += timeSpent;
             // log::info("added playtime from 0 paused");
         }
-        else if (m_fields->lastOneDied){
+        else if (m_fields->lastOneDied) {
             m_fields->timePassedDead.playtimeF0 += timeSpent;
             // log::info("added playtime from 0 dead");
         }
-        else{
+        else {
             m_fields->timePassedGeneral.playtimeF0 += timeSpent;
             // log::info("added playtime from 0 general");
         }
     }
-    else{
-        if (m_isPaused || m_fields->levelBeaten){
+    else {
+        if (m_isPaused || m_fields->levelBeaten) {
             m_fields->timePassedPaused.playtimeRuns += timeSpent;
             // log::info("added playtime runs paused");
         }
-        else if (m_fields->lastOneDied){
+        else if (m_fields->lastOneDied) {
             m_fields->timePassedDead.playtimeRuns += timeSpent;
             // log::info("added playtime runs dead");
         }
-        else{
+        else {
             m_fields->timePassedGeneral.playtimeRuns += timeSpent;
             // log::info("added playtime runs general");
         }
@@ -190,14 +190,14 @@ void DTPlayLayer::resetLevel() {
 
     cutoutPlaytime();
 
-    if (m_fields->lastOneDied){
+    if (m_fields->lastOneDied) {
         m_fields->lastOneDied = false;
     }
-    else{
-        if (!(DTPlayLayer::disableCompletedLevelTracking() || (Settings::getDisablePractice() && m_isPracticeMode)) && isGameplayActive()){
+    else {
+        if (!(DTPlayLayer::disableCompletedLevelTracking() || (Settings::getDisablePractice() && m_isPracticeMode)) && isGameplayActive()) {
             auto metaRes = StatsManager::getMetadata(m_level);
 
-            if (metaRes.isOk() && metaRes.unwrap().resetAsDeath){
+            if (metaRes.isOk() && metaRes.unwrap().resetAsDeath) {
                 if (!m_level->isPlatformer())
                     m_fields->currentRun.end = getActualProgress(this);
 
@@ -233,7 +233,7 @@ void DTPlayLayer::destroyPlayer(PlayerObject* player, GameObject* p1) {
 
     if (!m_fields->disabledCheat)
         m_fields->disabledCheat = p1;
-    if (!m_fields->nolcip && m_fields->disabledCheat != static_cast<cocos2d::CCObject*>(p1) && !player->m_isDead && !m_levelEndAnimationStarted){
+    if (!m_fields->nolcip && m_fields->disabledCheat != static_cast<cocos2d::CCObject*>(p1) && !player->m_isDead && !m_levelEndAnimationStarted) {
         log::warn("Noclip Detected!");
         m_fields->nolcip = true;
     }
@@ -258,39 +258,39 @@ void DTPlayLayer::destroyPlayer(PlayerObject* player, GameObject* p1) {
     saveRun();
 }
 
-void DTPlayLayer::saveRun(){
+void DTPlayLayer::saveRun() {
     if (Settings::getSafeMode()) return;
     if (!isLegal()) return;
 
-    if (Settings::getQuickSaveEnabled()){
-        if (m_fields->currentRun.start == 0 && !m_isPracticeMode){
+    if (Settings::getQuickSaveEnabled()) {
+        if (m_fields->currentRun.start == 0 && !m_isPracticeMode) {
             StatsManager::logDeath(m_fields->currentRun.end);
         }
-        else if (!m_isPracticeMode && m_level->isPlatformer()){
+        else if (!m_isPracticeMode && m_level->isPlatformer()) {
             StatsManager::logDeath(m_fields->currentRun.end);
         }
 
-        else if (m_level->isPlatformer() && m_isPracticeMode){
+        else if (m_level->isPlatformer() && m_isPracticeMode) {
             StatsManager::logRun(m_fields->currentRun);
         }
-        else{
+        else {
             StatsManager::logRun(m_fields->currentRun);
         }
 
         savePlaytime();
     }
-    else{
-        if (m_fields->currentRun.start == 0 && !m_isPracticeMode){
+    else {
+        if (m_fields->currentRun.start == 0 && !m_isPracticeMode) {
             m_fields->fzeroToSave.push_back(m_fields->currentRun.end);
         }
-        else if (!m_isPracticeMode && m_level->isPlatformer()){
+        else if (!m_isPracticeMode && m_level->isPlatformer()) {
             m_fields->fzeroToSave.push_back(m_fields->currentRun.end);
         }
 
-        else if (m_level->isPlatformer() && m_isPracticeMode){
+        else if (m_level->isPlatformer() && m_isPracticeMode) {
             m_fields->runsToSave.push_back(m_fields->currentRun);
         }
-        else{
+        else {
             m_fields->runsToSave.push_back(m_fields->currentRun);
         }
     }
@@ -363,17 +363,17 @@ float DTPlayLayer::getActualProgress(GJBaseGameLayer* game) {
     return std::clamp(percent, 0.f, 100.f);
 }
 
-void DTPlayLayer::onExit(){
+void DTPlayLayer::onExit() {
     PlayLayer::onExit();
     if (m_fields->didJustPause) return;
 
     
 
-    if (m_fields->fzeroToSave.size()){
+    if (m_fields->fzeroToSave.size()) {
         StatsManager::logDeaths(m_fields->fzeroToSave);
     }
 
-    if (m_fields->runsToSave.size()){
+    if (m_fields->runsToSave.size()) {
         StatsManager::logRuns(m_fields->runsToSave);
     }
 
@@ -382,9 +382,9 @@ void DTPlayLayer::onExit(){
     savePlaytime();
 
     auto lvlKey = StatsManager::getLevelKey(m_level);
-    if (lvlKey.isOk() && Settings::getAutoBackupEnabled() && Settings::getAutoBackupAtLvlExit()){
+    if (lvlKey.isOk() && Settings::getAutoBackupEnabled() && Settings::getAutoBackupAtLvlExit()) {
         auto metaRes = StatsManager::getMetadata(lvlKey.unwrap());
-        if (metaRes.isOk() && metaRes.unwrap().autoBackup){
+        if (metaRes.isOk() && metaRes.unwrap().autoBackup) {
             StatsManager::addBackup(
                 lvlKey.unwrap(),
                 Settings::getAutoBackupGeneral(),
@@ -405,7 +405,7 @@ void DTPlayLayer::onExit(){
     StatsManager::setCurrentLevel(nullptr);
 }
 
-void DTPlayLayer::startGame(){
+void DTPlayLayer::startGame() {
     PlayLayer::startGame();
 
     m_fields->didGameStartThisFrame = true;
@@ -413,7 +413,7 @@ void DTPlayLayer::startGame(){
     startupPlaytime();
 }
 
-void DTPlayLayer::playEndAnimationToPos(cocos2d::CCPoint position){
+void DTPlayLayer::playEndAnimationToPos(cocos2d::CCPoint position) {
     PlayLayer::playEndAnimationToPos(position);
 
     cutoutPlaytime();
@@ -421,7 +421,7 @@ void DTPlayLayer::playEndAnimationToPos(cocos2d::CCPoint position){
     m_fields->levelBeaten = true;
 }
 
-void DTPlayLayer::playPlatformerEndAnimationToPos(cocos2d::CCPoint position, bool instant){
+void DTPlayLayer::playPlatformerEndAnimationToPos(cocos2d::CCPoint position, bool instant) {
     PlayLayer::playPlatformerEndAnimationToPos(position, instant);
 
     cutoutPlaytime();
@@ -429,7 +429,7 @@ void DTPlayLayer::playPlatformerEndAnimationToPos(cocos2d::CCPoint position, boo
     m_fields->levelBeaten = true;
 }
 
-bool DTPlayLayer::isLegal(){
+bool DTPlayLayer::isLegal() {
     if (Settings::getCheatDetect() && (m_fields->nolcip || m_isIgnoreDamageEnabled || m_ignoreDamage || m_fields->speedhack)) return false;
 
     return true;
@@ -498,9 +498,9 @@ void DTPlayLayer::updateTimeWarp(float timeWarp) {
     m_fields->rollingGameSum = 0;
 }
 
-void DTPlayLayer::savePlaytime(){
+void DTPlayLayer::savePlaytime() {
     auto session = StatsManager::getCurrentSession();
-    if (session != nullptr){
+    if (session != nullptr) {
         session->data.playtimeGeneral += m_fields->timePassedGeneral;
         session->data.playtimeDead += m_fields->timePassedDead;
         session->data.playtimePaused += m_fields->timePassedPaused;
@@ -509,7 +509,7 @@ void DTPlayLayer::savePlaytime(){
 
     StatsManager::safeCheckCurrF0();
 
-    if (StatsManager::currentFrom0.has_value()){
+    if (StatsManager::currentFrom0.has_value()) {
         auto& val = StatsManager::currentFrom0.value();
         val.playtimeGeneral += m_fields->timePassedGeneral;
         val.playtimeDead += m_fields->timePassedDead;

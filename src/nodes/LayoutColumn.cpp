@@ -18,7 +18,7 @@ LayoutColumn* LayoutColumn::create(const DTColumnInfo& info, bool startVisible, 
     return ret;
 }
 
-bool LayoutColumn::init(const DTColumnInfo& info, bool startVisible, float minHeight){
+bool LayoutColumn::init(const DTColumnInfo& info, bool startVisible, float minHeight) {
     if (!CCMenu::init()) return false;
 
     this->info = info;
@@ -95,11 +95,11 @@ bool LayoutColumn::init(const DTColumnInfo& info, bool startVisible, float minHe
 
     auto touchSender = TouchSender::create(-502, false);
     touchSender->setID("touchSender");
-    touchSender->beginCheck = [&](cocos2d::CCTouch* touch, cocos2d::CCEvent* event){
+    touchSender->beginCheck = [&](cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
         if (!isVisible) return false;
         auto touchInParentSpace = topBorder2->getParent()->convertTouchToNodeSpace(touch);
 
-        if (topSpr->boundingBox().containsPoint(touchInParentSpace)){
+        if (topSpr->boundingBox().containsPoint(touchInParentSpace)) {
             isTouchingTopSpr = true;
             originalTopSprTouchPos = touchInParentSpace;
             return true;
@@ -109,9 +109,9 @@ bool LayoutColumn::init(const DTColumnInfo& info, bool startVisible, float minHe
 
         return false;
     };
-    touchSender->onTouch = [&](TouchSenderState state, cocos2d::CCTouch* touch, cocos2d::CCEvent* event){
-        if (state == TouchSenderState::Moved){
-            if (isTouchingTopSpr){
+    touchSender->onTouch = [&](TouchSenderState state, cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
+        if (state == TouchSenderState::Moved) {
+            if (isTouchingTopSpr) {
                 auto touchInParentSpace = topBorder2->getParent()->convertTouchToNodeSpace(touch);
         
                 auto distance = (originalTopSprTouchPos - touchInParentSpace).getLength();
@@ -120,11 +120,11 @@ bool LayoutColumn::init(const DTColumnInfo& info, bool startVisible, float minHe
                     isTouchingTopSpr = false;
             }
         }
-        else if (state == TouchSenderState::Cancled){
+        else if (state == TouchSenderState::Cancled) {
             isTouchingTopSpr = false;
         }
-        else if (state == TouchSenderState::Ended){
-            if (isTouchingTopSpr){
+        else if (state == TouchSenderState::Ended) {
+            if (isTouchingTopSpr) {
                 DTLayer::get()->setOptionsLayerTo(this);
             }
             isTouchingTopSpr = false;
@@ -132,7 +132,7 @@ bool LayoutColumn::init(const DTColumnInfo& info, bool startVisible, float minHe
     };
     this->addChild(touchSender);
 
-    if (!startVisible){
+    if (!startVisible) {
         for (const auto& child : CCArrayExt<CCNode*>(this->getChildren()))
         {
             if (auto rgbChild = typeinfo_cast<CCRGBAProtocol*>(child))
@@ -144,7 +144,7 @@ bool LayoutColumn::init(const DTColumnInfo& info, bool startVisible, float minHe
     return true;
 }
 
-void LayoutColumn::updateSizesByContent(){
+void LayoutColumn::updateSizesByContent() {
     if (this->getContentHeight() < minHeight) this->setContentHeight(minHeight);
     
     topSpr->setContentSize({this->getContentWidth(), topHeight});
@@ -166,12 +166,12 @@ void LayoutColumn::updateSizesByContent(){
     bgSideBorder->setPosition(topBorder2->getPosition() - ccp(0, topBorder2->getContentHeight()));
 }
 
-void LayoutColumn::update(float dt){
+void LayoutColumn::update(float dt) {
     DTLabel* lowestLabel = nullptr;
 
     auto labelsTemp = labels;
-    for (const auto& [labelLayer, label] : labelsTemp){
-        if (lowestLabel == nullptr){
+    for (const auto& [labelLayer, label] : labelsTemp) {
+        if (lowestLabel == nullptr) {
             lowestLabel = label;
             continue;
         }
@@ -181,11 +181,11 @@ void LayoutColumn::update(float dt){
 
     CCPoint targetAddBtnPos;
 
-    if (lowestLabel != nullptr){
+    if (lowestLabel != nullptr) {
         auto lowestLabelPointWorldSpace = lowestLabel->convertToWorldSpace({0, 0});
         targetAddBtnPos = this->convertToNodeSpace(lowestLabelPointWorldSpace) - ccp(0, addNewBtnOffset);
     }
-    else{
+    else {
         targetAddBtnPos = bgSpr->getPosition() + ccp(0, -addNewBtnOffset);
     }
 
@@ -193,7 +193,7 @@ void LayoutColumn::update(float dt){
 
     //log::info("plus button for column {}, {} | {}", orderPos, targetAddBtnPos, tempMenuPos);
 
-    if (!targetAddBtnPos.equals(tempMenuPos)){
+    if (!targetAddBtnPos.equals(tempMenuPos)) {
         tempMenuPos = targetAddBtnPos;
         menu->stopActionByTag(1);
         auto btnMoveAction = CCEaseInOut::create(CCMoveTo::create(.5f, targetAddBtnPos), 2);
@@ -202,12 +202,12 @@ void LayoutColumn::update(float dt){
     }
 }
 
-void LayoutColumn::setContentHeight(float height){
+void LayoutColumn::setContentHeight(float height) {
     CCMenu::setContentHeight(height);
     updateSizesByContent();
 }
 
-void LayoutColumn::setContentWidth(float width){
+void LayoutColumn::setContentWidth(float width) {
     CCMenu::setContentWidth(width);
 
     info.currentWidth = width;
@@ -243,8 +243,8 @@ void LayoutColumn::ccTouchCancelled(CCTouch*, CCEvent*) {
     DTLayer::get()->organizeLayout();
 }
 
-void LayoutColumn::ccTouchMoved(CCTouch* touch, CCEvent*){
-    if (isTouchingSide){
+void LayoutColumn::ccTouchMoved(CCTouch* touch, CCEvent*) {
+    if (isTouchingSide) {
         auto currentWidth = this->getContentWidth();
 
         auto spacedTouchLoc = this->getParent()->convertToNodeSpace(touch->getLocation());
@@ -260,38 +260,38 @@ void LayoutColumn::ccTouchMoved(CCTouch* touch, CCEvent*){
     }
 }
 
-void LayoutColumn::setColor(ccColor3B color){
+void LayoutColumn::setColor(ccColor3B color) {
     topSpr->setColor(color);
     bgSpr->setColor(color);
 
     info.color = color;
 }
 
-void LayoutColumn::addLabel(DTLabel* label){
+void LayoutColumn::addLabel(DTLabel* label) {
     label->addColumnAsHolder(this);
-    if (labels.contains(label->info.layer)){
+    if (labels.contains(label->info.layer)) {
         labels[label->info.layer]->moveUpLayer();
     }
     
     labels.insert({label->info.layer, label});
 }
 
-void LayoutColumn::removeLabel(DTLabel* label){
+void LayoutColumn::removeLabel(DTLabel* label) {
     if (!label->isPartOfColumn(this)) return;
     label->removeColumnAsHolder(this);
 
     this->labels.erase(label->info.layer);
 }
 
-void LayoutColumn::updateLabelPosition(DTLabel* label){
-    if (labels.contains(label->info.layer)){
+void LayoutColumn::updateLabelPosition(DTLabel* label) {
+    if (labels.contains(label->info.layer)) {
         labels[label->info.layer]->moveUpLayer();
     }
 
     labels.insert({label->info.layer, label});
 }
 
-void LayoutColumn::onAddLabelBtnClicked(CCObject*){
+void LayoutColumn::onAddLabelBtnClicked(CCObject*) {
     auto newLabel = DTLayer::get()->createNewLabel();
 
     int highestLayer = 0;
@@ -307,11 +307,11 @@ void LayoutColumn::onAddLabelBtnClicked(CCObject*){
     DTLayer::get()->organizeLayout();
 }
 
-void LayoutColumn::onOrganized(float deltaMove){
+void LayoutColumn::onOrganized(float deltaMove) {
     menu->setPositionY(menu->getPositionY() - deltaMove);
 }
 
-void LayoutColumn::destroyColumnAndCleanup(){
+void LayoutColumn::destroyColumnAndCleanup() {
     auto labelsTemp = labels;
     std::set<DTLabel*> labelsToDelete{};
     for (const auto& [labelLayer, label] : labelsTemp)
@@ -337,7 +337,7 @@ void LayoutColumn::destroyColumnAndCleanup(){
     DTLayer::get()->fixUpColumnPositions();
 }
 
-void LayoutColumn::refreshAllLabelsLayer(){
+void LayoutColumn::refreshAllLabelsLayer() {
     auto labelsbackup = labels;
 
     for (const auto& [labelLayer, label] : labels)
@@ -354,7 +354,7 @@ void LayoutColumn::refreshAllLabelsLayer(){
     }
 }
 
-void LayoutColumn::setVisibility(bool visible){
+void LayoutColumn::setVisibility(bool visible) {
     isVisible = visible;
     menu->setEnabled(visible);
 

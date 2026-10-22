@@ -28,9 +28,7 @@ bool CreateBackupPopup::init() {
     btnMenu->setPosition({0,0});
     m_mainLayer->addChild(btnMenu);
 
-    auto saveGeneralToggler = SimpleToggler::create(
-        CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
-        CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
+    auto saveGeneralToggler = SimpleToggler::createWithDefaults(
         .6f,
         true
     );
@@ -74,7 +72,7 @@ bool CreateBackupPopup::init() {
             saveSessionsInput->setEnabled(false);
             this->sessions = -1;
         }
-        else{
+        else {
             saveSessionsInput->setString("2");
             saveSessionsInput->setEnabled(true);
             this->sessions = 2;
@@ -96,7 +94,7 @@ bool CreateBackupPopup::init() {
     return true;
 }
 
-void CreateBackupPopup::createBackupClicked(cocos2d::CCObject* sender){
+void CreateBackupPopup::createBackupClicked(cocos2d::CCObject* sender) {
     if (callback != NULL) {
         callback(this->general, this->sessions);
     }

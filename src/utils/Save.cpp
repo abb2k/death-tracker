@@ -1,102 +1,102 @@
 #include <utils/Save.hpp>
 
 
-std::vector<V2LabelLayout> Save::getOldLayout(){
+std::vector<V2LabelLayout> Save::getOldLayout() {
     return Mod::get()->getSavedValue<std::vector<V2LabelLayout>>("Layout");
 }
 
-void Save::setOldLayout(const std::vector<V2LabelLayout>& layout){
+void Save::setOldLayout(const std::vector<V2LabelLayout>& layout) {
     Mod::get()->setSavedValue("Layout", layout);
 }
 
-DTLayoutV3 Save::getLayout(){
+DTLayoutV3 Save::getLayout() {
     return Mod::get()->getSavedValue<DTLayoutV3>("DTLayoutV3");
 }
 
-void Save::setLayout(const DTLayoutV3& layout){
+void Save::setLayout(const DTLayoutV3& layout) {
     Mod::get()->setSavedValue("DTLayoutV3", layout);
 }
 
-ccColor3B Save::getNewBestColor(){
-    return Mod::get()->getSavedValue<ccColor3B>("NewBestColor");
+CustomizationData Save::getNewBestCustomizations() {
+    return Mod::get()->getSavedValue<CustomizationData>("NewBestCustomizations", CustomizationData{.color = to4B(Mod::get()->getSavedValue<ccColor3B>("NewBestColor"))});
 }
 
-void Save::setNewBestColor(const ccColor3B& color){
-    Mod::get()->setSavedValue("NewBestColor", color);
+void Save::setNewBestCustomizations(const CustomizationData& data) {
+    Mod::get()->setSavedValue("NewBestCustomizations", data);
 }
 
-ccColor3B Save::getSessionBestColor(){
-    return Mod::get()->getSavedValue<ccColor3B>("SessionBestColor");
+CustomizationData Save::getSessionBestCustomizations() {
+    return Mod::get()->getSavedValue<CustomizationData>("SessionBestCustomizations", CustomizationData{.color = to4B(Mod::get()->getSavedValue<ccColor3B>("SessionBestColor"))});
 }
 
-void Save::setSessionBestColor(const ccColor3B& color){
-    Mod::get()->setSavedValue("SessionBestColor", color);
+void Save::setSessionBestCustomizations(const CustomizationData& data) {
+    Mod::get()->setSavedValue("SessionBestCustomizations", data);
 }
 
-bool Save::getExportWOutLabels(){
+bool Save::getExportWOutLabels() {
     return Mod::get()->getSavedValue<bool>("ExportWLabels");
 }
 
-void Save::setExportWOutLabels(const bool& b){
+void Save::setExportWOutLabels(const bool& b) {
     Mod::get()->setSavedValue("ExportWLabels", b);
 }
 
-bool Save::getDidConvertToV3(){
+bool Save::getDidConvertToV3() {
     return Mod::get()->getSavedValue<bool>("DidConvertToV3");
 }
-void Save::setDidConvertToV3(const bool& b){
+void Save::setDidConvertToV3(const bool& b) {
     Mod::get()->setSavedValue("DidConvertToV3", b);
 }
 
-std::string Save::getLastOpenedVersion(){
+std::string Save::getLastOpenedVersion() {
     return Mod::get()->getSavedValue<std::string>("LastOpenedVersion");
 }
 
-void Save::setLastOpenedVersion(const std::string& verion){
+void Save::setLastOpenedVersion(const std::string& verion) {
     Mod::get()->setSavedValue("LastOpenedVersion", verion);
 }
 
-stringCustomazations Save::getFrom0Customazations(){
+stringCustomazations Save::getFrom0Customazations() {
     return Mod::get()->getSavedValue<stringCustomazations>("F0Zustom");
 }
-void Save::setFrom0Customazations(const stringCustomazations& from0Custom){
+void Save::setFrom0Customazations(const stringCustomazations& from0Custom) {
     Mod::get()->setSavedValue("F0Zustom", from0Custom);
 }
 
-stringCustomazations Save::getRunsCustomazations(){
+stringCustomazations Save::getRunsCustomazations() {
     return Mod::get()->getSavedValue<stringCustomazations>("RunCustom");
 }
-void Save::setRunCustomazations(const stringCustomazations& runCustom){
+void Save::setRunCustomazations(const stringCustomazations& runCustom) {
     Mod::get()->setSavedValue("RunCustom", runCustom);
 }
 
-stringCustomazations Save::getSessionF0Customazations(){
+stringCustomazations Save::getSessionF0Customazations() {
     return Mod::get()->getSavedValue<stringCustomazations>("SessionF0Custom");
 }
-void Save::setSessionF0Customazations(const stringCustomazations& sessionF0Custom){
+void Save::setSessionF0Customazations(const stringCustomazations& sessionF0Custom) {
     Mod::get()->setSavedValue("SessionF0Custom", sessionF0Custom);
 }
 
-stringCustomazations Save::getSessionRunCustomazations(){
+stringCustomazations Save::getSessionRunCustomazations() {
     return Mod::get()->getSavedValue<stringCustomazations>("SessionRunCustom");
 }
-void Save::setSessionRunCustomazations(const stringCustomazations& sessionRunCustom){
+void Save::setSessionRunCustomazations(const stringCustomazations& sessionRunCustom) {
     Mod::get()->setSavedValue("SessionRunCustom", sessionRunCustom);
 }
 
-std::vector<DTGraphInfo> Save::getGraphs(){
+std::vector<DTGraphInfo> Save::getGraphs() {
     return Mod::get()->getSavedValue<std::vector<DTGraphInfo>>("graphs");
 }
-void Save::setGraphs(const std::vector<DTGraphInfo>& graphs){
+void Save::setGraphs(const std::vector<DTGraphInfo>& graphs) {
     Mod::get()->setSavedValue("graphs", graphs);
 }
 
-bool Save::wasTutorialSeen(const std::string& tutorialID){
+bool Save::wasTutorialSeen(const std::string& tutorialID) {
     auto tutorialsSeen = Mod::get()->getSavedValue<std::set<std::string>>("tutorialsSeen");
 
     return tutorialsSeen.contains(tutorialID);
 }
-void Save::setTutorialSeen(const std::string& tutorialID){
+void Save::setTutorialSeen(const std::string& tutorialID) {
     auto tutorialsSeen = Mod::get()->getSavedValue<std::set<std::string>>("tutorialsSeen");
 
     if (tutorialsSeen.contains(tutorialID)) return;
@@ -106,14 +106,14 @@ void Save::setTutorialSeen(const std::string& tutorialID){
     Mod::get()->setSavedValue("tutorialsSeen", tutorialsSeen);
 }
 
-std::vector<DTLayoutPreset> Save::getLayoutPresets(){
+std::vector<DTLayoutPreset> Save::getLayoutPresets() {
     return Mod::get()->getSavedValue<std::vector<DTLayoutPreset>>("layoutPresets");
 }
-void Save::setLayoutPresets(const std::vector<DTLayoutPreset>& presets){
+void Save::setLayoutPresets(const std::vector<DTLayoutPreset>& presets) {
     Mod::get()->setSavedValue("layoutPresets", presets);
 }
 
-bool Save::getLevelWasPTTransferred(std::string const& lvlKey){
+bool Save::getLevelWasPTTransferred(std::string const& lvlKey) {
     auto PTTransferData = Mod::get()->getSavedValue<std::set<std::string>>("PTTransferData");
 
     if (PTTransferData.contains(lvlKey))
@@ -121,7 +121,7 @@ bool Save::getLevelWasPTTransferred(std::string const& lvlKey){
     
     return false;
 }
-void Save::setLevelWasPTTransferred(std::string const& lvlKey){
+void Save::setLevelWasPTTransferred(std::string const& lvlKey) {
     auto PTTransferData = Mod::get()->getSavedValue<std::set<std::string>>("PTTransferData");
 
     if (PTTransferData.contains(lvlKey)) return;
@@ -131,7 +131,7 @@ void Save::setLevelWasPTTransferred(std::string const& lvlKey){
     Mod::get()->setSavedValue("PTTransferData", PTTransferData);
 }
 
-DTLayoutV3 Save::getDefaultLayout(){
+DTLayoutV3 Save::getDefaultLayout() {
     return DTLayoutV3{
         .columns = std::vector<DTColumnInfo>{
             DTColumnInfo{ .orderPos = 0, .currentWidth = 120.0f, .color = {255, 255, 255} },

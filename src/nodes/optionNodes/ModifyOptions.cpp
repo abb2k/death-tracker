@@ -14,7 +14,7 @@ ModifyOptions* ModifyOptions::create(const CCSize& size) {
     return ret;
 }
 
-bool ModifyOptions::setup(){
+bool ModifyOptions::setup() {
 
     this->setEnabled(false);
     this->setOpacity(0);
@@ -118,7 +118,7 @@ bool ModifyOptions::setup(){
     currentRunModeLabel->setScale(.5f);
     this->addChild(currentRunModeLabel);
 
-    runF0Toggler->setCallback([&, currentRunModeLabel](auto state){
+    runF0Toggler->setCallback([&, currentRunModeLabel](auto state) {
         currentRunModeLabel->setString(
             state ?
                 "Runs" :
@@ -128,12 +128,12 @@ bool ModifyOptions::setup(){
         updatePreviewName(sessLvlSwitcher->getCurrentOptionIndex() == 1, !state);
     });
 
-    sessLvlSwitcher->setOptionChangedCallback([&](auto option){
+    sessLvlSwitcher->setOptionChangedCallback([&](auto option) {
         updatePreviewName(option == 1, !runF0Toggler->isToggled());
     });
 
     int sessionAmount = 1;
-    if  (dtLayer != nullptr){
+    if  (dtLayer != nullptr) {
         sessionAmount = dtLayer->getCurrentGrouping().grouping.size();
     }
 
@@ -190,7 +190,7 @@ bool ModifyOptions::setup(){
         runsBG->getContentWidth() / 2,
         runAmountInput->getContentHeight() / 2 + 2
     });
-    runAmountInput->setCallback([&](auto newstr){
+    runAmountInput->setCallback([&](auto newstr) {
         auto numRes = geode::utils::numFromString<int>(newstr);
         if (numRes.isErr()) return;
         int num = numRes.unwrap();
@@ -227,8 +227,8 @@ bool ModifyOptions::setup(){
     ));
     runsBG->addChild(runPMAlignNode);
 
-    addPlusMinusBtns(runPMAlignNode, false, [&](bool isPlus){
-        if (currentStartRunToAdd > currentEndRunToAdd){
+    addPlusMinusBtns(runPMAlignNode, false, [&](bool isPlus) {
+        if (currentStartRunToAdd > currentEndRunToAdd) {
             auto tint = CCTintTo::create(.2f, 255, 0, 0);
             auto seq = CCSequence::create(
                 CCTintTo::create(.2f, 255, 0, 0),
@@ -269,8 +269,8 @@ bool ModifyOptions::setup(){
     addRunEndInput->setCommonFilter(CommonFilter::Uint);
     runsBG->addChild(addRunEndInput);
 
-    static_cast<DTCCTextInputNode*>(addRunStartInput->getInputNode())->setCallback([&](const std::string& newText){
-        if (newText == "-" && addRunStartInput->getInputNode()->m_selected){
+    static_cast<DTCCTextInputNode*>(addRunStartInput->getInputNode())->setCallback([&](const std::string& newText) {
+        if (newText == "-" && addRunStartInput->getInputNode()->m_selected) {
             addRunStartInput->defocus();
             addRunEndInput->focus();
             addRunEndInput->setString("");
@@ -279,8 +279,8 @@ bool ModifyOptions::setup(){
         }
     });
 
-    static_cast<DTCCTextInputNode*>(addRunEndInput->getInputNode())->setCallback([&](const std::string& newText){
-        if (newText == "-" && addRunEndInput->getInputNode()->m_selected){
+    static_cast<DTCCTextInputNode*>(addRunEndInput->getInputNode())->setCallback([&](const std::string& newText) {
+        if (newText == "-" && addRunEndInput->getInputNode()->m_selected) {
             addRunEndInput->defocus();
             addRunStartInput->focus();
             addRunStartInput->setString("");
@@ -289,7 +289,7 @@ bool ModifyOptions::setup(){
         }
     });
 
-    addRunStartInput->setCallback([&](auto newstr){
+    addRunStartInput->setCallback([&](auto newstr) {
         auto numStartRes = geode::utils::numFromString<int>(newstr);
         if (numStartRes.isErr()) return;
         int numStart = numStartRes.unwrap();
@@ -306,7 +306,7 @@ bool ModifyOptions::setup(){
         currentStartRunToAdd = numStart;
     });
 
-    addRunEndInput->setCallback([&](auto newstr){
+    addRunEndInput->setCallback([&](auto newstr) {
         auto numStartRes = geode::utils::numFromString<int>(addRunStartInput->getString());
         int numStart;
         if (numStartRes.isErr()) numStart = 0;
@@ -348,7 +348,7 @@ bool ModifyOptions::setup(){
         f0BG->getContentWidth() / 2,
         f0AmountInput->getContentHeight() / 2 + 2
     });
-    f0AmountInput->setCallback([&](auto newstr){
+    f0AmountInput->setCallback([&](auto newstr) {
         auto numRes = geode::utils::numFromString<int>(newstr);
         if (numRes.isErr()) return;
         int num = numRes.unwrap();
@@ -385,7 +385,7 @@ bool ModifyOptions::setup(){
     ));
     f0BG->addChild(f0PMAlignNode);
 
-    addPlusMinusBtns(f0PMAlignNode, false, [&](bool isPlus){
+    addPlusMinusBtns(f0PMAlignNode, false, [&](bool isPlus) {
         std::optional<int> sessionNum = std::nullopt;
         if (sessLvlSwitcher->getCurrentOptionIndex() == 1) 
             sessionNum = sessionSelector->getCurrentCount();
@@ -397,7 +397,7 @@ bool ModifyOptions::setup(){
     }, .9f);
 
     addPercentInput = TextInput::create(75, "percent", "gjFont17.fnt");
-    addPercentInput->setCallback([&](auto newstr){
+    addPercentInput->setCallback([&](auto newstr) {
         auto numRes = geode::utils::numFromString<int>(newstr);
         if (numRes.isErr()) return;
         int num = numRes.unwrap();
@@ -485,7 +485,7 @@ bool ModifyOptions::setup(){
         0,
         addNewBestInput->getScaledContentHeight() / 2 + addBtn->getScaledContentHeight() / 2 + 5
     ));
-    addNewBestInput->setCallback([&](auto newstr){
+    addNewBestInput->setCallback([&](auto newstr) {
         auto numRes = geode::utils::numFromString<int>(newstr);
         if (numRes.isErr()) return;
         int num = numRes.unwrap();
@@ -511,7 +511,7 @@ bool ModifyOptions::setup(){
 
     scheduleUpdate();
 
-    auto modiftyInfo = TutorialButton::create(.75f, "modify-overall", [&, addBtn, removeInvalidRunsBtn, removeBtn, currentRunModeLabel](DTTutorialLayer* tutorialLayer){
+    auto modiftyInfo = TutorialButton::create(.75f, "modify-overall", [&, addBtn, removeInvalidRunsBtn, removeBtn, currentRunModeLabel](DTTutorialLayer* tutorialLayer) {
         tutorialLayer->appendDialogue("Here you are able to <cy>modify</c> your save file!", TutorialCharacterFace::TCFHappy)
             ->appendDialogue("Here you have a <cf>preview</c> of how your save file <cy>currently</c> looks", TutorialCharacterFace::TCFNormal)
             ->joinTransform(TutorialBoxPlacement::TBPLeft, .75f)
@@ -616,7 +616,7 @@ bool ModifyOptions::setup(){
                 if (addNewBestInput->getInputNode()->m_selected) {
                     addNB(nullptr);
                 }
-                else if (addRunStartInput->getInputNode()->m_selected || addRunEndInput->getInputNode()->m_selected){
+                else if (addRunStartInput->getInputNode()->m_selected || addRunEndInput->getInputNode()->m_selected) {
                     (*plusMinusCallbacks[holdersOfPlusMinusBtns[runPMAlignNode].first])(true);
                 }
                 else if (addPercentInput->getInputNode()->m_selected) {
@@ -635,7 +635,7 @@ bool ModifyOptions::setup(){
                 if (addNewBestInput->getInputNode()->m_selected) {
                     removeNB(nullptr);
                 }
-                else if (addRunStartInput->getInputNode()->m_selected || addRunEndInput->getInputNode()->m_selected){
+                else if (addRunStartInput->getInputNode()->m_selected || addRunEndInput->getInputNode()->m_selected) {
                     (*plusMinusCallbacks[holdersOfPlusMinusBtns[runPMAlignNode].second])(false);
                 }
                 else if (addPercentInput->getInputNode()->m_selected) {
@@ -662,7 +662,7 @@ bool ModifyOptions::setup(){
     return true;
 }
 
-void ModifyOptions::onOpened(){
+void ModifyOptions::onOpened() {
     float fadeTime = .2f;
     this->runAction(CCFadeIn::create(fadeTime));
     previewBG->runAction(CCFadeTo::create(fadeTime, 150));
@@ -700,7 +700,7 @@ void ModifyOptions::onOpened(){
     this->setEnabled(true);
     previewScroll->setMouseEnabled(true);  
 }
-void ModifyOptions::onClosed(){
+void ModifyOptions::onClosed() {
     float fadeTime = .2f;
     this->runAction(CCFadeOut::create(fadeTime));
     previewBG->runAction(CCFadeTo::create(fadeTime, 0));
@@ -737,14 +737,14 @@ void ModifyOptions::onClosed(){
     previewScroll->setMouseEnabled(false);
 }
 
-void ModifyOptions::update(float dt){
+void ModifyOptions::update(float dt) {
     float prevHeight = previewScroll->m_contentLayer->getContentHeight();
     previewScroll->m_contentLayer->updateLayout();
     if (previewScroll->m_contentLayer->getContentHeight() != prevHeight)
         previewScroll->moveToTop();
 }
 
-void ModifyOptions::updatePreviewName(bool categotyIsSession, bool f0State){
+void ModifyOptions::updatePreviewName(bool categotyIsSession, bool f0State) {
     std::string category = !categotyIsSession ?
         "level" :
         fmt::format("session {}", DTLayer::get()->getCurrentSelectedSession());
@@ -756,11 +756,11 @@ void ModifyOptions::updatePreviewName(bool categotyIsSession, bool f0State){
 
     std::string text;
 
-    if (!categotyIsSession){
+    if (!categotyIsSession) {
         if (f0State) text = "general";
         else text = "runs";
     }
-    else{
+    else {
         if (f0State) text = "s0";
         else text = "sruns";
     }
@@ -768,7 +768,7 @@ void ModifyOptions::updatePreviewName(bool categotyIsSession, bool f0State){
     myLabel->setLabelText(fmt::format("{{{}}}", text));
 }
 
-void ModifyOptions::addPlusMinusBtns(CCNode* around, bool flip, geode::Function<void(bool isPlus)> callback, float scale){
+void ModifyOptions::addPlusMinusBtns(CCNode* around, bool flip, geode::Function<void(bool isPlus)> callback, float scale) {
     auto plusBtnSpr = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
     plusBtnSpr->setScale(scale);
     auto plusBtn = CCMenuItemSpriteExtra::create(
@@ -808,15 +808,15 @@ void ModifyOptions::addPlusMinusBtns(CCNode* around, bool flip, geode::Function<
 
     holdersOfPlusMinusBtns.insert({around, std::make_pair(plusBtn, minusBtn)});
 }
-void ModifyOptions::onPlusMinusBtn(CCObject* sender){
-    if (auto btnSender = typeinfo_cast<CCMenuItemSpriteExtra*>(sender)){
+void ModifyOptions::onPlusMinusBtn(CCObject* sender) {
+    if (auto btnSender = typeinfo_cast<CCMenuItemSpriteExtra*>(sender)) {
         if (!plusMinusCallbacks.contains(btnSender)) return;
 
         (*plusMinusCallbacks[btnSender])(btnSender->getTag() == 1);
     }
 }
 
-void ModifyOptions::removeNB(CCObject*){
+void ModifyOptions::removeNB(CCObject*) {
     std::optional<int> sessionNum = std::nullopt;
     if (sessLvlSwitcher->getCurrentOptionIndex() == 1)
         sessionNum = sessionSelector->getCurrentCount();
@@ -826,7 +826,7 @@ void ModifyOptions::removeNB(CCObject*){
     if (sessionNum == std::nullopt) DTLayer::get()->specialStrings["general"]->updateContent();
     else DTLayer::get()->specialStrings["s0"]->updateContent();
 }
-void ModifyOptions::addNB(CCObject*){
+void ModifyOptions::addNB(CCObject*) {
     std::optional<int> sessionNum = std::nullopt;
     if (sessLvlSwitcher->getCurrentOptionIndex() == 1)
         sessionNum = sessionSelector->getCurrentCount();
@@ -837,17 +837,17 @@ void ModifyOptions::addNB(CCObject*){
     else DTLayer::get()->specialStrings["s0"]->updateContent();
 }
 
-void ModifyOptions::removeInvalidRuns(CCObject*){
+void ModifyOptions::removeInvalidRuns(CCObject*) {
     std::optional<int> sessionNum = std::nullopt;
     if (sessLvlSwitcher->getCurrentOptionIndex() == 1)
         sessionNum = sessionSelector->getCurrentCount();
 
     auto togglerState = runF0Toggler->isToggled();
 
-    auto task = arc::spawn(DTLayer::get()->getTFor<Deaths>([togglerState](GeneralData const& data){
+    auto task = arc::spawn(DTLayer::get()->getTFor<Deaths>([togglerState](GeneralData const& data) {
         return togglerState ? data.runs : data.deaths;
     },
-    [](auto const& a, auto const& b){
+    [](auto const& a, auto const& b) {
         auto map = a;
         StatsManager::mergeMapsAdd(map, b);
         return map;
@@ -862,7 +862,7 @@ void ModifyOptions::removeInvalidRuns(CCObject*){
 
     bool from0Maybe = false;
 
-    for (const auto& [deathStr, count] : toEdit){
+    for (const auto& [deathStr, count] : toEdit) {
         auto splitRes = StatsManager::splitRunKey(deathStr);
         if (splitRes.isErr()) continue;
         auto split = splitRes.unwrap();
@@ -870,11 +870,11 @@ void ModifyOptions::removeInvalidRuns(CCObject*){
         if (split.start == std::nullopt) from0Maybe = true;
 
 
-        if (split.start.has_value() && ((split.start.value() < 0 || split.start.value() > 100) || (split.end < 0 || split.end > 100))){
+        if (split.start.has_value() && ((split.start.value() < 0 || split.start.value() > 100) || (split.end < 0 || split.end > 100))) {
             runs.push_back({split, count});
             continue;
         }
-        else if (!split.start.has_value() && split.end < 0 || split.end > 100){
+        else if (!split.start.has_value() && split.end < 0 || split.end > 100) {
             runs.push_back({split, count});
             continue;
         }
@@ -882,10 +882,10 @@ void ModifyOptions::removeInvalidRuns(CCObject*){
 
     for (const auto& [run, deathCount] : runs)
     {
-        if (from0Maybe){
+        if (from0Maybe) {
             DTLayer::get()->modifyRun(run.end, -deathCount, sessionNum);
         }
-        else{
+        else {
             DTLayer::get()->modifyRun(run.start.value_or(-1), run.end, -deathCount, sessionNum);
         }
     }

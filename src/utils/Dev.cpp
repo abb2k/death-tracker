@@ -9,10 +9,10 @@ const bool Dev::MINIFY_SAVE_FILE = Dev::ENABLED
     ? false
     : true;
 
-void Dev::fadeTextInput(TextInput* const input, bool fadeIn, float time, bool changeEnabled){
+void Dev::fadeTextInput(TextInput* const input, bool fadeIn, float time, bool changeEnabled) {
     input->getBGSprite()->runAction(fadeIn ? static_cast<CCAction*>(CCFadeTo::create(time, 90)) : static_cast<CCAction*>(CCFadeTo::create(time, 0)));
 
-    if (fadeIn){
+    if (fadeIn) {
         if (changeEnabled)
             input->setEnabled(true);
         input->getInputNode()->m_textLabel->runAction(input->getInputNode()->isTouchEnabled() ? 
@@ -20,7 +20,7 @@ void Dev::fadeTextInput(TextInput* const input, bool fadeIn, float time, bool ch
             static_cast<CCAction*>(CCFadeTo::create(time, 150))
         );
     }
-    else{
+    else {
         if (changeEnabled)
             input->setEnabled(false);
         input->getInputNode()->m_textLabel->runAction(CCFadeTo::create(time, 0));
@@ -28,7 +28,7 @@ void Dev::fadeTextInput(TextInput* const input, bool fadeIn, float time, bool ch
     
 }
 
-void Dev::fadeSlider(Slider* const slider, bool fadeIn, float time, bool changeEnabled){
+void Dev::fadeSlider(Slider* const slider, bool fadeIn, float time, bool changeEnabled) {
     slider->m_enabled = false;
 
     if (changeEnabled)

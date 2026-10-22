@@ -3,7 +3,7 @@
 #include <managers/StatsManager.hpp>
 #include <nodes/layers/DTLayer.hpp>
 
-GraphCell* GraphCell::create(float width, const DTGraphInfo& graphInfo){
+GraphCell* GraphCell::create(float width, const DTGraphInfo& graphInfo) {
     auto ret = new GraphCell();
     if (ret && ret->init(width, graphInfo)) {
         ret->autorelease();
@@ -14,7 +14,7 @@ GraphCell* GraphCell::create(float width, const DTGraphInfo& graphInfo){
     return ret;
 }
 
-bool GraphCell::init(float width, const DTGraphInfo& graphInfo){
+bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
     if (!CCNode::init()) return false;
 
     this->setContentSize({width, 45});
@@ -80,7 +80,7 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo){
     ));
     enableToggleBtn->setZOrder(1);
     enableToggleBtn->setID("toggle-btn");
-    enableToggleBtn->setCallback([this](auto state){
+    enableToggleBtn->setCallback([this](auto state) {
         setEnabledInfo(state, false, true);
     });
     mainMenu->addChild(enableToggleBtn);
@@ -144,7 +144,7 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo){
     typeSwitcher->setAnchorPoint({.5f, 0});
     typeSwitcher->setPositionX(width / 2 + 2);
     typeSwitcher->setPositionY(6.5f);
-    typeSwitcher->setCallback([this](auto value){
+    typeSwitcher->setCallback([this](auto value) {
         setType(value);
     });
     typeSwitcher->setValue(graphInfo.type, false);
@@ -185,7 +185,7 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo){
     sessionSelector->setEnabled(false);
     sessionSelector->setScale(.45f);
     sessionSelector->setAnchorPoint({.5f, 0});
-    sessionSelector->setCallback([&](auto sessionIndex){
+    sessionSelector->setCallback([&](auto sessionIndex) {
         sendNewSession(sessionIndex);
     });
     sessionContainer->addChild(sessionSelector);
@@ -214,13 +214,13 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo){
     runInput->setScale(.7f);
     runInput->setAnchorPoint({.5f, 0});
     runInput->setCommonFilter(CommonFilter::Uint);
-    runInput->setCallback([&](auto str){
+    runInput->setCallback([&](auto str) {
         auto numRes = utils::numFromString<int>(str);
         int num = 0;
         if (numRes.isOk())
             num = numRes.unwrap();
 
-        if (num > 100){
+        if (num > 100) {
             num = 100;
             runInput->setString("100");
         }
@@ -267,7 +267,7 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo){
     runsFloatList->setAnchorPoint({.5f, 0});
 
     std::vector<FloatingListItem> runItems{};
-    if (DTLayer::get()->m_MyLevelStats.isOk()){
+    if (DTLayer::get()->m_MyLevelStats.isOk()) {
         auto& levelStats = DTLayer::get()->m_MyLevelStats.unwrap();
         for (const auto& run : levelStats.metadata.runsToShow)
         {
@@ -279,7 +279,7 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo){
     }
 
     runsFloatList->addItems(runItems);
-    runsFloatList->setCallback([&](const int& id){
+    runsFloatList->setCallback([&](const int& id) {
         runInput->setString(std::to_string(id), true);
 
         runsFloatList->close();
@@ -293,23 +293,23 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo){
     return true;
 }
 
-void GraphCell::onArrowUp(CCObject*){
+void GraphCell::onArrowUp(CCObject*) {
     if (onArrowCallback != NULL) onArrowCallback(this, true);
 }
-void GraphCell::onArrowDown(CCObject*){
+void GraphCell::onArrowDown(CCObject*) {
     if (onArrowCallback != NULL) onArrowCallback(this, false);
 }
-void GraphCell::onOptions(CCObject*){
+void GraphCell::onOptions(CCObject*) {
     if (onOptionsCallback != NULL) onOptionsCallback(this);
 }
 
-void GraphCell::setOrderPos(int pos){
+void GraphCell::setOrderPos(int pos) {
     graphInfo.orderPos = pos;
     this->setZOrder(pos);
     onInfoChanged(true);
 }
 
-bool GraphCell::setName(const std::string& name){
+bool GraphCell::setName(const std::string& name) {
     if (!canChangeNameTo(name, this)) return false;
 
     oldName = graphInfo.name;
@@ -320,52 +320,52 @@ bool GraphCell::setName(const std::string& name){
 
     return true;
 }
-void GraphCell::setCoverage(DTGraphCoverage coverage){
+void GraphCell::setCoverage(DTGraphCoverage coverage) {
     graphInfo.coverage = coverage;
     checkForOptVisibilityChange();
     onInfoChanged(true);
 }
-void GraphCell::setType(DTGraphType type){
+void GraphCell::setType(DTGraphType type) {
     graphInfo.type = type;
     typeSwitcher->setValue(type, false);
     onInfoChanged(true);
 }
 
-void GraphCell::setThickness(float thickness){
+void GraphCell::setThickness(float thickness) {
     graphInfo.thickness = thickness;
     onInfoChanged(true);
 }
-void GraphCell::setOutlineThickness(float outlineThickness){
+void GraphCell::setOutlineThickness(float outlineThickness) {
     graphInfo.outlineThickness = outlineThickness;
     onInfoChanged(true);
 }
-void GraphCell::setPointSize(float pointSize){
+void GraphCell::setPointSize(float pointSize) {
     graphInfo.pointScale = pointSize;
     onInfoChanged(true);
 }
-void GraphCell::setColor(ccColor4B color){
+void GraphCell::setColor(ccColor4B color) {
     graphInfo.color = color;
     innerColor->setColor({graphInfo.color.r, graphInfo.color.g, graphInfo.color.b});
     innerColor->setOpacity(graphInfo.color.a);
     onInfoChanged(true);
 }
-void GraphCell::setOutlineColor(ccColor4B color){
+void GraphCell::setOutlineColor(ccColor4B color) {
     graphInfo.outlineColor = color;
     outerColor->setColor({graphInfo.outlineColor.r, graphInfo.outlineColor.g, graphInfo.outlineColor.b});
     outerColor->setOpacity(graphInfo.outlineColor.a);
     onInfoChanged(true);
 }
-void GraphCell::setPointColor(ccColor4B color){
+void GraphCell::setPointColor(ccColor4B color) {
     graphInfo.pointColor = color;
     onInfoChanged(true);
 }
 
-void GraphCell::onInfoChanged(bool updateGraph){
+void GraphCell::onInfoChanged(bool updateGraph) {
     if (updateGraph && onInfoChangedCallback != NULL)
         onInfoChangedCallback(this);
 }
 
-void GraphCell::setEnabledInfo(bool b, bool changeToggler, bool callback){
+void GraphCell::setEnabledInfo(bool b, bool changeToggler, bool callback) {
     this->graphInfo.isEnabled = b;
     if (changeToggler)
         enableToggleBtn->toggle(b);
@@ -375,22 +375,22 @@ void GraphCell::setEnabledInfo(bool b, bool changeToggler, bool callback){
     onInfoChanged(true);
 }
 
-void GraphCell::deleteMe(){
+void GraphCell::deleteMe() {
     beforeDeletion(graphInfo, this);
     this->removeMeAndCleanup();
     
     onDeleted(graphInfo);
 }
 
-void GraphCell::setSessionOptionsVisible(bool visible){
+void GraphCell::setSessionOptionsVisible(bool visible) {
     int sizeScaler = 0;
 
-    if (visible && !sessionContainer->isVisible()){
+    if (visible && !sessionContainer->isVisible()) {
         sessionContainer->setVisible(true);
 
         sizeScaler = 1;
     }
-    else if (!visible && sessionContainer->isVisible()){
+    else if (!visible && sessionContainer->isVisible()) {
         sessionContainer->setVisible(false);
 
         sizeScaler = -1;
@@ -407,16 +407,16 @@ void GraphCell::setSessionOptionsVisible(bool visible){
     everythingParent->setPositionY(this->getContentHeight() - everythingParent->getScaledContentHeight());
     bg->setContentSize((this->getContentSize() + ccp(0, 2.5f)) / bg->getScale());
 }
-void GraphCell::setRunOptionsVisible(bool visible){
+void GraphCell::setRunOptionsVisible(bool visible) {
     int sizeScaler = 0;
 
-    if (visible && !runContainer->isVisible()){
+    if (visible && !runContainer->isVisible()) {
         runContainer->setVisible(true);
 
         sizeScaler = 1;
 
     }
-    else if (!visible && runContainer->isVisible()){
+    else if (!visible && runContainer->isVisible()) {
         runContainer->setVisible(false);
         
         sizeScaler = -1;
@@ -434,18 +434,18 @@ void GraphCell::setRunOptionsVisible(bool visible){
     bg->setContentSize((this->getContentSize() + ccp(0, 2.5f)) / bg->getScale());
 }
 
-void GraphCell::checkForOptVisibilityChange(){
+void GraphCell::checkForOptVisibilityChange() {
     bool makeSessionVisible = true;
     bool makeRunVisible = true;
 
-    if (graphInfo.coverage == DTGraphCoverage::GeneralCover){
+    if (graphInfo.coverage == DTGraphCoverage::GeneralCover) {
         makeSessionVisible = false;
         makeRunVisible = false;
     }
-    else if (graphInfo.coverage == DTGraphCoverage::GeneralRunsCover){
+    else if (graphInfo.coverage == DTGraphCoverage::GeneralRunsCover) {
         makeSessionVisible = false;
     }
-    else if (graphInfo.coverage == DTGraphCoverage::SessionCover){
+    else if (graphInfo.coverage == DTGraphCoverage::SessionCover) {
         makeRunVisible = false;
     }
 
@@ -453,7 +453,7 @@ void GraphCell::checkForOptVisibilityChange(){
     setRunOptionsVisible(makeRunVisible);
 }
 
-void GraphCell::sendNewSession(int index){
+void GraphCell::sendNewSession(int index) {
     if (!(graphInfo.coverage == DTGraphCoverage::SessionCover || graphInfo.coverage == DTGraphCoverage::SessionRunsCover)) return;
 
     auto session = DTLayer::get()->loadSessionFromSave(index);
@@ -463,22 +463,22 @@ void GraphCell::sendNewSession(int index){
         onNewSession(this, std::move(sessionOpt));
 }
 
-void GraphCell::resendSession(){
+void GraphCell::resendSession() {
     sendNewSession(sessionSelector->getCurrentCount());
 }
 
-void GraphCell::setEnabled(bool value){
+void GraphCell::setEnabled(bool value) {
     //CCMenu::setEnabled(value);
 
     runInput->setEnabled(value);
     sessionSelector->setEnabled(value);
 }
 
-void GraphCell::onRunSelectHelper(CCObject*){
-    if (runsFloatList->isOpened()){
+void GraphCell::onRunSelectHelper(CCObject*) {
+    if (runsFloatList->isOpened()) {
         runsFloatList->close();
     }
-    else{
+    else {
         runsFloatList->open();
     }
 }

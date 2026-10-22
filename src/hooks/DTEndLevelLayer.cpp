@@ -3,7 +3,7 @@
 #include <nodes/layers/DTLayer.hpp>
 #include <utils/Settings.hpp>
 
-void DTEndLevelLayer::customSetup(){
+void DTEndLevelLayer::customSetup() {
     EndLevelLayer::customSetup();
 
     if (!Settings::getCompleteMenuEnabled()) return;
@@ -28,12 +28,12 @@ void DTEndLevelLayer::customSetup(){
 
     hideLMenu->updateLayout();
 }
-void DTEndLevelLayer::openDTLayer(CCObject*){
+void DTEndLevelLayer::openDTLayer(CCObject*) {
     auto dtLayer = DTLayer::create(this->m_playLayer->m_level);
     dtLayer->show();
 }
 
-void DTEndLevelLayer::onHideLayer(cocos2d::CCObject* sender){
+void DTEndLevelLayer::onHideLayer(cocos2d::CCObject* sender) {
     EndLevelLayer::onHideLayer(sender);
 
     if (m_fields->skullBtn == nullptr) return;

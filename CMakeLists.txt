@@ -22,4 +22,7 @@ endif()
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
 add_subdirectory($ENV{GEODE_SDK} ${CMAKE_CURRENT_BINARY_DIR}/geode)
 
+CPMAddPackage("gh:GlobedGD/argon@1.5.1")
+target_link_libraries(${PROJECT_NAME} argon)
+
 setup_geode_mod(${PROJECT_NAME})

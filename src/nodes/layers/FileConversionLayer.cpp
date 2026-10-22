@@ -65,17 +65,17 @@ bool FileConversionLayer::init(bool exitIfNone) {
     return true;
 }
 
-void FileConversionLayer::lookupComplete(LookupFuture::Output result){
+void FileConversionLayer::lookupComplete(LookupFuture::Output result) {
     lookupResult = std::move(result);
-    if (!lookupResult.size()){
-        if (exitIfNone){
+    if (!lookupResult.size()) {
+        if (exitIfNone) {
             didComplete = true;
             keyBackClicked();
             return;
         }
         this->setTitle("No old files found!");
         textArea->setText("It looks like you're all set!\nNo old files were found!");
-        if (!std::filesystem::exists(StatsManager::getSavesFolderPath())){
+        if (!std::filesystem::exists(StatsManager::getSavesFolderPath())) {
             this->setTitle("Conversion Failed!");
             textArea->setText("Invalid save location\nPlease change your save location in\nThe death tracker mod settings");
         }
@@ -90,11 +90,11 @@ void FileConversionLayer::lookupComplete(LookupFuture::Output result){
     startBtn->setEnabled(true);
 }
 
-void FileConversionLayer::setTitle(const std::string& text){
+void FileConversionLayer::setTitle(const std::string& text) {
     geode::Popup::setTitle(text, "goldFont.fnt", .8f, 15);
 }
 
-ConversionFuture FileConversionLayer::conversionFuture(std::vector<std::string> allLevels, geode::Function<void(ConversionProgress)> progress){
+ConversionFuture FileConversionLayer::conversionFuture(std::vector<std::string> allLevels, geode::Function<void(ConversionProgress)> progress) {
     int filesWentOverAmount = 0;
     int successfulConversionAmount = 0;
     std::vector<std::string> failedConversions{};
@@ -111,10 +111,10 @@ ConversionFuture FileConversionLayer::conversionFuture(std::vector<std::string> 
         
         auto conversionRes = StatsManager::convertV2SaveToV3(levelKey);
         
-        if (conversionRes.isOk()){
+        if (conversionRes.isOk()) {
             successfulConversionAmount++;
         }
-        else if (conversionRes.isErr()){
+        else if (conversionRes.isErr()) {
             failedConversions.push_back(levelKey);
         }
         
@@ -129,11 +129,11 @@ ConversionFuture FileConversionLayer::conversionFuture(std::vector<std::string> 
     co_return conversionRes;
 }
 
-LookupFuture FileConversionLayer::lookupFuture(){
+LookupFuture FileConversionLayer::lookupFuture() {
     co_return StatsManager::allV2FileLevelKeys();
 }
 
-void FileConversionLayer::conversionComplete(ConversionFuture::Output output){
+void FileConversionLayer::conversionComplete(ConversionFuture::Output output) {
     this->setTitle("Conversion complete!");
     textArea->setText(fmt::format(
         "Converted {}/{} files!\n{} files failed to convert.",
@@ -154,21 +154,21 @@ void FileConversionLayer::conversionComplete(ConversionFuture::Output output){
     didComplete = true;
 }
 
-void FileConversionLayer::onClose(cocos2d::CCObject* sender){
-    if (didComplete){
+void FileConversionLayer::onClose(cocos2d::CCObject* sender) {
+    if (didComplete) {
         Save::setDidConvertToV3(true);
         Popup::onClose(sender);
     }
 }
 
-void FileConversionLayer::onStart(cocos2d::CCObject* sender){
+void FileConversionLayer::onStart(cocos2d::CCObject* sender) {
     static_cast<CCMenuItemSpriteExtra*>(sender)->setVisible(false);
     static_cast<CCMenuItemSpriteExtra*>(sender)->setEnabled(false);
 
     conversionListener.spawn(
         "DT-convert-process-task",
-        conversionFuture(lookupResult, [&](ConversionProgress progress){
-            geode::queueInMainThread([&, progress](){
+        conversionFuture(lookupResult, [&](ConversionProgress progress) {
+            geode::queueInMainThread([&, progress]() {
                 progressBar->setVisible(true);
                 float dev = static_cast<float>(progress.filesWentOverAmount) / static_cast<float>(progress.maxAmount);
                 progressBar->setValue(dev);
@@ -183,7 +183,7 @@ void FileConversionLayer::onStart(cocos2d::CCObject* sender){
                 ));
             });
         }),
-        [&](ConversionFuture::Output val){
+        [&](ConversionFuture::Output val) {
             this->conversionComplete(val);
         }
     );

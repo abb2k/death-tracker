@@ -2,7 +2,7 @@
 #include <managers/StatsManager.hpp>
 #include <utils/DateFormatter.hpp>
 
-SessionCell* SessionCell::create(float width, Session const& session){
+SessionCell* SessionCell::create(float width, Session const& session) {
     auto ret = new SessionCell();
     if (ret && ret->init(width, session)) {
         ret->autorelease();
@@ -13,7 +13,7 @@ SessionCell* SessionCell::create(float width, Session const& session){
     return ret;
 }
 
-bool SessionCell::init(float width, Session const& session){
+bool SessionCell::init(float width, Session const& session) {
     if (!CCMenu::init()) return false;
 
     this->session = session;
@@ -65,9 +65,7 @@ bool SessionCell::init(float width, Session const& session){
     infoLabel->setScale(.35f);
     this->addChild(infoLabel);
 
-    toggler = SimpleToggler::create(
-        CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
-        CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
+    toggler = SimpleToggler::createWithDefaults(
         .4f,
         true
     );
@@ -75,7 +73,7 @@ bool SessionCell::init(float width, Session const& session){
         this->getContentWidth() - toggler->getContentWidth() / 2 - 5,
         this->getContentHeight() - toggler->getContentHeight() / 2 - 5
     });
-    toggler->setCallback([&](auto state){
+    toggler->setCallback([&](auto state) {
         selected = state;
     });
     this->addChild(toggler);
@@ -83,7 +81,7 @@ bool SessionCell::init(float width, Session const& session){
     return true;
 }
 
-void SessionCell::setSelected(bool b){
+void SessionCell::setSelected(bool b) {
     if (selected != b)
         toggler->toggleWithCallback(b);
 }

@@ -4,8 +4,7 @@
 
 using namespace geode::prelude;
 
-class CCResizeHeightTo : public CCActionInterval
-{
+class CCResizeHeightTo : public CCActionInterval {
 public:
     static CCResizeHeightTo* create(float duration, float endHeight);
 

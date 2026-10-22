@@ -38,7 +38,7 @@ struct Run_s{
     std::optional<int> start;
     int end;
 
-    Run_s(std::optional<int> _start, int _end) : start(_start), end(_end){}
+    Run_s(std::optional<int> _start, int _end) : start(_start), end(_end) {}
 
     Run_s() = default;
 };
@@ -141,6 +141,48 @@ struct matjson::Serialize<SessionCategory> {
     static matjson::Value toJson(const SessionCategory& value);
 };
 
+typedef struct GradientData {
+    ccColor4B colorA = {255, 255, 255, 255};
+    ccColor4B colorB = {255, 255, 255, 255};
+    float duration = 1;
+    float stagger = 0.2f;
+} GradientData;
+
+typedef struct WaveData {
+    float speed = 1;
+    float distanceY = 5;
+    float distanceX = 0;
+    float offsetPerIndex = .3f;
+} WaveData;
+
+typedef struct CustomizationData {
+    ccColor4B color;
+
+    bool gradientEnabled;
+    GradientData gradient;
+
+    bool waveEnabled;
+    WaveData wave;
+} CustomizationData;
+
+template <>
+struct matjson::Serialize<GradientData> {
+    static Result<GradientData> fromJson(const matjson::Value& value);
+    static matjson::Value toJson(const GradientData& value);
+};
+
+template <>
+struct matjson::Serialize<WaveData> {
+    static Result<WaveData> fromJson(const matjson::Value& value);
+    static matjson::Value toJson(const WaveData& value);
+};
+
+template <>
+struct matjson::Serialize<CustomizationData> {
+    static Result<CustomizationData> fromJson(const matjson::Value& value);
+    static matjson::Value toJson(const CustomizationData& value);
+};
+
 
 typedef struct LevelMetadeta {
     std::map<int, int> runsToShow{};
@@ -170,7 +212,7 @@ struct matjson::Serialize<LevelMetadeta> {
     static Result<LevelMetadeta> fromJson(const matjson::Value& value) {
 
         LevelMetadeta stats;
-        if (value.contains("RunsToSave")){
+        if (value.contains("RunsToSave")) {
             auto oldRunsToSave = value["RunsToSave"].as<std::set<int>>().unwrapOr(std::set<int>{});
 
             for (const auto& runToSave : oldRunsToSave)
@@ -179,10 +221,10 @@ struct matjson::Serialize<LevelMetadeta> {
         else {
             GEODE_UNWRAP_INTO(stats.runsToShow, value["RunsToShow"].as<std::map<int, int>>());
         }
-        if (value.contains("trackAnyRun")){
+        if (value.contains("trackAnyRun")) {
             GEODE_UNWRAP_INTO(stats.showAnyRun, value["trackAnyRun"].asBool());
         }
-        else{
+        else {
             GEODE_UNWRAP_INTO(stats.showAnyRun, value["showAnyRun"].asBool());
         }
 
@@ -193,19 +235,19 @@ struct matjson::Serialize<LevelMetadeta> {
         GEODE_UNWRAP_INTO(stats.hideUpto, value["hideUpto"].asInt());
         GEODE_UNWRAP_INTO(stats.realEndPercent, value["realEndPercent"].asInt());
         GEODE_UNWRAP_INTO(stats.resetAsDeath, value["resetAsDeath"].asBool());
-        if (value.contains("autoBackup")){
+        if (value.contains("autoBackup")) {
             GEODE_UNWRAP_INTO(stats.autoBackup, value["autoBackup"].asBool());
         }
-        if (value.contains("sections")){
+        if (value.contains("sections")) {
             GEODE_UNWRAP_INTO(stats.sections, value["sections"].as<std::vector<Section>>());
         }
-        if (value.contains("hasGottenDataFromPT")){
+        if (value.contains("hasGottenDataFromPT")) {
             GEODE_UNWRAP_INTO(stats.hasGottenDataFromPT, value["hasGottenDataFromPT"].asBool());
         }
-        if (value.contains("sessionGroups")){
+        if (value.contains("sessionGroups")) {
             GEODE_UNWRAP_INTO(stats.sessionGroups, value["sessionGroups"].as<std::vector<SessionCategory>>());
         }
-        if (value.contains("sharedRunToShow")){
+        if (value.contains("sharedRunToShow")) {
             GEODE_UNWRAP_INTO(stats.sharedRunToShow, value["sharedRunToShow"].asInt());
         }
 
@@ -316,6 +358,16 @@ struct matjson::Serialize<DTLayoutPreset> {
     static Result<DTLayoutPreset> fromJson(const matjson::Value& value);
     static matjson::Value toJson(const DTLayoutPreset& value);
 };
+
+typedef struct {
+    std::string labelName;
+    std::string text;
+    float posX;
+    float posY;
+    geode::Anchor anchor;
+    bool freeMode;
+    int order;
+} OverlayLabel;
 
 typedef struct {
     std::string labelName;

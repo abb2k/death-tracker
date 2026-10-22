@@ -17,7 +17,7 @@ class CalculatorMode : public CCNode {
         virtual std::string getName() const {return "";}
         virtual std::string getDescription() const {return "";}
 
-        virtual void calculate(){}
-        virtual void open(){}
-        virtual void close(){}
+        virtual void calculate() {}
+        virtual void open() {}
+        virtual void close() {}
 };

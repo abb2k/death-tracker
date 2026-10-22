@@ -37,7 +37,7 @@ bool TextInputPopup::init(const std::string& title, const std::string& placehold
     return true;
 }
 
-void TextInputPopup::onOk(CCObject* sender){
+void TextInputPopup::onOk(CCObject* sender) {
     if (m_callback != NULL)
         m_callback(input->getString());
 

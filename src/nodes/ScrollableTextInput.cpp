@@ -11,7 +11,7 @@ ScrollableTextInput* ScrollableTextInput::create(float width, const std::string&
     return ret;
 }
 
-bool ScrollableTextInput::init(float width, const std::string& placeholder, const std::string& font){
+bool ScrollableTextInput::init(float width, const std::string& placeholder, const std::string& font) {
     if (!CCNode::init()) return false;
 
     this->placeholder = placeholder;
@@ -43,11 +43,11 @@ bool ScrollableTextInput::init(float width, const std::string& placeholder, cons
     return true;
 }
 
-void ScrollableTextInput::updateTextInput(){
-    if (textInput == nullptr){
+void ScrollableTextInput::updateTextInput() {
+    if (textInput == nullptr) {
         recreateTextInput(0);
     }
-    else{
+    else {
         recreateTextInput(
             (
                 textInput->getInputNode()->m_textLabel->getContentWidth() * 
@@ -58,13 +58,13 @@ void ScrollableTextInput::updateTextInput(){
     }
 }
 
-void ScrollableTextInput::recreateTextInput(float extraWidth){
+void ScrollableTextInput::recreateTextInput(float extraWidth) {
     std::string oldText;
     int oldCursorPos = 0;
 
     bool doFocus = isFocused;
 
-    if (textInput != nullptr){
+    if (textInput != nullptr) {
         oldText = textInput->getString();
         oldCursorPos = textInput->getInputNode()->m_textField->m_uCursorPos;
         textInput->removeMeAndCleanup();
@@ -76,7 +76,7 @@ void ScrollableTextInput::recreateTextInput(float extraWidth){
     textInput->setString(oldText);
     textInput->setDelegate(this);
     #if !defined(GEODE_IS_MOBILE)
-    if (doFocus){
+    if (doFocus) {
         textInput->focus();
     }
     #endif
@@ -91,13 +91,13 @@ void ScrollableTextInput::recreateTextInput(float extraWidth){
     textInput->setEnabled(enabled);
 }
 
-void ScrollableTextInput::textChanged(CCTextInputNode* node){
+void ScrollableTextInput::textChanged(CCTextInputNode* node) {
     #if defined(GEODE_IS_MOBILE)
-    if (androidTextChangedCounter == -1){
+    if (androidTextChangedCounter == -1) {
         androidTextChangedCounter = textInput->getString().size();
         return;
     }
-    else if (androidTextChangedCounter > 0){
+    else if (androidTextChangedCounter > 0) {
         androidTextChangedCounter--;
         return;
     }
@@ -111,20 +111,20 @@ void ScrollableTextInput::textChanged(CCTextInputNode* node){
         onInput(textInput->getString());
 }
 
-void ScrollableTextInput::textInputOpened(CCTextInputNode* node){
+void ScrollableTextInput::textInputOpened(CCTextInputNode* node) {
     isFocused = true;
 }
 
-void ScrollableTextInput::textInputClosed(CCTextInputNode* node){
+void ScrollableTextInput::textInputClosed(CCTextInputNode* node) {
     isFocused = false;
 }
 
-void ScrollableTextInput::update(float dt){
-    if (textInput->getInputNode()->m_cursor->isVisible()){
-        if (!prevXursorPos.has_value()){
+void ScrollableTextInput::update(float dt) {
+    if (textInput->getInputNode()->m_cursor->isVisible()) {
+        if (!prevXursorPos.has_value()) {
             prevXursorPos = textInput->getInputNode()->m_cursor->getPositionX();
         }
-        else if (prevXursorPos.has_value() && prevXursorPos.value() != textInput->getInputNode()->m_cursor->getPositionX()){
+        else if (prevXursorPos.has_value() && prevXursorPos.value() != textInput->getInputNode()->m_cursor->getPositionX()) {
             auto nextPos = textInput->getInputNode()->m_cursor->getPositionX() + (textInput->getInputNode()->getContentWidth() - width - 10) / 2;
 
             if (nextPos < 0) 
@@ -141,16 +141,16 @@ void ScrollableTextInput::update(float dt){
     textInput->setPositionX(scrollLayer->m_contentLayer->getPositionY());
 }
 
-void ScrollableTextInput::setCommonFilter(CommonFilter filter){
+void ScrollableTextInput::setCommonFilter(CommonFilter filter) {
     this->filter = filter;
     textInput->setCommonFilter(filter);
 }
 
-void ScrollableTextInput::setCallback(geode::Function<void(std::string const&)> onInput){
+void ScrollableTextInput::setCallback(geode::Function<void(std::string const&)> onInput) {
     this->onInput = std::move(onInput);
 }
 
-void ScrollableTextInput::setString(std::string const& str, bool triggerCallback){
+void ScrollableTextInput::setString(std::string const& str, bool triggerCallback) {
     textInput->setString(str);
 
     updateTextInput();
@@ -159,10 +159,10 @@ void ScrollableTextInput::setString(std::string const& str, bool triggerCallback
         onInput(str);
 }
 
-void ScrollableTextInput::setEnabled(bool enabled){
+void ScrollableTextInput::setEnabled(bool enabled) {
     textInput->setEnabled(enabled);
     bar->setTouchEnabled(enabled);
-    if (!enabled){
+    if (!enabled) {
         scrollLayer->m_contentLayer->setPositionY(0);
     }
     this->enabled = enabled;

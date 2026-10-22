@@ -1,5 +1,5 @@
 {
-	"geode": "5.10.1",
+	"geode": "5.11.2",
 	"gd": {
         "android": "2.2081",
         "win": "2.2081",
@@ -150,6 +150,11 @@
 			"description": "This is used to convert old saves from death tracker V2 to V3",
 			"type": "custom:button-type-dt"
 		},
+		"claim-dono":{
+			"name": "Claim Donation",
+			"description": "This is used to claim donations in the death tracker",
+			"type": "custom:claim-dono-setting-type-dt"
+		},
 		"save-path-new": {
 			"type": "folder",
 			"name": "Save Path",
@@ -227,6 +232,10 @@
 	"dependencies": {
 		"geode.node-ids": ">=v1.10.0",
 		"cvolton.level-id-api": "v2.0.0-beta.2",
-		"alk.better-touch-prio": ">=v1.0.19"
+		"alk.better-touch-prio": ">=v1.0.19",
+		"alphalaneous.badgify": {
+			"version": ">=v1.0.6",
+			"required": false
+		}
 	}
 }

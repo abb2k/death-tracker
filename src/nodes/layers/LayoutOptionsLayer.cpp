@@ -95,11 +95,12 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     labelNameInput = TextInput::create((size.width - 10) / .75f, "label name");
     labelNameInput->setID("label-name-input");
     labelNameInput->setScale(.75f);
-    labelNameInput->setCallback([&](const std::string& newStr){
+    labelNameInput->setCallback([&](const std::string& newStr) {
         if (!editedLabel.has_value()) return;
 
         editedLabel.value()->setLabelName(newStr);
     });
+    labelNameInput->setFilter("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ <>=,.");
     labelNameInput->setPositionY(-22);
     labelSettingsNode->addChild(labelNameInput);
 
@@ -114,7 +115,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     labelTextInput->setCommonFilter(CommonFilter::Any);
     labelTextInput->setID("label-text-input");
     labelTextInput->setPositionY(-60);
-    labelTextInput->setCallback([&](const std::string& newStr){
+    labelTextInput->setCallback([&](const std::string& newStr) {
         if (!editedLabel.has_value()) return;
 
         editedLabel.value()->setLabelText(newStr);
@@ -190,7 +191,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     fontSizeInput->setPositionY(-195);
     fontSizeInput->setPositionX(-32);
     fontSizeInput->setCommonFilter(CommonFilter::Float);
-    fontSizeInput->setCallback([&](const std::string& newStr){
+    fontSizeInput->setCallback([&](const std::string& newStr) {
         if (!editedLabel.has_value()) return;
         
         auto newSizeRes = geode::utils::numFromString<float>(newStr);
@@ -311,15 +312,13 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
 
     updateFontSelectFont();
 
-    hideHeaderToggler = SimpleToggler::create(
-        CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
-        CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
+    hideHeaderToggler = SimpleToggler::createWithDefaults(
         .65f
     );
     hideHeaderToggler->setPositionY(fontSelectionBtn->getPositionY() + fontSelectionBtn->getContentHeight() / 2 + hideHeaderToggler->getContentHeight() / 2 + 7.5f);
     hideHeaderToggler->setPositionX(size.width / 2 - 20 - hideHeaderToggler->getContentWidth() / 2);
     hideHeaderToggler->setID("hide-header-toggler");
-    hideHeaderToggler->setCallback([&](auto state){
+    hideHeaderToggler->setCallback([&](auto state) {
         if (!editedLabel.has_value()) return;
 
         editedLabel.value()->setHideHeader(state);
@@ -343,7 +342,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
                 ScrollableTextInput* toEdit = nullptr;
                 bool doUpdateScrollableInput = false;
 
-                if (labelTextInput->isSelected()){
+                if (labelTextInput->isSelected()) {
                     toEdit = labelTextInput;
                     doUpdateScrollableInput = true;
                 }
@@ -410,7 +409,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
 
     for (const auto& font : StatsManager::getAllFonts())
     {
-        auto cell = FontSelectionCell::create(font, [&](auto cell){onFontSelected(cell);});
+        auto cell = FontSelectionCell::create(font, [&](auto cell) {onFontSelected(cell);});
         fontsScroll->m_contentLayer->addChild(cell);
 
         allFontCells.insert({font, cell});
@@ -427,7 +426,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     labelTextSpecialKeysInput->setCommonFilter(CommonFilter::Any);
     labelTextSpecialKeysInput->setID("label-text-input");
     labelTextSpecialKeysInput->setPositionY(-22);
-    labelTextSpecialKeysInput->setCallback([&](const std::string& newStr){
+    labelTextSpecialKeysInput->setCallback([&](const std::string& newStr) {
         if (!editedLabel.has_value()) return;
 
         editedLabel.value()->setLabelText(newStr);
@@ -460,7 +459,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
 
     for (const auto& [key, keyObj] : DTLayer::get()->specialStrings)
     {
-        auto cell = SpecialKeyCell::create(keyObj, [&](auto str){LayoutOptionsLayer::onSpecialKeyAdded(str);});
+        auto cell = SpecialKeyCell::create(keyObj, [&](auto str) {LayoutOptionsLayer::onSpecialKeyAdded(str);});
         specialKeysScroll->m_contentLayer->addChild(cell);
     }
 
@@ -473,7 +472,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     columnWidthInput->setCommonFilter(CommonFilter::Float);
     columnWidthInput->setID("column-width-input");
     columnWidthInput->setPositionY(-30);
-    columnWidthInput->setCallback([&](const std::string& newStr){
+    columnWidthInput->setCallback([&](const std::string& newStr) {
         if (!editedColumn.has_value()) return;
 
         float endValue = DTColumnInfo::minWidth;
@@ -496,9 +495,9 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     columnWidthInputLabel->setID("width-Label");
     columnSettingsNode->addChild(columnWidthInputLabel);
 
-    DTLayer::get()->subscribeToOrganizationEvent(this, [&](auto _){
+    DTLayer::get()->subscribeToOrganizationEvent(this, [&](auto _) {
         if (!editedColumn.has_value()) return;
-        if (ignoreNextOrganization){
+        if (ignoreNextOrganization) {
             ignoreNextOrganization = false;
             return;
         }
@@ -609,22 +608,22 @@ void LayoutOptionsLayer::close() {
     colorChangeFunc = NULL;
 }
 
-void LayoutOptionsLayer::onTextColorBtnClicked(CCObject*){
+void LayoutOptionsLayer::onTextColorBtnClicked(CCObject*) {
     if (!editedLabel.has_value()) return;
 
     auto popup = geode::ColorPickPopup::create(editedLabel.value()->info.textColor);
-    popup->setCallback([&](auto color){ updateColor(color); });
+    popup->setCallback([&](auto color) { updateColor(color); });
     popup->setColorTarget(textColorBtnSprite);
     colorChangeFunc = [&](cocos2d::ccColor4B const& color) {
         editedLabel.value()->setTextColor(color);
     };
     popup->show();
 }
-void LayoutOptionsLayer::onLabelColorBtnClicked(CCObject*){
+void LayoutOptionsLayer::onLabelColorBtnClicked(CCObject*) {
     if (!editedLabel.has_value()) return;
 
     auto popup = geode::ColorPickPopup::create(editedLabel.value()->info.labelColor);
-    popup->setCallback([&](auto color){ updateColor(color); });
+    popup->setCallback([&](auto color) { updateColor(color); });
     popup->setColorTarget(labelColorBtnSprite);
     colorChangeFunc = [&](cocos2d::ccColor4B const& color) {
         editedLabel.value()->setLabelColor(color);
@@ -632,13 +631,13 @@ void LayoutOptionsLayer::onLabelColorBtnClicked(CCObject*){
     popup->show();
 }
 
-void LayoutOptionsLayer::updateColor(cocos2d::ccColor4B const& color){
+void LayoutOptionsLayer::updateColor(cocos2d::ccColor4B const& color) {
     if (colorChangeFunc == NULL) return;
 
     colorChangeFunc(color);
 }
 
-void LayoutOptionsLayer::onAlignmentChanged(CCObject* sender){
+void LayoutOptionsLayer::onAlignmentChanged(CCObject* sender) {
     if (!editedLabel.has_value()) return;
 
     auto menuItem = static_cast<CCMenuItemSpriteExtra*>(sender);
@@ -668,13 +667,13 @@ void LayoutOptionsLayer::onAlignmentChanged(CCObject* sender){
     editedLabel.value()->setTextAlignment(alignment);
 }
 
-void LayoutOptionsLayer::scaleSliderChanged(CCObject*){
+void LayoutOptionsLayer::scaleSliderChanged(CCObject*) {
     #if !defined(GEODE_IS_MOBILE)
     sliderUpdate();
     #endif
 }
 
-void LayoutOptionsLayer::sliderUpdate(){
+void LayoutOptionsLayer::sliderUpdate() {
     auto numValue = DTLabelInfo::MIN_MAX_SCALE.x + (DTLabelInfo::MIN_MAX_SCALE.y - DTLabelInfo::MIN_MAX_SCALE.x) * scaleSlider->getValue();
 
     editedLabel.value()->setFontSize(numValue);
@@ -692,11 +691,11 @@ void LayoutOptionsLayer::sliderUpdate(){
     fontSizeInput->setString(scaleText);
 }
 
-void LayoutOptionsLayer::onFontSelection(CCObject*){
+void LayoutOptionsLayer::onFontSelection(CCObject*) {
     switchToMenu(3);
 }
 
-void LayoutOptionsLayer::switchToMenu(uint8_t menuID){
+void LayoutOptionsLayer::switchToMenu(uint8_t menuID) {
     labelSettingsNode->stopAllActions();
     columnSettingsNode->stopAllActions();
     fontSelectionNode->stopAllActions();
@@ -749,7 +748,7 @@ void LayoutOptionsLayer::switchToMenu(uint8_t menuID){
         break;
     }
 
-    if (selectedNode != nullptr){
+    if (selectedNode != nullptr) {
         setAllInputs(selectedNode, true);
 
         selectedNode->stopAllActions();
@@ -762,12 +761,12 @@ void LayoutOptionsLayer::switchToMenu(uint8_t menuID){
     }
 }
 
-void LayoutOptionsLayer::onBack(CCObject*){
-    if (currentPage == 3){
+void LayoutOptionsLayer::onBack(CCObject*) {
+    if (currentPage == 3) {
         switchToMenu(editedLabel.has_value() ? 1 : 2);
         return;
     }
-    else if (currentPage == 4){
+    else if (currentPage == 4) {
         switchToMenu(1);
         return;
     }
@@ -776,15 +775,15 @@ void LayoutOptionsLayer::onBack(CCObject*){
         onBackedOut();
 }
 
-void LayoutOptionsLayer::onDelete(CCObject*){
-    if (editedLabel.has_value()){
+void LayoutOptionsLayer::onDelete(CCObject*) {
+    if (editedLabel.has_value()) {
         editedLabel.value()->removeFromColumns();
         editedLabel.value()->removeFromParentAndCleanup(true);
         DTLayer::get()->organizeLayout();
         if (onBackedOut != NULL)
             onBackedOut();
     }
-    else if (editedColumn.has_value()){
+    else if (editedColumn.has_value()) {
         editedColumn.value()->destroyColumnAndCleanup();
         DTLayer::get()->organizeLayout();
         if (onBackedOut != NULL)
@@ -792,32 +791,32 @@ void LayoutOptionsLayer::onDelete(CCObject*){
     }
 } 
 
-void LayoutOptionsLayer::onFontSelected(FontSelectionCell* cell){
+void LayoutOptionsLayer::onFontSelected(FontSelectionCell* cell) {
     if (!isEditingNode()) return;
 
     if (currentlySelectedFontCell != nullptr) currentlySelectedFontCell->deselect();
     currentlySelectedFontCell = cell;
     currentlySelectedFontCell->select();
 
-    if (editedLabel.has_value()){
+    if (editedLabel.has_value()) {
         editedLabel.value()->setFont(cell->font);
         DTLayer::get()->organizeLayout();
         updateFontSelectFont();
     }
 }
 
-void LayoutOptionsLayer::onWrappingBtn(CCObject*){
+void LayoutOptionsLayer::onWrappingBtn(CCObject*) {
     if (!editedLabel.has_value()) return;
 
     WrappingMode newMode = WrappingMode::CUTOFF_WRAP;
 
-    if (wrappingModeBtn->getChildByID("cutoff")->isVisible()){
+    if (wrappingModeBtn->getChildByID("cutoff")->isVisible()) {
         newMode = WrappingMode::SPACE_WRAP;
     }
-    else if (wrappingModeBtn->getChildByID("space")->isVisible()){
+    else if (wrappingModeBtn->getChildByID("space")->isVisible()) {
         newMode = WrappingMode::WORD_WRAP;
     }
-    else if (wrappingModeBtn->getChildByID("word")->isVisible()){
+    else if (wrappingModeBtn->getChildByID("word")->isVisible()) {
         newMode = WrappingMode::CUTOFF_WRAP;
     }
 
@@ -826,7 +825,7 @@ void LayoutOptionsLayer::onWrappingBtn(CCObject*){
     updateWrapModeBtnVisuals();
 }
 
-void LayoutOptionsLayer::updateWrapModeBtnVisuals(){
+void LayoutOptionsLayer::updateWrapModeBtnVisuals() {
     if (!editedLabel.has_value()) return;
 
     for (const auto& child : CCArrayExt<CCNode*>(wrappingModeBtn->getChildren()))
@@ -852,11 +851,11 @@ void LayoutOptionsLayer::updateWrapModeBtnVisuals(){
     }
 }
 
-void LayoutOptionsLayer::onSpecialKeysClicked(CCObject*){
+void LayoutOptionsLayer::onSpecialKeysClicked(CCObject*) {
     switchToMenu(4);
 }
 
-void LayoutOptionsLayer::onSpecialKeyAdded(const std::string& str){
+void LayoutOptionsLayer::onSpecialKeyAdded(const std::string& str) {
     if (!editedLabel.has_value()) return;
 
     auto toEditStr = std::string(labelTextSpecialKeysInput->getString());
@@ -878,28 +877,28 @@ void LayoutOptionsLayer::onSpecialKeyAdded(const std::string& str){
     #endif
 }
 
-void LayoutOptionsLayer::keyBackClicked(){
+void LayoutOptionsLayer::keyBackClicked() {
     onBack(nullptr);
 }
 
-void LayoutOptionsLayer::setAllInputs(CCNode* node, bool enabled){
+void LayoutOptionsLayer::setAllInputs(CCNode* node, bool enabled) {
     for (const auto& child : CCArrayExt<CCNode*>(node->getChildren()))
     {
         if (auto text = typeinfo_cast<TextInput*>(child))
             text->setEnabled(enabled);
-        else if (auto scrollText = typeinfo_cast<ScrollableTextInput*>(child)){
+        else if (auto scrollText = typeinfo_cast<ScrollableTextInput*>(child)) {
             scrollText->setEnabled(enabled);
         }
     }
 }
 
-void LayoutOptionsLayer::sliderEnded(Slider* slider){
+void LayoutOptionsLayer::sliderEnded(Slider* slider) {
     #if defined(GEODE_IS_MOBILE)
     sliderUpdate();
     #endif
 }
 
-void LayoutOptionsLayer::updateFontSelectFont(){
+void LayoutOptionsLayer::updateFontSelectFont() {
     if (!editedLabel.has_value()) return;
 
     if (fontSelectedIndicatorLabel != nullptr)

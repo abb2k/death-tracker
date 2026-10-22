@@ -98,7 +98,7 @@ bool ImportPopup::init() {
     return true;
 }
 
-void ImportPopup::onFromDT(CCObject*){
+void ImportPopup::onFromDT(CCObject*) {
     auto dtLayer = DTLayer::get();
     if (dtLayer == nullptr || dtLayer->m_MyLevelStats.isErr()) return;
 
@@ -114,11 +114,11 @@ void ImportPopup::onFromDT(CCObject*){
                 }
             }
         }),
-        [&](file::PickResult result){
+        [&](file::PickResult result) {
             auto dtLayer = DTLayer::get();
             if (dtLayer == nullptr || dtLayer->m_MyLevelStats.isErr()) return;
 
-            if (result.isErr()){
+            if (result.isErr()) {
                 log::error("{}", result.unwrapErr());
                 return;
             }
@@ -132,7 +132,7 @@ void ImportPopup::onFromDT(CCObject*){
 
             auto res = file::Unzip::intoDir(pick, tempDir);
 
-            if (res.isErr()){
+            if (res.isErr()) {
                 log::error("{}", res.unwrapErr());
                 Notification::create("Failed to unzip file!", NotificationIcon::Error)->show();
                 std::filesystem::remove_all(tempDir);
@@ -140,7 +140,7 @@ void ImportPopup::onFromDT(CCObject*){
             }
             
             auto lvlDataRes = StatsManager::getLevelData(tempDir);
-            if (lvlDataRes.isOk()){
+            if (lvlDataRes.isOk()) {
                 auto lvlData = std::move(lvlDataRes).unwrap();
 
                 std::vector<Session> sessions;
@@ -159,7 +159,7 @@ void ImportPopup::onFromDT(CCObject*){
         }
     );
 }
-void ImportPopup::onFromText(CCObject*){
+void ImportPopup::onFromText(CCObject*) {
     auto dtLayer = DTLayer::get();
     if (dtLayer == nullptr || dtLayer->m_MyLevelStats.isErr()) return;
 
@@ -175,11 +175,11 @@ void ImportPopup::onFromText(CCObject*){
                 }
             }
         }),
-        [&](file::PickResult result){
+        [&](file::PickResult result) {
             auto dtLayer = DTLayer::get();
             if (dtLayer == nullptr || dtLayer->m_MyLevelStats.isErr()) return;
 
-            if (result.isErr()){
+            if (result.isErr()) {
                 log::error("{}", result.unwrapErr());
                 return;
             }

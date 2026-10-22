@@ -1,6 +1,6 @@
 #include "LevelLinkCell.hpp"
 
-LevelLinkCell* LevelLinkCell::create(float width, const std::string& levelKey, const LevelMetadeta& data){
+LevelLinkCell* LevelLinkCell::create(float width, const std::string& levelKey, const LevelMetadeta& data) {
     auto ret = new LevelLinkCell();
     if (ret && ret->init(width, levelKey, data)) {
         ret->autorelease();
@@ -11,7 +11,7 @@ LevelLinkCell* LevelLinkCell::create(float width, const std::string& levelKey, c
     return ret;
 }
 
-bool LevelLinkCell::init(float width, const std::string& levelKey, const LevelMetadeta& data){
+bool LevelLinkCell::init(float width, const std::string& levelKey, const LevelMetadeta& data) {
     if (!CCMenu::init()) return false;
 
     this->levelKey = levelKey;
@@ -59,10 +59,10 @@ bool LevelLinkCell::init(float width, const std::string& levelKey, const LevelMe
     return true;
 }
 
-void LevelLinkCell::setAlignment(bool left){
+void LevelLinkCell::setAlignment(bool left) {
     isAlignedLeft = left;
 
-    if (left){
+    if (left) {
         diffSpr->setPosition({diffSpr->getScaledContentWidth() / 2 + 5, this->getContentHeight() / 2});
         title->setPosition({this->getContentWidth() / 2 - titleWidth / 2, this->getContentHeight() / 1.6f});
         title->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
@@ -73,7 +73,7 @@ void LevelLinkCell::setAlignment(bool left){
         arrowBtn->setPosition({this->getContentWidth() - arrowBtn->getScaledContentWidth() / 2 - 5, this->getContentHeight() / 2});
         arrowBtn->setRotation(180);
     }
-    else{
+    else {
         arrowBtn->setPosition({arrowBtn->getScaledContentWidth() / 2 + 5, this->getContentHeight() / 2});
         title->setPosition({this->getContentWidth() / 2 + titleWidth / 2, this->getContentHeight() / 1.6f});
         title->setAlignment(CCTextAlignment::kCCTextAlignmentRight);
@@ -86,17 +86,17 @@ void LevelLinkCell::setAlignment(bool left){
     }
 }
 
-void LevelLinkCell::setCallback(geode::Function<void(const std::string& levelKey, bool isLeftAligned)> callback){
+void LevelLinkCell::setCallback(geode::Function<void(const std::string& levelKey, bool isLeftAligned)> callback) {
     this->callback = std::move(callback);
 }
 
-void LevelLinkCell::onArrow(CCObject*){
+void LevelLinkCell::onArrow(CCObject*) {
     if (callback == NULL) return;
 
     callback(levelKey, isAlignedLeft);
 }
 
-void LevelLinkCell::setEnabledAndFade(bool b){
+void LevelLinkCell::setEnabledAndFade(bool b) {
     this->setOpacity(b ? 255 : 120);
     this->setEnabled(b);
 

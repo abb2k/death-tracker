@@ -11,7 +11,7 @@ AdvancedScrollLayer* AdvancedScrollLayer::create(CCSize size, CCSize limits) {
 }
 
 
-bool AdvancedScrollLayer::init(CCSize size, CCSize limits){
+bool AdvancedScrollLayer::init(CCSize size, CCSize limits) {
     if (!CCLayer::init()) return false;
     
     this->setContentSize(size);
@@ -86,7 +86,7 @@ bool AdvancedScrollLayer::init(CCSize size, CCSize limits){
     return true;
 }
 
-float AdvancedScrollLayer::getMinimumPosition(bool horizontal){
+float AdvancedScrollLayer::getMinimumPosition(bool horizontal) {
     CCSize viewSize = this->getContentSize();
     CCSize contentSize = zoomParent->getContentSize();
     
@@ -107,11 +107,11 @@ float AdvancedScrollLayer::getMinimumPosition(bool horizontal){
     return (zoomParent->getScale() - scaleFactor) / (1 - scaleFactor) * (length / 2) / zoomParent->getScale();
 }
 
-float AdvancedScrollLayer::getMaximumPosition(bool horizontal){
+float AdvancedScrollLayer::getMaximumPosition(bool horizontal) {
     return -getMinimumPosition(horizontal);
 }
 
-void AdvancedScrollLayer::updateProgressBars(){
+void AdvancedScrollLayer::updateProgressBars() {
     widthScrollExt->m_contentLayer->setPositionY(content->getPositionX() - getMinimumPosition(true) * -1);
     widthScrollExt->m_contentLayer->setContentHeight(abs(getMinimumPosition(true) * 2) + zoomParent->getPositionX() * 2);
 
@@ -119,7 +119,7 @@ void AdvancedScrollLayer::updateProgressBars(){
     heightScrollExt->m_contentLayer->setContentHeight(abs(getMinimumPosition(false) * 2) + zoomParent->getPositionY() * 2);
 }
 
-void AdvancedScrollLayer::updatePositionByProgBars(float dt){
+void AdvancedScrollLayer::updatePositionByProgBars(float dt) {
     content->setPositionX(widthScrollExt->m_contentLayer->getPositionY() - getMinimumPosition(true));
 
     content->setPositionY(heightScrollExt->m_contentLayer->getPositionY() - getMinimumPosition(false));
@@ -138,7 +138,7 @@ bool AdvancedScrollLayer::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 
     touchDown = true;
 
-    if (allTouches->count() == 1){
+    if (allTouches->count() == 1) {
         auto firstLoc = static_cast<CCTouch*>(allTouches->anyObject())->getLocation();
         auto secondLoc = touch->getLocation();
 
@@ -169,10 +169,10 @@ void AdvancedScrollLayer::ccTouchCancelled(CCTouch* touch, CCEvent*) {
         allTouches->removeObject(touch);
 }
 
-void AdvancedScrollLayer::ccTouchMoved(CCTouch* touch, CCEvent*){
+void AdvancedScrollLayer::ccTouchMoved(CCTouch* touch, CCEvent*) {
     if (!isEnabled || touch == nullptr) return;
 
-    if (allTouches->count() > 1){
+    if (allTouches->count() > 1) {
         ccTouchesMoved(allTouches, nullptr);
         return;
     }
@@ -186,10 +186,10 @@ void AdvancedScrollLayer::ccTouchMoved(CCTouch* touch, CCEvent*){
     moveBy(delta * scrollSense * ccp(1, -1) / zoomParent->getScale());
 }
 
-void AdvancedScrollLayer::ccTouchesMoved(CCSet* touches, CCEvent* event){
+void AdvancedScrollLayer::ccTouchesMoved(CCSet* touches, CCEvent* event) {
     if (!isEnabled || touches == nullptr) return;
     
-    if (touches->count() != 2){
+    if (touches->count() != 2) {
         ccTouchMoved(static_cast<CCTouch*>(touches->anyObject()), event);
         return;
     }
@@ -225,8 +225,8 @@ void AdvancedScrollLayer::scrollWheel(float y, float x) {
 
     if (!scrollMovement)
         zoomToAndMove(zoomParent->getScale() + -y * zoomSensetivity);
-    else{
-        if (CCKeyboardDispatcher::get()->getControlKeyPressed()){
+    else {
+        if (CCKeyboardDispatcher::get()->getControlKeyPressed()) {
             zoomToAndMove(zoomParent->getScale() + -y * zoomSensetivity);
         }
         else if (!holdingShift)
@@ -238,16 +238,16 @@ void AdvancedScrollLayer::scrollWheel(float y, float x) {
     //log::info("{}", ccp(y, x));
 }
 
-void AdvancedScrollLayer::keyDown(enumKeyCodes key, double d){
-    if (key == enumKeyCodes::KEY_LeftShift){
+void AdvancedScrollLayer::keyDown(enumKeyCodes key, double d) {
+    if (key == enumKeyCodes::KEY_LeftShift) {
         holdingShift = true;
     }
 
     CCLayer::keyDown(key, d);
 }
 
-void AdvancedScrollLayer::keyUp(enumKeyCodes key, double d){
-    if (key == enumKeyCodes::KEY_LeftShift){
+void AdvancedScrollLayer::keyUp(enumKeyCodes key, double d) {
+    if (key == enumKeyCodes::KEY_LeftShift) {
         holdingShift = false;
     }
 }
@@ -256,11 +256,11 @@ void AdvancedScrollLayer::registerWithTouchDispatcher() {
     CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(this, 0, true);
 }
 
-void AdvancedScrollLayer::setHorizontalScrollbarPosition(bool onTop){
+void AdvancedScrollLayer::setHorizontalScrollbarPosition(bool onTop) {
     horizontalBar->setPositionY(onTop ? this->getContentHeight() + 4 : -4);
 }
 
-void AdvancedScrollLayer::setLimits(CCSize newLimits){
+void AdvancedScrollLayer::setLimits(CCSize newLimits) {
     CCSize newLimitedLimits = content->getContentSize();
     if (newLimits.width > this->getContentWidth()) newLimitedLimits.width = newLimits.width;
     if (newLimits.height > this->getContentHeight()) newLimitedLimits.height = newLimits.height;
@@ -275,16 +275,16 @@ void AdvancedScrollLayer::setLimits(CCSize newLimits){
     zoomBy(0);
 }
 
-void AdvancedScrollLayer::setLimitsWidth(float width){
+void AdvancedScrollLayer::setLimitsWidth(float width) {
     setLimits({width, content->getContentHeight()});
 }
-void AdvancedScrollLayer::setLimitsHeight(float height){
+void AdvancedScrollLayer::setLimitsHeight(float height) {
     setLimits({content->getContentWidth(), height});
 }
 
-void AdvancedScrollLayer::drawGrid(float squareSize, float lineWidth, ccColor4B color){
+void AdvancedScrollLayer::drawGrid(float squareSize, float lineWidth, ccColor4B color) {
     if (gridNode != nullptr) gridNode->clear();
-    else{
+    else {
         gridNode = CCDrawNode::create();
         gridNode->m_bUseArea = false;
         content->addChild(gridNode);
@@ -312,28 +312,28 @@ void AdvancedScrollLayer::drawGrid(float squareSize, float lineWidth, ccColor4B 
     }
 }
 
-void AdvancedScrollLayer::addFromCenter(CCNode* child, CCPoint offset){
+void AdvancedScrollLayer::addFromCenter(CCNode* child, CCPoint offset) {
     content->addChild(child);
     child->setPosition(content->getContentSize() / 2 + offset);
 }
 
-void AdvancedScrollLayer::toggleHorizontalScrollbar(bool b){
+void AdvancedScrollLayer::toggleHorizontalScrollbar(bool b) {
     horizontalBar->setVisible(b);
 }
 
-void AdvancedScrollLayer::toggleVerticalScrollbar(bool b){
+void AdvancedScrollLayer::toggleVerticalScrollbar(bool b) {
     verticalBar->setVisible(b);
 }
 
-void AdvancedScrollLayer::setScrollSensetivity(float sense){
+void AdvancedScrollLayer::setScrollSensetivity(float sense) {
     scrollSense = sense;
 }
 
-void AdvancedScrollLayer::moveBy(CCPoint amount){
+void AdvancedScrollLayer::moveBy(CCPoint amount) {
     moveTo(content->getPosition() + amount);
 }
 
-void AdvancedScrollLayer::moveTo(CCPoint newPos){
+void AdvancedScrollLayer::moveTo(CCPoint newPos) {
     CCSize viewSize = this->getContentSize();
     CCSize contentSize = zoomParent->getContentSize();
 
@@ -357,12 +357,12 @@ void AdvancedScrollLayer::moveTo(CCPoint newPos){
     updateProgressBars();
 }
 
-void AdvancedScrollLayer::resetPositioning(){
+void AdvancedScrollLayer::resetPositioning() {
     content->setPosition({0, 0});
     zoomTo(1);
 }
 
-void AdvancedScrollLayer::moveToCorner(bool left, bool bottom){
+void AdvancedScrollLayer::moveToCorner(bool left, bool bottom) {
     CCSize corners = zoomParent->getScaledContentSize() / 2;
 
     float XToGoTo = corners.width * (left ? 1 : -1);
@@ -373,14 +373,14 @@ void AdvancedScrollLayer::moveToCorner(bool left, bool bottom){
     moveTo({XToGoTo, YToGoTo});
 }
 
-void AdvancedScrollLayer::zoomBy(float zoomAmount){
+void AdvancedScrollLayer::zoomBy(float zoomAmount) {
     zoomTo(zoomParent->getScale() + zoomAmount);
 }
 
-void AdvancedScrollLayer::zoomToAndMove(float zoomAmount, float betweenDelta){
+void AdvancedScrollLayer::zoomToAndMove(float zoomAmount, float betweenDelta) {
     auto touchPos = getMousePos();
 
-    if (allTouches->count() == 2){
+    if (allTouches->count() == 2) {
         CCSetIterator it = allTouches->begin();
         CCTouch* touch1 = static_cast<CCTouch*>(*it);
         ++it;
@@ -394,7 +394,7 @@ void AdvancedScrollLayer::zoomToAndMove(float zoomAmount, float betweenDelta){
     moveBy(posAfterZoom - posBeforeZoom);
 }
 
-void AdvancedScrollLayer::zoomTo(float zoomAmount){
+void AdvancedScrollLayer::zoomTo(float zoomAmount) {
     if (zoomParent->getContentHeight() * zoomAmount < this->getContentHeight()) zoomAmount = this->getContentHeight() / zoomParent->getContentHeight();
     if (zoomParent->getContentWidth() * zoomAmount < this->getContentWidth()) zoomAmount = this->getContentWidth() / zoomParent->getContentWidth();
     if (zoomAmount > minZoom) zoomAmount = minZoom;
@@ -405,7 +405,7 @@ void AdvancedScrollLayer::zoomTo(float zoomAmount){
     moveTo(content->getPosition());
 }
 
-void AdvancedScrollLayer::zoomToMinimum(){
+void AdvancedScrollLayer::zoomToMinimum() {
     CCPoint toUse;
     if (zoomParent->getContentWidth() > zoomParent->getContentHeight())
         toUse = ccp(this->getContentWidth(), zoomParent->getContentWidth());
@@ -415,11 +415,11 @@ void AdvancedScrollLayer::zoomToMinimum(){
     zoomTo(toUse.x / toUse.y);
 }
 
-void AdvancedScrollLayer::zoomToMaximum(){
+void AdvancedScrollLayer::zoomToMaximum() {
     zoomTo(minZoom);
 }
 
-bool AdvancedScrollLayer::isAtMaxZoom(){
+bool AdvancedScrollLayer::isAtMaxZoom() {
     float minAmount = minZoom;
 
     if (zoomParent->getContentHeight() * minAmount < this->getContentHeight()) minAmount = this->getContentHeight() / zoomParent->getContentHeight();
@@ -430,7 +430,7 @@ bool AdvancedScrollLayer::isAtMaxZoom(){
     return zoomParent->getScale() == minAmount;
 }
 
-bool AdvancedScrollLayer::isAtMinZoom(){
+bool AdvancedScrollLayer::isAtMinZoom() {
     float maxAmount = maxZoom;
 
     if (zoomParent->getContentHeight() * maxAmount < this->getContentHeight()) maxAmount = this->getContentHeight() / zoomParent->getContentHeight();
@@ -442,15 +442,15 @@ bool AdvancedScrollLayer::isAtMinZoom(){
 }
 
 
-float AdvancedScrollLayer::getCurrentZoom(){
+float AdvancedScrollLayer::getCurrentZoom() {
     return zoomParent->getScale();
 }
 
-void AdvancedScrollLayer::setEnabled(bool b){
+void AdvancedScrollLayer::setEnabled(bool b) {
     isEnabled = b;
 }
 
-AdvancedScrollLayer::~AdvancedScrollLayer(){
+AdvancedScrollLayer::~AdvancedScrollLayer() {
     if (allTouches != nullptr)
         allTouches->release();
 }

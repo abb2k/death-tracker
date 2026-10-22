@@ -10,6 +10,10 @@ class LayoutColumn;
 
 using namespace geode::prelude;
 
+using WaveKeyParams = std::tuple<float, float, float, float>;
+using GradientKeyParams = std::tuple<ccColor4B, ccColor4B, float, float>;
+using CPlusKeyParams = int;
+
 class DTLabel : public CCMenu {
     public:
         static DTLabel* create(const DTLabelInfo& info);
@@ -51,6 +55,7 @@ class DTLabel : public CCMenu {
 
         float textCornerOffset = 5;
 
+        void setDonerRichTextEnabled(bool enabled);
         void setLabelText(const std::string& text);
 
         arc::Future<std::optional<std::string>> modifyKeys();
@@ -85,6 +90,7 @@ class DTLabel : public CCMenu {
         async::TaskHolder<std::optional<std::string>> modifyListener;
 
         bool isEditable;
+        bool donerRichTextEnabled = false;
 
         bool isExpandable = true;
 
@@ -96,7 +102,7 @@ class DTLabel : public CCMenu {
         
         CCMenu* menu;
         CCMenuItemSpriteExtra* expandBtn;
-        SimpleTextArea* labelTitleArea;
+        RichTextArea* labelTitleArea;
 
         CCNode* labelTextContainer;
         RichTextArea* labelText;
@@ -142,4 +148,9 @@ class DTLabel : public CCMenu {
         float doubleClickTimer = .2f;
 
         float getSpecificTitleHeight();
+
+        std::shared_ptr<RichTextKey<WaveKeyParams>> makeWaveKey();
+        std::shared_ptr<RichTextKey<GradientKeyParams>> makeGradientKey();
+        std::shared_ptr<RichTextKey<CPlusKeyParams>> makeCPlusKey();
+        std::shared_ptr<RichTextKey<ccColor4B>> makeColor4BKey();
 };

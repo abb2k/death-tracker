@@ -11,7 +11,7 @@ GraphPoint* GraphPoint::create(const std::string& run, const float& rate, const 
     return ret;
 }
 
-bool GraphPoint::init(const std::string& run, const float& rate, const ccColor4B& color){
+bool GraphPoint::init(const std::string& run, const float& rate, const ccColor4B& color) {
 
     m_Run = run;
     m_Rate = rate;
@@ -32,7 +32,7 @@ bool GraphPoint::init(const std::string& run, const float& rate, const ccColor4B
     return true;
 }
 
-void GraphPoint::update(float delta){
+void GraphPoint::update(float delta) {
 
     bool isHovered = false;
 
@@ -46,17 +46,17 @@ void GraphPoint::update(float delta){
     #endif
 
 
-    if (isHovered && geode::cocos::nodeIsVisible(this)){
+    if (isHovered && geode::cocos::nodeIsVisible(this)) {
         c->setScale(2);
-        if (!m_oneTimeCall){
+        if (!m_oneTimeCall) {
             m_oneTimeCall = true;
             if (m_Delegate == nullptr) return;
             m_Delegate->OnPointSelected(this);
         }
     }
-    else{
+    else {
         c->setScale(1);
-        if (m_oneTimeCall){
+        if (m_oneTimeCall) {
             m_oneTimeCall = false;
             if (m_Delegate == nullptr) return;
             m_Delegate->OnPointDeselected(this);
@@ -64,12 +64,12 @@ void GraphPoint::update(float delta){
     }
 }
 
-void GraphPoint::setDelegate(GraphPointDelegate* Delegate){
+void GraphPoint::setDelegate(GraphPointDelegate* Delegate) {
     m_Delegate = Delegate;
 }
 
-GraphPoint::~GraphPoint(){
-    if (m_oneTimeCall){
+GraphPoint::~GraphPoint() {
+    if (m_oneTimeCall) {
         m_oneTimeCall = false;
         if (m_Delegate == nullptr) return;
         m_Delegate->OnPointDeselected(this);

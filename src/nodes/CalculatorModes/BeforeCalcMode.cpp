@@ -15,12 +15,12 @@ BeforeCalcMode* BeforeCalcMode::create(CCSize const& size, geode::Function<void(
     return ret;
 }
 
-bool BeforeCalcMode::init(CCSize const& size, geode::Function<void(std::string const&)>&& onVariablesChanged, geode::Function<void(std::string const&)>&& onCalculate){
+bool BeforeCalcMode::init(CCSize const& size, geode::Function<void(std::string const&)>&& onVariablesChanged, geode::Function<void(std::string const&)>&& onCalculate) {
     if (!CalculatorMode::init(size, std::move(onVariablesChanged), std::move(onCalculate))) return false;
 
     beforePercentInput = TextInput::create(size.width / 1.2f, "before%");
     beforePercentInput->setCommonFilter(CommonFilter::Uint);
-    beforePercentInput->setCallback([&](auto newStr){
+    beforePercentInput->setCallback([&](auto newStr) {
         sendVars();
     });
     beforePercentInput->setPosition({size.width / 2, size.height});
@@ -36,7 +36,7 @@ bool BeforeCalcMode::init(CCSize const& size, geode::Function<void(std::string c
 
     auto sf0Btn = SwitcherButton::create({size.width / 1.5f / (1 / .85f), 25 / (1 / .85f)}, "GJ_button_01.png", {"General", "Session"});
     sf0Btn->setPosition({size.width / 2, sf0Btn->getScaledContentHeight() / 2 + 2});
-    sf0Btn->setOptionChangedCallback([&](int opt){
+    sf0Btn->setOptionChangedCallback([&](int opt) {
         isGeneral = opt == 0;
     });
     
@@ -47,7 +47,7 @@ bool BeforeCalcMode::init(CCSize const& size, geode::Function<void(std::string c
     return true;
 }
 
-void BeforeCalcMode::calculate(){
+void BeforeCalcMode::calculate() {
     if (beforePercentInput->getString() == "" || DTLayer::get()->m_MyLevelStats.isErr()) return;
 
     auto numRes = geode::utils::numFromString<int>(beforePercentInput->getString());
@@ -59,12 +59,12 @@ void BeforeCalcMode::calculate(){
     if (meStats.from0.isErr()) return;
     auto& meGen = meStats.from0.unwrap();
 
-    auto deadsHandle = async::spawn(DTLayer::get()->getTFor<Deaths>([](GeneralData const& data){
+    auto deadsHandle = async::spawn(DTLayer::get()->getTFor<Deaths>([](GeneralData const& data) {
         Deaths runs{};
         StatsManager::mergeMapsAdd(runs, data.deaths);
         return runs;
     },
-    [](auto const& a, auto const& b){
+    [](auto const& a, auto const& b) {
         auto map = a;
         StatsManager::mergeMapsAdd(map, b);
         return map;
@@ -97,18 +97,18 @@ std::string BeforeCalcMode::getDescription() const{
     return "The amount of times you didnt get to a percentage from the target run";
 }
 
-void BeforeCalcMode::open(){
+void BeforeCalcMode::open() {
     beforePercentInput->setEnabled(true);
     this->setVisible(true);
 
     sendVars();
 }
-void BeforeCalcMode::close(){
+void BeforeCalcMode::close() {
     beforePercentInput->setEnabled(false);
     this->setVisible(false);
 }
 
-void BeforeCalcMode::sendVars(){
+void BeforeCalcMode::sendVars() {
     onVariablesChanged(beforePercentInput->getString() != "" ? fmt::format(
         "{}<",
         beforePercentInput->getString()

@@ -116,16 +116,16 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         void foreachLinkedLevel(geode::Function<void(LevelData&)> onLevelVisit);
 
-        bool createDeathsString(const Deaths& deaths, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const ccColor3B& newBestColoring = {255, 255, 255}, bool ignoreExtraSettings = false);
+        bool createDeathsString(const Deaths& deaths, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false);
 
         void CleanGetStats();
 
         template<class T>
-        GetTFuture<T> getTFor(geode::Function<T(GeneralData const&)> dataGetter, geode::Function<T(T const&, T const&)> combineFunc, bool session, bool localOnly = false){
-            if (!session){
+        GetTFuture<T> getTFor(geode::Function<T(GeneralData const&)> dataGetter, geode::Function<T(T const&, T const&)> combineFunc, bool session, bool localOnly = false) {
+            if (!session) {
                 if (m_MyLevelStats.isErr()) co_return Err("Failed to calculate playtime");
                 auto myStats = m_MyLevelStats.unwrap();
-                if (myStats.from0.isErr()){
+                if (myStats.from0.isErr()) {
                     auto error = myStats.from0.unwrapErr();
                     if (error.code == 1)
                         co_return Err(UpdateFutureError("No Deaths Saved!", false));
@@ -137,7 +137,7 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
                 T all = dataGetter(myFrom0Stats);
 
-                if (!localOnly){
+                if (!localOnly) {
                     for (const auto& levelData : linkedLevelsCopy)
                     {
                         co_await arc::yield();
@@ -149,7 +149,7 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
                 co_return Ok(all);
             }
-            else{
+            else {
                 auto sessionRes = loadSessionFromSave();
                 if (sessionRes.isErr()) co_return Err(sessionRes.unwrapErr());
                 auto session = sessionRes.unwrap();
@@ -175,7 +175,7 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         std::set<DTLabel*> keyListeners{};
 
-        bool createDeathsString(const Deaths& deaths, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const ccColor3B& newBestColoring = {255, 255, 255}, bool ignoreExtraSettings = false);
+        bool createDeathsString(const Deaths& deaths, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false);
 
         int currentSession;
 
@@ -337,4 +337,10 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
         void resetLayoutTo(DTLayoutPreset const& preset);
 
         static CCLabelBMFont* verText;
+        static CCParticleSystemQuad* verStarsParticle;
+        static CCParticleSystemQuad* verSmokeParticle;
+
+        comm::ListenerHandle donerListenerHandle;
+
+        ListenerResult onDonerStateChanged(bool state);
 };

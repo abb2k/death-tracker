@@ -72,7 +72,7 @@ bool DTLevelSpecificSettingsLayer::init() {
     return true;
 }
 
-CCNode* DTLevelSpecificSettingsLayer::createPageBtn(const std::string& text, OptionsNode* page){
+CCNode* DTLevelSpecificSettingsLayer::createPageBtn(const std::string& text, OptionsNode* page) {
 
     auto spr = CCLabelBMFont::create(text.c_str(), "gjFont17.fnt", 50);
     spr->setScale(.85f);
@@ -84,7 +84,7 @@ CCNode* DTLevelSpecificSettingsLayer::createPageBtn(const std::string& text, Opt
     page->setSettingsLayer(this);
     pages.insert({button, page});
 
-    if (page != nullptr){
+    if (page != nullptr) {
         page->setZOrder(2);
         page->setPosition({5, 5});
         m_mainLayer->addChild(page);
@@ -93,12 +93,12 @@ CCNode* DTLevelSpecificSettingsLayer::createPageBtn(const std::string& text, Opt
     return button;
 }
 
-CCNode* DTLevelSpecificSettingsLayer::createSeperator(){
+CCNode* DTLevelSpecificSettingsLayer::createSeperator() {
     auto spr = CCLabelBMFont::create("|", "gjFont17.fnt");
     return spr;
 }
 
-void DTLevelSpecificSettingsLayer::sendUnderlineTo(CCNode* node, bool instant){
+void DTLevelSpecificSettingsLayer::sendUnderlineTo(CCNode* node, bool instant) {
     optionUnderline->stopAllActions();
 
     float movementTime = instant ? 0 : .2f;
@@ -138,7 +138,7 @@ void DTLevelSpecificSettingsLayer::sendUnderlineTo(CCNode* node, bool instant){
     );
 }
 
-void DTLevelSpecificSettingsLayer::makeUnderlineIdle(CCObject* sender){
+void DTLevelSpecificSettingsLayer::makeUnderlineIdle(CCObject* sender) {
     auto node = static_cast<CCNode*>(sender);
 
     float scaleAmount = 2;
@@ -166,7 +166,7 @@ void DTLevelSpecificSettingsLayer::makeUnderlineIdle(CCObject* sender){
     );
 }
 
-void DTLevelSpecificSettingsLayer::switchPage(CCObject* sender){
+void DTLevelSpecificSettingsLayer::switchPage(CCObject* sender) {
     if (!pages.contains(sender)) return;
 
     auto senderNode = static_cast<CCNode*>(sender);
@@ -184,10 +184,10 @@ void DTLevelSpecificSettingsLayer::switchPage(CCObject* sender){
         currentPage->onOpened();
 }
 
-void DTLevelSpecificSettingsLayer::onClose(CCObject*){
+void DTLevelSpecificSettingsLayer::onClose(CCObject*) {
     Popup::onClose(nullptr);
 }
 
-void DTLevelSpecificSettingsLayer::keyBackClicked(){
+void DTLevelSpecificSettingsLayer::keyBackClicked() {
     Popup::keyBackClicked();
 }

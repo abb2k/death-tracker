@@ -7,9 +7,13 @@
 #include <utils/CCTextAreaTintTo.hpp>
 #include <utils/CCTextAreaFadeTo.hpp>
 #include <utils/CCWaveAction.hpp>
+#include <utils/CCGradientAction.hpp>
 
 #include <regex>
+#include <cmath>
 #include <arc/task/Yield.hpp>
+
+#include <managers/AuthManager.hpp>
 
 float DTLabel::labelTitleHeight = 15;
 float DTLabel::moveThreshold = 5;
@@ -30,16 +34,16 @@ DTLabel* DTLabel::create(const DTLabelInfo& info) {
     return ret;
 }
 
-DTLabel::~DTLabel(){
-    if (DTLayer::get() != nullptr){
+DTLabel::~DTLabel() {
+    if (DTLayer::get() != nullptr) {
         DTLayer::get()->unsubscribeToOrganizationEvent(this);
         DTLayer::get()->unsubscribeKeyListener(this);
     }
 }
 
-bool DTLabel::init(const DTLabelInfo& info){
-    if (DTLayer::get() != nullptr){
-        DTLayer::get()->subscribeToOrganizationEvent(this, [&](auto _){
+bool DTLabel::init(const DTLabelInfo& info) {
+    if (DTLayer::get() != nullptr) {
+        DTLayer::get()->subscribeToOrganizationEvent(this, [&](auto _) {
             bg->stopAllActions();
             bg->runAction(CCEaseInOut::create(CCResizeHeightTo::create(DTLayer::transitionTime, this->getContentHeight() / bg->getScale()), 2));
         });
@@ -50,6 +54,7 @@ bool DTLabel::init(const DTLabelInfo& info){
     this->setCascadeOpacityEnabled(true);
 
     this->info = info;
+    donerRichTextEnabled = AuthManager::isDoner();
 
     this->setAnchorPoint({0, 1});
 
@@ -79,137 +84,17 @@ bool DTLabel::init(const DTLabelInfo& info){
     setLabelText(info.text);
     labelTextContainer->addChild(labelText);
 
-    // labelText->registerRichTextKey(std::make_shared<RichTextKey<std::tuple<float, float, float, float>>>(
-    //     "wave",
-    //     [](std::string value) -> Result<std::tuple<float, float, float, float>> {
-    //         float speed = 1;
-    //         float distanceY = 5;
-    //         float distanceX = 0;
-    //         float offsetPerIndex = .3f;
-
-    //         auto splitStr = utils::string::split(value, ",");
-    //         if (splitStr.size() >= 1){
-    //             auto speedRes = geode::utils::numFromString<float>(splitStr[0]);
-    //             if (speedRes.isOk()) speed = speedRes.unwrap();
-    //         }
-    //         if (splitStr.size() >= 2){
-    //             auto distanceYRes = geode::utils::numFromString<float>(splitStr[1]);
-    //             if (distanceYRes.isOk()) distanceY = distanceYRes.unwrap();
-    //         }
-    //         if (splitStr.size() >= 3){
-    //             auto distanceXRes = geode::utils::numFromString<float>(splitStr[2]);
-    //             if (distanceXRes.isOk()) distanceX = distanceXRes.unwrap();
-    //         }
-    //         if (splitStr.size() >= 4){
-    //             auto offsetPerIndexRes = geode::utils::numFromString<float>(splitStr[3]);
-    //             if (offsetPerIndexRes.isOk()) offsetPerIndex = offsetPerIndexRes.unwrap();
-    //         }
-
-    //         return Ok(std::make_tuple(speed, distanceY, distanceX, offsetPerIndex));
-    //     },
-    //     [](std::tuple<float, float, float, float> const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
-    //         sprite->runAction(
-    //             CCRepeatForever::create(
-    //                 CCWaveAction::create(
-    //                     std::get<0>(value),
-    //                     std::get<2>(value),
-    //                     std::get<1>(value),
-    //                     std::get<3>(value) * localIndex
-    //                 )
-    //             )
-    //         );
-    //     }
-    // ));
-
-    // labelText->registerRichTextKey(std::make_shared<RichTextKey<std::tuple<ccColor3B, ccColor3B, float, float>>>(
-    //     "gradient",
-    //     [](std::string value) -> Result<std::tuple<ccColor3B, ccColor3B, float, float>> {
-    //         ccColor3B colorA = ccWHITE;
-    //         ccColor3B colorB = ccWHITE;
-    //         float speed = 1.0f;
-    //         float holdTime = 0.2f;
-
-    //         auto splitStr = utils::string::split(value, ",");
-    //         if (splitStr.size() >= 1) {
-    //             auto res = geode::cocos::cc3bFromHexString(splitStr[0]);
-    //             if (res.isOk()) colorA = res.unwrap();
-    //         }
-    //         if (splitStr.size() >= 2) {
-    //             auto res = geode::cocos::cc3bFromHexString(splitStr[1]);
-    //             if (res.isOk()) colorB = res.unwrap();
-    //         }
-    //         if (splitStr.size() >= 3) {
-    //             auto res = geode::utils::numFromString<float>(splitStr[2]);
-    //             if (res.isOk()) speed = res.unwrap();
-    //         }
-    //         if (splitStr.size() >= 4) {
-    //             auto res = geode::utils::numFromString<float>(splitStr[3]);
-    //             if (res.isOk()) holdTime = res.unwrap();
-    //         }
-
-    //         return Ok(std::make_tuple(colorA, colorB, speed, holdTime));
-    //     },
-    //     [](std::tuple<ccColor3B, ccColor3B, float, float> const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
-
-    //         auto colorA = std::get<0>(value);
-    //         auto colorB = std::get<1>(value);
-    //         auto speed = std::get<2>(value);
-    //         auto holdTime = std::get<3>(value);
-
-    //         sprite->setColor(colorA);
-
-    //         if (speed > 0.f) {
-    //             float phaseOffset = holdTime * localIndex;
-
-    //             auto sequence = CCSequence::create(
-    //                 CCDelayTime::create(phaseOffset),
-
-    //                 CCTintTo::create(speed, colorB.r, colorB.g, colorB.b),
-    //                 CCDelayTime::create(holdTime),
-
-    //                 CCTintTo::create(speed, colorA.r, colorA.g, colorA.b),
-    //                 CCDelayTime::create(holdTime),
-
-    //                 CCDelayTime::create(
-    //                     std::max(0.f, holdTime * 10.f - phaseOffset)
-    //                 ),
-
-    //                 nullptr
-    //             );
-
-    //             sprite->runAction(CCRepeatForever::create(sequence));
-    //         }
-    //     }
-    // ));
-
-    labelText->registerRichTextKey(std::make_shared<RichTextKey<int>>(
-        "cplus",
-        [](std::string value) -> Result<int> {
-            GEODE_UNWRAP_INTO(auto num, utils::numFromString<int>(value));
-
-            return Ok(num);
-        },
-        [](int const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
-            auto colorAdded = sprite->getColor();
-            if (colorAdded == ccWHITE) colorAdded = static_cast<CCLabelBMFont*>(sprite->getParent())->getColor();
-
-            auto r = colorAdded.r + value;
-            auto g = colorAdded.g + value;
-            auto b = colorAdded.b + value;
-
-            if (r > 255) r = 255;
-            if (g > 255) g = 255;
-            if (b > 255) b = 255;
-
-            auto newColor = ccColor3B{static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
-
-            sprite->setColor(newColor);
-        }
-    ));
+    labelText->registerRichTextKey(makeColor4BKey());
+    
+    labelText->registerRichTextKey(makeWaveKey());
+    
+    labelText->registerRichTextKey(makeGradientKey());
+    
+    labelText->registerRichTextKey(makeCPlusKey());
 
     auto textHeight = 0.0f;
     if (!info.isExpanded) textHeight = 0;
-    else{
+    else {
         textHeight = labelText->getContentHeight() + textCornerOffset;   
     }
 
@@ -244,13 +129,21 @@ bool DTLabel::init(const DTLabelInfo& info){
     hideBGSpr->setVisible(info.hideHeader);
     labelTitleBG->addChild(hideBGSpr);
 
-    labelTitleArea = SimpleTextArea::create(info.labelName, "bigFont.fnt", .35f);
+    labelTitleArea = RichTextArea::create(info.labelName, "bigFont.fnt", .35f);
     labelTitleArea->setID("title-text");
     labelTitleArea->setAnchorPoint({.5f, 1});
     labelTitleArea->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
     labelTitleArea->setWrappingMode(WrappingMode::CUTOFF_WRAP);
     labelTitleArea->setMaxLines(1);
     labelTitleArea->setVisible(!info.hideHeader);
+    
+    labelTitleArea->registerRichTextKey(makeColor4BKey());
+    labelTitleArea->registerRichTextKey(makeWaveKey());
+    labelTitleArea->registerRichTextKey(makeGradientKey());
+    labelTitleArea->registerRichTextKey(makeCPlusKey());
+
+    labelTitleArea->setText(labelTitleArea->getRawText());
+
     this->addChild(labelTitleArea);
 
     float expandLineWidth = 3;
@@ -288,7 +181,7 @@ bool DTLabel::init(const DTLabelInfo& info){
     expandBtn->setPosition({5.0f, -labelTitleHeight / 2});
     menu->addChild(expandBtn);
 
-    if (info.isExpanded){
+    if (info.isExpanded) {
         expandBtn->setRotation(90);
         expandBtn->setPositionX(8);
     }
@@ -315,18 +208,18 @@ bool DTLabel::init(const DTLabelInfo& info){
     return true;
 }
 
-void DTLabel::registerWithTouchDispatcher(){
+void DTLabel::registerWithTouchDispatcher() {
     CCTouchDispatcher::get()->addPrioTargetedDelegate(this, -505, true);
 }
 
-void DTLabel::update(float dt){
+void DTLabel::update(float dt) {
 
     labelTextContainer->setPosition(bg->getPosition() + ccp(this->getContentWidth() / 2, -getSpecificTitleHeight()));
-    if (labelText->getWidth() != this->getContentWidth() - textCornerOffset && info.isExpanded){
+    if (labelText->getWidth() != this->getContentWidth() - textCornerOffset && info.isExpanded) {
         labelText->setWidth(this->getContentWidth() - textCornerOffset);
         labelText->setWidth(labelText->getWidth());
     }
-    if (labelText->getWidth() != this->getContentWidth() - textCornerOffset && info.isExpanded){
+    if (labelText->getWidth() != this->getContentWidth() - textCornerOffset && info.isExpanded) {
         labelText->setWidth(this->getContentWidth() - textCornerOffset);
         labelText->setWidth(labelText->getWidth());
     }
@@ -345,7 +238,7 @@ void DTLabel::update(float dt){
 
     this->setContentHeight(targetHeight);
 
-    if (doUpdateLayout && DTLayer::get() && !DTLayer::get()->cornerOnNextOrganization){
+    if (doUpdateLayout && DTLayer::get() && !DTLayer::get()->cornerOnNextOrganization) {
         DTLayer::get()->organizeLayout();
     }
 
@@ -357,7 +250,12 @@ void DTLabel::update(float dt){
 
     loadingCircle->setPosition({this->getContentWidth() / 2, this->getContentHeight() - getSpecificTitleHeight() / 2});
 
-    labelTitleArea->setWidth(this->getContentWidth() - expandBtn->getScaledContentHeight() * 2 - 5);
+    auto titleWidth = this->getContentWidth() - expandBtn->getScaledContentHeight() * 2 - 5;
+    if (std::abs(labelTitleArea->getWidth() - titleWidth) > 0.01f) {
+        labelTitleArea->setWidth(titleWidth);
+        labelTitleArea->setWidth(labelTitleArea->getWidth());
+    }
+
     labelTitleArea->setPositionY(this->getContentHeight());
     labelTitleArea->setPositionX(this->getContentWidth() / 2 + (
         labelTitleArea->getAlignment() == CCTextAlignment::kCCTextAlignmentRight && !info.hideHeader ? 
@@ -378,36 +276,36 @@ void DTLabel::update(float dt){
 
     auto mousePos = this->convertToNodeSpace(getMousePos());
 
-    if (isEditable && !isBeingEdited && labelTitleBG->boundingBox().containsPoint(mousePos) && !isHovering){
+    if (isEditable && !isBeingEdited && labelTitleBG->boundingBox().containsPoint(mousePos) && !isHovering) {
         isHovering = true;
         glow->stopAllActions();
         glow->runAction(CCTintTo::create(.1f, 20, 20, 20));
     }
-    else if (isHovering && !labelTitleBG->boundingBox().containsPoint(mousePos) && !isBeingEdited){
+    else if (isHovering && !labelTitleBG->boundingBox().containsPoint(mousePos) && !isBeingEdited) {
         isHovering = false;
         glow->stopAllActions();
         glow->runAction(CCTintTo::create(.1f, 0, 0, 0));
     }
     
-    if (leftExpandLine->boundingBox().containsPoint(mousePos) && !currentlyExpandingLeft && isEditable){
+    if (leftExpandLine->boundingBox().containsPoint(mousePos) && !currentlyExpandingLeft && isEditable) {
         leftExpandLine->setVisible(true);
         leftExpandLine->setOpacity(150);
     }
-    else if (!currentlyExpandingLeft){
+    else if (!currentlyExpandingLeft) {
         leftExpandLine->setVisible(false);
     }
 
-    if (rightExpandLine->boundingBox().containsPoint(mousePos) && !currentlyExpandingRight && isEditable){
+    if (rightExpandLine->boundingBox().containsPoint(mousePos) && !currentlyExpandingRight && isEditable) {
         rightExpandLine->setVisible(true);
         rightExpandLine->setOpacity(150);
     }
-    else if (!currentlyExpandingRight){
+    else if (!currentlyExpandingRight) {
         rightExpandLine->setVisible(false);
     }
 }
 
 
-void DTLabel::moveUpLayer(){
+void DTLabel::moveUpLayer() {
     for (const auto& column : holders)
         column->labels.erase(info.layer);
     info.layer++;
@@ -417,7 +315,7 @@ void DTLabel::moveUpLayer(){
     }
 }
 
-void DTLabel::toggleExpand(CCObject*){
+void DTLabel::toggleExpand(CCObject*) {
     if (!isExpandable) return;
 
     info.isExpanded = !info.isExpanded;
@@ -459,10 +357,10 @@ void DTLabel::toggleExpand(CCObject*){
 
 bool DTLabel::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     auto touchInSpace = this->convertTouchToNodeSpace(touch);
-    if (!isEditable){
+    if (!isEditable) {
         if (labelTitleBG->boundingBox().containsPoint(touchInSpace)) {
 
-            if (labelTitleBG->getActionByTag(1) != nullptr){
+            if (labelTitleBG->getActionByTag(1) != nullptr) {
                 clipboard::write(labelText->getText());
                 Notification::create(fmt::format("Copied text from {}", info.labelName), NotificationIcon::Success)->show();
                 return false;
@@ -477,14 +375,14 @@ bool DTLabel::ccTouchBegan(CCTouch* touch, CCEvent* event) {
         return false;
     }
 
-    if (leftExpandLine->boundingBox().containsPoint(touchInSpace)){
+    if (leftExpandLine->boundingBox().containsPoint(touchInSpace)) {
         leftExpandLine->setVisible(true);
         leftExpandLine->setOpacity(255);
         currentlyExpandingLeft = true;
 
         return true;
     }
-    else if (rightExpandLine->boundingBox().containsPoint(touchInSpace)){
+    else if (rightExpandLine->boundingBox().containsPoint(touchInSpace)) {
         rightExpandLine->setVisible(true);
         rightExpandLine->setOpacity(255);
         currentlyExpandingRight = true;
@@ -504,8 +402,8 @@ bool DTLabel::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 }
 
 void DTLabel::ccTouchEnded(CCTouch* touch, CCEvent*) {
-    if (isBeingTouched){
-        if (!isMovingLabel){
+    if (isBeingTouched) {
+        if (!isMovingLabel) {
             auto touchInSpace = labelTitleBG->getParent()->convertTouchToNodeSpace(touch);
 
             if (labelTitleBG->boundingBox().containsPoint(touchInSpace)) {
@@ -518,10 +416,10 @@ void DTLabel::ccTouchEnded(CCTouch* touch, CCEvent*) {
         }
     }
 
-    if (currentlyExpandingLeft){
+    if (currentlyExpandingLeft) {
         leftExpandLine->setVisible(false);
     }
-    if (currentlyExpandingRight){
+    if (currentlyExpandingRight) {
         rightExpandLine->setVisible(false);
     }
 
@@ -532,17 +430,17 @@ void DTLabel::ccTouchEnded(CCTouch* touch, CCEvent*) {
 }
 
 void DTLabel::ccTouchCancelled(CCTouch* touch, CCEvent*) {
-    if (isBeingTouched){
-        if (isMovingLabel){
+    if (isBeingTouched) {
+        if (isMovingLabel) {
             currentTouchPosition = this->getParent()->convertTouchToNodeSpace(touch);
             onMoveEnded();
         }
     }
 
-    if (currentlyExpandingLeft){
+    if (currentlyExpandingLeft) {
         leftExpandLine->setVisible(false);
     }
-    if (currentlyExpandingRight){
+    if (currentlyExpandingRight) {
         rightExpandLine->setVisible(false);
     }
 
@@ -552,12 +450,12 @@ void DTLabel::ccTouchCancelled(CCTouch* touch, CCEvent*) {
     currentlyExpandingRight = false;
 }
 
-void DTLabel::ccTouchMoved(CCTouch* touch, CCEvent*){
-    if (isBeingTouched){
-        if (!isMovingLabel){
+void DTLabel::ccTouchMoved(CCTouch* touch, CCEvent*) {
+    if (isBeingTouched) {
+        if (!isMovingLabel) {
             auto touchCurrentLocation = touch->getLocation();
         
-            if (std::abs((touchStartPoint - touchCurrentLocation).getLength()) >= moveThreshold){
+            if (std::abs((touchStartPoint - touchCurrentLocation).getLength()) >= moveThreshold) {
                 isMovingLabel = true;
                 onMoveBegan();
             }
@@ -565,7 +463,7 @@ void DTLabel::ccTouchMoved(CCTouch* touch, CCEvent*){
         else currentTouchPosition = this->getParent()->convertTouchToNodeSpace(touch);
     }
 
-    if (currentlyExpandingLeft){
+    if (currentlyExpandingLeft) {
         auto worldPos = this->convertToWorldSpace(ccp(this->getContentWidth(), 0));
         auto touchPos = touch->getLocation();
 
@@ -588,7 +486,7 @@ void DTLabel::ccTouchMoved(CCTouch* touch, CCEvent*){
             DTLayer::get()->organizeLayout();
     }
 
-    if (currentlyExpandingRight){
+    if (currentlyExpandingRight) {
         auto worldPos = this->convertToWorldSpace(ccp(5, 0));
         auto touchPos = touch->getLocation();
 
@@ -612,11 +510,11 @@ void DTLabel::ccTouchMoved(CCTouch* touch, CCEvent*){
     }
 }
 
-void DTLabel::onSettings(){
+void DTLabel::onSettings() {
     DTLayer::get()->setOptionsLayerTo(this);
 }
 
-void DTLabel::onMoveBegan(){
+void DTLabel::onMoveBegan() {
     holdersSave = holders;
 
     removeFromColumns();
@@ -634,7 +532,7 @@ void DTLabel::onMoveBegan(){
     else DTLayer::get()->organizeLayout();
 }
 
-void DTLabel::onMoveUpdate(float dt){
+void DTLabel::onMoveUpdate(float dt) {
     auto targetPosition = currentTouchPosition + ccp(-this->getContentWidth(), this->getContentHeight()) / 2;
     CCPoint currentLerp;
     currentLerp.x = std::lerp(this->getPositionX(), targetPosition.x, dt * DTLabel::labelLerpSpeed);
@@ -642,17 +540,17 @@ void DTLabel::onMoveUpdate(float dt){
     this->setPosition(currentLerp);
 }
 
-void DTLabel::onMoveEnded(){
+void DTLabel::onMoveEnded() {
     auto res = DTLayer::get()->getColumnLayerFromPosition(this->getParent()->convertToWorldSpace(currentTouchPosition + ccp(-this->getContentWidth(), this->getContentHeight()) / 2));
 
-    if (res.first == nullptr){
-        for (const auto& container : holdersSave){
+    if (res.first == nullptr) {
+        for (const auto& container : holdersSave) {
             container->addLabel(this);
         }
 
         DTLayer::get()->organizeLayout();
     }
-    else{
+    else {
         this->info.layer = res.second;
         res.first->addLabel(this);
 
@@ -660,33 +558,33 @@ void DTLabel::onMoveEnded(){
     }
 }
 
-void DTLabel::removeFromColumns(){
+void DTLabel::removeFromColumns() {
     auto holdersTemp = holders;
-    for (const auto& container : holdersTemp){
+    for (const auto& container : holdersTemp) {
         container->removeLabel(this);
     }
 }
 
-void DTLabel::addColumnAsHolder(LayoutColumn* column){
+void DTLabel::addColumnAsHolder(LayoutColumn* column) {
     holders.insert(column);
 
     updateInfoWithColumnData();
 }
-void DTLabel::removeColumnAsHolder(LayoutColumn* column){
+void DTLabel::removeColumnAsHolder(LayoutColumn* column) {
     holders.erase(column);
 
     updateInfoWithColumnData();
 }
 
-bool DTLabel::isPartOfColumn(LayoutColumn* column){
+bool DTLabel::isPartOfColumn(LayoutColumn* column) {
     return holders.contains(column);
 }
 
-bool DTLabel::isAlone(){
+bool DTLabel::isAlone() {
     return !holders.size();
 }
 
-void DTLabel::updateInfoWithColumnData(){
+void DTLabel::updateInfoWithColumnData() {
     int min = std::numeric_limits<int>::max();
     int max = std::numeric_limits<int>::min();
 
@@ -700,18 +598,26 @@ void DTLabel::updateInfoWithColumnData(){
     info.maxPlacementRange = max;
 }
 
-std::set<LayoutColumn*, DTLabel::ColumnComperator> DTLabel::getHolders(){
+std::set<LayoutColumn*, DTLabel::ColumnComperator> DTLabel::getHolders() {
     return holders;
 }
 
-void DTLabel::setLabelText(const std::string& text){
+void DTLabel::setDonerRichTextEnabled(bool enabled) {
+    if (donerRichTextEnabled == enabled) return;
+
+    donerRichTextEnabled = enabled;
+    setLabelText(info.text);
+    labelTitleArea->setText(labelTitleArea->getRawText());
+}
+
+void DTLabel::setLabelText(const std::string& text) {
     info.text = text;
     labelText->setText(text);
 
     auto self = this;
     self->retain();
 
-    modifyListener.spawn("DT-text-apply-keys-recursive-task", modifyKeys(), [self](std::optional<std::string> opt){
+    modifyListener.spawn("DT-text-apply-keys-recursive-task", modifyKeys(), [self](std::optional<std::string> opt) {
         if (!self) return;
 
         self->loadingCircle->setVisible(false);
@@ -725,7 +631,7 @@ void DTLabel::setLabelText(const std::string& text){
     });
 }
 
-arc::Future<std::optional<std::string>> DTLabel::modifyKeys(){
+arc::Future<std::optional<std::string>> DTLabel::modifyKeys() {
     if (currentlyLoadingFor.size() != 0) co_return std::nullopt;
 
     auto text = co_await async::waitForMainThread<std::string>([self = this]() -> std::string {
@@ -747,23 +653,23 @@ arc::Future<std::optional<std::string>> DTLabel::modifyKeys(){
     co_return std::make_optional(modifiedText);
 }
 
-void DTLabel::setLoading(const std::shared_ptr<SpecialKey>& key){
+void DTLabel::setLoading(const std::shared_ptr<SpecialKey>& key) {
     if (currentlyLoadingFor.contains(key) || (!keysUsed.contains(key->getKey()) && keysUsed.size())) return;
     currentlyLoadingFor.insert(key);
 
     loadingCircle->setVisible(true);
 }
-void DTLabel::completeLoading(const std::shared_ptr<SpecialKey>& key){
+void DTLabel::completeLoading(const std::shared_ptr<SpecialKey>& key) {
     if (!currentlyLoadingFor.contains(key)) return;
     currentlyLoadingFor.erase(key);
 
-    if (currentlyLoadingFor.size() == 0){
+    if (currentlyLoadingFor.size() == 0) {
         loadingCircle->setVisible(false);
         labelText->setText(info.text);
         auto self = this;
         self->retain();
 
-        modifyListener.spawn("DT-load-complete-apply-keys-recursive-task", modifyKeys(), [self](std::optional<std::string> opt){
+        modifyListener.spawn("DT-load-complete-apply-keys-recursive-task", modifyKeys(), [self](std::optional<std::string> opt) {
             if (!self) return;
 
             self->loadingCircle->setVisible(false);
@@ -778,26 +684,26 @@ void DTLabel::completeLoading(const std::shared_ptr<SpecialKey>& key){
     }
 }
 
-void DTLabel::setFontSize(float newSize){
+void DTLabel::setFontSize(float newSize) {
     newSize = std::clamp(newSize, DTLabelInfo::MIN_MAX_SCALE.x, DTLabelInfo::MIN_MAX_SCALE.y);
     info.scale = newSize;
 
     labelText->setScale(newSize);
 }
 
-void DTLabel::setFont(const std::string& fnt){
+void DTLabel::setFont(const std::string& fnt) {
     info.font = fnt;
     
     labelText->setFont(fnt);
 }
 
-void DTLabel::setLabelName(const std::string& newName){
+void DTLabel::setLabelName(const std::string& newName) {
     info.labelName = newName;
 
     labelTitleArea->setText(newName);
 }
 
-void DTLabel::setLabelColor(const ccColor4B& newColor){
+void DTLabel::setLabelColor(const ccColor4B& newColor) {
     info.labelColor = newColor;
 
     bg->setColor({info.labelColor.r, info.labelColor.g, info.labelColor.b});
@@ -806,7 +712,7 @@ void DTLabel::setLabelColor(const ccColor4B& newColor){
     labelTitleBG->setOpacity(info.hideHeader && !isEditable ? 0 : info.labelColor.a);
 }
 
-void DTLabel::setTextColor(const ccColor4B& newColor){
+void DTLabel::setTextColor(const ccColor4B& newColor) {
     labelText->stopActionByTag(10);
     labelText->stopActionByTag(11);
     info.textColor = newColor;
@@ -814,47 +720,47 @@ void DTLabel::setTextColor(const ccColor4B& newColor){
     labelText->setColor(newColor);
 }
 
-void DTLabel::setTextAlignment(CCTextAlignment alignment){
+void DTLabel::setTextAlignment(CCTextAlignment alignment) {
     info.horizontalAlignment = alignment;
 
     labelText->setAlignment(alignment);
     labelTitleArea->setAlignment(alignment);
 }
 
-void DTLabel::setTextWrapping(WrappingMode wrapMode){
+void DTLabel::setTextWrapping(WrappingMode wrapMode) {
     if (wrapMode == WrappingMode::NO_WRAP) wrapMode = WrappingMode::CUTOFF_WRAP;
     info.wrapping = wrapMode;
 
     labelText->setWrappingMode(wrapMode);
 }
 
-void DTLabel::setHideHeader(bool hideHeader){
+void DTLabel::setHideHeader(bool hideHeader) {
     info.hideHeader = hideHeader;
 
     hideBGSpr->setVisible(info.hideHeader);
 }
 
-void DTLabel::onBeingEdited(){
+void DTLabel::onBeingEdited() {
     glow->stopAllActions();
     glow->runAction(CCTintTo::create(.1f, 35, 35, 35));
     isBeingEdited = true;
 }
-void DTLabel::onBeingEditedEnded(){
+void DTLabel::onBeingEditedEnded() {
     glow->stopAllActions();
     glow->runAction(CCTintTo::create(.1f, 0, 0, 0));
     isBeingEdited = false;
 }
 
-void DTLabel::setEditable(bool editable){
+void DTLabel::setEditable(bool editable) {
     isEditable = editable;
 
-    if (isEditable){
+    if (isEditable) {
         labelTitleBG->setOpacity(info.labelColor.a);
         menu->setEnabled(true);
         menu->setOpacity(255);
         labelTitleArea->setVisible(true);
     }
-    else{
+    else {
         labelTitleBG->setOpacity(info.hideHeader ? 0 : info.labelColor.a);
         menu->setEnabled(!info.hideHeader);
         menu->setOpacity(info.hideHeader ? 0 : 255);
@@ -865,7 +771,7 @@ void DTLabel::setEditable(bool editable){
     }
 }
 
-arc::Future<std::string> DTLabel::modifyStrRecursive(const std::string& str){
+arc::Future<std::string> DTLabel::modifyStrRecursive(const std::string& str) {
     std::regex specialKeyRegex(R"(\{([A-Za-z0-9_\\]+)(?:-([^{}]*))?\})");
 
     std::sregex_iterator begin(str.begin(), str.end(), specialKeyRegex);
@@ -884,12 +790,12 @@ arc::Future<std::string> DTLabel::modifyStrRecursive(const std::string& str){
         result += str.substr(lastPos, matchStart - lastPos);
 
         std::string key = match.str(1);
-        if (!keysUsed.contains(key)){
+        if (!keysUsed.contains(key)) {
             keysUsed.insert(key);
         }
         
         bool isCancellation = false;
-        if (key.size() && key[0] == '\\'){
+        if (key.size() && key[0] == '\\') {
             isCancellation = true;
             key = key.erase(0, 1);
         }
@@ -900,7 +806,7 @@ arc::Future<std::string> DTLabel::modifyStrRecursive(const std::string& str){
         if (dtLayer != nullptr && dtLayer->specialStrings.contains(key)) {
             std::string content = dtLayer->specialStrings.at(key)->getContent();
             
-            if (ignoreExtraSettings){
+            if (ignoreExtraSettings) {
                 auto res = co_await dtLayer->specialStrings.at(key)->getUpdatedContentAsync({
                     {"ignoreExtraSettings", true}
                 });
@@ -924,12 +830,12 @@ arc::Future<std::string> DTLabel::modifyStrRecursive(const std::string& str){
     co_await arc::yield();
     co_return result;
 }
-void DTLabel::setExpandable(bool enabled){
+void DTLabel::setExpandable(bool enabled) {
     isExpandable = enabled;
     expandBtn->setVisible(enabled);
 }
 
-void DTLabel::fadeTextColorTo(ccColor4B newColor, float time){
+void DTLabel::fadeTextColorTo(ccColor4B newColor, float time) {
     info.textColor = newColor;
 
     labelText->stopActionByTag(10);
@@ -945,7 +851,7 @@ void DTLabel::fadeTextColorTo(ccColor4B newColor, float time){
     labelText->runAction(colorAction);
 }
 
-void DTLabel::fadeTitleColorTo(ccColor4B newColor, float time){
+void DTLabel::fadeTitleColorTo(ccColor4B newColor, float time) {
     labelTitleArea->stopActionByTag(10);
     labelTitleArea->stopActionByTag(11);
 
@@ -959,6 +865,154 @@ void DTLabel::fadeTitleColorTo(ccColor4B newColor, float time){
     labelTitleArea->runAction(colorAction);
 }
 
-float DTLabel::getSpecificTitleHeight(){
+float DTLabel::getSpecificTitleHeight() {
     return !info.hideHeader || isEditable ? labelTitleHeight : 2.5f;
+}
+
+std::shared_ptr<RichTextKey<WaveKeyParams>> DTLabel::makeWaveKey() {
+    return std::make_shared<RichTextKey<WaveKeyParams>>(
+        "wave",
+        [](std::string value) -> Result<WaveKeyParams> {
+            float speed = 1;
+            float distanceY = 5;
+            float distanceX = 0;
+            float offsetPerIndex = .3f;
+
+            auto splitStr = utils::string::split(value, ",");
+            if (splitStr.size() >= 1) {
+                auto speedRes = geode::utils::numFromString<float>(splitStr[0]);
+                if (speedRes.isOk()) speed = speedRes.unwrap();
+            }
+            if (splitStr.size() >= 2) {
+                auto distanceYRes = geode::utils::numFromString<float>(splitStr[1]);
+                if (distanceYRes.isOk()) distanceY = distanceYRes.unwrap();
+            }
+            if (splitStr.size() >= 3) {
+                auto distanceXRes = geode::utils::numFromString<float>(splitStr[2]);
+                if (distanceXRes.isOk()) distanceX = distanceXRes.unwrap();
+            }
+            if (splitStr.size() >= 4) {
+                auto offsetPerIndexRes = geode::utils::numFromString<float>(splitStr[3]);
+                if (offsetPerIndexRes.isOk()) offsetPerIndex = offsetPerIndexRes.unwrap();
+            }
+
+            return Ok(std::make_tuple(speed, distanceY, distanceX, offsetPerIndex));
+        },
+        [this](WaveKeyParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
+            if (!donerRichTextEnabled) return;
+
+            sprite->runAction(
+                CCRepeatForever::create(
+                    CCWaveAction::create(
+                        std::get<0>(value),
+                        std::get<2>(value),
+                        std::get<1>(value),
+                        std::get<3>(value) * localIndex
+                    )
+                )
+            );
+        }
+    );
+}
+std::shared_ptr<RichTextKey<GradientKeyParams>> DTLabel::makeGradientKey() {
+    return std::make_shared<RichTextKey<GradientKeyParams>>(
+        "gradient",
+        [](std::string value) -> Result<GradientKeyParams> {
+            ccColor4B colorA = {255, 255, 255, 255};
+            ccColor4B colorB = {255, 255, 255, 255};
+            float transitionDuration = 1.0f;
+            float stagger = 0.2f;
+
+            auto splitStr = utils::string::split(value, ",");
+            if (splitStr.size() >= 1) {
+                auto res = geode::cocos::cc4bFromHexString(splitStr[0]);
+                if (res.isOk()) colorA = res.unwrap();
+            }
+            if (splitStr.size() >= 2) {
+                auto res = geode::cocos::cc4bFromHexString(splitStr[1]);
+                if (res.isOk()) colorB = res.unwrap();
+            }
+            if (splitStr.size() >= 3) {
+                auto res = geode::utils::numFromString<float>(splitStr[2]);
+                if (res.isOk() && std::isfinite(res.unwrap())) {
+                    transitionDuration = std::clamp(res.unwrap(), 0.05f, 30.0f);
+                }
+            }
+            if (splitStr.size() >= 4) {
+                auto res = geode::utils::numFromString<float>(splitStr[3]);
+                if (res.isOk() && std::isfinite(res.unwrap())) {
+                    stagger = std::clamp(res.unwrap(), 0.0f, 2.0f);
+                }
+            }
+
+            return Ok(std::make_tuple(colorA, colorB, transitionDuration, stagger));
+        },
+        [this](GradientKeyParams const& value, cocos2d::CCFontSprite* sprite, int, int) {
+            if (!donerRichTextEnabled) return;
+
+            auto colorA = std::get<0>(value);
+            auto colorB = std::get<1>(value);
+            auto transitionDuration = std::get<2>(value);
+            auto stagger = std::get<3>(value);
+            auto line = typeinfo_cast<cocos2d::CCLabelBMFont*>(sprite->getParent());
+            auto lineText = line ? std::string(line->getString()) : "";
+            auto columnIndex = std::max(0, static_cast<int>(lineText.size()) - 1);
+
+            if (sprite->getActionByTag(12) != nullptr) return;
+
+            auto animation = CCRepeatForever::create(CCGradientAction::create(
+                transitionDuration,
+                colorA,
+                colorB,
+                -stagger * columnIndex
+            ));
+            animation->setTag(12);
+
+            sprite->runAction(animation);
+        }
+    );
+}
+std::shared_ptr<RichTextKey<CPlusKeyParams>> DTLabel::makeCPlusKey() {
+    return std::make_shared<RichTextKey<CPlusKeyParams>>(
+        "cplus",
+        [](std::string value) -> Result<CPlusKeyParams> {
+            GEODE_UNWRAP_INTO(auto num, utils::numFromString<int>(value));
+
+            return Ok(num);
+        },
+        [](CPlusKeyParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
+            if (auto gradient = typeinfo_cast<CCGradientAction*>(sprite->getActionByTag(12))) {
+                gradient->addColorOffset(value);
+                return;
+            }
+
+            auto colorAdded = sprite->getColor();
+            if (colorAdded == ccWHITE) colorAdded = static_cast<CCLabelBMFont*>(sprite->getParent())->getColor();
+
+            auto r = static_cast<std::int64_t>(colorAdded.r) + value;
+            auto g = static_cast<std::int64_t>(colorAdded.g) + value;
+            auto b = static_cast<std::int64_t>(colorAdded.b) + value;
+
+            r = std::clamp<std::int64_t>(r, 0, 255);
+            g = std::clamp<std::int64_t>(g, 0, 255);
+            b = std::clamp<std::int64_t>(b, 0, 255);
+
+            auto newColor = ccColor3B{static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
+
+            sprite->setColor(newColor);
+        }
+    );
+}
+
+std::shared_ptr<RichTextKey<ccColor4B>> DTLabel::makeColor4BKey() {
+    return std::make_shared<RichTextKey<ccColor4B>>(
+        "color4b",
+        [](std::string value) -> Result<ccColor4B> {
+            return geode::cocos::cc4bFromHexString(value);
+        },
+        [](ccColor4B const& value, cocos2d::CCFontSprite* sprite, int, int) {
+            sprite->setColor({value.r, value.g, value.b});
+            sprite->setOpacity(value.a);
+        }
+    );
 }

@@ -4,8 +4,7 @@
 
 using namespace geode::prelude;
 
-class CCShowHide : public cocos2d::CCActionInstant
-{
+class CCShowHide : public cocos2d::CCActionInstant {
 public:
     static CCShowHide* create(bool visible)
     {
