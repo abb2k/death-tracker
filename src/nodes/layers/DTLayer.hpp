@@ -318,8 +318,8 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
         CCSprite* newBestColorBtnSpr;
         CCSprite* sessionBestColorBtnSpr;
 
-        ccColor3B originalNewBestColor = {255, 255, 255};
-        ccColor3B originalSessionBestColor = {255, 255, 255};
+        CustomizationData originalNewBestCustomization;
+        CustomizationData originalSessionBestCustomization;
 
 
         void onLayoutPresets(CCObject*);

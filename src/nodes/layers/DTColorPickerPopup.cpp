@@ -72,38 +72,6 @@ bool DTColorPickerPopup::init(CustomizationData const& data, bool isRGBA) {
 
     this->setTitle("Modify Color");
 
-    m_gradientEnabledMenu = CCMenu::create();
-    m_gradientEnabledMenu->setID("gradient-enabled-menu");
-    
-    m_gradientEnabledToggle = SimpleToggler::createWithDefaults(.45f, m_gradientEnabled);
-    m_gradientEnabledToggle->setID("gradient-enabled-toggle");
-    m_gradientEnabledToggle->setCallback([this](bool enabled) {
-        m_gradientEnabled = enabled;
-        if (m_gradientEnabledChangedCallback) {
-            m_gradientEnabledChangedCallback(enabled);
-        }
-    });
-    auto enabledText = CCLabelBMFont::create("enabled", "bigFont.fnt");
-    enabledText->setScale(.45f);
-
-    auto toggleWidth = m_gradientEnabledToggle->getScaledContentWidth();
-    auto textWidth = enabledText->getScaledContentWidth();
-    auto toggleGap = 3.f;
-    auto menuWidth = toggleWidth + toggleGap + textWidth;
-    auto menuHeight = std::max(
-        m_gradientEnabledToggle->getScaledContentHeight(),
-        enabledText->getScaledContentHeight()
-    );
-
-    enabledText->setPosition({textWidth / 2, menuHeight / 2});
-    m_gradientEnabledToggle->setPosition({textWidth + toggleGap + toggleWidth / 2, menuHeight / 2});
-
-    m_gradientEnabledMenu->setContentSize({menuWidth, menuHeight});
-    m_gradientEnabledMenu->addChild(m_gradientEnabledToggle);
-    m_gradientEnabledMenu->addChild(enabledText);
-    m_gradientEnabledMenu->setVisible(false);
-    m_mainLayer->addChild(m_gradientEnabledMenu, 2);
-
     updateGradientEnabledPosition();
 
     m_floatingList->setCallback([&, switcherBtn](const int& id) {
@@ -170,12 +138,14 @@ void DTColorPickerPopup::onSwitcherBtnClick(cocos2d::CCObject* sender) {
 }
 
 void DTColorPickerPopup::updateGradientEnabledPosition() {
-    if (!m_gradientEnabledMenu || !m_title) return;
+    if (!m_gradientEnabledMenu || !m_title || !m_gradientPage) return;
 
-    m_gradientEnabledMenu->setPosition({
+    auto positionInMainLayer = ccp(
         m_title->getPositionX() - m_title->getScaledContentWidth() / 2 - 15.0f - m_gradientEnabledMenu->getScaledContentWidth(),
         m_title->getPositionY() - m_gradientEnabledMenu->getScaledContentHeight() / 2
-    });
+    );
+    auto positionInWorld = m_mainLayer->convertToWorldSpace(positionInMainLayer);
+    m_gradientEnabledMenu->setPosition(m_gradientPage->convertToNodeSpace(positionInWorld));
 }
 
 void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& data) {
@@ -200,6 +170,66 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
     m_gradientPage->setContentSize(popupBg->getScaledContentSize());
     m_gradientPage->setPosition(popupBg->getPosition());
     m_gradientPage->setAnchorPoint({0.5f, 0.5f});
+
+    m_gradientEnabledMenu = CCMenu::create();
+    m_gradientEnabledMenu->setID("gradient-enabled-menu");
+
+    m_gradientEnabledToggle = SimpleToggler::createWithDefaults(.45f, m_gradientEnabled);
+    m_gradientEnabledToggle->setID("gradient-enabled-toggle");
+    m_gradientEnabledToggle->setCallback([this](bool enabled) {
+        if (!AuthManager::isDoner()) {
+            m_gradientEnabledToggle->toggle(enabled);
+
+            return;
+        }
+        m_gradientEnabled = enabled;
+
+        if (m_gradientEnabledChangedCallback) {
+            m_gradientEnabledChangedCallback(enabled);
+        }
+
+        onGradientPageOpen(m_gradientPage);
+    });
+    if (!AuthManager::isDoner()) {
+        m_gradientEnabledToggle->setEnabled(false);
+        m_gradientEnabledToggle->setOpacity(128);
+    }
+    auto enabledText = CCLabelBMFont::create("enabled", "bigFont.fnt");
+    enabledText->setScale(.45f);
+
+    auto toggleWidth = m_gradientEnabledToggle->getScaledContentWidth();
+    auto textWidth = enabledText->getScaledContentWidth();
+    auto toggleGap = 3.f;
+    auto menuWidth = toggleWidth + toggleGap + textWidth;
+    auto menuHeight = std::max(
+        m_gradientEnabledToggle->getScaledContentHeight(),
+        enabledText->getScaledContentHeight()
+    );
+
+    enabledText->setPosition({textWidth / 2, menuHeight / 2});
+    m_gradientEnabledToggle->setPosition({textWidth + toggleGap + toggleWidth / 2, menuHeight / 2});
+
+    m_gradientEnabledMenu->setContentSize({menuWidth, menuHeight});
+    m_gradientEnabledMenu->addChild(m_gradientEnabledToggle);
+    m_gradientEnabledMenu->addChild(enabledText);
+    m_gradientEnabledMenu->setVisible(false);
+    m_gradientPage->addChild(m_gradientEnabledMenu, 2);
+
+    m_gradientDisabledFG = NineSlice::create(
+        "square02b_001.png", { 0.0f, 0.0f, 80.0f, 80.0f }
+    );
+    m_gradientDisabledFG->setID("popup-bg");
+    m_gradientDisabledFG->setScale(.5f);
+    m_gradientDisabledFG->setColor({ 0, 0, 0 });
+    m_gradientDisabledFG->setOpacity(85);
+    m_gradientDisabledFG->setContentSize({ m_size.width * 2 - 40.f, m_size.height * 2 - 140.f });
+    m_gradientDisabledFG->setZOrder(5);
+    m_gradientPage->addChildAtPosition(m_gradientDisabledFG, Anchor::Center, ccp(0, 0));
+
+    auto donorLabel = RichTextArea::create("Donor Feature", "bigFont.fnt");
+    donorLabel->setID("donor-label");
+    donorLabel->setPosition(m_gradientDisabledFG->getPosition());
+    m_gradientPage->addChild(donorLabel);
 
     auto colorMenu = CCMenu::create();
     colorMenu->setLayout(
@@ -1015,5 +1045,5 @@ void DTColorPickerPopup::onGradientPageOpen(CCNode* page) {
 
     setAllChildrenEnabled(page, allEnabled);
 
-    
+    m_gradientDisabledFG->setVisible(!allEnabled);
 }

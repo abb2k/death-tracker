@@ -859,10 +859,10 @@ void DTLayer::onEditLayout(CCObject*) {
     addColumnButton->runAction(CCFadeTo::create(.15f, 255));
     columnHolder->setEnabled(true);
 
-    originalNewBestColor = to3B(Save::getNewBestCustomizations().color);
-    originalSessionBestColor = to3B(Save::getSessionBestCustomizations().color);
-    newBestColorBtnSpr->setColor(originalNewBestColor);
-    sessionBestColorBtnSpr->setColor(originalSessionBestColor);
+    originalNewBestCustomization = Save::getNewBestCustomizations();
+    originalSessionBestCustomization = Save::getSessionBestCustomizations();
+    newBestColorBtnSpr->setColor(to3B(originalNewBestCustomization.color));
+    sessionBestColorBtnSpr->setColor(to3B(originalSessionBestCustomization.color));
 
     scrollLayer->moveBy(ccp(0, -LayoutColumn::topHeight));
 
@@ -2498,8 +2498,8 @@ void DTLayer::onApplyLayoutChanges(CCObject*) {
 }
 void DTLayer::onDiscardLayoutChanges(CCObject*) {
 
-    Save::setNewBestCustomizations(CustomizationData{.color = to4B(originalNewBestColor)});
-    Save::setSessionBestCustomizations(CustomizationData{.color = to4B(originalSessionBestColor)});
+    Save::setNewBestCustomizations(originalNewBestCustomization);
+    Save::setSessionBestCustomizations(originalSessionBestCustomization);
 
     setLayoutBy(Save::getLayout());
 

@@ -115,4 +115,6 @@ class DTColorPickerPopup : public geode::ColorPickPopup {
         geode::Function<void(bool enabled)> m_gradientEnabledChangedCallback;
 
         void onGradientPageOpen(CCNode* page);
+
+        NineSlice* m_gradientDisabledFG = nullptr;
 };

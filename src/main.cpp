@@ -91,7 +91,18 @@ $execute {
 
         Save::setGraphs(graphs);
 
-        Save::setNewBestCustomizations(CustomizationData{.color = {255, 255, 0, 255}});
+        CustomizationData newBestDefaultCustomization {
+            .color = {255, 255, 0, 255},
+            .gradientEnabled = true,
+            .gradient = {
+                .colorA = {255, 255, 40, 255},
+                .colorB = {255, 255, 255, 255},
+                .duration = 1.0f,
+                .stagger = 0.2f
+            }
+        };
+
+        Save::setNewBestCustomizations(newBestDefaultCustomization);
         Save::setSessionBestCustomizations(CustomizationData{.color = {255, 136, 0, 255}});
     }
 };
