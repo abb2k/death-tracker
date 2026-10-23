@@ -24,6 +24,8 @@ class DTColorPickerPopup : public geode::ColorPickPopup {
 
         void setGradientChangedCallback(geode::Function<void(GradientData const& data)> callback);
         void setGradientEnabledChangedCallback(geode::Function<void(bool enabled)> callback);
+        void setWaveChangedCallback(geode::Function<void(WaveData const& data)> callback);
+        void setWaveEnabledChangedCallback(geode::Function<void(bool enabled)> callback);
 
     protected:
         class GradientColorPickerDelegate : public ColorPickerDelegate {
@@ -47,7 +49,10 @@ class DTColorPickerPopup : public geode::ColorPickPopup {
         int m_currentPage;
 
         void createGradientPage(bool isRGBA, GradientData const& data);
-        void createWavePage();
+        void createWavePage(WaveData const& data);
+        void updateWaveData();
+        void updateWavePreview();
+        void onWavePageOpen(CCNode* page);
         void onGradientResetA(cocos2d::CCObject*);
         void onGradientResetB(cocos2d::CCObject*);
         void opacitySliderAChanged(cocos2d::CCObject*);
@@ -96,8 +101,19 @@ class DTColorPickerPopup : public geode::ColorPickPopup {
         SimpleToggler* m_gradientEnabledToggle = nullptr;
         bool m_gradientEnabled = false;
 
+        CCNode* m_wavePage = nullptr;
+        CCMenu* m_waveEnabledMenu = nullptr;
+        SimpleToggler* m_waveEnabledToggle = nullptr;
+        bool m_waveEnabled = false;
+        WaveData m_waveData;
+        RichTextArea* m_wavePreview = nullptr;
+
+        geode::Function<void(WaveData const& data)> m_waveChangedCallback;
+        geode::Function<void(bool enabled)> m_waveEnabledChangedCallback;
+
         void textChanged(CCTextInputNode* input) override;
         void updateGradientEnabledPosition();
+        void updateWaveEnabledPosition();
 
         const int TAG_GRADIENT_A_COLOR_R_INPUT = 10;
         const int TAG_GRADIENT_A_COLOR_G_INPUT = TAG_GRADIENT_A_COLOR_R_INPUT + 1;
@@ -117,6 +133,12 @@ class DTColorPickerPopup : public geode::ColorPickPopup {
         void onGradientPageOpen(CCNode* page);
 
         NineSlice* m_gradientDisabledFG = nullptr;
+        NineSlice* m_waveDisabledFG = nullptr;
 
         RichTextArea* m_donorLabel;
+        RichTextArea* m_waveDonorLabel = nullptr;
+
+        const CCPoint WAVE_SPEED_LIMITS = { .05f, 30.f };
+        const CCPoint WAVE_DISTANCE_LIMITS = { -100.f, 100.f };
+        const CCPoint WAVE_OFFSET_LIMITS = { -2.f, 2.f };
 };

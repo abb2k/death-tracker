@@ -3830,7 +3830,7 @@ void DTLayer::onNewBestColor(CCObject* sender) {
     auto popup = DTColorPickerPopup::create(Save::getNewBestCustomizations());
     popup->setCallback([&](auto color) {
         auto current = Save::getNewBestCustomizations();
-        current.color = to4B({color.r, color.g, color.b});
+        current.color = color;
 
         Save::setNewBestCustomizations(current);
 
@@ -3847,6 +3847,22 @@ void DTLayer::onNewBestColor(CCObject* sender) {
     popup->setGradientEnabledChangedCallback([&](bool enabled) {
         auto current = Save::getNewBestCustomizations();
         current.gradientEnabled = enabled;
+
+        Save::setNewBestCustomizations(current);
+
+        specialStrings["general"]->updateContent();
+    });
+    popup->setWaveChangedCallback([&](WaveData const& data) {
+        auto current = Save::getNewBestCustomizations();
+        current.wave = data;
+
+        Save::setNewBestCustomizations(current);
+
+        specialStrings["general"]->updateContent();
+    });
+    popup->setWaveEnabledChangedCallback([&](bool enabled) {
+        auto current = Save::getNewBestCustomizations();
+        current.waveEnabled = enabled;
 
         Save::setNewBestCustomizations(current);
 
@@ -3859,7 +3875,7 @@ void DTLayer::onSessionBestColor(CCObject* sender) {
     auto popup = DTColorPickerPopup::create(Save::getSessionBestCustomizations());
     popup->setCallback([&](auto color) {
         auto current = Save::getSessionBestCustomizations();
-        current.color = to4B({color.r, color.g, color.b});
+        current.color = color;
 
         Save::setSessionBestCustomizations(current);
 
@@ -3876,6 +3892,22 @@ void DTLayer::onSessionBestColor(CCObject* sender) {
     popup->setGradientEnabledChangedCallback([&](bool enabled) {
         auto current = Save::getSessionBestCustomizations();
         current.gradientEnabled = enabled;
+
+        Save::setSessionBestCustomizations(current);
+
+        specialStrings["s0"]->updateContent();
+    });
+    popup->setWaveChangedCallback([&](WaveData const& data) {
+        auto current = Save::getSessionBestCustomizations();
+        current.wave = data;
+
+        Save::setSessionBestCustomizations(current);
+
+        specialStrings["s0"]->updateContent();
+    });
+    popup->setWaveEnabledChangedCallback([&](bool enabled) {
+        auto current = Save::getSessionBestCustomizations();
+        current.waveEnabled = enabled;
 
         Save::setSessionBestCustomizations(current);
 

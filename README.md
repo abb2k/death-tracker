@@ -33,17 +33,6 @@ speaking of the <cf>discord server</c>, if you find any <cy>issues</c> with the 
 - Run filtering (hide by length, specific start positions)
 - Resetting as death
 
-## Rich Text Gradient
-
-Doner rich text supports an animated two-color gradient:
-
-`<gradient=5CFCFF,E0F843,1,.08>text</gradient>`
-
-The parameters are start color, end color, transition duration in seconds, and per-character phase offset in seconds. The phase offset resets on each rendered line, keeping matching columns synchronized across lines. Timing values are optional (defaults: `1` and `0.2`); duration is limited to `0.05`-`30` seconds and phase offset to `0`-`2` seconds.
-
-The `cplus` brightness modifier can be nested with a gradient; its RGB offset is applied throughout the gradient animation.
-
-
 ## Special Thanks
 ------------------
 

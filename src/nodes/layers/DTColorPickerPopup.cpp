@@ -49,8 +49,9 @@ bool DTColorPickerPopup::init(CustomizationData const& data, bool isRGBA) {
 
     m_currentPage = static_cast<int>(Pages::Color);
     m_gradientEnabled = data.gradientEnabled;
+    m_waveEnabled = data.waveEnabled;
     createGradientPage(isRGBA, data.gradient);
-    createWavePage();
+    createWavePage(data.wave);
 
     auto switcherBtnSpr = ButtonSprite::create("Color");
     switcherBtnSpr->setScale(.5f);
@@ -61,7 +62,7 @@ bool DTColorPickerPopup::init(CustomizationData const& data, bool isRGBA) {
         menu_selector(DTColorPickerPopup::onSwitcherBtnClick)
     );
 
-    m_floatingList = FloatingList::create({100, 120});
+    m_floatingList = FloatingList::create({75, 120});
     m_floatingList->setID("switcher-list");
     m_floatingList->setAnchorPoint(ccp(.5f, 1));
     m_floatingList->setListOpenAnchor(ccp(.5f, 1));
@@ -104,6 +105,10 @@ bool DTColorPickerPopup::init(CustomizationData const& data, bool isRGBA) {
                 case Pages::Gradient:
                     onGradientPageOpen(pageNode);
                     break;
+
+                case Pages::Wave:
+                    onWavePageOpen(pageNode);
+                    break;
                 
                 default:
                     break;
@@ -112,7 +117,9 @@ bool DTColorPickerPopup::init(CustomizationData const& data, bool isRGBA) {
 
         this->setTitle(item.has_value() ? fmt::format("Modify {}", item.value().text) : "Unknown Page");
         m_gradientEnabledMenu->setVisible(id == static_cast<int>(Pages::Gradient));
+        m_waveEnabledMenu->setVisible(id == static_cast<int>(Pages::Wave));
         updateGradientEnabledPosition();
+        updateWaveEnabledPosition();
     });
 
     auto switcherArea = CCNode::create();
@@ -147,6 +154,17 @@ void DTColorPickerPopup::updateGradientEnabledPosition() {
     );
     auto positionInWorld = m_mainLayer->convertToWorldSpace(positionInMainLayer);
     m_gradientEnabledMenu->setPosition(m_gradientPage->convertToNodeSpace(positionInWorld));
+}
+
+void DTColorPickerPopup::updateWaveEnabledPosition() {
+    if (!m_waveEnabledMenu || !m_title || !m_wavePage) return;
+
+    auto positionInMainLayer = ccp(
+        m_title->getPositionX() - m_title->getScaledContentWidth() / 2 - 15.0f - m_waveEnabledMenu->getScaledContentWidth(),
+        m_title->getPositionY() - m_waveEnabledMenu->getScaledContentHeight() / 2
+    );
+    auto positionInWorld = m_mainLayer->convertToWorldSpace(positionInMainLayer);
+    m_waveEnabledMenu->setPosition(m_wavePage->convertToNodeSpace(positionInWorld));
 }
 
 void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& data) {
@@ -184,6 +202,7 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
             return;
         }
         m_gradientEnabled = enabled;
+        updateWavePreview();
 
         if (m_gradientEnabledChangedCallback) {
             m_gradientEnabledChangedCallback(enabled);
@@ -464,6 +483,7 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
         m_duration = std::clamp(num, DURATION_LIMITS.x, DURATION_LIMITS.y);
 
         setGradient(m_gradientNewSquares, m_gradientColorA, m_gradientColorB);
+        updateWavePreview();
 
         if (m_gradientChangedCallback) {
             GradientData data;
@@ -512,6 +532,7 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
         m_stagger = std::clamp(num, STAGGER_LIMITS.x, STAGGER_LIMITS.y);
 
         setGradient(m_gradientNewSquares, m_gradientColorA, m_gradientColorB);
+        updateWavePreview();
 
         if (m_gradientChangedCallback) {
             GradientData data;
@@ -593,6 +614,8 @@ void DTColorPickerPopup::updateGradientColorA(cocos2d::ccColor3B color, bool doU
 
         m_gradientChangedCallback(data);
     }
+
+    updateWavePreview();
 }
 
 void DTColorPickerPopup::updateGradientColorB(cocos2d::ccColor3B color, bool doUpdateHexInput) {
@@ -639,6 +662,8 @@ void DTColorPickerPopup::updateGradientColorB(cocos2d::ccColor3B color, bool doU
 
         m_gradientChangedCallback(data);
     }
+
+    updateWavePreview();
 }
 
 void DTColorPickerPopup::onGradientResetA(cocos2d::CCObject*) {
@@ -689,8 +714,141 @@ void DTColorPickerPopup::onGradientResetB(cocos2d::CCObject*) {
     }
 }
 
-void DTColorPickerPopup::createWavePage() {
+void DTColorPickerPopup::createWavePage(WaveData const& data) {
+    auto popupBg = m_mainLayer->getChildByID("popup-bg");
+    if (!popupBg)
+        return;
 
+    m_waveData = data;
+    m_waveData.speed = std::clamp(m_waveData.speed, WAVE_SPEED_LIMITS.x, WAVE_SPEED_LIMITS.y);
+    m_waveData.distanceY = std::clamp(m_waveData.distanceY, WAVE_DISTANCE_LIMITS.x, WAVE_DISTANCE_LIMITS.y);
+    m_waveData.distanceX = std::clamp(m_waveData.distanceX, WAVE_DISTANCE_LIMITS.x, WAVE_DISTANCE_LIMITS.y);
+    m_waveData.offsetPerIndex = std::clamp(m_waveData.offsetPerIndex, WAVE_OFFSET_LIMITS.x, WAVE_OFFSET_LIMITS.y);
+
+    m_wavePage = CCNode::create();
+    m_wavePage->setID("wave-page");
+    m_mainLayer->addChild(m_wavePage, 0, static_cast<int>(Pages::Wave));
+    m_wavePage->setVisible(false);
+    setAllChildrenEnabled(m_wavePage, false);
+    m_wavePage->setContentSize(popupBg->getScaledContentSize());
+    m_wavePage->setPosition(popupBg->getPosition());
+    m_wavePage->setAnchorPoint({.5f, .5f});
+
+    m_waveEnabledMenu = CCMenu::create();
+    m_waveEnabledMenu->setID("wave-enabled-menu");
+
+    m_waveEnabledToggle = SimpleToggler::createWithDefaults(.45f, m_waveEnabled);
+    m_waveEnabledToggle->setID("wave-enabled-toggle");
+    m_waveEnabledToggle->setCallback([this](bool enabled) {
+        if (!AuthManager::isDoner()) {
+            m_waveEnabledToggle->toggle(enabled);
+            return;
+        }
+
+        m_waveEnabled = enabled;
+        if (m_waveEnabledChangedCallback)
+            m_waveEnabledChangedCallback(enabled);
+
+        onWavePageOpen(m_wavePage);
+    });
+    if (!AuthManager::isDoner()) {
+        m_waveEnabledToggle->setEnabled(false);
+        m_waveEnabledToggle->setOpacity(128);
+    }
+
+    auto enabledText = CCLabelBMFont::create("enabled", "bigFont.fnt");
+    enabledText->setScale(.45f);
+
+    auto toggleWidth = m_waveEnabledToggle->getScaledContentWidth();
+    auto textWidth = enabledText->getScaledContentWidth();
+    auto toggleGap = 3.f;
+    auto menuWidth = toggleWidth + toggleGap + textWidth;
+    auto menuHeight = std::max(
+        m_waveEnabledToggle->getScaledContentHeight(),
+        enabledText->getScaledContentHeight()
+    );
+    enabledText->setPosition({textWidth / 2, menuHeight / 2});
+    m_waveEnabledToggle->setPosition({textWidth + toggleGap + toggleWidth / 2, menuHeight / 2});
+    m_waveEnabledMenu->setContentSize({menuWidth, menuHeight});
+    m_waveEnabledMenu->addChild(m_waveEnabledToggle);
+    m_waveEnabledMenu->addChild(enabledText);
+    m_waveEnabledMenu->setVisible(false);
+    m_wavePage->addChild(m_waveEnabledMenu, 2);
+
+    m_waveDisabledFG = NineSlice::create(
+        "square02b_001.png", { 0.f, 0.f, 80.f, 80.f }
+    );
+    m_waveDisabledFG->setID("popup-bg");
+    m_waveDisabledFG->setScale(.5f);
+    m_waveDisabledFG->setColor({0, 0, 0});
+    m_waveDisabledFG->setOpacity(85);
+    m_waveDisabledFG->setContentSize({m_size.width * 2 - 40.f, m_size.height * 2 - 140.f});
+    m_waveDisabledFG->setZOrder(5);
+    m_wavePage->addChildAtPosition(m_waveDisabledFG, Anchor::Center);
+
+    m_waveDonorLabel = RichTextArea::create(
+        "<wave>Donor Feature</wave>", "bigFont.fnt"
+    );
+    m_waveDonorLabel->setID("wave-donor-label");
+    m_waveDonorLabel->registerRichTextKey(DTLabel::makeWaveKey([] { return true; }));
+    m_waveDonorLabel->setText(m_waveDonorLabel->getRawText());
+    m_waveDonorLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    m_waveDonorLabel->setPosition(m_waveDisabledFG->getPosition());
+    m_waveDonorLabel->setZOrder(10);
+    m_wavePage->addChild(m_waveDonorLabel);
+
+    m_wavePreview = RichTextArea::create("", "bigFont.fnt", .75f);
+    m_wavePreview->setID("wave-preview");
+    m_wavePreview->registerRichTextKey(DTLabel::makeWaveKey([] { return true; }));
+    m_wavePreview->registerRichTextKey(DTLabel::makeGradientKey([] { return true; }));
+    m_wavePreview->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    m_wavePage->addChildAtPosition(m_wavePreview, Anchor::Bottom, {0, 25});
+
+    updateWaveData();
+}
+
+void DTColorPickerPopup::updateWaveData() {
+    updateWavePreview();
+
+    if (m_waveChangedCallback)
+        m_waveChangedCallback(m_waveData);
+}
+
+void DTColorPickerPopup::updateWavePreview() {
+    if (!m_wavePreview) return;
+
+    auto sample = fmt::format(
+        "<wave={},{},{},{}>Wave Preview</wave>",
+        m_waveData.speed,
+        m_waveData.distanceY,
+        m_waveData.distanceX,
+        m_waveData.offsetPerIndex
+    );
+
+    if (m_gradientEnabled && AuthManager::isDoner()) {
+        sample = fmt::format(
+            "<gradient={},{},{},{}>{}</gradient>",
+            cc4bToHexString(m_gradientColorA),
+            cc4bToHexString(m_gradientColorB),
+            m_duration,
+            m_stagger,
+            sample
+        );
+    }
+
+    m_wavePreview->setText(sample);
+}
+
+void DTColorPickerPopup::onWavePageOpen(CCNode* page) {
+    auto allEnabled = m_waveEnabled && AuthManager::isDoner();
+    setAllChildrenEnabled(page, allEnabled);
+    m_waveDisabledFG->setVisible(!allEnabled);
+
+    auto isDoner = AuthManager::isDoner();
+    m_waveEnabledToggle->setEnabled(isDoner);
+    m_waveEnabledMenu->setEnabled(isDoner);
+    m_waveEnabledToggle->setOpacity(isDoner ? 255 : 128);
+    m_waveDonorLabel->setVisible(!isDoner);
 }
 
 void DTColorPickerPopup::setAllChildrenEnabled(CCNode* node, bool enabled) {
@@ -1074,6 +1232,14 @@ void DTColorPickerPopup::setGradientChangedCallback(geode::Function<void(Gradien
 
 void DTColorPickerPopup::setGradientEnabledChangedCallback(geode::Function<void(bool enabled)> callback) {
     m_gradientEnabledChangedCallback = std::move(callback);
+}
+
+void DTColorPickerPopup::setWaveChangedCallback(geode::Function<void(WaveData const& data)> callback) {
+    m_waveChangedCallback = std::move(callback);
+}
+
+void DTColorPickerPopup::setWaveEnabledChangedCallback(geode::Function<void(bool enabled)> callback) {
+    m_waveEnabledChangedCallback = std::move(callback);
 }
 
 void DTColorPickerPopup::onGradientPageOpen(CCNode* page) {
