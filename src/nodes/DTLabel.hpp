@@ -82,6 +82,12 @@ class DTLabel : public CCMenu {
         CCScale9Sprite* labelTitleBG;
 
         ~DTLabel();
+
+        static std::shared_ptr<RichTextKey<WaveKeyParams>> makeWaveKey(geode::Function<bool()> donerRichTextEnabled);
+        static std::shared_ptr<RichTextKey<GradientKeyParams>> makeGradientKey(geode::Function<bool()> donerRichTextEnabled);
+        static std::shared_ptr<RichTextKey<CPlusKeyParams>> makeCPlusKey();
+        static std::shared_ptr<RichTextKey<ccColor4B>> makeColor4BKey();
+
     private:
         bool init(const DTLabelInfo& info);
 
@@ -148,9 +154,4 @@ class DTLabel : public CCMenu {
         float doubleClickTimer = .2f;
 
         float getSpecificTitleHeight();
-
-        std::shared_ptr<RichTextKey<WaveKeyParams>> makeWaveKey();
-        std::shared_ptr<RichTextKey<GradientKeyParams>> makeGradientKey();
-        std::shared_ptr<RichTextKey<CPlusKeyParams>> makeCPlusKey();
-        std::shared_ptr<RichTextKey<ccColor4B>> makeColor4BKey();
 };

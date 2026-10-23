@@ -86,9 +86,9 @@ bool DTLabel::init(const DTLabelInfo& info) {
 
     labelText->registerRichTextKey(makeColor4BKey());
     
-    labelText->registerRichTextKey(makeWaveKey());
+    labelText->registerRichTextKey(makeWaveKey([&](){ return donerRichTextEnabled; }));
     
-    labelText->registerRichTextKey(makeGradientKey());
+    labelText->registerRichTextKey(makeGradientKey([&](){ return donerRichTextEnabled; }));
     
     labelText->registerRichTextKey(makeCPlusKey());
 
@@ -138,8 +138,8 @@ bool DTLabel::init(const DTLabelInfo& info) {
     labelTitleArea->setVisible(!info.hideHeader);
     
     labelTitleArea->registerRichTextKey(makeColor4BKey());
-    labelTitleArea->registerRichTextKey(makeWaveKey());
-    labelTitleArea->registerRichTextKey(makeGradientKey());
+    labelTitleArea->registerRichTextKey(makeWaveKey([&](){ return donerRichTextEnabled; }));
+    labelTitleArea->registerRichTextKey(makeGradientKey([&](){ return donerRichTextEnabled; }));
     labelTitleArea->registerRichTextKey(makeCPlusKey());
 
     labelTitleArea->setText(labelTitleArea->getRawText());
@@ -869,7 +869,7 @@ float DTLabel::getSpecificTitleHeight() {
     return !info.hideHeader || isEditable ? labelTitleHeight : 2.5f;
 }
 
-std::shared_ptr<RichTextKey<WaveKeyParams>> DTLabel::makeWaveKey() {
+std::shared_ptr<RichTextKey<WaveKeyParams>> DTLabel::makeWaveKey(geode::Function<bool()> donerRichTextEnabled) {
     return std::make_shared<RichTextKey<WaveKeyParams>>(
         "wave",
         [](std::string value) -> Result<WaveKeyParams> {
@@ -898,8 +898,8 @@ std::shared_ptr<RichTextKey<WaveKeyParams>> DTLabel::makeWaveKey() {
 
             return Ok(std::make_tuple(speed, distanceY, distanceX, offsetPerIndex));
         },
-        [this](WaveKeyParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
-            if (!donerRichTextEnabled) return;
+        [donerRichTextEnabled = std::move(donerRichTextEnabled)](WaveKeyParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) mutable {
+            if (!donerRichTextEnabled()) return;
 
             sprite->runAction(
                 CCRepeatForever::create(
@@ -914,7 +914,7 @@ std::shared_ptr<RichTextKey<WaveKeyParams>> DTLabel::makeWaveKey() {
         }
     );
 }
-std::shared_ptr<RichTextKey<GradientKeyParams>> DTLabel::makeGradientKey() {
+std::shared_ptr<RichTextKey<GradientKeyParams>> DTLabel::makeGradientKey(geode::Function<bool()> donerRichTextEnabled) {
     return std::make_shared<RichTextKey<GradientKeyParams>>(
         "gradient",
         [](std::string value) -> Result<GradientKeyParams> {
@@ -947,8 +947,8 @@ std::shared_ptr<RichTextKey<GradientKeyParams>> DTLabel::makeGradientKey() {
 
             return Ok(std::make_tuple(colorA, colorB, transitionDuration, stagger));
         },
-        [this](GradientKeyParams const& value, cocos2d::CCFontSprite* sprite, int, int) {
-            if (!donerRichTextEnabled) return;
+        [donerRichTextEnabled = std::move(donerRichTextEnabled)](GradientKeyParams const& value, cocos2d::CCFontSprite* sprite, int, int) mutable {
+            if (!donerRichTextEnabled()) return;
 
             auto colorA = std::get<0>(value);
             auto colorB = std::get<1>(value);

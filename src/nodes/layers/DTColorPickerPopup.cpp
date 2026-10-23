@@ -2,6 +2,7 @@
 #include <utils/CCGradientAction.hpp>
 
 #include <managers/AuthManager.hpp>
+#include <nodes/DTLabel.hpp>
 
 DTColorPickerPopup* DTColorPickerPopup::create(CustomizationData const& data, bool isRGBA) {
     auto ret = new DTColorPickerPopup();
@@ -60,7 +61,7 @@ bool DTColorPickerPopup::init(CustomizationData const& data, bool isRGBA) {
         menu_selector(DTColorPickerPopup::onSwitcherBtnClick)
     );
 
-    m_floatingList = FloatingList::create({switcherBtn->getScaledContentWidth(), 120});
+    m_floatingList = FloatingList::create({100, 120});
     m_floatingList->setID("switcher-list");
     m_floatingList->setAnchorPoint(ccp(.5f, 1));
     m_floatingList->setListOpenAnchor(ccp(.5f, 1));
@@ -226,10 +227,15 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
     m_gradientDisabledFG->setZOrder(5);
     m_gradientPage->addChildAtPosition(m_gradientDisabledFG, Anchor::Center, ccp(0, 0));
 
-    auto donorLabel = RichTextArea::create("Donor Feature", "bigFont.fnt");
-    donorLabel->setID("donor-label");
-    donorLabel->setPosition(m_gradientDisabledFG->getPosition());
-    m_gradientPage->addChild(donorLabel);
+    m_donorLabel = RichTextArea::create("<gradient=ffff00,ffffff>Donor Feature", "bigFont.fnt");
+    m_donorLabel->setID("donor-label");
+    m_donorLabel->setPosition(m_gradientDisabledFG->getPosition());
+    bool isGradient = true;
+    m_donorLabel->registerRichTextKey(DTLabel::makeGradientKey([](){ return true; }));
+    m_donorLabel->setZOrder(10);
+    m_donorLabel->setText(m_donorLabel->getRawText());
+    m_donorLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    m_gradientPage->addChild(m_donorLabel);
 
     auto colorMenu = CCMenu::create();
     colorMenu->setLayout(
@@ -458,6 +464,16 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
         m_duration = std::clamp(num, DURATION_LIMITS.x, DURATION_LIMITS.y);
 
         setGradient(m_gradientNewSquares, m_gradientColorA, m_gradientColorB);
+
+        if (m_gradientChangedCallback) {
+            GradientData data;
+            data.colorA = m_gradientColorA;
+            data.colorB = m_gradientColorB;
+            data.duration = m_duration;
+            data.stagger = m_stagger;
+
+            m_gradientChangedCallback(data);
+        }
     });
     durationInput->setString(std::to_string(m_duration));
     durationInput->setCommonFilter(CommonFilter::Float);
@@ -496,6 +512,16 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
         m_stagger = std::clamp(num, STAGGER_LIMITS.x, STAGGER_LIMITS.y);
 
         setGradient(m_gradientNewSquares, m_gradientColorA, m_gradientColorB);
+
+        if (m_gradientChangedCallback) {
+            GradientData data;
+            data.colorA = m_gradientColorA;
+            data.colorB = m_gradientColorB;
+            data.duration = m_duration;
+            data.stagger = m_stagger;
+
+            m_gradientChangedCallback(data);
+        }
     });
     staggerInput->setString(std::to_string(m_stagger));
     staggerInput->setCommonFilter(CommonFilter::Float);
@@ -556,6 +582,16 @@ void DTColorPickerPopup::updateGradientColorA(cocos2d::ccColor3B color, bool doU
     }
     if (m_gradientInputs.count(TAG_GRADIENT_A_COLOR_HEX_INPUT) && doUpdateHexInput) {
         std::get<0>(m_gradientInputs[TAG_GRADIENT_A_COLOR_HEX_INPUT])->setString(cc3bToHexString(to3B(m_gradientColorA)));
+    }
+
+    if (m_gradientChangedCallback) {
+        GradientData data;
+        data.colorA = m_gradientColorA;
+        data.colorB = m_gradientColorB;
+        data.duration = m_duration;
+        data.stagger = m_stagger;
+
+        m_gradientChangedCallback(data);
     }
 }
 
@@ -1046,4 +1082,12 @@ void DTColorPickerPopup::onGradientPageOpen(CCNode* page) {
     setAllChildrenEnabled(page, allEnabled);
 
     m_gradientDisabledFG->setVisible(!allEnabled);
+
+    auto enableEnabled = AuthManager::isDoner();
+
+    m_gradientEnabledToggle->setEnabled(enableEnabled);
+    m_gradientEnabledMenu->setEnabled(enableEnabled);
+    m_gradientEnabledToggle->setOpacity(enableEnabled ? 255 : 128);
+
+    m_donorLabel->setVisible(!enableEnabled);
 }
