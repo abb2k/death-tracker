@@ -3927,8 +3927,8 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     resetLayoutTo(DTLayoutPreset{
         .name = "Default",
         .layout = Save::getDefaultLayout(),
-        // .newBestColor = {255, 255, 0},
-        // .sessionBestColor = { 255, 136, 0 }
+        .newBestCustomization= Save::getDefaultNewBestCustomizations(),
+        .sessionBestCustomization = Save::getDefaultSessionBestCustomizations()
     });
 }
 
@@ -3975,8 +3975,8 @@ void DTLayer::onAddPreset(CCObject*) {
             savePreset(DTLayoutPreset{
                 .name = str,
                 .layout = currentLayout(),
-                // .newBestColor = newBestColorBtnSpr->getColor(),
-                // .sessionBestColor = sessionBestColorBtnSpr->getColor()
+                .newBestCustomization = Save::getNewBestCustomizations(),
+                .sessionBestCustomization = Save::getSessionBestCustomizations()
             });
 
             presetList->close();
@@ -4036,8 +4036,8 @@ void DTLayer::onExportPreset(CCObject*) {
             auto preset = DTLayoutPreset{
                 .name = str,
                 .layout = layout,
-                // .newBestColor = newBestColorBtnSpr->getColor(),
-                // .sessionBestColor = sessionBestColorBtnSpr->getColor()
+                .newBestCustomization = Save::getNewBestCustomizations(),
+                .sessionBestCustomization = Save::getSessionBestCustomizations()
             };
 
             auto exportHandle = async::spawn(
@@ -4139,6 +4139,9 @@ ListenerResult DTLayer::onDonerStateChanged(bool state) {
 
     verSmokeParticle->setVisible(state);
     verStarsParticle->setVisible(state);
+
+    specialStrings["general"]->updateContent();
+    specialStrings["s0"]->updateContent();
 
     return ListenerResult::Propagate;
 }

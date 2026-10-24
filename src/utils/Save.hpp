@@ -53,4 +53,7 @@ class Save {
         static void setLevelWasPTTransferred(std::string const& lvlKey);
 
         static DTLayoutV3 getDefaultLayout();
+        static CustomizationData getDefaultNewBestCustomizations();
+        static CustomizationData getDefaultSessionBestCustomizations();
+        static std::vector<DTGraphInfo> getDefaultGraphs();
 };
