@@ -356,11 +356,23 @@ Result<DTLayoutPreset> matjson::Serialize<DTLayoutPreset>::fromJson(const matjso
     DTLayoutPreset preset;
     GEODE_UNWRAP_INTO(preset.name, value["name"].asString());
     GEODE_UNWRAP_INTO(preset.layout, value["layout"].as<DTLayoutV3>());
-    if (value.contains("newBestColor")) {
-        GEODE_UNWRAP_INTO(preset.newBestColor, value["newBestColor"].as<ccColor3B>());
+    if (value.contains("newBestCustomization")) {
+        GEODE_UNWRAP_INTO(preset.newBestCustomization, value["newBestCustomization"].as<CustomizationData>());
     }
-    if (value.contains("sessionBestColor")) {
-        GEODE_UNWRAP_INTO(preset.sessionBestColor, value["sessionBestColor"].as<ccColor3B>());
+    else if (value.contains("newBestColor")) {
+        GEODE_UNWRAP_INTO(auto nbColor, value["newBestColor"].as<ccColor3B>());
+        preset.newBestCustomization.color = to4B(nbColor);
+        preset.newBestCustomization.gradient.colorA = to4B(nbColor);
+        preset.newBestCustomization.gradient.colorB = to4B(nbColor);
+    }
+    if (value.contains("sessionBestCustomization")) {
+        GEODE_UNWRAP_INTO(preset.sessionBestCustomization, value["sessionBestCustomization"].as<CustomizationData>());
+    }
+    else if (value.contains("sessionBestColor")) {
+        GEODE_UNWRAP_INTO(auto sbColor, value["sessionBestColor"].as<ccColor3B>());
+        preset.sessionBestCustomization.color = to4B(sbColor);
+        preset.sessionBestCustomization.gradient.colorA = to4B(sbColor);
+        preset.sessionBestCustomization.gradient.colorB = to4B(sbColor);
     }
     return Ok(preset);
 }
@@ -368,8 +380,8 @@ matjson::Value matjson::Serialize<DTLayoutPreset>::toJson(const DTLayoutPreset& 
     return matjson::makeObject({
         { "name", value.name },
         { "layout", value.layout },
-        { "newBestColor", value.newBestColor },
-        { "sessionBestColor", value.sessionBestColor }
+        { "newBestCustomization", value.newBestCustomization },
+        { "sessionBestCustomization", value.sessionBestCustomization }
     });
 }
 

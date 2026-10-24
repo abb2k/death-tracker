@@ -349,8 +349,8 @@ struct DTLayoutPreset {
     std::string name;
     DTLayoutV3 layout;
 
-    ccColor3B newBestColor;
-    ccColor3B sessionBestColor;
+    CustomizationData newBestCustomization;
+    CustomizationData sessionBestCustomization;
 };
 
 template <>

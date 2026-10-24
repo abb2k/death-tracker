@@ -145,6 +145,8 @@ void DTColorPickerPopup::onSwitcherBtnClick(cocos2d::CCObject* sender) {
         m_floatingList->open();
 }
 
+#pragma region Gradient
+
 void DTColorPickerPopup::updateGradientEnabledPosition() {
     if (!m_gradientEnabledMenu || !m_title || !m_gradientPage) return;
 
@@ -154,17 +156,6 @@ void DTColorPickerPopup::updateGradientEnabledPosition() {
     );
     auto positionInWorld = m_mainLayer->convertToWorldSpace(positionInMainLayer);
     m_gradientEnabledMenu->setPosition(m_gradientPage->convertToNodeSpace(positionInWorld));
-}
-
-void DTColorPickerPopup::updateWaveEnabledPosition() {
-    if (!m_waveEnabledMenu || !m_title || !m_wavePage) return;
-
-    auto positionInMainLayer = ccp(
-        m_title->getPositionX() - m_title->getScaledContentWidth() / 2 - 15.0f - m_waveEnabledMenu->getScaledContentWidth(),
-        m_title->getPositionY() - m_waveEnabledMenu->getScaledContentHeight() / 2
-    );
-    auto positionInWorld = m_mainLayer->convertToWorldSpace(positionInMainLayer);
-    m_waveEnabledMenu->setPosition(m_wavePage->convertToNodeSpace(positionInWorld));
 }
 
 void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& data) {
@@ -184,7 +175,6 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
     m_gradientPage->setID("gradient-page");
     m_mainLayer->addChild(m_gradientPage, 0, static_cast<int>(Pages::Gradient));
     m_gradientPage->setVisible(false);
-    setAllChildrenEnabled(m_gradientPage, false);
 
     m_gradientPage->setContentSize(popupBg->getScaledContentSize());
     m_gradientPage->setPosition(popupBg->getPosition());
@@ -495,7 +485,7 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
             m_gradientChangedCallback(data);
         }
     });
-    durationInput->setString(std::to_string(m_duration));
+    durationInput->setString(fmt::format("{:.2f}", m_duration));
     durationInput->setCommonFilter(CommonFilter::Float);
     durationInput->setID("duration-input");
     durationColumn->addChild(durationInput);
@@ -544,7 +534,7 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
             m_gradientChangedCallback(data);
         }
     });
-    staggerInput->setString(std::to_string(m_stagger));
+    staggerInput->setString(fmt::format("{:.2f}", m_stagger));
     staggerInput->setCommonFilter(CommonFilter::Float);
     staggerInput->setID("stagger-input");
     staggerColumn->addChild(staggerInput);
@@ -553,6 +543,8 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
 
     updateGradientColorA(to3B(m_gradientColorA), true);
     updateGradientColorB(to3B(m_gradientColorB), true);
+
+    setAllChildrenEnabled(m_gradientPage, false);
 }
 
 void DTColorPickerPopup::setGradient(std::vector<CCSprite*> const& squares, ccColor4B const& a, ccColor4B const& b) {
@@ -712,180 +704,6 @@ void DTColorPickerPopup::onGradientResetB(cocos2d::CCObject*) {
     if (m_gradientInputs.count(TAG_GRADIENT_B_COLOR_HEX_INPUT)) {
         std::get<0>(m_gradientInputs[TAG_GRADIENT_B_COLOR_HEX_INPUT])->setString(cc3bToHexString(to3B(m_originalGradientColorB)));
     }
-}
-
-void DTColorPickerPopup::createWavePage(WaveData const& data) {
-    auto popupBg = m_mainLayer->getChildByID("popup-bg");
-    if (!popupBg)
-        return;
-
-    m_waveData = data;
-    m_waveData.speed = std::clamp(m_waveData.speed, WAVE_SPEED_LIMITS.x, WAVE_SPEED_LIMITS.y);
-    m_waveData.distanceY = std::clamp(m_waveData.distanceY, WAVE_DISTANCE_LIMITS.x, WAVE_DISTANCE_LIMITS.y);
-    m_waveData.distanceX = std::clamp(m_waveData.distanceX, WAVE_DISTANCE_LIMITS.x, WAVE_DISTANCE_LIMITS.y);
-    m_waveData.offsetPerIndex = std::clamp(m_waveData.offsetPerIndex, WAVE_OFFSET_LIMITS.x, WAVE_OFFSET_LIMITS.y);
-
-    m_wavePage = CCNode::create();
-    m_wavePage->setID("wave-page");
-    m_mainLayer->addChild(m_wavePage, 0, static_cast<int>(Pages::Wave));
-    m_wavePage->setVisible(false);
-    setAllChildrenEnabled(m_wavePage, false);
-    m_wavePage->setContentSize(popupBg->getScaledContentSize());
-    m_wavePage->setPosition(popupBg->getPosition());
-    m_wavePage->setAnchorPoint({.5f, .5f});
-
-    m_waveEnabledMenu = CCMenu::create();
-    m_waveEnabledMenu->setID("wave-enabled-menu");
-
-    m_waveEnabledToggle = SimpleToggler::createWithDefaults(.45f, m_waveEnabled);
-    m_waveEnabledToggle->setID("wave-enabled-toggle");
-    m_waveEnabledToggle->setCallback([this](bool enabled) {
-        if (!AuthManager::isDoner()) {
-            m_waveEnabledToggle->toggle(enabled);
-            return;
-        }
-
-        m_waveEnabled = enabled;
-        if (m_waveEnabledChangedCallback)
-            m_waveEnabledChangedCallback(enabled);
-
-        onWavePageOpen(m_wavePage);
-    });
-    if (!AuthManager::isDoner()) {
-        m_waveEnabledToggle->setEnabled(false);
-        m_waveEnabledToggle->setOpacity(128);
-    }
-
-    auto enabledText = CCLabelBMFont::create("enabled", "bigFont.fnt");
-    enabledText->setScale(.45f);
-
-    auto toggleWidth = m_waveEnabledToggle->getScaledContentWidth();
-    auto textWidth = enabledText->getScaledContentWidth();
-    auto toggleGap = 3.f;
-    auto menuWidth = toggleWidth + toggleGap + textWidth;
-    auto menuHeight = std::max(
-        m_waveEnabledToggle->getScaledContentHeight(),
-        enabledText->getScaledContentHeight()
-    );
-    enabledText->setPosition({textWidth / 2, menuHeight / 2});
-    m_waveEnabledToggle->setPosition({textWidth + toggleGap + toggleWidth / 2, menuHeight / 2});
-    m_waveEnabledMenu->setContentSize({menuWidth, menuHeight});
-    m_waveEnabledMenu->addChild(m_waveEnabledToggle);
-    m_waveEnabledMenu->addChild(enabledText);
-    m_waveEnabledMenu->setVisible(false);
-    m_wavePage->addChild(m_waveEnabledMenu, 2);
-
-    m_waveDisabledFG = NineSlice::create(
-        "square02b_001.png", { 0.f, 0.f, 80.f, 80.f }
-    );
-    m_waveDisabledFG->setID("popup-bg");
-    m_waveDisabledFG->setScale(.5f);
-    m_waveDisabledFG->setColor({0, 0, 0});
-    m_waveDisabledFG->setOpacity(85);
-    m_waveDisabledFG->setContentSize({m_size.width * 2 - 40.f, m_size.height * 2 - 140.f});
-    m_waveDisabledFG->setZOrder(5);
-    m_wavePage->addChildAtPosition(m_waveDisabledFG, Anchor::Center);
-
-    m_waveDonorLabel = RichTextArea::create(
-        "<wave>Donor Feature</wave>", "bigFont.fnt"
-    );
-    m_waveDonorLabel->setID("wave-donor-label");
-    m_waveDonorLabel->registerRichTextKey(DTLabel::makeWaveKey([] { return true; }));
-    m_waveDonorLabel->setText(m_waveDonorLabel->getRawText());
-    m_waveDonorLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    m_waveDonorLabel->setPosition(m_waveDisabledFG->getPosition());
-    m_waveDonorLabel->setZOrder(10);
-    m_wavePage->addChild(m_waveDonorLabel);
-
-    m_wavePreview = RichTextArea::create("", "bigFont.fnt", .75f);
-    m_wavePreview->setID("wave-preview");
-    m_wavePreview->registerRichTextKey(DTLabel::makeWaveKey([] { return true; }));
-    m_wavePreview->registerRichTextKey(DTLabel::makeGradientKey([] { return true; }));
-    m_wavePreview->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    m_wavePage->addChildAtPosition(m_wavePreview, Anchor::Bottom, {0, 25});
-
-    updateWaveData();
-}
-
-void DTColorPickerPopup::updateWaveData() {
-    updateWavePreview();
-
-    if (m_waveChangedCallback)
-        m_waveChangedCallback(m_waveData);
-}
-
-void DTColorPickerPopup::updateWavePreview() {
-    if (!m_wavePreview) return;
-
-    auto sample = fmt::format(
-        "<wave={},{},{},{}>Wave Preview</wave>",
-        m_waveData.speed,
-        m_waveData.distanceY,
-        m_waveData.distanceX,
-        m_waveData.offsetPerIndex
-    );
-
-    if (m_gradientEnabled && AuthManager::isDoner()) {
-        sample = fmt::format(
-            "<gradient={},{},{},{}>{}</gradient>",
-            cc4bToHexString(m_gradientColorA),
-            cc4bToHexString(m_gradientColorB),
-            m_duration,
-            m_stagger,
-            sample
-        );
-    }
-
-    m_wavePreview->setText(sample);
-}
-
-void DTColorPickerPopup::onWavePageOpen(CCNode* page) {
-    auto allEnabled = m_waveEnabled && AuthManager::isDoner();
-    setAllChildrenEnabled(page, allEnabled);
-    m_waveDisabledFG->setVisible(!allEnabled);
-
-    auto isDoner = AuthManager::isDoner();
-    m_waveEnabledToggle->setEnabled(isDoner);
-    m_waveEnabledMenu->setEnabled(isDoner);
-    m_waveEnabledToggle->setOpacity(isDoner ? 255 : 128);
-    m_waveDonorLabel->setVisible(!isDoner);
-}
-
-void DTColorPickerPopup::setAllChildrenEnabled(CCNode* node, bool enabled) {
-    if (!node) return;
-
-    auto processNode = [&](CCNode* n) -> bool {
-        
-        if (auto control = dynamic_cast<CCControl*>(n)) {
-            control->setEnabled(enabled);
-        }
-        else if (auto input = dynamic_cast<TextInput*>(n)) {
-            input->setEnabled(enabled);
-
-            return false;
-        }
-        else if (auto menuItem = dynamic_cast<CCMenuItem*>(n)) {
-            menuItem->setEnabled(enabled);
-        }
-        else if (auto menu = dynamic_cast<CCMenu*>(n)) {
-            menu->setEnabled(enabled);
-        }
-        else if (auto slider = dynamic_cast<Slider*>(n)) {
-            if (enabled)
-                slider->enableSlider();
-            else
-                slider->disableSlider();
-        }
-
-        return true;
-    };
-
-    if (!processNode(node)) return;
-
-    for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
-        setAllChildrenEnabled(child, enabled);
-    }
-
 }
 
 void DTColorPickerPopup::colorValueChanged(cocos2d::ccColor3B color) {
@@ -1234,14 +1052,6 @@ void DTColorPickerPopup::setGradientEnabledChangedCallback(geode::Function<void(
     m_gradientEnabledChangedCallback = std::move(callback);
 }
 
-void DTColorPickerPopup::setWaveChangedCallback(geode::Function<void(WaveData const& data)> callback) {
-    m_waveChangedCallback = std::move(callback);
-}
-
-void DTColorPickerPopup::setWaveEnabledChangedCallback(geode::Function<void(bool enabled)> callback) {
-    m_waveEnabledChangedCallback = std::move(callback);
-}
-
 void DTColorPickerPopup::onGradientPageOpen(CCNode* page) {
     auto allEnabled = m_gradientEnabled && AuthManager::isDoner();
 
@@ -1256,4 +1066,513 @@ void DTColorPickerPopup::onGradientPageOpen(CCNode* page) {
     m_gradientEnabledToggle->setOpacity(enableEnabled ? 255 : 128);
 
     m_donorLabel->setVisible(!enableEnabled);
+}
+
+#pragma endregion
+#pragma region Wave
+
+void DTColorPickerPopup::updateWaveEnabledPosition() {
+    if (!m_waveEnabledMenu || !m_title || !m_wavePage) return;
+
+    auto positionInMainLayer = ccp(
+        m_title->getPositionX() - m_title->getScaledContentWidth() / 2 - 15.0f - m_waveEnabledMenu->getScaledContentWidth(),
+        m_title->getPositionY() - m_waveEnabledMenu->getScaledContentHeight() / 2
+    );
+    auto positionInWorld = m_mainLayer->convertToWorldSpace(positionInMainLayer);
+    m_waveEnabledMenu->setPosition(m_wavePage->convertToNodeSpace(positionInWorld));
+}
+
+void DTColorPickerPopup::createWavePage(WaveData const& data) {
+    auto popupBg = m_mainLayer->getChildByID("popup-bg");
+    if (!popupBg)
+        return;
+
+    m_waveData = data;
+    m_waveData.speed = std::clamp(m_waveData.speed, WAVE_SPEED_LIMITS.x, WAVE_SPEED_LIMITS.y);
+    m_waveData.distanceY = std::clamp(m_waveData.distanceY, WAVE_DISTANCE_LIMITS.x, WAVE_DISTANCE_LIMITS.y);
+    m_waveData.distanceX = std::clamp(m_waveData.distanceX, WAVE_DISTANCE_LIMITS.x, WAVE_DISTANCE_LIMITS.y);
+    m_waveData.offsetPerIndex = std::clamp(m_waveData.offsetPerIndex, WAVE_OFFSET_LIMITS.x, WAVE_OFFSET_LIMITS.y);
+
+    m_wavePage = CCNode::create();
+    m_wavePage->setID("wave-page");
+    m_mainLayer->addChild(m_wavePage, 0, static_cast<int>(Pages::Wave));
+    m_wavePage->setVisible(false);
+    m_wavePage->setContentSize(popupBg->getScaledContentSize());
+    m_wavePage->setPosition(popupBg->getPosition());
+    m_wavePage->setAnchorPoint({.5f, .5f});
+
+    m_waveEnabledMenu = CCMenu::create();
+    m_waveEnabledMenu->setID("wave-enabled-menu");
+
+    m_waveEnabledToggle = SimpleToggler::createWithDefaults(.45f, m_waveEnabled);
+    m_waveEnabledToggle->setID("wave-enabled-toggle");
+    m_waveEnabledToggle->setCallback([this](bool enabled) {
+        if (!AuthManager::isDoner()) {
+            m_waveEnabledToggle->toggle(enabled);
+            return;
+        }
+
+        m_waveEnabled = enabled;
+        if (m_waveEnabledChangedCallback)
+            m_waveEnabledChangedCallback(enabled);
+
+        onWavePageOpen(m_wavePage);
+    });
+    if (!AuthManager::isDoner()) {
+        m_waveEnabledToggle->setEnabled(false);
+        m_waveEnabledToggle->setOpacity(128);
+    }
+
+    auto enabledText = CCLabelBMFont::create("enabled", "bigFont.fnt");
+    enabledText->setScale(.45f);
+
+    auto toggleWidth = m_waveEnabledToggle->getScaledContentWidth();
+    auto textWidth = enabledText->getScaledContentWidth();
+    auto toggleGap = 3.f;
+    auto menuWidth = toggleWidth + toggleGap + textWidth;
+    auto menuHeight = std::max(
+        m_waveEnabledToggle->getScaledContentHeight(),
+        enabledText->getScaledContentHeight()
+    );
+    enabledText->setPosition({textWidth / 2, menuHeight / 2});
+    m_waveEnabledToggle->setPosition({textWidth + toggleGap + toggleWidth / 2, menuHeight / 2});
+    m_waveEnabledMenu->setContentSize({menuWidth, menuHeight});
+    m_waveEnabledMenu->addChild(m_waveEnabledToggle);
+    m_waveEnabledMenu->addChild(enabledText);
+    m_waveEnabledMenu->setVisible(false);
+    m_wavePage->addChild(m_waveEnabledMenu, 2);
+
+    m_waveDisabledFG = NineSlice::create(
+        "square02b_001.png", { 0.f, 0.f, 80.f, 80.f }
+    );
+    m_waveDisabledFG->setID("popup-bg");
+    m_waveDisabledFG->setScale(.5f);
+    m_waveDisabledFG->setColor({0, 0, 0});
+    m_waveDisabledFG->setOpacity(85);
+    m_waveDisabledFG->setContentSize({m_size.width * 2 - 40.f, m_size.height * 2 - 140.f});
+    m_waveDisabledFG->setZOrder(5);
+    m_wavePage->addChildAtPosition(m_waveDisabledFG, Anchor::Center);
+
+    m_waveDonorLabel = RichTextArea::create(
+        "<wave>Donor Feature</wave>", "bigFont.fnt"
+    );
+    m_waveDonorLabel->setID("wave-donor-label");
+    m_waveDonorLabel->registerRichTextKey(DTLabel::makeWaveKey([] { return true; }));
+    m_waveDonorLabel->setText(m_waveDonorLabel->getRawText());
+    m_waveDonorLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    m_waveDonorLabel->setPosition(m_waveDisabledFG->getPosition());
+    m_waveDonorLabel->setZOrder(10);
+    m_wavePage->addChild(m_waveDonorLabel);
+
+    m_wavePreview = RichTextArea::create("", "bigFont.fnt", .75f);
+    m_wavePreview->setID("wave-preview");
+    m_wavePreview->registerRichTextKey(DTLabel::makeWaveKey([] { return true; }));
+    m_wavePreview->registerRichTextKey(DTLabel::makeGradientKey([] { return true; }));
+    m_wavePreview->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    m_wavePage->addChildAtPosition(m_wavePreview, Anchor::Bottom, {0, 25});
+
+    auto optionsColumn = CCNode::create();
+    optionsColumn->setLayout(
+        ColumnLayout::create()
+            ->setGap(25.f)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Center)
+            ->setAutoGrowAxis(0)
+    );
+    optionsColumn->setID("options-column");
+    optionsColumn->setAnchorPoint({0.5f, 0.5f});
+    optionsColumn->setPosition(m_wavePage->getContentSize() / 2 + ccp(0, m_wavePreview->getScaledContentHeight() + 5));
+    m_wavePage->addChild(optionsColumn);
+
+    auto optionsRow1 = CCNode::create();
+    optionsRow1->setLayout(
+        RowLayout::create()
+            ->setGap(35.f)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Center)
+            ->setAutoGrowAxis(0)
+    );
+    optionsRow1->setID("options-row1");
+    optionsRow1->setAnchorPoint({0.5f, 0.5f});
+    optionsColumn->addChild(optionsRow1);
+
+
+    auto optionsRow2 = CCNode::create();
+    optionsRow2->setLayout(
+        RowLayout::create()
+            ->setGap(35.f)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Center)
+            ->setAutoGrowAxis(0)
+    );
+    optionsRow2->setID("options-row2");
+    optionsRow2->setAnchorPoint({0.5f, 0.5f});
+    optionsColumn->addChild(optionsRow2);
+
+    const CCSize sliderWrapperSize = {120, 12};
+
+    auto timeColumn = CCNode::create();
+    timeColumn->setLayout(
+        ColumnLayout::create()
+            ->setGap(3.f)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    timeColumn->setID("time-column");
+    optionsRow1->addChild(timeColumn);
+
+    timeColumn->setPosition({15, 5});
+
+    auto timeText = CCLabelBMFont::create("Time", "goldFont.fnt");
+    timeText->setScale(.55f);
+    timeText->setID("time-text");
+    timeColumn->addChild(timeText);
+
+    auto timeInput = TextInput::create(120.f, "time");
+    timeInput->setScale(.7f);
+    timeInput->setCallback([&](std::string const& value) {
+        waveInputChanged(TAG_WAVE_SPEED, value);
+    });
+    timeInput->setString(fmt::format("{:.2f}", m_waveData.speed));
+    timeInput->setCommonFilter(CommonFilter::Float);
+    timeInput->setID("time-input");
+    m_waveInputs[TAG_WAVE_SPEED] = timeInput;
+    timeColumn->addChild(timeInput);
+
+    auto timeSlider = Slider::create(this, menu_selector(DTColorPickerPopup::waveSliderChanged), .5f);
+    timeSlider->setContentSize({0, 0});
+    timeSlider->setID("time-slider");
+    timeSlider->setTag(TAG_WAVE_SPEED);
+    timeSlider->setValue((m_waveData.speed - WAVE_SPEED_LIMITS.x) / (WAVE_SPEED_LIMITS.y - WAVE_SPEED_LIMITS.x));
+
+    auto timeSliderWrapper = CCNode::create();
+    timeSliderWrapper->setContentSize(sliderWrapperSize);
+    timeSlider->setPosition(timeSliderWrapper->getContentSize() / 2);
+    timeSliderWrapper->addChild(timeSlider);
+    timeColumn->addChild(timeSliderWrapper);
+
+    m_waveSliders[TAG_WAVE_SPEED] = timeSlider;
+
+    timeColumn->updateLayout();
+
+    //
+
+    auto distanceYColumn = CCNode::create();
+    distanceYColumn->setLayout(
+        ColumnLayout::create()
+            ->setGap(3.f)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    distanceYColumn->setID("distance-y-column");
+    optionsRow2->addChild(distanceYColumn);
+
+    distanceYColumn->setPosition({15, 5});
+
+    auto distanceYText = CCLabelBMFont::create("Distance Y", "goldFont.fnt");
+    distanceYText->setScale(.55f);
+    distanceYText->setID("distance-y-text");
+    distanceYColumn->addChild(distanceYText);
+
+    auto distanceYInput = TextInput::create(120.f, "distance-y");
+    distanceYInput->setScale(.7f);
+    distanceYInput->setCallback([&](std::string const& value) {
+        waveInputChanged(TAG_WAVE_DISTANCE_Y, value);
+    });
+    distanceYInput->setString(fmt::format("{:.2f}", m_waveData.distanceY));
+    distanceYInput->setCommonFilter(CommonFilter::Float);
+    distanceYInput->setID("distance-y-input");
+    m_waveInputs[TAG_WAVE_DISTANCE_Y] = distanceYInput;
+    distanceYColumn->addChild(distanceYInput);
+
+    auto distanceYSlider = Slider::create(this, menu_selector(DTColorPickerPopup::waveSliderChanged), .5f);
+    distanceYSlider->setContentSize({0, 0});
+    distanceYSlider->setID("distance-y-slider");
+    distanceYSlider->setTag(TAG_WAVE_DISTANCE_Y);
+    distanceYSlider->setValue((m_waveData.distanceY - WAVE_DISTANCE_LIMITS.x) / (WAVE_DISTANCE_LIMITS.y - WAVE_DISTANCE_LIMITS.x));
+    
+    auto distanceYSliderWrapper = CCNode::create();
+    distanceYSliderWrapper->setContentSize(sliderWrapperSize);
+    distanceYSliderWrapper->addChild(distanceYSlider);
+    distanceYSlider->setPosition(distanceYSliderWrapper->getContentSize() / 2);
+    distanceYColumn->addChild(distanceYSliderWrapper);
+
+    m_waveSliders[TAG_WAVE_DISTANCE_Y] = distanceYSlider;
+
+    distanceYColumn->updateLayout();
+
+    //
+
+    auto distanceXColumn = CCNode::create();
+    distanceXColumn->setLayout(
+        ColumnLayout::create()
+            ->setGap(3.f)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    distanceXColumn->setID("distance-x-column");
+    optionsRow2->addChild(distanceXColumn);
+
+    distanceXColumn->setPosition({15, 5});
+
+    auto distanceXText = CCLabelBMFont::create("Distance X", "goldFont.fnt");
+    distanceXText->setScale(.55f);
+    distanceXText->setID("distance-x-text");
+    distanceXColumn->addChild(distanceXText);
+
+    auto distanceXInput = TextInput::create(120.f, "distance-x");
+    distanceXInput->setScale(.7f);
+    distanceXInput->setCallback([&](std::string const& value) {
+        waveInputChanged(TAG_WAVE_DISTANCE_X, value);
+    });
+    distanceXInput->setString(fmt::format("{:.2f}", m_waveData.distanceX));
+    distanceXInput->setCommonFilter(CommonFilter::Float);
+    distanceXInput->setID("distance-x-input");
+    m_waveInputs[TAG_WAVE_DISTANCE_X] = distanceXInput;
+    distanceXColumn->addChild(distanceXInput);
+
+    auto distanceXSlider = Slider::create(this, menu_selector(DTColorPickerPopup::waveSliderChanged), .5f);
+    distanceXSlider->setContentSize({0, 0});
+    distanceXSlider->setID("distance-x-slider");
+    distanceXSlider->setTag(TAG_WAVE_DISTANCE_X);
+    distanceXSlider->setValue((m_waveData.distanceX - WAVE_DISTANCE_LIMITS.x) / (WAVE_DISTANCE_LIMITS.y - WAVE_DISTANCE_LIMITS.x));
+
+    auto distanceXSliderWrapper = CCNode::create();
+    distanceXSliderWrapper->setContentSize(sliderWrapperSize);
+    distanceXSliderWrapper->addChild(distanceXSlider);
+    distanceXSlider->setPosition(distanceXSliderWrapper->getContentSize() / 2);
+    distanceXColumn->addChild(distanceXSliderWrapper);
+
+    m_waveSliders[TAG_WAVE_DISTANCE_X] = distanceXSlider;
+
+    distanceXColumn->updateLayout();
+
+    //
+
+    auto offsetColumn = CCNode::create();
+    offsetColumn->setLayout(
+        ColumnLayout::create()
+            ->setGap(3.f)
+            ->setAxisReverse(true)
+            ->setAutoScale(false)
+            ->setAxisAlignment(AxisAlignment::Start)
+            ->setAutoGrowAxis(0)
+    );
+    offsetColumn->setID("offset-column");
+    optionsRow1->addChild(offsetColumn);
+
+    offsetColumn->setPosition({15, 5});
+
+    auto offsetText = CCLabelBMFont::create("Offset", "goldFont.fnt");
+    offsetText->setScale(.55f);
+    offsetText->setID("offset-text");
+    offsetColumn->addChild(offsetText);
+
+    auto offsetInput = TextInput::create(120.f, "offset");
+    offsetInput->setScale(.7f);
+    offsetInput->setCallback([&](std::string const& value) {
+        waveInputChanged(TAG_WAVE_OFFSET, value);
+    });
+    offsetInput->setString(fmt::format("{:.2f}", m_waveData.offsetPerIndex));
+    offsetInput->setCommonFilter(CommonFilter::Float);
+    offsetInput->setID("offset-input");
+    m_waveInputs[TAG_WAVE_OFFSET] = offsetInput;
+    offsetColumn->addChild(offsetInput);
+
+    auto offsetSlider = Slider::create(this, menu_selector(DTColorPickerPopup::waveSliderChanged), .5f);
+    offsetSlider->setID("offset-slider");
+    offsetSlider->setTag(TAG_WAVE_OFFSET);
+    offsetSlider->setValue((m_waveData.offsetPerIndex - WAVE_OFFSET_LIMITS.x) / (WAVE_OFFSET_LIMITS.y - WAVE_OFFSET_LIMITS.x));
+
+    auto offsetSliderWrapper = CCNode::create();
+    offsetSliderWrapper->setContentSize(sliderWrapperSize);
+    offsetSlider->setPosition(offsetSliderWrapper->getContentSize() / 2);
+    offsetSliderWrapper->addChild(offsetSlider);
+    offsetColumn->addChild(offsetSliderWrapper);
+
+    m_waveSliders[TAG_WAVE_OFFSET] = offsetSlider;
+
+    offsetColumn->updateLayout();
+
+
+    optionsRow1->updateLayout();
+    optionsRow2->updateLayout();
+    optionsColumn->updateLayout();
+
+    updateWaveData();
+
+    setAllChildrenEnabled(m_wavePage, false);
+}
+
+void DTColorPickerPopup::waveInputChanged(int tag, std::string const& value) {
+    auto numRes = geode::utils::numFromString<float>(value);
+    if (numRes.isErr())
+        return;
+
+    setWaveValue(tag, numRes.unwrap(), false);
+}
+
+void DTColorPickerPopup::waveSliderChanged(cocos2d::CCObject* sender) {
+    auto slider = typeinfo_cast<SliderTouchLogic*>(typeinfo_cast<CCNode*>(sender)->getParent())->m_slider;
+    if (!slider)
+        return;
+
+    CCPoint limits;
+    auto tag = slider->getTag();
+    if (tag == TAG_WAVE_SPEED)
+        limits = WAVE_SPEED_LIMITS;
+    else if (tag == TAG_WAVE_DISTANCE_Y || tag == TAG_WAVE_DISTANCE_X)
+        limits = WAVE_DISTANCE_LIMITS;
+    else if (tag == TAG_WAVE_OFFSET)
+        limits = WAVE_OFFSET_LIMITS;
+    else
+        return;
+
+    auto value = limits.x + (limits.y - limits.x) * slider->getValue();
+    setWaveValue(slider->getTag(), value, true);
+}
+
+void DTColorPickerPopup::setWaveValue(int tag, float value, bool updateInput) {
+
+    CCPoint limits;
+    float* waveValue = nullptr;
+    if (tag == TAG_WAVE_SPEED) {
+        limits = WAVE_SPEED_LIMITS;
+        waveValue = &m_waveData.speed;
+    }
+    else if (tag == TAG_WAVE_DISTANCE_Y) {
+        limits = WAVE_DISTANCE_LIMITS;
+        waveValue = &m_waveData.distanceY;
+    }
+    else if (tag == TAG_WAVE_DISTANCE_X) {
+        limits = WAVE_DISTANCE_LIMITS;
+        waveValue = &m_waveData.distanceX;
+    }
+    else if (tag == TAG_WAVE_OFFSET) {
+        limits = WAVE_OFFSET_LIMITS;
+        waveValue = &m_waveData.offsetPerIndex;
+    }
+    else {
+        return;
+    }
+
+    *waveValue = std::clamp(value, limits.x, limits.y);
+
+    for (const auto& [sliderTag, slider] : m_waveSliders) {
+        if (sliderTag != tag) continue;
+
+        slider->setValue((*waveValue - limits.x) / (limits.y - limits.x));
+        break;
+    }
+
+    if (updateInput) {
+        for (const auto& [inputTag, input] : m_waveInputs) {
+            if (inputTag != tag) continue;
+
+            input->setString(fmt::format("{:.2f}", *waveValue));
+            break;
+        }
+    }
+
+    updateWaveData();
+}
+
+void DTColorPickerPopup::updateWaveData() {
+    updateWavePreview();
+
+    if (m_waveChangedCallback)
+        m_waveChangedCallback(m_waveData);
+}
+
+void DTColorPickerPopup::updateWavePreview() {
+    if (!m_wavePreview) return;
+
+    auto sample = fmt::format(
+        "<wave={},{},{},{}>Wave Preview</wave>",
+        m_waveData.speed,
+        m_waveData.distanceY,
+        m_waveData.distanceX,
+        m_waveData.offsetPerIndex
+    );
+
+    if (m_gradientEnabled && AuthManager::isDoner()) {
+        sample = fmt::format(
+            "<gradient={},{},{},{}>{}</gradient>",
+            cc4bToHexString(m_gradientColorA),
+            cc4bToHexString(m_gradientColorB),
+            m_duration,
+            m_stagger,
+            sample
+        );
+    }
+
+    m_wavePreview->setText(sample);
+}
+
+void DTColorPickerPopup::onWavePageOpen(CCNode* page) {
+    auto allEnabled = m_waveEnabled && AuthManager::isDoner();
+    setAllChildrenEnabled(page, allEnabled);
+    m_waveDisabledFG->setVisible(!allEnabled);
+
+    auto isDoner = AuthManager::isDoner();
+    m_waveEnabledToggle->setEnabled(isDoner);
+    m_waveEnabledMenu->setEnabled(isDoner);
+    m_waveEnabledToggle->setOpacity(isDoner ? 255 : 128);
+    m_waveDonorLabel->setVisible(!isDoner);
+}
+
+void DTColorPickerPopup::setWaveChangedCallback(geode::Function<void(WaveData const& data)> callback) {
+    m_waveChangedCallback = std::move(callback);
+}
+
+void DTColorPickerPopup::setWaveEnabledChangedCallback(geode::Function<void(bool enabled)> callback) {
+    m_waveEnabledChangedCallback = std::move(callback);
+}
+
+
+#pragma endregion
+
+void DTColorPickerPopup::setAllChildrenEnabled(CCNode* node, bool enabled) {
+    if (!node) return;
+
+    auto processNode = [&](CCNode* n) -> bool {
+        
+        if (auto control = typeinfo_cast<CCControl*>(n)) {
+            control->setEnabled(enabled);
+        }
+        else if (auto input = typeinfo_cast<TextInput*>(n)) {
+            input->setEnabled(enabled);
+
+            return false;
+        }
+        else if (auto menuItem = typeinfo_cast<CCMenuItem*>(n)) {
+            menuItem->setEnabled(enabled);
+        }
+        else if (auto menu = typeinfo_cast<CCMenu*>(n)) {
+            menu->setEnabled(enabled);
+        }
+        else if (auto slider = typeinfo_cast<Slider*>(n)) {
+            if (enabled)
+                slider->enableSlider();
+            else
+                slider->disableSlider();
+        }
+
+        return true;
+    };
+
+    if (!processNode(node)) return;
+
+    for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
+        setAllChildrenEnabled(child, enabled);
+    }
 }

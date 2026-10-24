@@ -52,11 +52,14 @@ class DTColorPickerPopup : public geode::ColorPickPopup {
         void createWavePage(WaveData const& data);
         void updateWaveData();
         void updateWavePreview();
+        void waveInputChanged(int tag, std::string const& value);
+        void waveSliderChanged(CCObject* sender);
+        void setWaveValue(int tag, float value, bool updateInput);
         void onWavePageOpen(CCNode* page);
-        void onGradientResetA(cocos2d::CCObject*);
-        void onGradientResetB(cocos2d::CCObject*);
-        void opacitySliderAChanged(cocos2d::CCObject*);
-        void opacitySliderBChanged(cocos2d::CCObject*);
+        void onGradientResetA(CCObject*);
+        void onGradientResetB(CCObject*);
+        void opacitySliderAChanged(CCObject*);
+        void opacitySliderBChanged(CCObject*);
         void updateGradientOpacity(int tag);
 
         CCControlColourPicker* m_gradientPickerA = nullptr;
@@ -107,6 +110,8 @@ class DTColorPickerPopup : public geode::ColorPickPopup {
         bool m_waveEnabled = false;
         WaveData m_waveData;
         RichTextArea* m_wavePreview = nullptr;
+        std::map<int, TextInput*> m_waveInputs;
+        std::map<int, Slider*> m_waveSliders;
 
         geode::Function<void(WaveData const& data)> m_waveChangedCallback;
         geode::Function<void(bool enabled)> m_waveEnabledChangedCallback;
@@ -138,7 +143,11 @@ class DTColorPickerPopup : public geode::ColorPickPopup {
         RichTextArea* m_donorLabel;
         RichTextArea* m_waveDonorLabel = nullptr;
 
-        const CCPoint WAVE_SPEED_LIMITS = { .05f, 30.f };
+        const CCPoint WAVE_SPEED_LIMITS = { .05f, 5.f };
         const CCPoint WAVE_DISTANCE_LIMITS = { -100.f, 100.f };
         const CCPoint WAVE_OFFSET_LIMITS = { -2.f, 2.f };
+        const int TAG_WAVE_SPEED = 1;
+        const int TAG_WAVE_DISTANCE_Y = 2;
+        const int TAG_WAVE_DISTANCE_X = 3;
+        const int TAG_WAVE_OFFSET = 4;
 };

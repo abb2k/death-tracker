@@ -3927,8 +3927,8 @@ void DTLayer::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     resetLayoutTo(DTLayoutPreset{
         .name = "Default",
         .layout = Save::getDefaultLayout(),
-        .newBestColor = {255, 255, 0},
-        .sessionBestColor = { 255, 136, 0 }
+        // .newBestColor = {255, 255, 0},
+        // .sessionBestColor = { 255, 136, 0 }
     });
 }
 
@@ -3975,8 +3975,8 @@ void DTLayer::onAddPreset(CCObject*) {
             savePreset(DTLayoutPreset{
                 .name = str,
                 .layout = currentLayout(),
-                .newBestColor = newBestColorBtnSpr->getColor(),
-                .sessionBestColor = sessionBestColorBtnSpr->getColor()
+                // .newBestColor = newBestColorBtnSpr->getColor(),
+                // .sessionBestColor = sessionBestColorBtnSpr->getColor()
             });
 
             presetList->close();
@@ -4036,8 +4036,8 @@ void DTLayer::onExportPreset(CCObject*) {
             auto preset = DTLayoutPreset{
                 .name = str,
                 .layout = layout,
-                .newBestColor = newBestColorBtnSpr->getColor(),
-                .sessionBestColor = sessionBestColorBtnSpr->getColor()
+                // .newBestColor = newBestColorBtnSpr->getColor(),
+                // .sessionBestColor = sessionBestColorBtnSpr->getColor()
             };
 
             auto exportHandle = async::spawn(
@@ -4118,10 +4118,10 @@ void DTLayer::deletePreset(int id) {
 }
 
 void DTLayer::resetLayoutTo(DTLayoutPreset const& preset) {
-    newBestColorBtnSpr->setColor(preset.newBestColor);
-    Save::setNewBestCustomizations(CustomizationData{.color = to4B(newBestColorBtnSpr->getColor())});
-    sessionBestColorBtnSpr->setColor(preset.sessionBestColor);
-    Save::setSessionBestCustomizations(CustomizationData{.color = to4B(sessionBestColorBtnSpr->getColor())});
+    newBestColorBtnSpr->setColor(to3B(preset.newBestCustomization.color));
+    Save::setNewBestCustomizations(preset.newBestCustomization);
+    sessionBestColorBtnSpr->setColor(to3B(preset.sessionBestCustomization.color));
+    Save::setSessionBestCustomizations(preset.sessionBestCustomization);
 
     setLayoutBy(preset.layout);
     organizeLayout();
