@@ -563,15 +563,15 @@ void StatsManager::logDeath(const int& percent, bool instantSave) {
     if (instantSave)
         safeCheckCurrF0();
 
-    int best = -1;
+    int overallBest = -1;
 
     if (currentFrom0.has_value()) {
         auto& val = currentFrom0.value();
         val.deaths[percentKey]++;
 
-        if (val.newBests.size() != 0) best = *val.newBests.rbegin();
+        if (val.newBests.size() != 0) overallBest = *val.newBests.rbegin();
 
-        if (percent > best) {
+        if (percent > overallBest) {
             val.newBests.insert(percent);
         }
     }
@@ -581,9 +581,10 @@ void StatsManager::logDeath(const int& percent, bool instantSave) {
         session->data.deaths[percentKey]++;
         log::info("logging death {} to session {}", percentKey, session->sessionStartDate);
 
-        if (session->data.newBests.size() != 0) best = *session->data.newBests.rbegin();
+        int sessionBest = -1;
+        if (session->data.newBests.size() != 0) sessionBest = *session->data.newBests.rbegin();
 
-        if (session && percent > best) {
+        if (percent > sessionBest) {
             session->data.newBests.insert(percent);
         }
     }
