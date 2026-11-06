@@ -32,7 +32,7 @@ class $modify(DTPlayLayer, PlayLayer) {
         PlaytimePair timePassedPaused;
         std::optional<std::chrono::steady_clock::time_point> startTime;
 
-        std::vector<int> fzeroToSave{};
+        std::vector<double> fzeroToSave{};
         std::vector<Run> runsToSave{};
         
         bool levelBeaten = false;

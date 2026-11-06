@@ -10,7 +10,6 @@
 #include <utils/CCGradientAction.hpp>
 
 #include <regex>
-#include <cmath>
 #include <arc/task/Yield.hpp>
 
 #include <managers/AuthManager.hpp>

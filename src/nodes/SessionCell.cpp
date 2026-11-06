@@ -42,19 +42,8 @@ bool SessionCell::init(float width, Session const& session) {
     dateLabel->setScale(.2f);
     this->addChild(dateLabel);
 
-    long long deathCount = 0;
-
-    for (const auto& death : session.data.deaths)
-    {
-        deathCount += death.second;
-    }
-    
-    long long runCount = 0;
-
-    for (const auto& run : session.data.runs)
-    {
-        runCount += run.second;
-    }
+    auto deathCount = session.data.deaths.totalDeaths();
+    auto runCount = session.data.runs.totalDeaths();
 
     auto infoLabel = CCLabelBMFont::create(
         fmt::format("deaths: {} | runs: {} | playtime: {}", deathCount, runCount, StatsManager::workingTime(session.data.playtimeGeneral.playtimeF0 + session.data.playtimeGeneral.playtimeRuns)).c_str(),

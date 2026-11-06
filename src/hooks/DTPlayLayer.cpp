@@ -216,6 +216,8 @@ void DTPlayLayer::resetLevel() {
         m_fields->currentRun.start = getActualProgress();
     else
         m_fields->currentRun.start = m_fields->currentRun.end;
+    m_fields->currentRun.startTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
+    m_fields->currentRun.endTimestamp.reset();
 
     m_fields->nolcip = false;
     m_fields->speedhack = false;
@@ -261,6 +263,8 @@ void DTPlayLayer::destroyPlayer(PlayerObject* player, GameObject* p1) {
 void DTPlayLayer::saveRun() {
     if (Settings::getSafeMode()) return;
     if (!isLegal()) return;
+
+    m_fields->currentRun.endTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
 
     if (Settings::getQuickSaveEnabled()) {
         if (m_fields->currentRun.start == 0 && !m_isPracticeMode) {
@@ -441,6 +445,11 @@ void DTPlayLayer::onExit() {
 
 void DTPlayLayer::startGame() {
     PlayLayer::startGame();
+
+    if (!m_fields->currentRun.start.has_value())
+        m_fields->currentRun.start = 0.0;
+    m_fields->currentRun.startTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
+    m_fields->currentRun.endTimestamp.reset();
 
     m_fields->didGameStartThisFrame = true;
 

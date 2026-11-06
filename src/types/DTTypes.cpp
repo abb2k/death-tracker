@@ -1,6 +1,309 @@
 #include "DTTypes.hpp"
 
+#include <managers/StatsManager.hpp>
+
 float DTColumnInfo_s::minWidth = 40.0f;
+
+Result<ComplexDeathMap> ComplexDeathMap::readDeathMap(const matjson::Value& value, bool runKeys) {
+    auto complex = value.as<ComplexDeathMap>();
+    if (complex.isOk())
+        return Ok(std::move(complex).unwrap());
+
+    auto legacy = value.as<Deaths>();
+    if (legacy.isErr())
+        return Err("Invalid death map: {}", legacy.unwrapErr());
+
+    return ComplexDeathMap::fromLegacy(legacy.unwrap(), runKeys);
+}
+
+Result<ComplexPercent> ComplexPercent::fromPercent(double percent) {
+
+    auto scaled = static_cast<long double>(percent) * unitsPerPercent;
+    auto minUnits = std::numeric_limits<Units>::min() + unitsPerPercent;
+    auto maxUnits = std::numeric_limits<Units>::max() - unitsPerPercent;
+
+    if (scaled < static_cast<long double>(minUnits) || scaled > static_cast<long double>(maxUnits))
+        return Err("Percent outside range");
+
+    return Ok(ComplexPercent{
+        .units = static_cast<Units>(std::llround(scaled))
+    });
+}
+
+double ComplexPercent::asPercent() const {
+    return static_cast<double>(units) / unitsPerPercent;
+}
+
+bool ComplexPercent::isValid() const {
+    return units >= std::numeric_limits<Units>::min() + unitsPerPercent && units <= std::numeric_limits<Units>::max() - unitsPerPercent;
+}
+
+Result<ComplexDeathMap> ComplexDeathMap::fromLegacy(const Deaths& deaths, bool runKeys) {
+    ComplexDeathMap result;
+
+    for (const auto& [key, count] : deaths) {
+        if (count < 0)
+            return Err("Negative death count in legacy death \"{}\"", key);
+        if (count == 0)
+            continue;
+
+        std::optional<int> start;
+        int end = 0;
+        if (runKeys) {
+            auto splitResult = StatsManager::splitRunKey(key);
+
+            if (splitResult.isErr())
+                return Err("Invalid legacy run \"{}\"", key);
+            
+            auto run = std::move(splitResult).unwrap();
+
+            start = run.start;
+            end = run.end;
+        }
+        else {
+            auto runNum = geode::utils::numFromString<int>(key);
+            if (runNum.isErr())
+                return Err("Invalid legacy death percent \"{}\"", key);
+
+            end = runNum.unwrap();
+        }
+
+        auto endPercent = ComplexPercent::fromPercent(end);
+        if (endPercent.isErr())
+            return Err("Invalid legacy run end in run \"{}\"", key);
+
+        std::optional<ComplexPercent> startPercent;
+
+        if (start.has_value()) {
+            auto parsedStart = ComplexPercent::fromPercent(start.value());
+            if (parsedStart.isErr())
+                return Err("Invalid legacy run start in run \"{}\"", key);
+            
+            startPercent = parsedStart.unwrap();
+        }
+
+        ComplexDeath entry{
+            .runStartPercent = startPercent,
+            .runEndPercent = endPercent.unwrap(),
+            .deaths = static_cast<uint64_t>(count)
+        };
+
+        auto insertResult = result.insert(std::move(entry));
+        if (insertResult.isErr())
+            return Err("Failed converting legacy run \"{}\": {}", key, insertResult.unwrapErr());
+    }
+
+    return Ok(std::move(result));
+}
+
+Result<> ComplexDeathMap::insert(ComplexDeath death) {
+    if (!death.runEndPercent.isValid() || (death.runStartPercent.has_value() && !death.runStartPercent->isValid()))
+        return Err("Cannot insert an invalid percentage");
+
+    if (death.deaths == 0)
+        return Ok();
+
+    Run key {
+        death.runEndPercent.units,
+        death.runStartPercent.has_value() ? std::optional<ComplexPercent::Units>(death.runStartPercent->units) : std::nullopt
+    };
+
+    auto [it, inserted] = records.try_emplace(key, std::move(death));
+
+    if (inserted)
+        return Ok();
+
+    auto& stored = it->second;
+    auto& incoming = death;
+
+    if (std::numeric_limits<uint64_t>::max() - stored.deaths < incoming.deaths)
+        return Err("Death overflow");
+    
+    stored.deaths += incoming.deaths;
+    stored.occurrences.insert(
+        stored.occurrences.end(),
+        std::make_move_iterator(incoming.occurrences.begin()),
+        std::make_move_iterator(incoming.occurrences.end())
+    );
+    return Ok();
+}
+
+Result<> ComplexDeathMap::recordDeath(ComplexPercent endPercent, std::optional<ComplexPercent> startPercent, ComplexDeathOccurrence occurrence) {
+    ComplexDeath death{
+        .runStartPercent = startPercent,
+        .runEndPercent = endPercent,
+        .deaths = 1
+    };
+
+    if (occurrence.runStartTimestamp.has_value() || occurrence.runEndTimestamp.has_value())
+        death.occurrences.push_back(std::move(occurrence));
+    
+    return insert(std::move(death));
+}
+
+Result<> ComplexDeathMap::recordDeath(double endPercent, std::optional<double> startPercent, ComplexDeathOccurrence occurrence) {
+    auto end = ComplexPercent::fromPercent(endPercent);
+    if (end.isErr())
+        return Err("Invalid death end percent: {}", end.unwrapErr());
+
+    std::optional<ComplexPercent> start;
+    if (startPercent.has_value()) {
+        auto parsedStart = ComplexPercent::fromPercent(startPercent.value());
+        if (parsedStart.isErr())
+            return Err("Invalid death start percent: {}", parsedStart.unwrapErr());
+        start = parsedStart.unwrap();
+    }
+
+    return recordDeath(end.unwrap(), start, std::move(occurrence));
+}
+
+Result<ComplexDeathSummary> ComplexDeathMap::getComplexDeath(double percent, uint8_t decimalDepth) const {
+    if (decimalDepth > ComplexPercent::maxDecimalDepth)
+        return Err("Decimal depth must be between 0 and {}", ComplexPercent::maxDecimalDepth);
+
+    auto parsedPercent = ComplexPercent::fromPercent(percent);
+    if (parsedPercent.isErr())
+        return Err("Invalid query percent: {}", parsedPercent.unwrapErr());
+
+    ComplexPercent::Units factor = 1;
+    for (auto depth = decimalDepth; depth < ComplexPercent::maxDecimalDepth; ++depth)
+        factor *= 10;
+
+    auto units = parsedPercent.unwrap().units;
+    auto quotient = units / factor;
+
+    if (units < 0 && units % factor != 0) quotient--;
+
+    auto lower = quotient * factor;
+    auto upper = lower + factor;
+
+    ComplexDeathSummary summary;
+    summary.queriedPercent.units = lower;
+    summary.decimalDepth = decimalDepth;
+
+    for (auto it = records.lower_bound({lower, std::nullopt}); it != records.end() && it->first.first < upper; ++it) {
+
+        summary.records.push_back(it->second);
+        if (std::numeric_limits<uint64_t>::max() - summary.deaths < it->second.deaths)
+            return Err("death count overflow");
+
+        summary.deaths += it->second.deaths;
+    }
+
+    return Ok(std::move(summary));
+}
+
+Result<ComplexDeathSummary> ComplexDeathMap::getComplexDeath(int percent) const {
+    return getComplexDeath(static_cast<double>(percent), 0);
+}
+
+bool ComplexDeathMap::adjust(double endPercent, std::optional<double> startPercent, int amount) {
+    if (amount == 0)
+        return true;
+
+    auto parsedEnd = ComplexPercent::fromPercent(endPercent);
+    if (parsedEnd.isErr())
+        return false;
+    auto end = parsedEnd.unwrap();
+
+    std::optional<ComplexPercent> start;
+    if (startPercent) {
+        auto parsedStart = ComplexPercent::fromPercent(*startPercent);
+        if (parsedStart.isErr())
+            return false;
+        start = parsedStart.unwrap();
+    }
+
+    if (amount > 0) {
+        return insert(ComplexDeath{
+            .runStartPercent = start,
+            .runEndPercent = end,
+            .deaths = static_cast<uint64_t>(amount)
+        }).isOk();
+    }
+
+    auto required = static_cast<uint64_t>(-static_cast<int64_t>(amount));
+    Run key{
+        end.units,
+        start ? std::optional<ComplexPercent::Units>(start->units) : std::nullopt
+    };
+    auto it = records.find(key);
+    if (it == records.end() || it->second.deaths < required)
+        return false;
+
+    it->second.deaths -= required;
+    auto occurrencesToRemove = std::min<uint64_t>(required, it->second.occurrences.size());
+    it->second.occurrences.resize(it->second.occurrences.size() - occurrencesToRemove);
+
+    if (it->second.deaths == 0)
+        records.erase(it);
+
+    return true;
+}
+
+bool ComplexDeathMap::contains(const std::string& legacyKey) const {
+    return toLegacyDeaths().contains(legacyKey);
+}
+
+bool ComplexDeathMap::contains(double endPercent, std::optional<double> startPercent) const {
+    auto end = ComplexPercent::fromPercent(endPercent);
+    if (end.isErr())
+        return false;
+
+    std::optional<ComplexPercent::Units> startUnits;
+    if (startPercent) {
+        auto start = ComplexPercent::fromPercent(*startPercent);
+        if (start.isErr())
+            return false;
+        startUnits = start.unwrap().units;
+    }
+
+    return records.contains({end.unwrap().units, startUnits});
+}
+
+uint64_t ComplexDeathMap::totalDeaths() const {
+    uint64_t total = 0;
+    for (const auto& [key, death] : records) {
+        if (std::numeric_limits<uint64_t>::max() - total < death.deaths)
+            return std::numeric_limits<uint64_t>::max();
+        total += death.deaths;
+    }
+    return total;
+}
+
+Deaths ComplexDeathMap::toLegacyDeaths() const {
+    Deaths result;
+    
+    for (const auto& [key, death] : records) {
+        const auto end = static_cast<int64_t>(std::floor(static_cast<double>(death.runEndPercent.units) / ComplexPercent::unitsPerPercent));
+
+        auto legacyKey = std::to_string(end);
+
+        if (death.runStartPercent.has_value()) {
+            const auto start = static_cast<int64_t>(std::floor(
+                static_cast<double>(death.runStartPercent.value().units) / ComplexPercent::unitsPerPercent
+            ));
+
+            legacyKey = fmt::format("{}-{}", start, end);
+        }
+
+        auto& count = result[legacyKey];
+        const auto available = static_cast<uint64_t>(std::numeric_limits<int>::max() - count);
+        count += static_cast<int>(std::min(available, death.deaths));
+    }
+
+    return result;
+}
+
+Result<> ComplexDeathMap::merge(const ComplexDeathMap& other) {
+    for (const auto& [key, death] : other.records) {
+        auto result = insert(death);
+        if (result.isErr())
+            return Err("Failed merging death record: {}", result.unwrapErr());
+    }
+
+    return Ok();
+}
 
 PlaytimePair& PlaytimePair::operator+=(const PlaytimePair& other) {
     playtimeF0 += other.playtimeF0;
@@ -14,12 +317,12 @@ void PlaytimePair::reset() {
 }
 
 GeneralData& GeneralData::operator+=(const GeneralData& other) {
-    for (auto const& [key, val] : other.deaths) {
-        deaths[key] += val;
-    }
-    for (auto const& [key, val] : other.runs) {
-        runs[key] += val;
-    }
+    auto deathsResult = deaths.merge(other.deaths);
+    if (deathsResult.isErr())
+        log::error("Failed to merge death records: {}", deathsResult.unwrapErr());
+    auto runsResult = runs.merge(other.runs);
+    if (runsResult.isErr())
+        log::error("Failed to merge run records: {}", runsResult.unwrapErr());
     newBests.insert(other.newBests.begin(), other.newBests.end());
     playtimeGeneral += other.playtimeGeneral;
     playtimePaused += other.playtimePaused;
@@ -58,11 +361,103 @@ matjson::Value matjson::Serialize<PlaytimePair>::toJson(const PlaytimePair& valu
     });
 }
 
+Result<ComplexPercent> matjson::Serialize<ComplexPercent>::fromJson(const matjson::Value& value) {
+    ComplexPercent percent;
+    GEODE_UNWRAP_INTO(percent.units, value.as<ComplexPercent::Units>());
+    if (!percent.isValid())
+        return Err("Invalid fixed-point percent");
+    return Ok(percent);
+}
+
+matjson::Value matjson::Serialize<ComplexPercent>::toJson(const ComplexPercent& value) {
+    return value.units;
+}
+
+Result<ComplexDeathOccurrence> matjson::Serialize<ComplexDeathOccurrence>::fromJson(const matjson::Value& value) {
+    ComplexDeathOccurrence occurrence;
+    if (value.contains("runStartTimestamp")) {
+        GEODE_UNWRAP_INTO(occurrence.runStartTimestamp, value["runStartTimestamp"].as<time_t>());
+    }
+    if (value.contains("runEndTimestamp")) {
+        GEODE_UNWRAP_INTO(occurrence.runEndTimestamp, value["runEndTimestamp"].as<time_t>());
+    }
+    return Ok(occurrence);
+}
+
+matjson::Value matjson::Serialize<ComplexDeathOccurrence>::toJson(const ComplexDeathOccurrence& value) {
+    matjson::Value json = matjson::makeObject({});
+    if (value.runStartTimestamp.has_value())
+        json["runStartTimestamp"] = value.runStartTimestamp.value();
+    if (value.runEndTimestamp.has_value())
+        json["runEndTimestamp"] = value.runEndTimestamp.value();
+    return json;
+}
+
+Result<ComplexDeath> matjson::Serialize<ComplexDeath>::fromJson(const matjson::Value& value) {
+    ComplexDeath death;
+    GEODE_UNWRAP_INTO(death.runEndPercent, value["endUnits"].as<ComplexPercent>());
+    GEODE_UNWRAP_INTO(death.deaths, value["deaths"].as<uint64_t>());
+
+    if (value.contains("startUnits")) {
+        ComplexPercent start;
+        GEODE_UNWRAP_INTO(start, value["startUnits"].as<ComplexPercent>());
+        death.runStartPercent = start;
+    }
+    if (value.contains("occurrences")) {
+        GEODE_UNWRAP_INTO(death.occurrences, value["occurrences"].as<std::vector<ComplexDeathOccurrence>>());
+    }
+    return Ok(death);
+}
+
+matjson::Value matjson::Serialize<ComplexDeath>::toJson(const ComplexDeath& value) {
+    matjson::Value json = matjson::makeObject({
+        { "endUnits", value.runEndPercent },
+        { "deaths", value.deaths },
+        { "occurrences", value.occurrences }
+    });
+    if (value.runStartPercent.has_value())
+        json["startUnits"] = value.runStartPercent.value();
+    return json;
+}
+
+Result<ComplexDeathMap> matjson::Serialize<ComplexDeathMap>::fromJson(const matjson::Value& value) {
+    if (!value.contains("entries"))
+        return Err("Complex death map is missing its entries");
+
+    std::vector<ComplexDeath> entries;
+    GEODE_UNWRAP_INTO(entries, value["entries"].as<std::vector<ComplexDeath>>());
+
+    ComplexDeathMap result;
+    for (auto& entry : entries) {
+        auto insertResult = result.insert(std::move(entry));
+        if (insertResult.isErr())
+            return Err("Invalid complex death entry: {}", insertResult.unwrapErr());
+    }
+    return Ok(std::move(result));
+}
+
+matjson::Value matjson::Serialize<ComplexDeathMap>::toJson(const ComplexDeathMap& value) {
+    std::vector<ComplexDeath> entries;
+    entries.reserve(value.records.size());
+    for (const auto& [key, entry] : value.records)
+        entries.push_back(entry);
+    return matjson::makeObject({ { "entries", entries } });
+}
+
 Result<GeneralData> matjson::Serialize<GeneralData>::fromJson(const matjson::Value& value) {
     GeneralData stats;
-    GEODE_UNWRAP_INTO(stats.deaths, value["deaths"].as<Deaths>());
-    GEODE_UNWRAP_INTO(stats.runs, value["runs"].as<Deaths>());
-    GEODE_UNWRAP_INTO(stats.newBests, value["newBests"].as<NewBests>());
+
+    if (value.contains("deaths")) {
+        GEODE_UNWRAP_INTO(stats.deaths, ComplexDeathMap::readDeathMap(value["deaths"], false));
+    }
+
+    if (value.contains("runs")) {
+        GEODE_UNWRAP_INTO(stats.runs, ComplexDeathMap::readDeathMap(value["runs"], true));
+    }
+
+    if (value.contains("newBests")) {
+        GEODE_UNWRAP_INTO(stats.newBests, value["newBests"].as<NewBests>());
+    }
     if (value.contains("playtimeGeneral")) {
         GEODE_UNWRAP_INTO(stats.playtimeGeneral, value["playtimeGeneral"].as<PlaytimePair>());
     }
@@ -90,24 +485,7 @@ Result<Session> matjson::Serialize<Session>::fromJson(const matjson::Value& valu
     Session session;
     GEODE_UNWRAP_INTO(session.lastPlayed, value["lastPlayed"].as<long long>());
     GEODE_UNWRAP_INTO(session.sessionStartDate, value["sessionStartDate"].as<long long>());
-    if (value.contains("newBests")) {
-        GEODE_UNWRAP_INTO(session.data.newBests, value["newBests"].as<NewBests>());
-    }
-    if (value.contains("deaths")) {
-        GEODE_UNWRAP_INTO(session.data.deaths, value["deaths"].as<Deaths>());
-    }
-    if (value.contains("runs")) {
-        GEODE_UNWRAP_INTO(session.data.runs, value["runs"].as<Deaths>());
-    }
-    if (value.contains("playtimeGeneral")) {
-        GEODE_UNWRAP_INTO(session.data.playtimeGeneral, value["playtimeGeneral"].as<PlaytimePair>());
-    }
-    if (value.contains("playtimePaused")) {
-        GEODE_UNWRAP_INTO(session.data.playtimePaused, value["playtimePaused"].as<PlaytimePair>());
-    }
-    if (value.contains("playtimeDead")) {
-        GEODE_UNWRAP_INTO(session.data.playtimeDead, value["playtimeDead"].as<PlaytimePair>());
-    }
+    GEODE_UNWRAP_INTO(session.data, value.as<GeneralData>());
     if (value.contains("data")) {
         GEODE_UNWRAP_INTO(session.data, value["data"].as<GeneralData>());
     }

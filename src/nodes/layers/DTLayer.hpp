@@ -104,9 +104,9 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
         int getCurrentSelectedSession();
         void onSessionSelected(int sessionNum, bool updateContent);
 
-        void modifyRun(int startPer, int amount, std::optional<int> sessionNumber);
-        void modifyRun(int startPer, int endPer, int amount, std::optional<int> sessionNumber);
-        void modifyNewBest(int percent, bool makeTrue, std::optional<int> sessionNumber);
+        void modifyRun(double startPer, int amount, std::optional<int> sessionNumber);
+        void modifyRun(double startPer, double endPer, int amount, std::optional<int> sessionNumber);
+        void modifyNewBest(double percent, bool makeTrue, std::optional<int> sessionNumber);
 
         bool DeleteSave();
 

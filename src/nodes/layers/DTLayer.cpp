@@ -1393,45 +1393,43 @@ bool DTLayer::createDeathsString(const Deaths& deaths, const stringCustomazation
 bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests,  const CustomizationData& newBestCustomizations, bool ignoreExtraSettings) {
     out = "";
 
+    const auto isNewBest = [&](double percent) {
+        if (!newBests)
+            return false;
+        if (newBests->contains(percent))
+            return true;
+
+        return std::any_of(newBests->begin(), newBests->end(), [percent](double bestPercent) {
+            return std::floor(bestPercent) == percent;
+        });
+    };
+
     std::vector<std::pair<std::string, int>> deathVec;
 
-    if (!ignoreExtraSettings)
-    {
-        std::unordered_map<std::string, int> mergedDeaths;
+    std::unordered_map<std::string, int> mergedDeaths;
+    for (const auto& [originalRunStr, count] : deaths) {
+        auto runSplitRes = StatsManager::splitRunKey(originalRunStr);
+        if (runSplitRes.isErr()) continue;
+        auto runSplit = runSplitRes.unwrap();
 
-        for (const auto& [originalRunStr, count] : deaths) 
-        {
-            auto runSplitRes = StatsManager::splitRunKey(originalRunStr);
-            if (runSplitRes.isErr()) continue;
-            auto runSplit = runSplitRes.unwrap();
+        runSplit.end = std::floor(runSplit.end);
+        if (runSplit.start)
+            runSplit.start = std::floor(runSplit.start.value());
 
+        if (!ignoreExtraSettings) {
             if (runSplit.end >= meta.realEndPercent)
                 runSplit.end = 100;
 
-            if (runSplit.start.has_value() && runSplit.start.value() >= meta.realEndPercent)
+            if (runSplit.start && runSplit.start.value() >= meta.realEndPercent)
                 runSplit.start = 100;
-
-            auto res = StatsManager::createRunKey(runSplit);
-            if (res.isErr()) continue;
-
-            mergedDeaths[res.unwrap()] += count;
         }
 
-        deathVec.assign(mergedDeaths.begin(), mergedDeaths.end());
-    } 
-    else 
-    {
-        for (const auto& [originalRunStr, count] : deaths) 
-        {
-            auto runSplitRes = StatsManager::splitRunKey(originalRunStr);
-            if (runSplitRes.isErr()) continue;
-            
-            auto res = StatsManager::createRunKey(runSplitRes.unwrap());
-            if (res.isErr()) continue;
-
-            deathVec.emplace_back(res.unwrap(), count);
-        }
+        auto res = StatsManager::createRunKey(runSplit);
+        if (res.isErr()) continue;
+        mergedDeaths[res.unwrap()] += count;
     }
+
+    deathVec.assign(mergedDeaths.begin(), mergedDeaths.end());
         
 
     std::sort(deathVec.begin(), deathVec.end(), [](const auto& a, const auto& b) {
@@ -1511,7 +1509,7 @@ bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadeta& meta
                 continue;
             }
 
-            if (newBests.has_value() && newBests.value().contains(runSplit.end)) {
+            if (isNewBest(runSplit.end)) {
                 nbDeColor = fmt::format("</color>{}{}",
                     newBestCustomizations.gradientEnabled && AuthManager::isDoner() ? "</gradient>" : "",
                     newBestCustomizations.waveEnabled && AuthManager::isDoner() ? "</wave>" : ""
@@ -1544,7 +1542,7 @@ bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadeta& meta
             }
         }
         else {
-            if (newBests.has_value() && newBests.value().contains(runSplit.end)) {
+            if (isNewBest(runSplit.end)) {
                 nbDeColor = fmt::format("</color>{}{}",
                     newBestCustomizations.gradientEnabled && AuthManager::isDoner() ? "</gradient>" : "",
                     newBestCustomizations.waveEnabled && AuthManager::isDoner() ? "</wave>" : ""
@@ -2619,30 +2617,14 @@ void DTLayer::unsubscribeKeyListener(DTLabel* label) {
     keyListeners.erase(label);
 }
 
-void DTLayer::modifyRun(int startPer, int amount, std::optional<int> sessionNumber) {
+void DTLayer::modifyRun(double startPer, int amount, std::optional<int> sessionNumber) {
     if (m_MyLevelStats.isErr()) return;
 
-    auto processRun = [&, amount, startPer, sessionNumber](Deaths& data) -> bool {
-        auto runStr = std::to_string(startPer);
-        if (!data.contains(runStr)) {
-            if (amount < 0)
-                return false;
-
-            data.insert({runStr, amount});
-            return true;
-        }
-
-        auto newNum = data[runStr] + amount;
-        //log::info("{} | {} | {}", amount, data[runStr], newNum);
-
-        if (newNum <= 0) {
-            data.erase(runStr);
+    auto processRun = [&, amount, startPer, sessionNumber](ComplexDeathMap& data) -> bool {
+        if (!data.adjust(startPer, std::nullopt, amount))
+            return false;
+        if (amount < 0 && !data.contains(startPer, std::nullopt))
             modifyNewBest(startPer, false, sessionNumber);
-            return true;
-        }
-
-        data[runStr] = newNum;
-
         return true;
     };
 
@@ -2671,7 +2653,7 @@ void DTLayer::modifyRun(int startPer, int amount, std::optional<int> sessionNumb
                     firstOKSessLvlKey = lvlKey;
                 }
 
-                if (!currSess.data.deaths.contains(std::to_string(startPer))) continue;
+                if (!currSess.data.deaths.contains(startPer, std::nullopt)) continue;
 
                 session = currSess;
                 keyToUse = lvlKey;
@@ -2717,29 +2699,11 @@ void DTLayer::modifyRun(int startPer, int amount, std::optional<int> sessionNumb
         }
     }
 }
-void DTLayer::modifyRun(int startPer, int endPer, int amount, std::optional<int> sessionNumber) {
+void DTLayer::modifyRun(double startPer, double endPer, int amount, std::optional<int> sessionNumber) {
     if (m_MyLevelStats.isErr()) return;
 
-    auto processRun = [&, amount, startPer, endPer](Deaths& data) -> bool {
-        auto runStr = fmt::format("{}-{}", startPer, endPer);
-        if (!data.contains(runStr)) {
-            if (amount < 0)
-                return false;
-
-            data.insert({runStr, amount});
-            return true;
-        }
-
-        auto newNum = data[runStr] + amount;
-
-        if (newNum <= 0) {
-            data.erase(runStr);
-            return true;
-        }
-
-        data[runStr] = newNum;
-
-        return true;
+    auto processRun = [&, amount, startPer, endPer](ComplexDeathMap& data) -> bool {
+        return data.adjust(endPer, startPer, amount);
     };
 
     if (sessionNumber.has_value()) {
@@ -2767,7 +2731,7 @@ void DTLayer::modifyRun(int startPer, int endPer, int amount, std::optional<int>
                     firstOKSessLvlKey = lvlKey;
                 }
 
-                if (!currSess.data.runs.contains(fmt::format("{}-{}", startPer, endPer))) continue;
+                if (!currSess.data.runs.contains(endPer, startPer)) continue;
 
                 session = currSess;
                 keyToUse = lvlKey;
@@ -2813,8 +2777,15 @@ void DTLayer::modifyRun(int startPer, int endPer, int amount, std::optional<int>
     }
 }
 
-void DTLayer::modifyNewBest(int percent, bool makeTrue, std::optional<int> sessionNumber) {
+void DTLayer::modifyNewBest(double percent, bool makeTrue, std::optional<int> sessionNumber) {
     if (m_MyLevelStats.isErr()) return;
+
+    auto parsedPercent = ComplexPercent::fromPercent(percent);
+    if (parsedPercent.isErr()) {
+        log::error("Failed to modify new best at invalid percent {}: {}", percent, parsedPercent.unwrapErr());
+        return;
+    }
+    percent = parsedPercent.unwrap().asPercent();
 
     auto processBest = [&, percent, makeTrue](NewBests& bests) -> bool {
         if (makeTrue) {
@@ -2933,7 +2904,7 @@ UpdateFuture DTLayer::onLVLNKey(std::map<std::string, std::any> payload) {
 }
 UpdateFuture DTLayer::onGeneralKey(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto combinedDeaths, co_await getTFor<std::pair<Deaths, NewBests>>([](GeneralData const& data) {
-        return std::make_pair(data.deaths, data.newBests);
+        return std::make_pair(data.deaths.toLegacyDeaths(), data.newBests);
     },
     [](auto const& a, auto const& b) {
         auto map = a.first;
@@ -2961,7 +2932,7 @@ UpdateFuture DTLayer::onGeneralKey(std::map<std::string, std::any> payload) {
 
 UpdateFuture DTLayer::onRUNSKey(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto sharedRuns, co_await getTFor<Deaths>([](GeneralData const& data) {
-        return data.runs;
+        return data.runs.toLegacyDeaths();
     },
     [](auto const& a, auto const& b) {
         auto map = a;
@@ -2985,7 +2956,7 @@ UpdateFuture DTLayer::onRUNSKey(std::map<std::string, std::any> payload) {
 
 UpdateFuture DTLayer::onS0Key(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto sessioNDeaths, co_await getTFor<std::pair<Deaths, NewBests>>([](GeneralData const& data) {
-        return std::make_pair(data.deaths, data.newBests);
+        return std::make_pair(data.deaths.toLegacyDeaths(), data.newBests);
     },
     NULL, true));
     
@@ -3004,7 +2975,7 @@ UpdateFuture DTLayer::onS0Key(std::map<std::string, std::any> payload) {
 }
 UpdateFuture DTLayer::onSRUNSKey(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto sruns, co_await getTFor<Deaths>([](GeneralData const& data) {
-        return data.runs;
+        return data.runs.toLegacyDeaths();
     },
     NULL, true));
 
@@ -3024,36 +2995,36 @@ UpdateFuture DTLayer::onSRUNSKey(std::map<std::string, std::any> payload) {
 
 UpdateFuture DTLayer::onDTATTKey(std::map<std::string, std::any> payload) {
     co_return co_await getAttemptsFor([](GeneralData const& data, auto deathsFunc) {
-        return deathsFunc(data.deaths) + deathsFunc(data.runs);
+        return deathsFunc(data.deaths.toLegacyDeaths()) + deathsFunc(data.runs.toLegacyDeaths());
     }, false);
 }
 
 UpdateFuture DTLayer::onDTF0ATTKey(std::map<std::string, std::any> payload) {
     co_return co_await getAttemptsFor([](GeneralData const& data, auto deathsFunc) {
-        return deathsFunc(data.deaths);
+        return deathsFunc(data.deaths.toLegacyDeaths());
     }, false);
 }
 
 UpdateFuture DTLayer::onDTRunsATTKey(std::map<std::string, std::any> payload) {
     co_return co_await getAttemptsFor([](GeneralData const& data, auto deathsFunc) {
-        return deathsFunc(data.runs);
+        return deathsFunc(data.runs.toLegacyDeaths());
     }, false);
 }
 
 UpdateFuture DTLayer::onSAttKey(std::map<std::string, std::any> payload) {
     co_return co_await getAttemptsFor([](GeneralData const& data, auto deathsFunc) {
-        return deathsFunc(data.deaths) + deathsFunc(data.runs);
+        return deathsFunc(data.deaths.toLegacyDeaths()) + deathsFunc(data.runs.toLegacyDeaths());
     }, true);
 }
 
 UpdateFuture DTLayer::onSF0AttKey(std::map<std::string, std::any> payload) {
     co_return co_await getAttemptsFor([](GeneralData const& data, auto deathsFunc) {
-        return deathsFunc(data.deaths);
+        return deathsFunc(data.deaths.toLegacyDeaths());
     }, true);
 }
 UpdateFuture DTLayer::onSRunsAttKey(std::map<std::string, std::any> payload) {
     co_return co_await getAttemptsFor([](GeneralData const& data, auto deathsFunc) {
-        return deathsFunc(data.runs);
+        return deathsFunc(data.runs.toLegacyDeaths());
     }, true);
 }
 
@@ -3105,7 +3076,7 @@ long long DTLayer::calcPlaytime(const Deaths& deaths) {
 
 UpdateFuture DTLayer::onAPTALLSKey(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
-        auto runs = data.runs;
+        auto runs = data.runs.toLegacyDeaths();
         StatsManager::mergeMapsAdd(runs, data.deaths);
         return runs;
     },
@@ -3121,7 +3092,7 @@ UpdateFuture DTLayer::onAPTALLSKey(std::map<std::string, std::any> payload) {
 
 UpdateFuture DTLayer::onAPTF0SKey(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
-        return data.deaths;
+        return data.deaths.toLegacyDeaths();
     },
     [](auto const& a, auto const& b) {
         auto map = a;
@@ -3133,7 +3104,7 @@ UpdateFuture DTLayer::onAPTF0SKey(std::map<std::string, std::any> payload) {
 }
 UpdateFuture DTLayer::onAPTRUNSKey(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
-        return data.runs;
+        return data.runs.toLegacyDeaths();
     },
     [](auto const& a, auto const& b) {
         auto map = a;
@@ -3146,7 +3117,7 @@ UpdateFuture DTLayer::onAPTRUNSKey(std::map<std::string, std::any> payload) {
 
 UpdateFuture DTLayer::onAPTSALLSKey(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
-        auto runs = data.runs;
+        auto runs = data.runs.toLegacyDeaths();
         StatsManager::mergeMapsAdd(runs, data.deaths);
         return runs;
     },
@@ -3156,7 +3127,7 @@ UpdateFuture DTLayer::onAPTSALLSKey(std::map<std::string, std::any> payload) {
 }
 UpdateFuture DTLayer::onAPTSF0Key(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
-        return data.deaths;
+        return data.deaths.toLegacyDeaths();
     },
     NULL, true));
 
@@ -3164,7 +3135,7 @@ UpdateFuture DTLayer::onAPTSF0Key(std::map<std::string, std::any> payload) {
 }
 UpdateFuture DTLayer::onAPTSRUNSKey(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto runs, co_await getTFor<Deaths>([](GeneralData const& data) {
-        return data.runs;
+        return data.runs.toLegacyDeaths();
     },
     NULL, true));
 
@@ -3214,7 +3185,7 @@ Result<Session, UpdateFutureError> DTLayer::loadSessionFromSave(std::optional<in
 
 UpdateFuture DTLayer::onRunsTo100Key(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
-        auto runs = data.runs;
+        auto runs = data.runs.toLegacyDeaths();
         StatsManager::mergeMapsAdd(runs, data.deaths);
         return runs;
     },
@@ -3256,7 +3227,7 @@ UpdateFuture DTLayer::onRunsTo100Key(std::map<std::string, std::any> payload) {
 
 UpdateFuture DTLayer::onBestRunsKey(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
-        auto runs = data.runs;
+        auto runs = data.runs.toLegacyDeaths();
         StatsManager::mergeMapsAdd(runs, data.deaths);
         return runs;
     },
@@ -3289,7 +3260,12 @@ UpdateFuture DTLayer::onBestRunsKey(std::map<std::string, std::any> payload) {
     for (const auto& [bestRunStart, bestRunEnd] : bestRuns)
     {
         co_await arc::yield();
-        auto runStringRes = StatsManager::createRunKey(Run{bestRunStart == -1 ? std::nullopt : std::make_optional(bestRunStart), bestRunEnd});
+        auto runStringRes = StatsManager::createRunKey(Run{
+            bestRunStart == -1
+                ? std::optional<double>{}
+                : std::optional<double>{static_cast<double>(bestRunStart)},
+            static_cast<double>(bestRunEnd)
+        });
         if (runStringRes.isErr()) continue;
         auto runString = runStringRes.unwrap();
         if (!deaths.contains(runString)) continue;
@@ -3313,7 +3289,7 @@ UpdateFuture DTLayer::onBestRunsKey(std::map<std::string, std::any> payload) {
 
 UpdateFuture DTLayer::onSessionRunsTo100Key(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
-        auto runs = data.runs;
+        auto runs = data.runs.toLegacyDeaths();
         StatsManager::mergeMapsAdd(runs, data.deaths);
         return runs;
     },
@@ -3351,7 +3327,7 @@ UpdateFuture DTLayer::onSessionRunsTo100Key(std::map<std::string, std::any> payl
 
 UpdateFuture DTLayer::onSessionBestRunsKey(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
-        auto runs = data.runs;
+        auto runs = data.runs.toLegacyDeaths();
         StatsManager::mergeMapsAdd(runs, data.deaths);
         return runs;
     },
@@ -3380,7 +3356,10 @@ UpdateFuture DTLayer::onSessionBestRunsKey(std::map<std::string, std::any> paylo
     for (const auto& [bestRunStart, bestRunEnd] : bestRuns)
     {
         co_await arc::yield();
-        auto runStringRes = StatsManager::createRunKey(Run{bestRunStart, bestRunEnd});
+        auto runStringRes = StatsManager::createRunKey(Run{
+            std::optional<double>{static_cast<double>(bestRunStart)},
+            static_cast<double>(bestRunEnd)
+        });
         if (runStringRes.isErr()) continue;
         auto runString = runStringRes.unwrap();
         if (!deaths.contains(runString)) continue;
@@ -3540,7 +3519,7 @@ UpdateFuture DTLayer::onSectionKey(std::map<std::string, std::any> payload) {
     if (validSections.size() <= 1) co_return Err(UpdateFutureError("No sections specified!", false));
 
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
-        auto runs = data.runs;
+        auto runs = data.runs.toLegacyDeaths();
         StatsManager::mergeMapsAdd(runs, data.deaths);
         return runs;
     },
@@ -3653,7 +3632,7 @@ void DTLayer::onCalculator(CCObject*) {
 
 UpdateFuture DTLayer::onLevelRunsKey(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
-        auto runs = data.runs;
+        auto runs = data.runs.toLegacyDeaths();
         StatsManager::mergeMapsAdd(runs, data.deaths);
         return runs;
     },
@@ -3694,7 +3673,7 @@ UpdateFuture DTLayer::onLevelRunsKey(std::map<std::string, std::any> payload) {
 
         for (const auto& run : validRuns) {
             if (run.start <= currentPercent && run.end > currentPercent) {
-                int target = std::min(run.end, 100);
+                int target = std::min(static_cast<int>(run.end), 100);
                 for (int i = 0; i < max; ++i) {
                     if (dp[currentPercent][i] > 0) {
                         dp[target][i + 1] += dp[currentPercent][i];
@@ -3729,7 +3708,7 @@ UpdateFuture DTLayer::onRunAttemptsKey(std::map<std::string, std::any> payload) 
     auto myStats = m_MyLevelStats.unwrap();
 
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
-        auto runs = data.runs;
+        auto runs = data.runs.toLegacyDeaths();
         StatsManager::mergeMapsAdd(runs, data.deaths);
         return runs;
     },

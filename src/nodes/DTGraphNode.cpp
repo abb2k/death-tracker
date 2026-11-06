@@ -312,14 +312,14 @@ void DTGraphNode::updateGraphContent() {
 
 void DTGraphNode::getGeneralDeaths() {
     getDeathsAsync(
-        [](GeneralData const& data) { return data.deaths; },
+        [](GeneralData const& data) { return data.deaths.toLegacyDeaths(); },
         false
     );
 }
 
 void DTGraphNode::getGeneralRuns() {
     getDeathsAsync(
-        [](GeneralData const& data) { return data.runs; },
+        [](GeneralData const& data) { return data.runs.toLegacyDeaths(); },
         false
     );
 }
@@ -330,7 +330,7 @@ void DTGraphNode::getSessionDeaths() {
         return;
     }
 
-    onDeathsUpdated(Ok(sessionToShow.value().data.deaths));
+    onDeathsUpdated(Ok(sessionToShow.value().data.deaths.toLegacyDeaths()));
 }
 
 void DTGraphNode::getSessionRuns() {
@@ -339,7 +339,7 @@ void DTGraphNode::getSessionRuns() {
         return;
     }
 
-    onDeathsUpdated(Ok(sessionToShow.value().data.runs));
+    onDeathsUpdated(Ok(sessionToShow.value().data.runs.toLegacyDeaths()));
 }
 
 

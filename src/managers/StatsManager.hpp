@@ -93,9 +93,9 @@ public:
     static void setCurrentLevel(GJGameLevel* const& level);
 
     //save a normal mode death to the loaded levels save file
-    static void logDeath(const int& percent, bool instantSave = true);
+    static void logDeath(double percent, bool instantSave = true);
     //save an array of normal mode deaths to the loaded levels save file
-    static void logDeaths(const std::vector<int>& percents);
+    static void logDeaths(const std::vector<double>& percents);
     //save run to the loaded levels save file
     static void logRun(const Run& run, bool instantSave = true);
     //save an array of run to the loaded levels save file
@@ -159,6 +159,8 @@ public:
 
     template<typename K, typename V>
     static void mergeMapsAdd(std::map<K, V>& target, const std::map<K, V>& source);
+    static void mergeMapsAdd(Deaths& target, const ComplexDeathMap& source);
+    static void mergeMapsAdd(ComplexDeathMap& target, const ComplexDeathMap& source);
 
     static bool transferPlaytimeFromPT(GJGameLevel* level);
     static bool transferPlaytimeFromPT(geode::Result<LevelData, ErrorWithCode>& data, GJGameLevel* level);

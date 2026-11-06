@@ -259,14 +259,14 @@ bool ModifyOptions::setup() {
     addRunSeperator->setScale(.35f);
     runsBG->addChild(addRunSeperator);
 
-    addRunStartInput = TextInput::create(30, "S%", "gjFont17.fnt");
+    addRunStartInput = TextInput::create(45, "S%", "gjFont17.fnt");
     addRunStartInput->setPosition(addRunSeperator->getPosition() + ccp(-addRunSeperator->getScaledContentWidth() / 2 - addRunStartInput->getContentWidth() / 2 - 5, 0));
-    addRunStartInput->setCommonFilter(CommonFilter::Uint);
+    addRunStartInput->setCommonFilter(CommonFilter::Float);
     runsBG->addChild(addRunStartInput);
 
-    addRunEndInput = TextInput::create(30, "E%", "gjFont17.fnt");
+    addRunEndInput = TextInput::create(45, "E%", "gjFont17.fnt");
     addRunEndInput->setPosition(addRunSeperator->getPosition() + ccp(addRunSeperator->getScaledContentWidth() / 2 + addRunEndInput->getContentWidth() / 2 + 5, 0));
-    addRunEndInput->setCommonFilter(CommonFilter::Uint);
+    addRunEndInput->setCommonFilter(CommonFilter::Float);
     runsBG->addChild(addRunEndInput);
 
     static_cast<DTCCTextInputNode*>(addRunStartInput->getInputNode())->setCallback([&](const std::string& newText) {
@@ -290,13 +290,10 @@ bool ModifyOptions::setup() {
     });
 
     addRunStartInput->setCallback([&](auto newstr) {
-        auto numStartRes = geode::utils::numFromString<int>(newstr);
+        auto numStartRes = geode::utils::numFromString<double>(newstr);
         if (numStartRes.isErr()) return;
-        int numStart = numStartRes.unwrap();
-        auto numEndRes = geode::utils::numFromString<int>(addRunEndInput->getString());
-        int numEnd;
-        if (numEndRes.isErr()) numEnd = 0;
-        else numEnd = numEndRes.unwrap();
+        double numStart = numStartRes.unwrap();
+        if (numStart < 0) return;
 
         if (numStart > 100) {
             numStart = 100;
@@ -307,13 +304,10 @@ bool ModifyOptions::setup() {
     });
 
     addRunEndInput->setCallback([&](auto newstr) {
-        auto numStartRes = geode::utils::numFromString<int>(addRunStartInput->getString());
-        int numStart;
-        if (numStartRes.isErr()) numStart = 0;
-        else numStart = numStartRes.unwrap();
-        auto numEndRes = geode::utils::numFromString<int>(newstr);
+        auto numEndRes = geode::utils::numFromString<double>(newstr);
         if (numEndRes.isErr()) return;
-        int numEnd = numEndRes.unwrap();
+        double numEnd = numEndRes.unwrap();
+        if (numEnd < 0) return;
 
         if (numEnd > 100) {
             numEnd = 100;
@@ -398,9 +392,10 @@ bool ModifyOptions::setup() {
 
     addPercentInput = TextInput::create(75, "percent", "gjFont17.fnt");
     addPercentInput->setCallback([&](auto newstr) {
-        auto numRes = geode::utils::numFromString<int>(newstr);
+        auto numRes = geode::utils::numFromString<double>(newstr);
         if (numRes.isErr()) return;
-        int num = numRes.unwrap();
+        double num = numRes.unwrap();
+        if (num < 0) return;
 
         if (num > 100) {
             num = 100;
@@ -413,7 +408,7 @@ bool ModifyOptions::setup() {
         0,
         f0PMAlignNode->getScaledContentHeight() / 2 + addPercentInput->getScaledContentHeight() / 2
     ));
-    addPercentInput->setCommonFilter(CommonFilter::Uint);
+    addPercentInput->setCommonFilter(CommonFilter::Float);
     f0BG->addChild(addPercentInput);
 
     f0Label = CCLabelBMFont::create("From 0", "bigFont.fnt");
@@ -486,9 +481,10 @@ bool ModifyOptions::setup() {
         addNewBestInput->getScaledContentHeight() / 2 + addBtn->getScaledContentHeight() / 2 + 5
     ));
     addNewBestInput->setCallback([&](auto newstr) {
-        auto numRes = geode::utils::numFromString<int>(newstr);
+        auto numRes = geode::utils::numFromString<double>(newstr);
         if (numRes.isErr()) return;
-        int num = numRes.unwrap();
+        double num = numRes.unwrap();
+        if (num < 0) return;
 
         if (num > 100) {
             num = 100;
@@ -497,7 +493,7 @@ bool ModifyOptions::setup() {
 
         currentNBToAdd = num;
     });
-    addNewBestInput->setCommonFilter(CommonFilter::Uint);
+    addNewBestInput->setCommonFilter(CommonFilter::Float);
     this->addChild(addNewBestInput);
 
     NBLabel = CCLabelBMFont::create("New Bests", "bigFont.fnt");
@@ -845,7 +841,7 @@ void ModifyOptions::removeInvalidRuns(CCObject*) {
     auto togglerState = runF0Toggler->isToggled();
 
     auto task = arc::spawn(DTLayer::get()->getTFor<Deaths>([togglerState](GeneralData const& data) {
-        return togglerState ? data.runs : data.deaths;
+        return togglerState ? data.runs.toLegacyDeaths() : data.deaths.toLegacyDeaths();
     },
     [](auto const& a, auto const& b) {
         auto map = a;
@@ -895,4 +891,3 @@ void ModifyOptions::removeInvalidRuns(CCObject*) {
     if (sessionNum == std::nullopt) DTLayer::get()->specialStrings["general"]->updateContent();
     else DTLayer::get()->specialStrings["s0"]->updateContent();
 }
-

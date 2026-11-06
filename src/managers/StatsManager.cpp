@@ -500,7 +500,7 @@ void StatsManager::createFilesIfNeeded(const std::string& levelKey) {
     auto levelSaveFilePath = getSavesFolderPath() / levelKey;
 
     auto lvlSavesDirRes = geode::utils::file::createDirectory(levelSaveFilePath);
-    if (lvlSavesDirRes.isErr())
+    if (lvlSavesDirRes.isErr() && !lvlSavesDirRes.unwrapErr().starts_with("AlreadyExists"))
         log::error("failed to create level folder: {}", lvlSavesDirRes.unwrapErr());
 
     createFile((levelSaveFilePath / METADATA_FILE_NAME), LevelMetadeta{});
@@ -563,40 +563,54 @@ void StatsManager::setCurrentLevel(GJGameLevel* const& level) {
     currentMetadata = metadataRes.unwrap();
 }
 
-void StatsManager::logDeath(const int& percent, bool instantSave) {
+void StatsManager::logDeath(double percent, bool instantSave) {
     if (currentLevel == nullptr) {
         log::error("Failed to log death");
         return;
     }
 
-    auto percentKey = std::to_string(percent);
+    auto parsedPercent = ComplexPercent::fromPercent(percent);
+    if (parsedPercent.isErr()) {
+        log::error("Failed to log death at invalid percent {}: {}", percent, parsedPercent.unwrapErr());
+        return;
+    }
 
     if (instantSave)
         safeCheckCurrF0();
 
-    int overallBest = -1;
+    auto exactPercent = parsedPercent.unwrap();
+    const auto bestPercent = exactPercent.asPercent();
+    double overallBest = -1;
 
     if (currentFrom0.has_value()) {
         auto& val = currentFrom0.value();
-        val.deaths[percentKey]++;
+        ComplexDeathOccurrence occurrence;
+        occurrence.runEndTimestamp = static_cast<time_t>(getNowSeconds());
+        auto recordResult = val.deaths.recordDeath(exactPercent, std::nullopt, occurrence);
+        if (recordResult.isErr())
+            log::error("Failed to record death at {}%: {}", percent, recordResult.unwrapErr());
 
         if (val.newBests.size() != 0) overallBest = *val.newBests.rbegin();
 
-        if (percent > overallBest) {
-            val.newBests.insert(percent);
+        if (bestPercent > overallBest) {
+            val.newBests.insert(bestPercent);
         }
     }
 
     auto session = StatsManager::getCurrentSession();
     if (session != nullptr) {
-        session->data.deaths[percentKey]++;
+        ComplexDeathOccurrence occurrence;
+        occurrence.runEndTimestamp = static_cast<time_t>(getNowSeconds());
+        auto recordResult = session->data.deaths.recordDeath(exactPercent, std::nullopt, occurrence);
+        if (recordResult.isErr())
+            log::error("Failed to record session death at {}%: {}", percent, recordResult.unwrapErr());
         // log::info("logging death {} to session {}", percentKey, session->sessionStartDate);
 
         int sessionBest = -1;
         if (session->data.newBests.size() != 0) sessionBest = *session->data.newBests.rbegin();
 
-        if (percent > sessionBest) {
-            session->data.newBests.insert(percent);
+        if (bestPercent > sessionBest) {
+            session->data.newBests.insert(bestPercent);
         }
     }
 
@@ -610,7 +624,7 @@ void StatsManager::logDeath(const int& percent, bool instantSave) {
     }
 }
 
-void StatsManager::logDeaths(const std::vector<int>& percents) {
+void StatsManager::logDeaths(const std::vector<double>& percents) {
     if (currentLevel == nullptr) {
         log::error("Failed to log deaths");
         return;
@@ -640,24 +654,47 @@ void StatsManager::logRun(const Run& run, bool instantSave) {
         return;
     }
 
+    auto startPercent = ComplexPercent::fromPercent(run.start.value());
+    auto endPercent = ComplexPercent::fromPercent(run.end);
+    if (startPercent.isErr() || endPercent.isErr()) {
+        log::error("Failed to log run with invalid percentages");
+        return;
+    }
+
     if (instantSave)
         safeCheckCurrF0();
 
-    auto runKey = fmt::format("{}-{}",
-        run.start.value(),
-        run.end
-    );
+    const auto recordedAt = static_cast<time_t>(getNowSeconds());
+    ComplexDeathOccurrence occurrence;
+    occurrence.runStartTimestamp = run.startTimestamp;
+    if (!occurrence.runStartTimestamp.has_value()) {
+        log::warn("Run start timestamp is missing; using the logging time");
+        occurrence.runStartTimestamp = recordedAt;
+    }
+    occurrence.runEndTimestamp = run.endTimestamp.value_or(recordedAt);
 
     auto session = StatsManager::getCurrentSession();
     if (session != nullptr) {
-        session->data.runs[runKey]++;
+        auto recordResult = session->data.runs.recordDeath(
+            endPercent.unwrap(),
+            startPercent.unwrap(),
+            occurrence
+        );
+        if (recordResult.isErr())
+            log::error("Failed to record session run: {}", recordResult.unwrapErr());
 
         // log::info("logging run {}-{} to session {}", run.start.value(), run.end, session->sessionStartDate);
     }
 
     if (currentFrom0.has_value()) {
         auto& val = currentFrom0.value();
-        val.runs[runKey]++;
+        auto recordResult = val.runs.recordDeath(
+            endPercent.unwrap(),
+            startPercent.unwrap(),
+            occurrence
+        );
+        if (recordResult.isErr())
+            log::error("Failed to record run: {}", recordResult.unwrapErr());
     }
     
     if (instantSave) {
@@ -752,27 +789,20 @@ Result<std::string> StatsManager::getLevelKey(GJGameLevel* const& level) {
 }
 
 Result<Run> StatsManager::splitRunKey(const std::string& runKey) {
-    bool firstNegative = false;
-    if (runKey.size() && runKey[0] == '-')
-        firstNegative = true;
-
-    auto runKeySplit = StatsManager::splitStr(runKey, "-");
-
-    if (runKeySplit.size() == 0 || runKeySplit.size() > 2)
+    if (runKey.empty())
         return Err("Invalid run key!");
 
-    std::optional<int> start = std::nullopt;
-    int end = -1;
+    auto separator = runKey.find('-', runKey.starts_with('-') ? 1 : 0);
+    std::optional<double> start = std::nullopt;
+    double end = 0;
 
-    if (runKeySplit.size() == 1) {
-        GEODE_UNWRAP_INTO(end, geode::utils::numFromString<int>(runKeySplit[0]));
-        if (firstNegative)
-            end *= -1;
+    if (separator == std::string::npos) {
+        GEODE_UNWRAP_INTO(end, geode::utils::numFromString<double>(runKey));
     }
     else {
-        GEODE_UNWRAP_INTO(int startRes, geode::utils::numFromString<int>(runKeySplit[0]));
-        start = startRes * (firstNegative ? -1 : 1);
-        GEODE_UNWRAP_INTO(end, geode::utils::numFromString<int>(runKeySplit[1]));
+        GEODE_UNWRAP_INTO(double startRes, geode::utils::numFromString<double>(runKey.substr(0, separator)));
+        start = startRes;
+        GEODE_UNWRAP_INTO(end, geode::utils::numFromString<double>(runKey.substr(separator + 1)));
     }
 
     Run r;
@@ -784,7 +814,7 @@ Result<Run> StatsManager::splitRunKey(const std::string& runKey) {
 
 Result<std::string> StatsManager::createRunKey(const Run& runKey) {
     if (runKey.start == std::nullopt) {
-        return Ok(std::to_string(runKey.end));
+        return Ok(fmt::format("{}", runKey.end));
     }
     else if (runKey.start.value() >= 0) {
         return Ok(fmt::format("{}-{}", runKey.start.value(), runKey.end));
@@ -1298,8 +1328,14 @@ Result<> StatsManager::convertV2SaveToV3(const std::string& levelKey) {
     if (setMetadata(v3Meta, levelKey).isErr()) return Err("Failed to write V3 meta!");
 
     auto v3General = GeneralData{};
-    v3General.deaths = stats.deaths;
-    v3General.runs = stats.runs;
+    auto deathsResult = ComplexDeathMap::fromLegacy(stats.deaths, false);
+    if (deathsResult.isErr())
+        return Err("Failed converting V2 deaths: {}", deathsResult.unwrapErr());
+    auto runsResult = ComplexDeathMap::fromLegacy(stats.runs, true);
+    if (runsResult.isErr())
+        return Err("Failed converting V2 runs: {}", runsResult.unwrapErr());
+    v3General.deaths = std::move(deathsResult).unwrap();
+    v3General.runs = std::move(runsResult).unwrap();
     v3General.newBests = stats.newBests;
 
     if (setGeneral(v3General, levelKey).isErr()) return Err("Failed to write V3 general!");
@@ -1309,8 +1345,14 @@ Result<> StatsManager::convertV2SaveToV3(const std::string& levelKey) {
 
         v3Session.ownerLevelKey = levelKey;
         v3Session.lastPlayed = v2session.lastPlayed;
-        v3Session.data.deaths = v2session.deaths;
-        v3Session.data.runs = v2session.runs;
+        auto sessionDeathsResult = ComplexDeathMap::fromLegacy(v2session.deaths, false);
+        if (sessionDeathsResult.isErr())
+            return Err("Failed converting V2 session deaths: {}", sessionDeathsResult.unwrapErr());
+        auto sessionRunsResult = ComplexDeathMap::fromLegacy(v2session.runs, true);
+        if (sessionRunsResult.isErr())
+            return Err("Failed converting V2 session runs: {}", sessionRunsResult.unwrapErr());
+        v3Session.data.deaths = std::move(sessionDeathsResult).unwrap();
+        v3Session.data.runs = std::move(sessionRunsResult).unwrap();
         v3Session.data.newBests = v2session.newBests;
         v3Session.sessionStartDate = v2session.sessionStartDate;
 
@@ -1507,3 +1549,13 @@ bool StatsManager::transferPlaytimeFromPT(geode::Result<LevelData, ErrorWithCode
 //         }
 //     });
 // }
+
+void StatsManager::mergeMapsAdd(Deaths& target, const ComplexDeathMap& source) {
+    mergeMapsAdd(target, source.toLegacyDeaths());
+}
+
+void StatsManager::mergeMapsAdd(ComplexDeathMap& target, const ComplexDeathMap& source) {
+    auto result = target.merge(source);
+    if (result.isErr())
+        log::error("Failed to merge death maps: {}", result.unwrapErr());
+}

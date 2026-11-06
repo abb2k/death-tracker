@@ -96,11 +96,8 @@ GetBackupFuture BackupCell::LoadBackupDataFuture() {
     if (backup.isOk() && backup.unwrap().from0.has_value()) {
         auto deaths = backup.unwrap().from0.value();
 
-        for (const auto& death : deaths.deaths)
-            deathCount += death.second;
-
-        for (const auto& death : deaths.runs)
-            deathCount += death.second;
+        deathCount += static_cast<int>(deaths.deaths.totalDeaths());
+        deathCount += static_cast<int>(deaths.runs.totalDeaths());
     }
 
     auto backupFileSizeInKB = StatsManager::getBackupFileSize(this->levelKey, this->backupTime) / 1024.0;

@@ -47,12 +47,13 @@ void DTPauseLayer::onDTMiniMenuOpened(CCObject*) {
 void DTPauseLayer::onNormalMode(cocos2d::CCObject* sender) {
     PauseLayer::onNormalMode(sender);
 
-    static_cast<DTPlayLayer*>(GameManager::get()->getPlayLayer())->m_fields->currentRun.end = 0;
-
-    //log::info("PauseLayer::onNormalMode()");
     auto playLayer = GameManager::get()->getPlayLayer();
     if (playLayer) {
-        static_cast<DTPlayLayer*>(playLayer)->m_fields->currentRun.end = 0;
+        auto* dtPlayLayer = static_cast<DTPlayLayer*>(playLayer);
+        dtPlayLayer->m_fields->currentRun.start = 0.0;
+        dtPlayLayer->m_fields->currentRun.end = 0.0;
+        dtPlayLayer->m_fields->currentRun.startTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
+        dtPlayLayer->m_fields->currentRun.endTimestamp.reset();
     }
 }
 

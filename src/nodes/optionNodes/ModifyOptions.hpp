@@ -52,12 +52,12 @@ class ModifyOptions : public OptionsNode {
         int currF0Amount = 1;
         int currRunsAmount = 1;
 
-        int currentF0ToAdd = 0;
+        double currentF0ToAdd = 0;
         
-        int currentStartRunToAdd = 0;
-        int currentEndRunToAdd = 0;
+        double currentStartRunToAdd = 0;
+        double currentEndRunToAdd = 0;
 
-        int currentNBToAdd = 0;
+        double currentNBToAdd = 0;
 
         SwitcherButton* sessLvlSwitcher;
         SimpleToggler* runF0Toggler;

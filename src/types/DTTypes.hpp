@@ -6,7 +6,7 @@
 using namespace geode::prelude;
 
 typedef std::map<std::string, int> Deaths;
-typedef std::set<int> NewBests;
+typedef std::set<double> NewBests;
 
 class SaveDeletionEvent : public Event<SaveDeletionEvent, bool()> {
 public:
@@ -35,10 +35,12 @@ struct ErrorWithCode{
 };
 
 struct Run_s{
-    std::optional<int> start;
-    int end;
+    std::optional<double> start;
+    double end = 0;
+    std::optional<long long> startTimestamp;
+    std::optional<long long> endTimestamp;
 
-    Run_s(std::optional<int> _start, int _end) : start(_start), end(_end) {}
+    Run_s(std::optional<double> _start, double _end) : start(_start), end(_end) {}
 
     Run_s() = default;
 };
@@ -58,9 +60,94 @@ struct matjson::Serialize<PlaytimePair> {
     static matjson::Value toJson(const PlaytimePair& value);
 };
 
+struct ComplexPercent {
+    using Units = int64_t;
+    static constexpr Units unitsPerPercent = 1000000;
+    static constexpr uint8_t maxDecimalDepth = 6;
+
+    Units units = 0;
+
+    static Result<ComplexPercent> fromPercent(double percent);
+    double asPercent() const;
+    bool isValid() const;
+};
+
+struct ComplexDeathOccurrence {
+    std::optional<long long> runStartTimestamp;
+    std::optional<long long> runEndTimestamp;
+};
+
+struct ComplexDeath {
+    std::optional<ComplexPercent> runStartPercent = std::nullopt;
+    ComplexPercent runEndPercent;
+
+    uint64_t deaths = 0;
+    std::vector<ComplexDeathOccurrence> occurrences;
+};
+
+struct ComplexDeathSummary {
+    ComplexPercent queriedPercent;
+    uint8_t decimalDepth = 0;
+    uint64_t deaths = 0;
+    std::vector<ComplexDeath> records;
+};
+
+struct ComplexDeathMap {
+    using Run = std::pair<ComplexPercent::Units, std::optional<ComplexPercent::Units>>;
+    using Storage = std::map<Run, ComplexDeath>;
+
+    Storage records;
+
+    static Result<ComplexDeathMap> readDeathMap(const matjson::Value& value, bool runKeys);
+    static Result<ComplexDeathMap> fromLegacy(const Deaths& deaths, bool runKeys);
+    
+    Result<> insert(ComplexDeath death);
+    Result<> recordDeath(ComplexPercent endPercent, std::optional<ComplexPercent> startPercent = std::nullopt, ComplexDeathOccurrence occurrence = {});
+    Result<> recordDeath(double endPercent, std::optional<double> startPercent = std::nullopt, ComplexDeathOccurrence occurrence = {});
+
+    Result<ComplexDeathSummary> getComplexDeath(double percent, uint8_t decimalDepth = ComplexPercent::maxDecimalDepth) const;
+    Result<ComplexDeathSummary> getComplexDeath(int percent) const;
+
+    bool adjust(double endPercent, std::optional<double> startPercent, int amount);
+    bool contains(const std::string& legacyKey) const;
+    bool contains(double endPercent, std::optional<double> startPercent) const;
+
+    uint64_t totalDeaths() const;
+    Deaths toLegacyDeaths() const;
+    Result<> merge(const ComplexDeathMap& other);
+
+    operator Deaths() const {
+        return toLegacyDeaths();
+    }
+};
+
+template <>
+struct matjson::Serialize<ComplexPercent> {
+    static Result<ComplexPercent> fromJson(const matjson::Value& value);
+    static matjson::Value toJson(const ComplexPercent& value);
+};
+
+template <>
+struct matjson::Serialize<ComplexDeathOccurrence> {
+    static Result<ComplexDeathOccurrence> fromJson(const matjson::Value& value);
+    static matjson::Value toJson(const ComplexDeathOccurrence& value);
+};
+
+template <>
+struct matjson::Serialize<ComplexDeath> {
+    static Result<ComplexDeath> fromJson(const matjson::Value& value);
+    static matjson::Value toJson(const ComplexDeath& value);
+};
+
+template <>
+struct matjson::Serialize<ComplexDeathMap> {
+    static Result<ComplexDeathMap> fromJson(const matjson::Value& value);
+    static matjson::Value toJson(const ComplexDeathMap& value);
+};
+
 typedef struct GeneralData {
-    Deaths deaths;
-    Deaths runs;
+    ComplexDeathMap deaths;
+    ComplexDeathMap runs;
     NewBests newBests;
     PlaytimePair playtimeGeneral;
     PlaytimePair playtimePaused;
