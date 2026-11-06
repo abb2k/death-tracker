@@ -249,7 +249,8 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
         1.25f,
         false,
         "GJ_button_04.png",
-        true
+        true,
+        1
     );
     runSelectHelperSpr->setScale(0.4f);
     runSelectHelperBtn = CCMenuItemSpriteExtra::create(

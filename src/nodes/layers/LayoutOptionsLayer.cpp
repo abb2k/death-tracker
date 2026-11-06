@@ -495,6 +495,36 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     columnWidthInputLabel->setID("width-Label");
     columnSettingsNode->addChild(columnWidthInputLabel);
 
+    auto addColumnMenu = CCMenu::create();
+    addColumnMenu->setLayout(SimpleAxisLayout::create(Axis::Row)
+        ->setMainAxisScaling(AxisScaling::ScaleDown)
+        ->setCrossAxisScaling(AxisScaling::Fit)
+        ->setGap(5)
+        ->setMinRelativeScale(std::nullopt)
+    );
+    columnSettingsNode->addChild(addColumnMenu);
+
+    auto addColumnToLeftBtnSpr = ButtonSprite::create("Add Column\nto Left");
+    auto addColumnToLeftBtn = CCMenuItemSpriteExtra::create(
+        addColumnToLeftBtnSpr,
+        this,
+        menu_selector(LayoutOptionsLayer::onAddColumnToLeft)
+    );
+    addColumnMenu->addChild(addColumnToLeftBtn);
+
+    auto addColumnToRightBtnSpr = ButtonSprite::create("Add Column\nto Right");
+    auto addColumnToRightBtn = CCMenuItemSpriteExtra::create(
+        addColumnToRightBtnSpr,
+        this,
+        menu_selector(LayoutOptionsLayer::onAddColumnToRight)
+    );
+    addColumnMenu->addChild(addColumnToRightBtn);
+
+    addColumnMenu->setContentWidth(size.width - 10);
+    addColumnMenu->updateLayout();
+    addColumnMenu->setPositionY(-size.height + addColumnMenu->getContentHeight() + 5);
+    addColumnMenu->setPositionX(0);
+
     DTLayer::get()->subscribeToOrganizationEvent(this, [&](auto _) {
         if (!editedColumn.has_value()) return;
         if (ignoreNextOrganization) {
@@ -919,4 +949,24 @@ void LayoutOptionsLayer::updateFontSelectFont() {
     fontSelectedIndicatorLabel->setPosition(ccp(-size.width / 2 + 5, -260));
     fontSelectedIndicatorLabel->getBGSprite()->setScaleY(.3f);
     labelSettingsNode->addChild(fontSelectedIndicatorLabel);
+}
+
+void LayoutOptionsLayer::onAddColumnToLeft(CCObject*) {
+    if (!editedColumn.has_value()) return;
+
+    DTColumnInfo info {
+        .orderPos = editedColumn.value()->info.orderPos
+    };
+
+    DTLayer::get()->addColumn(info);
+}
+
+void LayoutOptionsLayer::onAddColumnToRight(CCObject*) {
+    if (!editedColumn.has_value()) return;
+
+    DTColumnInfo info {
+        .orderPos = editedColumn.value()->info.orderPos + 1
+    };
+
+    DTLayer::get()->addColumn(info);
 }

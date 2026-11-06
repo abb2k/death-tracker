@@ -1,6 +1,6 @@
 #include "AuthManager.hpp"
 
-#include <argon/argon.hpp>
+#include <dankmeme.argon/argon.hpp>
 
 bool AuthManager::m_isDoner = false;
 bool AuthManager::m_lastSentDonberState = false;
@@ -42,12 +42,12 @@ void AuthManager::authForDoner(bool forceCheck) {
 
 void AuthManager::checkDoner(std::string const& token, int accountId) {
     auto req = web::WebRequest();
-    req.bodyString(fmt::format("{{ \"accountId\": \"{}\", \"authToken\": \"{}\" }}", accountId, token));
+    req.bodyString(fmt::format("{{ \"authToken\": \"{}\" }}", token));
 
     async::spawn(
         req.post("https://api.abb2k.me/death-tracker/v1/donor-auth-validation"),
-        [](web::WebResponse result) {
-            
+        [accountId](web::WebResponse result) {
+
             if (!result.json().isOk()) {
                 m_isDoner = false;
                 sendDonerChangedEvent();

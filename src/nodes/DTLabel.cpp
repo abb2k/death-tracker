@@ -83,8 +83,6 @@ bool DTLabel::init(const DTLabelInfo& info) {
     labelText->setWidth(this->getContentWidth() - textCornerOffset);
     setLabelText(info.text);
     labelTextContainer->addChild(labelText);
-
-    labelText->registerRichTextKey(makeColor4BKey());
     
     labelText->registerRichTextKey(makeWaveKey([&](){ return donerRichTextEnabled; }));
     
@@ -137,12 +135,9 @@ bool DTLabel::init(const DTLabelInfo& info) {
     labelTitleArea->setMaxLines(1);
     labelTitleArea->setVisible(!info.hideHeader);
     
-    labelTitleArea->registerRichTextKey(makeColor4BKey());
     labelTitleArea->registerRichTextKey(makeWaveKey([&](){ return donerRichTextEnabled; }));
     labelTitleArea->registerRichTextKey(makeGradientKey([&](){ return donerRichTextEnabled; }));
     labelTitleArea->registerRichTextKey(makeCPlusKey());
-
-    labelTitleArea->setText(labelTitleArea->getRawText());
 
     this->addChild(labelTitleArea);
 
@@ -607,7 +602,7 @@ void DTLabel::setDonerRichTextEnabled(bool enabled) {
 
     donerRichTextEnabled = enabled;
     setLabelText(info.text);
-    labelTitleArea->setText(labelTitleArea->getRawText());
+    // labelTitleArea->setText(labelTitleArea->getRawText());
 }
 
 void DTLabel::setLabelText(const std::string& text) {
@@ -1000,19 +995,6 @@ std::shared_ptr<RichTextKey<CPlusKeyParams>> DTLabel::makeCPlusKey() {
             auto newColor = ccColor3B{static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
 
             sprite->setColor(newColor);
-        }
-    );
-}
-
-std::shared_ptr<RichTextKey<ccColor4B>> DTLabel::makeColor4BKey() {
-    return std::make_shared<RichTextKey<ccColor4B>>(
-        "color4b",
-        [](std::string value) -> Result<ccColor4B> {
-            return geode::cocos::cc4bFromHexString(value);
-        },
-        [](ccColor4B const& value, cocos2d::CCFontSprite* sprite, int, int) {
-            sprite->setColor({value.r, value.g, value.b});
-            sprite->setOpacity(value.a);
         }
     );
 }

@@ -35,8 +35,8 @@ float Settings::getGraphPointSize() {
     return static_cast<float>(Mod::get()->getSettingValue<double>("graph-point-size"));
 }
 
-std::filesystem::path Settings::getSavePath() {
-    return Mod::get()->getSettingValue<std::filesystem::path>("save-path-new");
+asp::fs::Path Settings::getSavePath() {
+    return Mod::get()->getSettingValue<asp::fs::Path>("save-path-new");
 }
 
 std::optional<int> Settings::getMaxBackupAmount() {

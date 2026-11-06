@@ -3,6 +3,22 @@
 #include <types/DTTypes.hpp>
 #include <nodes/SimpleToggler.hpp>
 
+/*
+    s = session
+    g = general
+    d = day (sessions combined to day)
+
+    {(s/g/d)>17} all deaths passed 17
+
+    {(s/g/d)7-90} all deaths between and including 7 to 90
+
+    {(s/g/d)<90} all deaths before 90
+
+    {(s/g/d)XbP} top X best runs from P
+
+    add enable button for each label
+*/
+
 LabelEditLayer* LabelEditLayer::create() {
     auto ret = new LabelEditLayer();
     if (ret->init()) {

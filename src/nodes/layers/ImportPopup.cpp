@@ -1,6 +1,7 @@
 #include "ImportPopup.hpp"
 #include <nodes/layers/DTLayer.hpp>
 #include <nodes/layers/ImportCompletePopup.hpp>
+#include <asp/fs.hpp>
 
 ImportPopup* ImportPopup::create() {
     auto ret = new ImportPopup();
@@ -39,7 +40,8 @@ bool ImportPopup::init() {
         1,
         false,
         "GJ_button_02.png",
-        false
+        false,
+        1
     );
     auto fromDTBtn = CCMenuItemSpriteExtra::create(
         fromDTBtnSpr,
@@ -57,7 +59,8 @@ bool ImportPopup::init() {
         1,
         false,
         "GJ_button_02.png",
-        false
+        false,
+        1
     );
     fromTextBtnSpr->setCascadeOpacityEnabled(true);
     auto fromTextBtn = CCMenuItemSpriteExtra::create(
@@ -135,7 +138,7 @@ void ImportPopup::onFromDT(CCObject*) {
             if (res.isErr()) {
                 log::error("{}", res.unwrapErr());
                 Notification::create("Failed to unzip file!", NotificationIcon::Error)->show();
-                std::filesystem::remove_all(tempDir);
+                auto _ = asp::fs::removeDirAll(tempDir);
                 return;
             }
             
@@ -155,7 +158,7 @@ void ImportPopup::onFromDT(CCObject*) {
                 ImportCompletePopup::create(std::move(lvlData), std::move(sessions))->show();
             }
 
-            std::filesystem::remove_all(tempDir);
+            auto _ = asp::fs::removeDirAll(tempDir);
         }
     );
 }

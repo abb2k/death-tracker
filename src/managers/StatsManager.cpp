@@ -1,9 +1,11 @@
 #include <managers/StatsManager.hpp>
 #include <utils/Settings.hpp>
 #include <utils/Dev.hpp>
-#include <cvolton.level-id-api/include/EditorIDs.hpp>
+#include <cvolton.level-id-api/EditorIDs.hpp>
 #include <nodes/layers/DTLayer.hpp>
 #include <regex>
+#include <asp/fs/fs.hpp>
+#include <asp/fs/File.hpp>
 
 using namespace geode::prelude;
 
@@ -46,7 +48,7 @@ const std::string StatsManager::BACKUPS_DIR_NAME = "backups";
 arc::TaskHandle<void> StatsManager::backupHandler{};
 bool StatsManager::isGameClosing = false;
 
-std::filesystem::path StatsManager::getSavesFolderPath() {
+asp::fs::Path StatsManager::getSavesFolderPath() {
     return Settings::getSavePath();
 }
 
@@ -130,13 +132,13 @@ Result<LevelMetadeta, ErrorWithCode> StatsManager::getMetadata(const std::string
     return getMetadata(getSavesFolderPath() / levelKey);
 }
 
-Result<LevelMetadeta, ErrorWithCode> StatsManager::getMetadata(const std::filesystem::path& path) {
+Result<LevelMetadeta, ErrorWithCode> StatsManager::getMetadata(const asp::fs::Path& path) {
     auto levelSaveFilePath = path / StatsManager::METADATA_FILE_NAME;
 
-    if (!std::filesystem::exists(StatsManager::getSavesFolderPath()))
+    if (!StatsManager::getSavesFolderPath().exists())
         return Err("Invalid save directory!");
 
-    if (!std::filesystem::exists(levelSaveFilePath))
+    if (!levelSaveFilePath.exists())
         return Err(ErrorWithCode("no stats exist for level!", 1));
 
     auto readRes = file::readJson(levelSaveFilePath);
@@ -155,13 +157,13 @@ Result<Session, ErrorWithCode> StatsManager::getSession(const std::string& level
     return getSession(getSavesFolderPath() / levelKey, sessionTime);
 }
 
-Result<Session, ErrorWithCode> StatsManager::getSession(const std::filesystem::path& path, long long sessionTime) {
+Result<Session, ErrorWithCode> StatsManager::getSession(const asp::fs::Path& path, long long sessionTime) {
     auto levelSaveFilePath = path / StatsManager::SESSIONS_DIR_NAME / (std::to_string(sessionTime) + ".dt");
 
-    if (!std::filesystem::exists(StatsManager::getSavesFolderPath()))
+    if (!StatsManager::getSavesFolderPath().exists())
         return Err("Invalid save directory!");
 
-    if (!std::filesystem::exists(levelSaveFilePath))
+    if (!levelSaveFilePath.exists())
         return Err(ErrorWithCode("no stats exist for level!", 1));
 
     auto sessionRes = file::readJson(levelSaveFilePath);
@@ -180,13 +182,13 @@ Result<GeneralData, ErrorWithCode> StatsManager::getGeneral(const std::string& l
     return getGeneral(getSavesFolderPath() / levelKey);
 }
 
-Result<GeneralData, ErrorWithCode> StatsManager::getGeneral(const std::filesystem::path& path) {
+Result<GeneralData, ErrorWithCode> StatsManager::getGeneral(const asp::fs::Path& path) {
     auto levelSaveFilePath = path / StatsManager::FROM0_FILE_NAME;
 
-    if (!std::filesystem::exists(StatsManager::getSavesFolderPath()))
+    if (!StatsManager::getSavesFolderPath().exists())
         return Err("Invalid save directory!");
 
-    if (!std::filesystem::exists(levelSaveFilePath) || std::filesystem::is_empty(levelSaveFilePath))
+    if (!levelSaveFilePath.exists() || levelSaveFilePath.empty())
         return Err(ErrorWithCode("no stats exist for level!", 1));
 
     auto jsonRes = file::readJson(levelSaveFilePath);
@@ -214,7 +216,7 @@ Result<LevelData, ErrorWithCode> StatsManager::getLevelData(const std::string& l
     return Ok(data);
 }
 
-Result<LevelData, ErrorWithCode> StatsManager::getLevelData(const std::filesystem::path& path) {
+Result<LevelData, ErrorWithCode> StatsManager::getLevelData(const asp::fs::Path& path) {
     LevelData data;
 
     GEODE_UNWRAP_INTO(data.metadata, StatsManager::getMetadata(path));
@@ -231,10 +233,10 @@ Result<BackupLevelData> StatsManager::getBackupData(const std::string& levelKey,
     auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName);
     data.backupDate = backupName;
 
-    if (!std::filesystem::exists(levelSaveFilePath))
+    if (!levelSaveFilePath.exists())
         return Err("1 (no stats exist for backup!)");
 
-    if (std::filesystem::exists(levelSaveFilePath / StatsManager::METADATA_FILE_NAME)) {
+    if ((levelSaveFilePath / StatsManager::METADATA_FILE_NAME).exists()) {
         auto levelStatsJsonRes = file::readJson(levelSaveFilePath / StatsManager::METADATA_FILE_NAME);
         if (levelStatsJsonRes.isErr()) return Err("Failed to get backup level stats!");
         auto levelStatsJson = levelStatsJsonRes.unwrap();
@@ -244,7 +246,7 @@ Result<BackupLevelData> StatsManager::getBackupData(const std::string& levelKey,
         data.meta = metaJsonObjRes.unwrap();
     }
 
-    if (std::filesystem::exists(levelSaveFilePath / StatsManager::FROM0_FILE_NAME)) {
+    if ((levelSaveFilePath / StatsManager::FROM0_FILE_NAME).exists()) {
         auto levelStatsJsonRes = file::readJson(levelSaveFilePath / StatsManager::FROM0_FILE_NAME);
         if (levelStatsJsonRes.isErr()) return Err("Failed to get backup level stats!");
         auto levelStatsJson = levelStatsJsonRes.unwrap();
@@ -254,13 +256,20 @@ Result<BackupLevelData> StatsManager::getBackupData(const std::string& levelKey,
         data.from0 = metaJsonObjRes.unwrap();
     }
 
-    if (std::filesystem::exists(levelSaveFilePath / StatsManager::SESSIONS_DIR_NAME)) {
+    if ((levelSaveFilePath / StatsManager::SESSIONS_DIR_NAME).exists()) {
         std::set<long long> sessionDates{};
 
-        for (const auto& entry : std::filesystem::directory_iterator(levelSaveFilePath / StatsManager::SESSIONS_DIR_NAME)) {
-            if (entry.is_directory()) continue;
+        auto dirIteratorRes = asp::fs::iterDir(levelSaveFilePath / StatsManager::SESSIONS_DIR_NAME);
+        if (dirIteratorRes.isErr()) return Err("Failed to iterate sessions directory!");
 
-            auto numRes = geode::utils::numFromString<long long>(geode::utils::string::pathToString(entry.path().filename()));
+        for (const auto& entryRes : dirIteratorRes.unwrap()) {
+            if (entryRes.isErr()) continue;
+
+            auto entry = entryRes.unwrap();
+
+            if (entry.isDir()) continue;
+
+            auto numRes = geode::utils::numFromString<long long>(entry.path.string());
             if (numRes.isErr()) continue;
 
             sessionDates.insert(numRes.unwrap());
@@ -345,10 +354,10 @@ Result<> StatsManager::setGeneral(const GeneralData& stats, const std::string& l
 }
 
 void StatsManager::addBackup(const std::string& levelKey, bool saveLevelStats, std::optional<int> sessionsToSave, bool showNotifications) {
-    //log::info("adding backup for level {} | {} | {}", levelKey, saveLevelStats, sessionsToSave);
+    // log::info("adding backup for level {} | {} | {}", levelKey, saveLevelStats, sessionsToSave);
 
     auto progressFunc = [](float progress01) {
-        //maybe ill use this later for somethn idk bruh
+        // maybe ill use this later for somethn idk bruh
     };
 
     auto backupFunc = [levelKey, saveLevelStats, sessionsToSave, progressFunc]() -> arc::Future<Result<>> {
@@ -382,8 +391,8 @@ void StatsManager::addBackup(const std::string& levelKey, bool saveLevelStats, s
                 co_return Err("backup failed! failed to read general stats");
             }
 
-            std::filesystem::copy_file(getSavesFolderPath() / levelKey / StatsManager::FROM0_FILE_NAME, levelBackupsFilePath / StatsManager::FROM0_FILE_NAME, std::filesystem::copy_options::overwrite_existing, ec);
-            if (ec) co_return Err("Failed to backup level stats: {}", ec.message());
+            auto copyRes = asp::fs::copy(getSavesFolderPath() / levelKey / StatsManager::FROM0_FILE_NAME, levelBackupsFilePath / StatsManager::FROM0_FILE_NAME);
+            if (copyRes.isErr()) co_return Err("Failed to backup level stats: {}", copyRes.unwrapErr());
         }
         progressFunc(0.35f);
 
@@ -406,8 +415,8 @@ void StatsManager::addBackup(const std::string& levelKey, bool saveLevelStats, s
         }
         progressFunc(0.5f);
 
-        std::filesystem::copy_file(getSavesFolderPath() / levelKey / StatsManager::METADATA_FILE_NAME, levelBackupsFilePath / StatsManager::METADATA_FILE_NAME, std::filesystem::copy_options::overwrite_existing, ec);
-        if (ec) co_return Err("Failed to backup level metadata: {}", ec.message());
+        auto copyRes = asp::fs::copy(getSavesFolderPath() / levelKey / StatsManager::METADATA_FILE_NAME, levelBackupsFilePath / StatsManager::METADATA_FILE_NAME);
+        if (copyRes.isErr()) co_return Err("Failed to backup level metadata: {}", copyRes.unwrapErr());
         progressFunc(0.7f);
 
         if (sessionsToSave == std::nullopt) {
@@ -440,13 +449,11 @@ void StatsManager::addBackup(const std::string& levelKey, bool saveLevelStats, s
                     continue;
                 }
 
-                std::filesystem::copy_file(
+                auto copyRes = asp::fs::copy(
                     getSavesFolderPath() / levelKey / StatsManager::SESSIONS_DIR_NAME / (std::to_string(sessionTime) + ".dt"), 
-                    levelBackupsFilePath / (std::to_string(sessionTime) + ".dt"), 
-                    std::filesystem::copy_options::overwrite_existing,
-                    ec
+                    levelBackupsFilePath / (std::to_string(sessionTime) + ".dt")
                 );
-                if (ec) co_return Err("Failed to backup session {}: {}", sessionTime, ec.message());
+                if (copyRes.isErr()) co_return Err("Failed to backup session {}: {}", sessionTime, copyRes.unwrapErr());
 
                 index++;
                 if (numToSave > 0) {
@@ -501,12 +508,16 @@ void StatsManager::createFilesIfNeeded(const std::string& levelKey) {
     (void)geode::utils::file::createDirectory((levelSaveFilePath / SESSIONS_DIR_NAME));
 }
 
-void StatsManager::createFile(const std::filesystem::path& path, std::optional<matjson::Value> jsonToFill) {
-    if (std::filesystem::exists(path)) return;
+void StatsManager::createFile(const asp::fs::Path& path, std::optional<matjson::Value> jsonToFill) {
+    if (path.exists()) return;
 
-    std::ofstream file(path);
+    auto fileRes = asp::fs::File::create(path);
+
+    if (fileRes.isErr()) return;
+    auto file = std::move(fileRes).unwrap();
+    
     if (jsonToFill.has_value())
-        file << jsonToFill.value().dump(matjson::NO_INDENTATION);
+        auto _ = file.write(jsonToFill.value().dump(matjson::NO_INDENTATION));
     file.close();
 }
 
@@ -579,7 +590,7 @@ void StatsManager::logDeath(const int& percent, bool instantSave) {
     auto session = StatsManager::getCurrentSession();
     if (session != nullptr) {
         session->data.deaths[percentKey]++;
-        log::info("logging death {} to session {}", percentKey, session->sessionStartDate);
+        // log::info("logging death {} to session {}", percentKey, session->sessionStartDate);
 
         int sessionBest = -1;
         if (session->data.newBests.size() != 0) sessionBest = *session->data.newBests.rbegin();
@@ -641,7 +652,7 @@ void StatsManager::logRun(const Run& run, bool instantSave) {
     if (session != nullptr) {
         session->data.runs[runKey]++;
 
-        log::info("logging run {}-{} to session {}", run.start.value(), run.end, session->sessionStartDate);
+        // log::info("logging run {}-{} to session {}", run.start.value(), run.end, session->sessionStartDate);
     }
 
     if (currentFrom0.has_value()) {
@@ -714,7 +725,9 @@ Result<std::string> StatsManager::getLevelKey(GJGameLevel* const& level) {
 	std::string levelId;
 
     if (level->m_levelType == GJLevelType::Editor) {
-        levelId += std::to_string(EditorIDs::getID(level));
+        auto idRes = EditorIDs::getID(level);
+        if (idRes.isErr()) return Err("Failed to get editor ID!");
+        levelId += std::to_string(idRes.unwrap());
     }
     else {
         levelId += std::to_string(level->m_levelID.value());
@@ -787,7 +800,7 @@ Session* StatsManager::getCurrentSession() {
     }
 
     auto currentSession = StatsManager::currentSession.has_value() ? &StatsManager::currentSession.value() : nullptr;
-    log::info("getting curr session {}", currentSession == nullptr ? "session is null" : std::to_string(currentSession->sessionStartDate));
+    // log::info("getting curr session {}", currentSession == nullptr ? "session is null" : std::to_string(currentSession->sessionStartDate));
 
     auto levelKeyRes = StatsManager::getLevelKey(currentLevel);
 
@@ -886,39 +899,39 @@ Result<> StatsManager::deleteLevelStats(const std::string& levelKey) {
     auto levelSaveFilePath = getSavesFolderPath() / levelKey;
 
     std::error_code ec;
-    if (std::filesystem::is_directory(levelSaveFilePath, ec)) {
-        std::filesystem::remove_all(levelSaveFilePath, ec);
-        if (ec) return Err("Failed to delete stats folder: {}", ec.message());
+    if (levelSaveFilePath.isDir()) {
+        auto res = asp::fs::removeDirAll(levelSaveFilePath);
+        if (res.isErr()) return Err("Failed to delete stats folder: {}", res.unwrapErr());
         return Ok();
     }
 
-    return Err("Cant delete stats because level save file does not exist: " + geode::utils::string::pathToString(levelSaveFilePath));
+    return Err("Cant delete stats because level save file does not exist: " + levelSaveFilePath.string());
 }
 
 Result<> StatsManager::deleteBackup(const std::string& levelKey, long long backupName) {
     auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName);
 
     std::error_code ec;
-    if (std::filesystem::is_directory(levelSaveFilePath, ec)) {
-        std::filesystem::remove_all(levelSaveFilePath, ec);
-        if (ec) return Err("Failed to delete backup {}: {}", backupName, ec.message());
+    if (levelSaveFilePath.isDir()) {
+        auto res = asp::fs::removeDirAll(levelSaveFilePath);
+        if (res.isErr()) return Err("Failed to delete backup {}: {}", backupName, res.unwrapErr());
         return Ok();
     }
 
-    return Err("Cant delete backup because level save file does not exist: " + geode::utils::string::pathToString(levelSaveFilePath));
+    return Err("Cant delete backup because level save file does not exist: " + levelSaveFilePath.string());
 }
 
 Result<> StatsManager::deleteAllSessions(const std::string& levelKey) {
     auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::SESSIONS_DIR_NAME;
 
     std::error_code ec;
-    if (std::filesystem::is_directory(levelSaveFilePath, ec)) {
-        std::filesystem::remove_all(levelSaveFilePath, ec);
-        if (ec) return Err("Failed to delete sessions folder: {}", ec.message());
+    if (levelSaveFilePath.isDir()) {
+        auto res = asp::fs::removeDirAll(levelSaveFilePath);
+        if (res.isErr()) return Err("Failed to delete sessions folder: {}", res.unwrapErr());
         return Ok();
     }
 
-    return Err("Cant delete sessions because level save file does not exist: " + geode::utils::string::pathToString(levelSaveFilePath));
+    return Err("Cant delete sessions because level save file does not exist: " + levelSaveFilePath.string());
 }
 
 Result<std::tuple<NewBests, int>> StatsManager::calcNewBests(GJGameLevel* const& level) {
@@ -981,8 +994,10 @@ Result<std::vector<std::pair<std::string, LevelMetadeta>>> StatsManager::getAllL
 
     for (int i = 0; i < allLevels.size(); i++)
     {
-        if (std::filesystem::is_directory(allLevels[i])) {
-            auto currentDirName = geode::utils::string::pathToString(allLevels[i].filename());
+        if (allLevels[i].isDir()) {
+            auto currentDirNameRes = allLevels[i].filename();
+            if (!currentDirNameRes.has_value()) continue;
+            auto currentDirName = std::string(currentDirNameRes.value());
             // log::info("Getting level stats for level: {}", currentDirName);
 
             auto currentLevel = StatsManager::getMetadata(currentDirName);
@@ -1138,17 +1153,28 @@ std::set<long long> StatsManager::getAllSessionTimesForLevel(const std::string& 
     return getAllSessionTimesForLevel(getSavesFolderPath() / levelKey);
 }
 
-std::set<long long> StatsManager::getAllSessionTimesForLevel(const std::filesystem::path& path) {
+std::set<long long> StatsManager::getAllSessionTimesForLevel(const asp::fs::Path& path) {
     auto levelSaveFilePath = path / StatsManager::SESSIONS_DIR_NAME;
 
-    if (!std::filesystem::exists(levelSaveFilePath)) return {};
+    if (!levelSaveFilePath.exists()) return {};
 
     std::set<long long> toReturn{};
 
-    for (const auto& entry : std::filesystem::directory_iterator(levelSaveFilePath)) {
-        if (!entry.is_regular_file() || entry.path().extension() != ".dt") continue;
+    auto dirIteratorRes = asp::fs::iterDir(levelSaveFilePath);
 
-        auto numRes = geode::utils::numFromString<long long>(geode::utils::string::pathToString(entry.path().filename()));
+    if (dirIteratorRes.isErr()) return {};
+
+    for (const auto& entryRes : dirIteratorRes.unwrap()) {
+        if (entryRes.isErr()) continue;
+        auto entry = entryRes.unwrap();
+
+        if (!entry.isFile() || entry.path.extension() != "dt") continue;
+
+        auto filenameRes = entry.path.filename();
+
+        if (!filenameRes.has_value()) continue;
+
+        auto numRes = geode::utils::numFromString<long long>(filenameRes.value());
         if (numRes.isErr()) continue;
 
         toReturn.insert(numRes.unwrap());
@@ -1160,14 +1186,24 @@ std::set<long long> StatsManager::getAllSessionTimesForLevel(const std::filesyst
 std::set<long long> StatsManager::getBackupsCount(const std::string& levelKey) {
     auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::BACKUPS_DIR_NAME;
 
-    if (!std::filesystem::exists(levelSaveFilePath)) return {};
+    if (!levelSaveFilePath.exists()) return {};
 
     std::set<long long> toReturn{};
 
-    for (const auto& entry : std::filesystem::directory_iterator(levelSaveFilePath)) {
-        if (!entry.is_directory()) continue;
+    auto dirIteratorRes = asp::fs::iterDir(levelSaveFilePath);
 
-        auto numRes = geode::utils::numFromString<long long>(geode::utils::string::pathToString(entry.path().filename()));
+    if (dirIteratorRes.isErr()) return {};
+
+    for (const auto& entryRes : dirIteratorRes.unwrap()) {
+        if (entryRes.isErr()) continue;
+        auto entry = entryRes.unwrap();
+
+        if (!entry.isDir()) continue;
+
+        auto dirnameRes = entry.path.filename();
+        if (!dirnameRes.has_value()) continue;
+
+        auto numRes = geode::utils::numFromString<long long>(dirnameRes.value());
         if (numRes.isErr()) continue;
 
         toReturn.insert(numRes.unwrap());
@@ -1179,14 +1215,24 @@ std::set<long long> StatsManager::getBackupsCount(const std::string& levelKey) {
 uintmax_t StatsManager::getBackupFileSize(const std::string& levelKey, long long backupName) {
     auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName);
 
-    if (!std::filesystem::exists(levelSaveFilePath)) return 0;
+    if (!levelSaveFilePath.exists()) return 0;
+
+    auto dirIteratorRes = asp::fs::iterDirRecursive(levelSaveFilePath);
+
+    if (dirIteratorRes.isErr()) return 0;
 
     uintmax_t totalSize = 0;
 
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(levelSaveFilePath)) {
-        if (!entry.is_regular_file()) continue;
+    for (const auto& entryRes : dirIteratorRes.unwrap()) {
+        if (entryRes.isErr()) continue;
+        auto entry = entryRes.unwrap();
+        
+        if (!entry.isFile()) continue;
 
-        totalSize += std::filesystem::file_size(entry.path());
+        auto fileSizeRes = asp::fs::fileSize(entry.path);
+        if (fileSizeRes.isErr()) continue;
+
+        totalSize += fileSizeRes.unwrap();
     }
 
     return totalSize;
@@ -1197,15 +1243,15 @@ Result<> StatsManager::reveretBackupSessions(const std::string& levelKey, long l
     auto sessionDirPath = getSavesFolderPath() / levelKey / StatsManager::SESSIONS_DIR_NAME;
 
     std::error_code ec;
-    if (!std::filesystem::exists(bakupSessionDirPath, ec)) return Err("No sessions backup found!");
+    if (!bakupSessionDirPath.exists()) return Err("No sessions backup found!");
 
-    if (std::filesystem::exists(sessionDirPath, ec)) {
-        std::filesystem::remove_all(sessionDirPath, ec);
-        if (ec) return Err("Failed to delete current sessions folder: {}", ec.message());
+    if (sessionDirPath.exists()) {
+        auto removeRes = asp::fs::removeDirAll(sessionDirPath);
+        if (removeRes.isErr()) return Err("Failed to delete current sessions folder: {}", removeRes.unwrapErr());
     }
 
-    std::filesystem::copy(bakupSessionDirPath, sessionDirPath, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing, ec);
-    if (ec) return Err("Failed to revert sessions: {}", ec.message());
+    auto copyRes = asp::fs::copy(bakupSessionDirPath, sessionDirPath);
+    if (copyRes.isErr()) return Err("Failed to revert sessions: {}", copyRes.unwrapErr());
 
     return Ok();
 }
@@ -1213,11 +1259,11 @@ Result<> StatsManager::reveretBackupSessions(const std::string& levelKey, long l
 Result<> StatsManager::convertV2SaveToV3(const std::string& levelKey) {
     log::info("converting V2 save to V3...");
 
-    if (!std::filesystem::exists(getSavesFolderPath())) return Err("No levels directory found");
+    if (!getSavesFolderPath().exists()) return Err("No levels directory found");
 
     auto v2Path = getSavesFolderPath() / (levelKey + ".json");
 
-    if (!std::filesystem::exists(v2Path)) return Err("V2 level file doesnt exist!");
+    if (!v2Path.exists()) return Err("V2 level file doesnt exist!");
     
     auto res = file::readJson(v2Path);
     GEODE_UNWRAP_INTO(auto json, res);
@@ -1272,28 +1318,37 @@ Result<> StatsManager::convertV2SaveToV3(const std::string& levelKey) {
     }
 
     std::error_code ec;
-    std::filesystem::remove(v2Path, ec);
-    if (ec) return Err("Failed to erase old data: {}", ec.message());
+    auto removeV2PathRes = asp::fs::remove(v2Path);
+    if (removeV2PathRes.isErr()) return Err("Failed to erase old data: {}", removeV2PathRes.unwrapErr());
 
     auto backupPath = getSavesFolderPath() / (levelKey + ".deathsBackup");
 
-    if (std::filesystem::exists(backupPath, ec)) {
-        std::filesystem::remove(backupPath, ec);
-        if (ec) return Err("Failed to delete backup old data: {}", ec.message());
+    if (backupPath.exists()) {
+        auto removeBackupRes = asp::fs::remove(backupPath);
+        if (removeBackupRes.isErr()) return Err("Failed to delete backup old data: {}", removeBackupRes.unwrapErr());
     }
 
     return Ok();
 }
 
 std::vector<std::string> StatsManager::allV2FileLevelKeys() {
-    if (!std::filesystem::exists(getSavesFolderPath())) return {};
+    if (!getSavesFolderPath().exists()) return {};
     
     std::vector<std::string> toReturn{};
 
-    for (const auto& entry : std::filesystem::directory_iterator(getSavesFolderPath())) {
-        if (!entry.is_regular_file() || entry.path().extension() != ".json") continue;
+    auto dirIterRes = asp::fs::iterDir(getSavesFolderPath());
+    if (dirIterRes.isErr()) return {};
 
-        toReturn.push_back(geode::utils::string::pathToString(entry.path().stem()));
+    for (const auto& entryRes : dirIterRes.unwrap()) {
+        if (entryRes.isErr()) continue;
+        auto entry = entryRes.unwrap();
+
+        if (!entry.isFile() || entry.path.extension() != "json") continue;
+
+        auto stemRes = entry.path.stem();
+        if (!stemRes.has_value()) continue;
+
+        toReturn.push_back(std::string(stemRes.value()));
     }
 
     return toReturn;
@@ -1302,10 +1357,19 @@ std::vector<std::string> StatsManager::allV2FileLevelKeys() {
 std::vector<std::string> StatsManager::allV3FileLevelKeys() {
     std::vector<std::string> toReturn{};
 
-    for (const auto& entry : std::filesystem::directory_iterator(getSavesFolderPath())) {
-        if (!entry.is_directory()) continue;
+    auto dirIterRes = asp::fs::iterDir(getSavesFolderPath());
+    if (dirIterRes.isErr()) return {};
 
-        toReturn.push_back(geode::utils::string::pathToString(entry.path().stem()));
+    for (const auto& entryRes : dirIterRes.unwrap()) {
+        if (entryRes.isErr()) continue;
+        auto entry = entryRes.unwrap();
+
+        if (!entry.isDir()) continue;
+
+        auto stemRes = entry.path.stem();
+        if (!stemRes.has_value()) continue;
+
+        toReturn.push_back(std::string(stemRes.value()));
     }
 
     return toReturn;
@@ -1319,9 +1383,13 @@ bool StatsManager::transferPlaytimeFromPT(GJGameLevel* level) {
 
 bool StatsManager::transferPlaytimeFromPT(geode::Result<LevelData, ErrorWithCode>& data, GJGameLevel* level) {
     std::string lvlID = level->m_levelType == GJLevelType::Editor ? fmt::format("Editor-{}", EditorIDs::getID(level)) : std::to_string(level->m_levelID.value());
-    auto ptPath = Mod::get()->getSaveDir().parent_path() / "nanew.playtime-tracker" / "data" / (lvlID + ".json");
 
-    if (!exists(ptPath)) return false;
+    auto parentPathRes = Mod::get()->getSaveDir().parent();
+    if (!parentPathRes.has_value()) return false;
+
+    auto ptPath = parentPathRes.value() / "nanew.playtime-tracker" / "data" / (lvlID + ".json");
+
+    if (!ptPath.exists()) return false;
 
     auto lvlKeyRes = StatsManager::getLevelKey(level);
     if (lvlKeyRes.isErr()) return false;

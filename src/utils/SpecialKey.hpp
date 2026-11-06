@@ -2,6 +2,8 @@
 
 #include <ostream>
 
+#include <any>
+
 using namespace geode::prelude;
 
 struct UpdateFutureError{

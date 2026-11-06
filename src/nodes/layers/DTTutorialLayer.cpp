@@ -542,8 +542,9 @@ void DTTutorialLayer::rightKeyUp() {
     }
 }
 
-void DTTutorialLayer::scrollWheel(float x, float y) {
-    if (dialogueLayer == nullptr) return;
+bool DTTutorialLayer::scrollWheel(float x, float y) {
+    if (dialogueLayer == nullptr) return false;
+    
     for (const auto& glow : retainedSprites) {
         if (!touchAllowedNodes.contains(glow)) continue;
         if (glow->getTag() != 2) continue;
@@ -551,9 +552,11 @@ void DTTutorialLayer::scrollWheel(float x, float y) {
         auto mDel = dynamic_cast<CCMouseDelegate*>(touchAllowedNodes[glow]);
         if (mDel != nullptr) {
             mDel->scrollWheel(x, y);
-            return;
+            return true;
         }
     }
+
+    return false;
 }
 
 void DTTutorialLayer::skipTutorial(CCObject*) {

@@ -86,7 +86,8 @@ class DTLabel : public CCMenu {
         static std::shared_ptr<RichTextKey<WaveKeyParams>> makeWaveKey(geode::Function<bool()> donerRichTextEnabled);
         static std::shared_ptr<RichTextKey<GradientKeyParams>> makeGradientKey(geode::Function<bool()> donerRichTextEnabled);
         static std::shared_ptr<RichTextKey<CPlusKeyParams>> makeCPlusKey();
-        static std::shared_ptr<RichTextKey<ccColor4B>> makeColor4BKey();
+
+        void updateInfoWithColumnData();
 
     private:
         bool init(const DTLabelInfo& info);
@@ -139,8 +140,6 @@ class DTLabel : public CCMenu {
 
         bool currentlyExpandingLeft;
         bool currentlyExpandingRight;
-
-        void updateInfoWithColumnData();
 
         LoadingCircle* loadingCircle;
 

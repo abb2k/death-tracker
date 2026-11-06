@@ -22,7 +22,7 @@ struct GraphPointDisplayPtrCompare {
     }
 };
 
-class DTGraphLayer : public Popup, public TextInputDelegate, public GraphPointDelegate, public FLAlertLayerProtocol {
+class DTGraphLayer : public Popup, public GraphPointDelegate, public FLAlertLayerProtocol {
     protected:
         bool init() override;
     public:

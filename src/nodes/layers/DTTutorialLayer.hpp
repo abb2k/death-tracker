@@ -125,7 +125,7 @@ class DTTutorialLayer : public CCLayer, public DialogDelegate {
 
 	    void rightKeyUp() override;
 
-	    void scrollWheel(float x, float y) override;
+	    bool scrollWheel(float x, float y) override;
 
         DialogObject* prevDialogue = nullptr;
         CCMenuItemSpriteExtra* skipButton;

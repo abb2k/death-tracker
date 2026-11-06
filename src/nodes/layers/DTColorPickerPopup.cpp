@@ -242,7 +242,7 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
     bool isGradient = true;
     m_donorLabel->registerRichTextKey(DTLabel::makeGradientKey([](){ return true; }));
     m_donorLabel->setZOrder(10);
-    m_donorLabel->setText(m_donorLabel->getRawText());
+    m_donorLabel->updateContent();
     m_donorLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
     m_gradientPage->addChild(m_donorLabel);
 

@@ -12,7 +12,7 @@ public:
     static bool getCompleteMenuEnabled();
     static bool getQuickSaveEnabled();
     static float getGraphPointSize();
-    static std::filesystem::path getSavePath();
+    static asp::fs::Path getSavePath();
     static std::optional<int> getMaxBackupAmount();
     static bool getAutoBackupEnabled();
     static bool getAutoBackupGeneral();

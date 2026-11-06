@@ -6,6 +6,17 @@
 bool DTEditLevelLayer::init(GJGameLevel* level) {
     if (!EditLevelLayer::init(level)) return false;
 
+    auto robBtnMenu = getChildByID("level-actions-menu");
+
+    if (robBtnMenu) {
+        auto robDTButton = robBtnMenu->getChildByID("death-tracker-button");
+
+        if (robDTButton)
+            robDTButton->setVisible(false);
+
+        robBtnMenu->updateLayout();
+    }
+
     auto s = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
     auto s2 = CCSprite::createWithSpriteFrameName("miniSkull_001.png");
     s2->setPosition(s->getContentSize() / 2);

@@ -5,7 +5,7 @@
 
 using namespace geode::prelude;
 
-class DTLevelSpecificSettingsLayer : public geode::Popup, public TextInputDelegate {
+class DTLevelSpecificSettingsLayer : public geode::Popup {
     public:
         static DTLevelSpecificSettingsLayer* create();
 

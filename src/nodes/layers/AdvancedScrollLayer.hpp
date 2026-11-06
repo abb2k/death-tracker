@@ -23,7 +23,7 @@ class AdvancedScrollLayer : public CCLayer {
 
         bool touchDown = false;
 
-        void scrollWheel(float y, float x) override;
+        bool scrollWheel(float y, float x) override;
         void registerWithTouchDispatcher() override;
 
         CCDrawNode* gridNode = nullptr;

@@ -6,6 +6,17 @@
 void DTEndLevelLayer::customSetup() {
     EndLevelLayer::customSetup();
 
+    auto robBtnMenu = m_mainLayer->getChildByID("button-menu");
+
+    if (robBtnMenu) {
+        auto robDTButton = robBtnMenu->getChildByID("death-tracker-button");
+
+        if (robDTButton)
+            robDTButton->setVisible(false);
+
+        robBtnMenu->updateLayout();
+    }
+
     if (!Settings::getCompleteMenuEnabled()) return;
 
     auto s = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");

@@ -1,14 +1,14 @@
 {
-	"geode": "5.11.2",
+	"geode": "6.0.0-alpha.1",
 	"gd": {
-        "android": "2.2081",
-        "win": "2.2081",
-		"mac": "2.2081",
-		"ios": "2.2081"
+        "android": "2.2091",
+        "win": "2.2091",
+		"mac": "2.2091",
+		"ios": "2.2091"
     },
 	"id": "elohmrow.death_tracker",
 	"name": "Death Tracker",
-	"version": "v3.0.9",
+	"version": "v3.0.10",
 	"developer": "abb2k",
 	"description": "Tracks your deaths at every percentage",
 	"links": {
@@ -230,12 +230,13 @@
 		}
 	},
 	"dependencies": {
-		"geode.node-ids": ">=v1.10.0",
-		"cvolton.level-id-api": "v2.0.0-beta.2",
-		"alk.better-touch-prio": ">=v1.0.19",
+		"geode.node-ids": "v1.23.4",
+		"cvolton.level-id-api": "v2.0.1",
+		"alk.better-touch-prio": "v1.0.22",
 		"alphalaneous.badgify": {
-			"version": ">=v1.0.6",
+			"version": "v1.0.7",
 			"required": false
-		}
+		},
+		"dankmeme.argon": ">=2.0.0-alpha.1"
 	}
 }

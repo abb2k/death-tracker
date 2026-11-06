@@ -97,4 +97,7 @@ class LayoutOptionsLayer : public CCLayer, public SliderDelegate {
         void updateFontSelectFont();
 
         SimpleToggler* hideHeaderToggler;
+
+        void onAddColumnToLeft(CCObject*);
+        void onAddColumnToRight(CCObject*);
     };

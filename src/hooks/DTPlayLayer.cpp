@@ -1,5 +1,5 @@
 #include "../hooks/DTPlayLayer.hpp"
-#include <ctime>
+
 using namespace geode::prelude;
 
 bool DTPlayLayer::disableCompletedLevelTracking() {
@@ -24,8 +24,8 @@ void DTPlayLayer::onModify(auto& self) {
     (void)self.setHookPriorityPre("PlayLayer::destroyPlayer", Priority::First);
 }
 
-bool DTPlayLayer::init(GJGameLevel* level, bool p1, bool p2) {
-    if (!PlayLayer::init(level, p1, p2)) return false;
+bool DTPlayLayer::init(GJGameLevel* level, bool p1) {
+    if (!PlayLayer::init(level, p1)) return false;
 
     auto metaRes = StatsManager::getMetadata(level);
     if (metaRes.isErr() && metaRes.unwrapErr().code == 1) {
@@ -199,7 +199,7 @@ void DTPlayLayer::resetLevel() {
 
             if (metaRes.isOk() && metaRes.unwrap().resetAsDeath) {
                 if (!m_level->isPlatformer())
-                    m_fields->currentRun.end = getActualProgress(this);
+                    m_fields->currentRun.end = getActualProgress();
 
                 saveRun();
             }
@@ -213,7 +213,7 @@ void DTPlayLayer::resetLevel() {
     m_fields->hasRespawned = true;
 
     if (!m_level->isPlatformer())
-        m_fields->currentRun.start = getActualProgress(this);
+        m_fields->currentRun.start = getActualProgress();
     else
         m_fields->currentRun.start = m_fields->currentRun.end;
 
@@ -248,7 +248,7 @@ void DTPlayLayer::destroyPlayer(PlayerObject* player, GameObject* p1) {
     if (DTPlayLayer::disableCompletedLevelTracking() || (Settings::getDisablePractice() && m_isPracticeMode)) return;
 
     if (!m_level->isPlatformer())
-        m_fields->currentRun.end = getActualProgress(this);
+        m_fields->currentRun.end = getActualProgress();
 
     m_fields->lastOneDied = true;
 
@@ -350,31 +350,65 @@ void DTPlayLayer::pauseGame(bool unfocused) {
     m_fields->didJustPause = true;
     PlayLayer::pauseGame(unfocused);
     m_fields->didJustPause = false;
+
+    if (m_fields->fzeroToSave.size()) {
+        StatsManager::logDeaths(m_fields->fzeroToSave);
+        m_fields->fzeroToSave.clear();
+    }
+
+    if (m_fields->runsToSave.size()) {
+        StatsManager::logRuns(m_fields->runsToSave);
+        m_fields->runsToSave.clear();
+    }
+
+    savePlaytime();
+
+    auto lvlKey = StatsManager::getLevelKey(m_level);
+    if (lvlKey.isOk() && Settings::getAutoBackupEnabled() && Settings::getAutoBackupAtLvlExit()) {
+        auto metaRes = StatsManager::getMetadata(lvlKey.unwrap());
+        if (metaRes.isOk() && metaRes.unwrap().autoBackup) {
+            StatsManager::addBackup(
+                lvlKey.unwrap(),
+                Settings::getAutoBackupGeneral(),
+                Settings::getAutoBackupSessionAmount()
+            );
+        }
+    }
+
+
+    // log::info("PlayLayer::onQuit()");
+
+    // schedule session gets reset
+    // this cancels creating a new session
+    // if they back out before dying
+    StatsManager::scheduleCreateNewSession(false);
+    DTPlayLayer::updateSessionLastPlayed();
 }
 
 //tysm eclips menu ur awesome and mega goated :fire:
-float DTPlayLayer::getActualProgress(GJBaseGameLayer* game) {
-    float percent;
-    if (game->m_level->m_timestamp > 0) {
-        percent = static_cast<float>(game->m_gameState.m_levelTime * 240.f) / game->m_level->m_timestamp * 100.f;
-    } else {
-        percent = game->m_player1->getPositionX() / game->m_levelLength * 100.f;
-    }
-    return std::clamp(percent, 0.f, 100.f);
+float DTPlayLayer::getActualProgress() {
+    // float percent;
+    // if (game->m_level->m_timestamp > 0) {
+    //     percent = static_cast<float>(game->m_gameState.m_levelTime * 240.f) / game->m_level->m_timestamp * 100.f;
+    // } else {
+    //     percent = game->m_player1->getPositionX() / game->m_levelLength * 100.f;
+    // }
+    // log::info("my percent {} | gd percent {}", percent, );
+    return std::clamp(getCurrentPercent(), 0.f, 100.f);
 }
 
 void DTPlayLayer::onExit() {
     PlayLayer::onExit();
     if (m_fields->didJustPause) return;
 
-    
-
     if (m_fields->fzeroToSave.size()) {
         StatsManager::logDeaths(m_fields->fzeroToSave);
+        m_fields->fzeroToSave.clear();
     }
 
     if (m_fields->runsToSave.size()) {
         StatsManager::logRuns(m_fields->runsToSave);
+        m_fields->runsToSave.clear();
     }
 
     cutoutPlaytime();

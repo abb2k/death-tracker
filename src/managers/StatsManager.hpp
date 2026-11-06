@@ -31,7 +31,7 @@ public:
 
     static int MainLevelIDs[26];
 
-    static std::filesystem::path getSavesFolderPath();
+    static asp::fs::Path getSavesFolderPath();
 
     static GJGameLevel* currentLevel;
     static std::optional<GeneralData> currentFrom0;
@@ -40,22 +40,22 @@ public:
 
     static bool isGameClosing;
 
-    static void createFile(const std::filesystem::path& path, std::optional<matjson::Value> jsonToFill);
+    static void createFile(const asp::fs::Path& path, std::optional<matjson::Value> jsonToFill);
 
 #pragma region level setters/getters
 
     static Result<LevelMetadeta, ErrorWithCode> getMetadata(GJGameLevel* const level);
     static Result<LevelMetadeta, ErrorWithCode> getMetadata(const std::string& levelKey);
-    static Result<LevelMetadeta, ErrorWithCode> getMetadata(const std::filesystem::path& path);
+    static Result<LevelMetadeta, ErrorWithCode> getMetadata(const asp::fs::Path& path);
     static Result<Session, ErrorWithCode> getSession(GJGameLevel* const level, long long sessionTime);
     static Result<Session, ErrorWithCode> getSession(const std::string& levelKey, long long sessionTime);
-    static Result<Session, ErrorWithCode> getSession(const std::filesystem::path& path, long long sessionTime);
+    static Result<Session, ErrorWithCode> getSession(const asp::fs::Path& path, long long sessionTime);
     static Result<GeneralData, ErrorWithCode> getGeneral(GJGameLevel* const level);
     static Result<GeneralData, ErrorWithCode> getGeneral(const std::string& levelKey);
-    static Result<GeneralData, ErrorWithCode> getGeneral(const std::filesystem::path& path);
+    static Result<GeneralData, ErrorWithCode> getGeneral(const asp::fs::Path& path);
     static Result<LevelData, ErrorWithCode> getLevelData(GJGameLevel* const level);
     static Result<LevelData, ErrorWithCode> getLevelData(const std::string& levelKey);
-    static Result<LevelData, ErrorWithCode> getLevelData(const std::filesystem::path& path);
+    static Result<LevelData, ErrorWithCode> getLevelData(const asp::fs::Path& path);
     static Result<BackupLevelData> getBackupData(const std::string& levelKey, long long backupName);
 
     static Result<> setMetadata(const LevelMetadeta& stats, GJGameLevel* const level);
@@ -70,7 +70,7 @@ public:
 
     static Result<std::set<long long>> getAllSessionTimesForLevel(GJGameLevel* const level);
     static std::set<long long> getAllSessionTimesForLevel(const std::string& levelKey);
-    static std::set<long long> getAllSessionTimesForLevel(const std::filesystem::path& path);
+    static std::set<long long> getAllSessionTimesForLevel(const asp::fs::Path& path);
 
     static std::set<long long> getBackupsCount(const std::string& levelKey);
     static uintmax_t getBackupFileSize(const std::string& levelKey, long long backupName);

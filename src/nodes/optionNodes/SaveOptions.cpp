@@ -5,6 +5,8 @@
 #include <nodes/layers/CreateBackupPopup.hpp>
 #include <nodes/layers/ImportPopup.hpp>
 
+#include <asp/fs.hpp>
+
 /*
 -- auto backup settings --
 
@@ -418,7 +420,7 @@ void SaveOptions::onExport(CCObject*) {
             //     return;
             // }
 
-            pick = pick.replace_extension(".dt");
+            pick = pick.replaceExtension("dt");
 
             saveToDT(pick, source);
         }
@@ -429,7 +431,7 @@ void SaveOptions::onImport(CCObject*) {
     ImportPopup::create()->show();
 }
 
-void SaveOptions::saveToDT(std::filesystem::path const& pick, std::filesystem::path const& source) {
+void SaveOptions::saveToDT(asp::fs::Path const& pick, asp::fs::Path const& source) {
     auto zipFileRes = geode::utils::file::Zip::create(pick);
     if (zipFileRes.isErr()) {
         Notification::create("Failed to create zip file!", NotificationIcon::Error)->show();
@@ -439,16 +441,26 @@ void SaveOptions::saveToDT(std::filesystem::path const& pick, std::filesystem::p
 
     auto zip = std::move(zipFileRes).unwrap();
 
-    for (const auto& entry : std::filesystem::directory_iterator(source)) {
+    auto entries = asp::fs::iterDir(source);
+    if (entries.isErr()) {
+        Notification::create("Failed to read source directory!", NotificationIcon::Error)->show();
+        log::error("{}", entries.unwrapErr());
+        return;
+    }
+
+    for (const auto& entryRes : entries.unwrap()) {
+        if (entryRes.isErr()) continue;
+        auto entry = entryRes.unwrap();
+
         Result<> didFileWrite = Err("");
         
-        if (entry.path().filename() == "backups") continue;
+        if (entry.path.filename() == "backups") continue;
 
-        if (std::filesystem::is_directory(entry)) {
-            didFileWrite = zip.addAllFrom(entry);
+        if (entry.isDir()) {
+            didFileWrite = zip.addAllFrom(entry.path);
         }
         else {
-            didFileWrite = zip.addFrom(entry);
+            didFileWrite = zip.addFrom(entry.path);
         }
 
         if (didFileWrite.isErr()) {

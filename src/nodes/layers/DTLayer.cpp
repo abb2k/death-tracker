@@ -60,7 +60,7 @@ bool DTLayer::init(GJGameLevel* const& level) {
 
     CleanGetStats();
 
-    if (!std::filesystem::exists(StatsManager::getSavesFolderPath())) {
+    if (!StatsManager::getSavesFolderPath().exists()) {
         Notification::create("Error! Invalid save directory!", NotificationIcon::Error)->show();
     }
 
@@ -1158,6 +1158,12 @@ void DTLayer::populateSpecialStrings() {
     lvlRunsKey->refreshWith(runsKey->getKey());
     lvlRunsKey->setUpdateFunction(BIND_UPDATE_FUNC(DTLayer::onLevelRunsKey));
     addSpecialString(lvlRunsKey);
+
+    auto runAttKey = std::make_shared<SpecialKey>("runatt", "Gets how many death tracker attempts youve played from each start position");
+    runAttKey->refreshWith(generalKey->getKey());
+    runAttKey->refreshWith(runsKey->getKey());
+    runAttKey->setUpdateFunction(BIND_UPDATE_FUNC(DTLayer::onRunAttemptsKey));
+    addSpecialString(runAttKey);
 }
 
 void DTLayer::UpdateSharedStats() {
@@ -1222,9 +1228,9 @@ void DTLayer::UpdateSharedStats() {
 }
 
 void DTLayer::onSettings(CCObject*) {
-    LabelEditLayer::create()->show();
+    // LabelEditLayer::create()->show();
 
-    //geode::openSettingsPopup(Mod::get());
+    geode::openSettingsPopup(Mod::get());
 }
 
 void DTLayer::keyBackClicked() {
@@ -1506,12 +1512,12 @@ bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadeta& meta
             }
 
             if (newBests.has_value() && newBests.value().contains(runSplit.end)) {
-                nbDeColor = fmt::format("</color4b>{}{}",
+                nbDeColor = fmt::format("</color>{}{}",
                     newBestCustomizations.gradientEnabled && AuthManager::isDoner() ? "</gradient>" : "",
                     newBestCustomizations.waveEnabled && AuthManager::isDoner() ? "</wave>" : ""
                 );
 
-                std::string colorKey = fmt::format("<color4b={}>", cc4bToHexString(newBestCustomizations.color));
+                std::string colorKey = fmt::format("<color={}>", cc4bToHexString(newBestCustomizations.color));
                 std::string gradientKey = fmt::format("<gradient={},{},{},{}>",
                     cc4bToHexString(newBestCustomizations.gradient.colorA),
                     cc4bToHexString(newBestCustomizations.gradient.colorB),
@@ -1539,12 +1545,12 @@ bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadeta& meta
         }
         else {
             if (newBests.has_value() && newBests.value().contains(runSplit.end)) {
-                nbDeColor = fmt::format("</color4b>{}{}",
+                nbDeColor = fmt::format("</color>{}{}",
                     newBestCustomizations.gradientEnabled && AuthManager::isDoner() ? "</gradient>" : "",
                     newBestCustomizations.waveEnabled && AuthManager::isDoner() ? "</wave>" : ""
                 );
 
-                std::string colorKey = fmt::format("<color4b={}>", cc4bToHexString(newBestCustomizations.color));
+                std::string colorKey = fmt::format("<color={}>", cc4bToHexString(newBestCustomizations.color));
                 std::string gradientKey = fmt::format("<gradient={},{},{},{}>",
                     cc4bToHexString(newBestCustomizations.gradient.colorA),
                     cc4bToHexString(newBestCustomizations.gradient.colorB),
@@ -2260,14 +2266,36 @@ LayoutColumn* DTLayer::addColumn(std::optional<DTColumnInfo> info) {
             position = highestColumn->getZOrder() + 1;
         }
 
-        info = DTColumnInfo{
+        info = DTColumnInfo {
             .orderPos = position
         };
+    }
+    else {
+        
+        for (const auto& column : columns)
+        {
+            if (column->info.orderPos >= info.value().orderPos) {
+                column->info.orderPos++;
+                column->setZOrder(column->info.orderPos);
+            }
+        }
     }
 
     auto column = LayoutColumn::create(info.value(), isEditingLayout, scrollLayer->getContentHeight());
     columnHolder->addChild(column);
+    for (const auto& label : CCArrayExt<DTLabel*>(labelsHolder->getChildren())) {
+        if (label->info.maxPlacementRange >= info.value().orderPos && label->info.minPlacementRange < info.value().orderPos) {
+            column->addLabel(label);
+        }
+    }
+    
     columns.insert(column);
+
+    for (const auto& label : CCArrayExt<DTLabel*>(labelsHolder->getChildren())) {
+        label->updateInfoWithColumnData();
+    }
+
+    organizeLayout();
 
     return column;
 }
@@ -3696,6 +3724,73 @@ UpdateFuture DTLayer::onLevelRunsKey(std::map<std::string, std::any> payload) {
     co_return Ok(toReturn);
 }
 
+UpdateFuture DTLayer::onRunAttemptsKey(std::map<std::string, std::any> payload) {
+    if (m_MyLevelStats.isErr()) co_return Err("Failed to calculate runs playtime");
+    auto myStats = m_MyLevelStats.unwrap();
+
+    GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<Deaths>([](GeneralData const& data) {
+        auto runs = data.runs;
+        StatsManager::mergeMapsAdd(runs, data.deaths);
+        return runs;
+    },
+    [](auto const& a, auto const& b) {
+        auto map = a;
+        StatsManager::mergeMapsAdd(map, b);
+        return map;
+    }, false));
+
+    std::map<int, int> percentAttempts{};
+
+    for (const auto& death : deaths)
+    {
+        co_await arc::yield();
+        auto splitRunRes = StatsManager::splitRunKey(death.first);
+        if (splitRunRes.isErr()) continue;
+        auto splitRun = splitRunRes.unwrap();
+
+        auto realStart = splitRun.start.value_or(0);
+
+        if (!percentAttempts.contains(realStart))
+            percentAttempts.insert({realStart, death.second});
+        else {
+            percentAttempts[realStart] += death.second;
+        }
+    }
+
+    std::string out;
+
+    auto custom = Save::getRunsCustomazations();
+
+    int indexofyeah = 0;
+
+    for (const auto& [percent, attempts] : percentAttempts)
+    {
+        if (!myStats.metadata.showAnyRun && !myStats.metadata.runsToShow.empty() && !myStats.metadata.runsToShow.contains(percent))
+            continue;
+
+        auto str = fmt::format("{}% - {}", percent, attempts);
+
+        std::string keysStart = "";
+        std::string keysEnd = "";
+
+        if (indexofyeah % 2 == 0) {
+            keysEnd = "</cplus>";
+            keysStart = fmt::format("<cplus={}>", custom.alternateStrength);
+        }
+
+        out += fmt::format("{}{}{}{}", keysStart, str, custom.seperator, keysEnd);
+
+        indexofyeah++;
+        
+        out += "----------{nl}";
+    }
+
+    if (!out.empty())
+        out.erase(out.length() - custom.seperator.length());
+
+    co_return Ok(out);
+}
+
 UpdateFuture DTLayer::getPlaytimeFor(geode::Function<uint64_t(GeneralData const&)>&& dataGetter, bool session) {
     auto gotten = co_await getTFor<uint64_t>(std::move(dataGetter), [](uint64_t const& a, uint64_t const& b) {
         return a + b;
@@ -4009,7 +4104,7 @@ void DTLayer::onImportPreset(CCObject*) {
             if (!pickOpt.has_value()) return;
             auto pick = pickOpt.value();
 
-            if (pick.extension() != ".dtl" || !std::filesystem::exists(pick)) return;
+            if (pick.extension() != "dtl" || !pick.exists()) return;
 
             auto preset = file::readFromJson<DTLayoutPreset>(pick);
             if (preset.isErr()) {
@@ -4065,7 +4160,7 @@ void DTLayer::onExportPreset(CCObject*) {
                     if (!pickOpt.has_value()) return;
                     auto pick = pickOpt.value();
 
-                    pick = pick.replace_extension(".dtl");
+                    pick = pick.replaceExtension("dtl");
 
                     StatsManager::createFile(pick, std::nullopt);
 

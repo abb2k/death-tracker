@@ -75,7 +75,7 @@ void FileConversionLayer::lookupComplete(LookupFuture::Output result) {
         }
         this->setTitle("No old files found!");
         textArea->setText("It looks like you're all set!\nNo old files were found!");
-        if (!std::filesystem::exists(StatsManager::getSavesFolderPath())) {
+        if (!StatsManager::getSavesFolderPath().exists()) {
             this->setTitle("Conversion Failed!");
             textArea->setText("Invalid save location\nPlease change your save location in\nThe death tracker mod settings");
         }

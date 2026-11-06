@@ -6,6 +6,12 @@
 bool DTLevelInfoLayer::init(GJGameLevel* p0, bool p1) {
     if (!LevelInfoLayer::init(p0, p1)) return false;
 
+    auto robDTMenu = getChildByID("death-tracker-menu");
+
+    if (robDTMenu) {
+        robDTMenu->setVisible(false);
+    }
+
     auto s = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
     auto s2 = CCSprite::createWithSpriteFrameName("miniSkull_001.png");
     s2->setPosition(s->getContentSize() / 2);

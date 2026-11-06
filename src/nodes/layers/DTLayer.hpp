@@ -160,6 +160,8 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
             }
         }
 
+        LayoutColumn* addColumn(std::optional<DTColumnInfo> info = std::nullopt);
+
     private:
         
         std::mutex dataMutex;
@@ -210,7 +212,6 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
         int stoi(std::string_view str);
         float stof(std::string_view str);
 
-        LayoutColumn* addColumn(std::optional<DTColumnInfo> info = std::nullopt);
         void addColumnBtnClicked(CCObject*);
 
         std::map<CCNode*, geode::Function<void(float)>> onOrganizationCompleteEvent{};
@@ -293,6 +294,8 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
         UpdateFuture onSessionDateKey(std::map<std::string, std::any> payload);
 
         UpdateFuture onLevelRunsKey(std::map<std::string, std::any> payload);
+
+        UpdateFuture onRunAttemptsKey(std::map<std::string, std::any> payload);
 
         UpdateFuture getPlaytimeFor(geode::Function<uint64_t(GeneralData const&)>&& dataGetter, bool session);
         UpdateFuture getAttemptsFor(geode::Function<unsigned long long(GeneralData const&, geode::FunctionRef<unsigned long long(const Deaths&)> const&)>&& dataGetter, bool session);

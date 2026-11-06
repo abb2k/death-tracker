@@ -52,7 +52,7 @@ class $modify(DTPlayLayer, PlayLayer) {
     ========== */
     static void onModify(auto& self);
 
-    bool init(GJGameLevel* level, bool p1, bool p2);
+    bool init(GJGameLevel* level, bool p1);
 
     void cutoutPlaytime();
 
@@ -78,7 +78,7 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     void resume();
 
-    float getActualProgress(GJBaseGameLayer* game);
+    float getActualProgress();
 
     void saveRun();
 

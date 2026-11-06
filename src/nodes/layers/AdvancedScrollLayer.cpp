@@ -220,8 +220,8 @@ void AdvancedScrollLayer::ccTouchesMoved(CCSet* touches, CCEvent* event) {
     zoomToAndMove(initialScale / mult, result);
 }
 
-void AdvancedScrollLayer::scrollWheel(float y, float x) {
-    if (!isEnabled) return;
+bool AdvancedScrollLayer::scrollWheel(float y, float x) {
+    if (!isEnabled) return false;
 
     if (!scrollMovement)
         zoomToAndMove(zoomParent->getScale() + -y * zoomSensetivity);
@@ -236,6 +236,7 @@ void AdvancedScrollLayer::scrollWheel(float y, float x) {
     }
 
     //log::info("{}", ccp(y, x));
+    return true;
 }
 
 void AdvancedScrollLayer::keyDown(enumKeyCodes key, double d) {
