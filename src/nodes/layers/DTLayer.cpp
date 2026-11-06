@@ -2671,6 +2671,7 @@ void DTLayer::modifyRun(double startPer, int amount, std::optional<int> sessionN
 
         if (!processRun(session.value().data.deaths)) return;
 
+        session.value().dataIsOverride = true;
         auto setSessionRes = StatsManager::setSession(session.value(), keyToUse, it->first, false);
         if (setSessionRes.isErr()) log::error("{}", setSessionRes.unwrapErr());
     }
@@ -2749,6 +2750,7 @@ void DTLayer::modifyRun(double startPer, double endPer, int amount, std::optiona
 
         if (!processRun(session.value().data.runs)) return;
 
+        session.value().dataIsOverride = true;
         auto setSessionRes = StatsManager::setSession(session.value(), keyToUse, it->first, false);
         if (setSessionRes.isErr()) log::error("{}", setSessionRes.unwrapErr());
     }
@@ -2845,6 +2847,7 @@ void DTLayer::modifyNewBest(double percent, bool makeTrue, std::optional<int> se
 
         processBest(session.value().data.newBests);
 
+        session.value().dataIsOverride = true;
         auto setSessionRes = StatsManager::setSession(session.value(), keyToUse, it->first, false);
         if (setSessionRes.isErr()) log::error("{}", setSessionRes.unwrapErr());
     }

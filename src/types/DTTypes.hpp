@@ -77,6 +77,11 @@ struct ComplexDeathOccurrence {
     std::optional<long long> runEndTimestamp;
 };
 
+struct SessionTimestampRange {
+    long long start = 0;
+    long long end = 0;
+};
+
 struct ComplexDeath {
     std::optional<ComplexPercent> runStartPercent = std::nullopt;
     ComplexPercent runEndPercent;
@@ -115,6 +120,7 @@ struct ComplexDeathMap {
     uint64_t totalDeaths() const;
     Deaths toLegacyDeaths() const;
     Result<> merge(const ComplexDeathMap& other);
+    ComplexDeathMap filterOccurrences(const std::vector<SessionTimestampRange>& ranges) const;
 
     operator Deaths() const {
         return toLegacyDeaths();
@@ -162,13 +168,24 @@ struct matjson::Serialize<GeneralData> {
     static matjson::Value toJson(const GeneralData& value);
 };
 
-typedef struct {
+struct Session {
     std::string ownerLevelKey;
     long long lastPlayed;
     long long sessionStartDate;
     long long groupID;
+    std::vector<SessionTimestampRange> timeRanges;
+    std::optional<GeneralData> legacyData;
+    bool dataIsOverride = false;
     GeneralData data;
-} Session;
+
+    void recordTimestamp(long long timestamp);
+};
+
+template <>
+struct matjson::Serialize<SessionTimestampRange> {
+    static Result<SessionTimestampRange> fromJson(const matjson::Value& value);
+    static matjson::Value toJson(const SessionTimestampRange& value);
+};
 
 template <>
 struct matjson::Serialize<Session> {

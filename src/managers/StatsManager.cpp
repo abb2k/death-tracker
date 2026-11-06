@@ -168,10 +168,31 @@ Result<Session, ErrorWithCode> StatsManager::getSession(const asp::fs::Path& pat
 
     auto sessionRes = file::readJson(levelSaveFilePath);
     if (sessionRes.isErr()) return Err("Session Corrupted");
-    auto session = sessionRes.unwrap().as<Session>();
-    if (session.isErr()) return Err("Session Corrupted");
-        
-    return Ok(session.unwrap());
+    auto sessionResult = sessionRes.unwrap().as<Session>();
+    if (sessionResult.isErr()) return Err("Session Corrupted");
+    auto session = std::move(sessionResult).unwrap();
+
+    if (!session.dataIsOverride && !session.timeRanges.empty()) {
+        auto generalResult = getGeneral(path);
+        if (generalResult.isErr()) {
+            if (generalResult.unwrapErr().code != 1)
+                return Err("Failed to load general data for session: {}", generalResult.unwrapErr().error);
+        }
+        else {
+            auto general = std::move(generalResult).unwrap();
+            auto sessionDeaths = general.deaths.filterOccurrences(session.timeRanges);
+            auto sessionRuns = general.runs.filterOccurrences(session.timeRanges);
+
+            auto deathsResult = session.data.deaths.merge(sessionDeaths);
+            if (deathsResult.isErr())
+                return Err("Failed to derive session deaths: {}", deathsResult.unwrapErr());
+            auto runsResult = session.data.runs.merge(sessionRuns);
+            if (runsResult.isErr())
+                return Err("Failed to derive session runs: {}", runsResult.unwrapErr());
+        }
+    }
+
+    return Ok(std::move(session));
 }
 
 Result<GeneralData, ErrorWithCode> StatsManager::getGeneral(GJGameLevel* const level) {
@@ -322,6 +343,7 @@ Result<> StatsManager::setSession(Session& stats, const std::string& levelKey, l
     if (updateLastPlayed) {
         auto now = StatsManager::getNowSeconds();
         stats.lastPlayed = now;
+        stats.recordTimestamp(now);
     }
 
     stats.ownerLevelKey = levelKey;
@@ -361,7 +383,6 @@ void StatsManager::addBackup(const std::string& levelKey, bool saveLevelStats, s
     };
 
     auto backupFunc = [levelKey, saveLevelStats, sessionsToSave, progressFunc]() -> arc::Future<Result<>> {
-        std::error_code ec;
         progressFunc(0.0f);
         auto metaRes = getMetadata(levelKey);
         if (metaRes.isErr()) co_return Err("No level to back up! {}", metaRes.unwrapErr().error);
@@ -393,6 +414,13 @@ void StatsManager::addBackup(const std::string& levelKey, bool saveLevelStats, s
 
             auto copyRes = asp::fs::copy(getSavesFolderPath() / levelKey / StatsManager::FROM0_FILE_NAME, levelBackupsFilePath / StatsManager::FROM0_FILE_NAME);
             if (copyRes.isErr()) co_return Err("Failed to backup level stats: {}", copyRes.unwrapErr());
+        }
+        else if (sessionsToSave.has_value() && (getSavesFolderPath() / levelKey / StatsManager::FROM0_FILE_NAME).exists()) {
+            auto copyRes = asp::fs::copy(
+                getSavesFolderPath() / levelKey / StatsManager::FROM0_FILE_NAME,
+                levelBackupsFilePath / StatsManager::FROM0_FILE_NAME
+            );
+            if (copyRes.isErr()) co_return Err("Failed to back up general data required by sessions: {}", copyRes.unwrapErr());
         }
         progressFunc(0.35f);
 
@@ -599,11 +627,6 @@ void StatsManager::logDeath(double percent, bool instantSave) {
 
     auto session = StatsManager::getCurrentSession();
     if (session != nullptr) {
-        ComplexDeathOccurrence occurrence;
-        occurrence.runEndTimestamp = static_cast<time_t>(getNowSeconds());
-        auto recordResult = session->data.deaths.recordDeath(exactPercent, std::nullopt, occurrence);
-        if (recordResult.isErr())
-            log::error("Failed to record session death at {}%: {}", percent, recordResult.unwrapErr());
         // log::info("logging death {} to session {}", percentKey, session->sessionStartDate);
 
         int sessionBest = -1;
@@ -675,14 +698,6 @@ void StatsManager::logRun(const Run& run, bool instantSave) {
 
     auto session = StatsManager::getCurrentSession();
     if (session != nullptr) {
-        auto recordResult = session->data.runs.recordDeath(
-            endPercent.unwrap(),
-            startPercent.unwrap(),
-            occurrence
-        );
-        if (recordResult.isErr())
-            log::error("Failed to record session run: {}", recordResult.unwrapErr());
-
         // log::info("logging run {}-{} to session {}", run.start.value(), run.end, session->sessionStartDate);
     }
 
@@ -928,7 +943,6 @@ bool StatsManager::hasPlayedLevel() {
 Result<> StatsManager::deleteLevelStats(const std::string& levelKey) {
     auto levelSaveFilePath = getSavesFolderPath() / levelKey;
 
-    std::error_code ec;
     if (levelSaveFilePath.isDir()) {
         auto res = asp::fs::removeDirAll(levelSaveFilePath);
         if (res.isErr()) return Err("Failed to delete stats folder: {}", res.unwrapErr());
@@ -941,7 +955,6 @@ Result<> StatsManager::deleteLevelStats(const std::string& levelKey) {
 Result<> StatsManager::deleteBackup(const std::string& levelKey, long long backupName) {
     auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName);
 
-    std::error_code ec;
     if (levelSaveFilePath.isDir()) {
         auto res = asp::fs::removeDirAll(levelSaveFilePath);
         if (res.isErr()) return Err("Failed to delete backup {}: {}", backupName, res.unwrapErr());
@@ -954,7 +967,6 @@ Result<> StatsManager::deleteBackup(const std::string& levelKey, long long backu
 Result<> StatsManager::deleteAllSessions(const std::string& levelKey) {
     auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::SESSIONS_DIR_NAME;
 
-    std::error_code ec;
     if (levelSaveFilePath.isDir()) {
         auto res = asp::fs::removeDirAll(levelSaveFilePath);
         if (res.isErr()) return Err("Failed to delete sessions folder: {}", res.unwrapErr());
@@ -1272,7 +1284,6 @@ Result<> StatsManager::reveretBackupSessions(const std::string& levelKey, long l
     auto bakupSessionDirPath = getSavesFolderPath() / levelKey / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName) / StatsManager::SESSIONS_DIR_NAME;
     auto sessionDirPath = getSavesFolderPath() / levelKey / StatsManager::SESSIONS_DIR_NAME;
 
-    std::error_code ec;
     if (!bakupSessionDirPath.exists()) return Err("No sessions backup found!");
 
     if (sessionDirPath.exists()) {
@@ -1355,11 +1366,11 @@ Result<> StatsManager::convertV2SaveToV3(const std::string& levelKey) {
         v3Session.data.runs = std::move(sessionRunsResult).unwrap();
         v3Session.data.newBests = v2session.newBests;
         v3Session.sessionStartDate = v2session.sessionStartDate;
+        v3Session.legacyData = v3Session.data;
 
         if (setSession(v3Session, levelKey, v3Session.sessionStartDate, false).isErr()) return Err("Failed to write V3 session! session sd: {}", v3Session.sessionStartDate);
     }
 
-    std::error_code ec;
     auto removeV2PathRes = asp::fs::remove(v2Path);
     if (removeV2PathRes.isErr()) return Err("Failed to erase old data: {}", removeV2PathRes.unwrapErr());
 

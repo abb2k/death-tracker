@@ -305,6 +305,50 @@ Result<> ComplexDeathMap::merge(const ComplexDeathMap& other) {
     return Ok();
 }
 
+ComplexDeathMap ComplexDeathMap::filterOccurrences(const std::vector<SessionTimestampRange>& ranges) const {
+    ComplexDeathMap filtered;
+
+    for (const auto& [key, death] : records) {
+        ComplexDeath matching = death;
+        matching.deaths = 0;
+        matching.occurrences.clear();
+
+        for (const auto& occurrence : death.occurrences) {
+            auto timestamp = occurrence.runEndTimestamp ? occurrence.runEndTimestamp : occurrence.runStartTimestamp;
+            if (!timestamp.has_value())
+                continue;
+
+            auto inRange = std::any_of(ranges.begin(), ranges.end(), [&](const SessionTimestampRange& range) {
+                return timestamp.value() >= range.start && timestamp.value() <= range.end;
+            });
+            if (inRange)
+                matching.occurrences.push_back(occurrence);
+        }
+
+        matching.deaths = matching.occurrences.size();
+        if (matching.deaths != 0)
+            filtered.records.emplace(key, std::move(matching));
+    }
+
+    return filtered;
+}
+
+void Session::recordTimestamp(long long timestamp) {
+    auto latestRange = timeRanges.end();
+    for (auto it = timeRanges.begin(); it != timeRanges.end(); ++it) {
+        if (timestamp >= it->start && (latestRange == timeRanges.end() || it->start > latestRange->start))
+            latestRange = it;
+    }
+
+    if (latestRange != timeRanges.end()) {
+        latestRange->end = std::max(latestRange->end, timestamp);
+        return;
+    }
+
+    auto start = !legacyData.has_value() && sessionStartDate > 0 && timestamp >= sessionStartDate ? sessionStartDate : timestamp;
+    timeRanges.push_back({ start, std::max(start, timestamp) });
+}
+
 PlaytimePair& PlaytimePair::operator+=(const PlaytimePair& other) {
     playtimeF0 += other.playtimeF0;
     playtimeRuns += other.playtimeRuns;
@@ -481,23 +525,83 @@ matjson::Value matjson::Serialize<GeneralData>::toJson(const GeneralData& value)
     });
 }
 
+Result<SessionTimestampRange> matjson::Serialize<SessionTimestampRange>::fromJson(const matjson::Value& value) {
+    SessionTimestampRange range;
+    GEODE_UNWRAP_INTO(range.start, value["start"].as<long long>());
+    GEODE_UNWRAP_INTO(range.end, value["end"].as<long long>());
+    if (range.end < range.start)
+        return Err("Session timestamp range ends before it starts");
+    return Ok(range);
+}
+
+matjson::Value matjson::Serialize<SessionTimestampRange>::toJson(const SessionTimestampRange& value) {
+    return matjson::makeObject({
+        { "start", value.start },
+        { "end", value.end }
+    });
+}
+
 Result<Session> matjson::Serialize<Session>::fromJson(const matjson::Value& value) {
     Session session;
     GEODE_UNWRAP_INTO(session.lastPlayed, value["lastPlayed"].as<long long>());
     GEODE_UNWRAP_INTO(session.sessionStartDate, value["sessionStartDate"].as<long long>());
-    GEODE_UNWRAP_INTO(session.data, value.as<GeneralData>());
-    if (value.contains("data")) {
-        GEODE_UNWRAP_INTO(session.data, value["data"].as<GeneralData>());
+    if (value.contains("timeRanges")) {
+        GEODE_UNWRAP_INTO(session.timeRanges, value["timeRanges"].as<std::vector<SessionTimestampRange>>());
     }
+    if (value.contains("dataIsOverride")) {
+        GEODE_UNWRAP_INTO(session.dataIsOverride, value["dataIsOverride"].asBool());
+    }
+
+    GeneralData savedData;
+    if (value.contains("data")) {
+        GEODE_UNWRAP_INTO(savedData, value["data"].as<GeneralData>());
+    }
+
+    if (value.contains("legacyData")) {
+        GEODE_UNWRAP_INTO(session.legacyData, value["legacyData"].as<GeneralData>());
+    }
+
+    if (session.dataIsOverride) {
+        session.data = std::move(savedData);
+    }
+    else if (session.legacyData.has_value()) {
+        session.data = session.legacyData.value();
+        session.data.newBests = std::move(savedData.newBests);
+        session.data.playtimeGeneral = savedData.playtimeGeneral;
+        session.data.playtimePaused = savedData.playtimePaused;
+        session.data.playtimeDead = savedData.playtimeDead;
+    }
+    else {
+        session.data = std::move(savedData);
+        if (session.timeRanges.empty() && value.contains("data"))
+            session.legacyData = session.data;
+    }
+
     return Ok(session);
 }
 
 matjson::Value matjson::Serialize<Session>::toJson(const Session& value) {
-    return matjson::makeObject({
+    auto json = matjson::makeObject({
         { "lastPlayed", value.lastPlayed },
         { "sessionStartDate", value.sessionStartDate },
-        { "data", value.data }
+        { "timeRanges", value.timeRanges }
     });
+
+    if (value.dataIsOverride) {
+        json["data"] = value.data;
+        json["dataIsOverride"] = true;
+    }
+    else {
+        if (value.legacyData.has_value())
+            json["legacyData"] = value.legacyData.value();
+
+        auto sessionData = value.data;
+        sessionData.deaths = {};
+        sessionData.runs = {};
+        json["data"] = sessionData;
+    }
+
+    return json;
 }
 
 Result<Section> matjson::Serialize<Section>::fromJson(const matjson::Value& value) {

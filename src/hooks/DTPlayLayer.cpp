@@ -261,8 +261,12 @@ void DTPlayLayer::destroyPlayer(PlayerObject* player, GameObject* p1) {
 }
 
 void DTPlayLayer::saveRun() {
-    if (Settings::getSafeMode()) return;
-    if (!isLegal()) return;
+    if (Settings::getSafeMode()) {
+        return;
+    }
+    if (!isLegal()) {
+        return;
+    }
 
     m_fields->currentRun.endTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
 
@@ -379,13 +383,11 @@ void DTPlayLayer::pauseGame(bool unfocused) {
         }
     }
 
-
     // log::info("PlayLayer::onQuit()");
 
     // schedule session gets reset
     // this cancels creating a new session
     // if they back out before dying
-    StatsManager::scheduleCreateNewSession(false);
     DTPlayLayer::updateSessionLastPlayed();
 }
 
@@ -446,6 +448,7 @@ void DTPlayLayer::onExit() {
 void DTPlayLayer::startGame() {
     PlayLayer::startGame();
 
+    m_fields->hasRespawned = true;
     if (!m_fields->currentRun.start.has_value())
         m_fields->currentRun.start = 0.0;
     m_fields->currentRun.startTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
@@ -473,7 +476,7 @@ void DTPlayLayer::playPlatformerEndAnimationToPos(cocos2d::CCPoint position, boo
 }
 
 bool DTPlayLayer::isLegal() {
-    if (Settings::getCheatDetect() && (m_fields->nolcip || m_isIgnoreDamageEnabled || m_ignoreDamage || m_fields->speedhack)) return false;
+    if (Settings::getCheatDetect() && (m_fields->nolcip || m_ignoreDamage || m_fields->speedhack)) return false;
 
     return true;
 }
@@ -484,6 +487,11 @@ void DTPlayLayer::postUpdate(float dt) {
 }
 
 void DTPlayLayer::checkDelta(float delta) {
+    if (m_ignoreDamage && !m_fields->nolcip) {
+        log::warn("Noclip Detected!");
+        m_fields->nolcip = true;
+    }
+
     if (m_player1->m_isDead || m_isPaused) return;
 
     auto now = std::chrono::steady_clock::now();
@@ -539,6 +547,7 @@ void DTPlayLayer::updateTimeWarp(float timeWarp) {
     m_fields->gameTimeHistory.clear();
     m_fields->rollingRealSum = 0;
     m_fields->rollingGameSum = 0;
+    m_fields->speedhackCompare.reset();
 }
 
 void DTPlayLayer::savePlaytime() {
@@ -547,6 +556,7 @@ void DTPlayLayer::savePlaytime() {
         session->data.playtimeGeneral += m_fields->timePassedGeneral;
         session->data.playtimeDead += m_fields->timePassedDead;
         session->data.playtimePaused += m_fields->timePassedPaused;
+        session->recordTimestamp(StatsManager::getNowSeconds());
         (void)StatsManager::setSession(*session, m_level, session->sessionStartDate, false);
     }
 

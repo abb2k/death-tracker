@@ -295,10 +295,12 @@ void ImportCompletePopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
                 else {
                     auto sess = currSession.unwrap();
                     sess.data += session.data;
+                    sess.dataIsOverride = !DoAddGeneralToggler->isToggled();
                     (void)StatsManager::setSession(sess, key, session.sessionStartDate, false);
                 }
             }
             else {
+                session.dataIsOverride = !DoAddGeneralToggler->isToggled();
                 (void)StatsManager::setSession(session, key, session.sessionStartDate, false);
             }
         }
@@ -324,6 +326,7 @@ void ImportCompletePopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
         
         for (auto& session : selectedSessions)
         {
+            session.dataIsOverride = session.dataIsOverride || !DoAddGeneralToggler->isToggled() || data.from0.isErr();
             (void)StatsManager::setSession(session, key, session.sessionStartDate, false);
         }
     }
