@@ -262,6 +262,10 @@ void AdvancedScrollLayer::setHorizontalScrollbarPosition(bool onTop) {
 }
 
 void AdvancedScrollLayer::setLimits(CCSize newLimits) {
+    CCSize oldSize = content->getContentSize();
+    CCPoint oldPosition = content->getPosition();
+    float oldScale = zoomParent->getScale();
+
     CCSize newLimitedLimits = content->getContentSize();
     if (newLimits.width > this->getContentWidth()) newLimitedLimits.width = newLimits.width;
     if (newLimits.height > this->getContentHeight()) newLimitedLimits.height = newLimits.height;
@@ -272,8 +276,11 @@ void AdvancedScrollLayer::setLimits(CCSize newLimits) {
     if (gridNode != nullptr)
         drawGrid(gridsquareSize, gridLineWidth, gridColor);
 
-    moveTo(content->getPosition());
-    zoomBy(0);
+    zoomTo(oldScale);
+
+    CCPoint oldCenterPoint = oldSize / 2 - oldPosition / oldScale;
+    CCPoint newPosition = (newLimitedLimits / 2 - oldCenterPoint) * zoomParent->getScale();
+    moveTo(newPosition);
 }
 
 void AdvancedScrollLayer::setLimitsWidth(float width) {

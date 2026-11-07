@@ -2110,10 +2110,6 @@ void DTLayer::update(float dt) {
 
     if (oldWidth != width) {
         scrollLayer->setLimitsWidth(width);
-        scrollLayer->zoomBy(0);
-        float delta = scrollLayer->content->getContentWidth() - oldWidth;
-
-        scrollLayer->moveBy(ccp(delta / 2, 0));
     }
 }
 
@@ -2133,32 +2129,24 @@ void DTLayer::organizeLayout() {
             }
 
             float cappedHeight = std::max(fixedhighest, ogLimits.height);
-
             float oldHeightLimits = scrollLayer->content->getContentHeight();
-
-            float oldTop = scrollLayer->getMaximumPosition(false);
-            float oldBottom = scrollLayer->getMinimumPosition(false);
-            float oldHeight = oldBottom - oldTop;
-
-            float offsetFromTop = scrollLayer->content->getPositionY() - oldTop;
+            float oldMinimumPosition = scrollLayer->getMinimumPosition(false);
+            float oldMaximumPosition = scrollLayer->getMaximumPosition(false);
+            float oldPositionRange = oldMaximumPosition - oldMinimumPosition;
+            float scrollProgress = oldPositionRange > 0
+                ? std::clamp((scrollLayer->content->getPositionY() - oldMinimumPosition) / oldPositionRange, 0.f, 1.f)
+                : 0.5f;
 
             scrollLayer->setLimitsHeight(cappedHeight);
+            float delta = oldHeightLimits - scrollLayer->content->getContentHeight();
+            float newMinimumPosition = scrollLayer->getMinimumPosition(false);
+            float newMaximumPosition = scrollLayer->getMaximumPosition(false);
+            float newPositionY = newMinimumPosition + scrollProgress * (newMaximumPosition - newMinimumPosition);
+            scrollLayer->moveTo({scrollLayer->content->getPositionX(), newPositionY});
+
             columnHolder->setPositionY(cappedHeight);
             columnHolder->updateLayout();
             labelsHolder->setPosition(columnHolder->getPosition());
-
-            float delta = 0;
-
-            delta = oldHeightLimits - scrollLayer->content->getContentHeight();
-
-            scrollLayer->moveBy(ccp(0, delta / 2));
-            float newTop = scrollLayer->getMaximumPosition(false);
-            float newBottom = scrollLayer->getMinimumPosition(false);
-            float newHeight = newBottom - newTop;
-
-            float newOffset = offsetFromTop * (newHeight / oldHeight);
-
-            scrollLayer->content->setPositionY(newTop + newOffset);
 
             for (const auto& [label, newPos, newWidth] : result.labelData)
             {
