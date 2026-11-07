@@ -876,14 +876,14 @@ void DTLayer::onEditLayout(CCObject*) {
 }
 
 bool DTLayer::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) {
-    if (doMoveScroll)
+    if (doMoveScroll && !decimalPopup->isTouchOnMe(pTouch, true))
         scrollLayer->ccTouchBegan(pTouch, pEvent);
 
     return true;
 }
 
 void DTLayer::ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent) {
-    if (doMoveScroll)
+    if (doMoveScroll && !decimalPopup->isTouchOnMe(pTouch, false))
         scrollLayer->ccTouchMoved(pTouch, pEvent);
 }
 
@@ -896,7 +896,7 @@ void DTLayer::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent) {
 }
 
 void DTLayer::ccTouchesMoved(CCSet* touches, CCEvent* event) {
-    if (doMoveScroll)
+    if (doMoveScroll && !decimalPopup->isTouchOnMe(static_cast<CCTouch*>(touches->anyObject()), false))
         scrollLayer->ccTouchesMoved(touches, event);
 }
 

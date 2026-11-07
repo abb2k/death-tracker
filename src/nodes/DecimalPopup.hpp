@@ -7,13 +7,15 @@
 
 using namespace geode::prelude;
 
-class DecimalPopup : public CCNode, public CCTouchDelegate {
+class DecimalPopup : public CCNode {
     public:
         static DecimalPopup* create(CCSize size);
 
         void setDisplay(CCNode* origin, const Run& run, bool isSess, uint8_t decimalDepth, DTLabel* referenceLabel);
 
         void close();
+
+        bool isTouchOnMe(CCTouch *pTouch, bool begin);
 
     private:
         bool init(CCSize size);
@@ -24,16 +26,14 @@ class DecimalPopup : public CCNode, public CCTouchDelegate {
 
         void update(float dt) override;
 
-        // bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;
-
         void onEnter() override;
         void onExit() override;
-
-        bool isEnabled;
 
         comm::ListenerHandle donerListenerHandle;
 
         void onClose(CCObject* sender);
 
         Scrollbar* scrollBargame;
+
+        bool isHolding;
 };

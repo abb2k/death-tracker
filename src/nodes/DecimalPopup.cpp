@@ -88,12 +88,10 @@ bool DecimalPopup::init(CCSize size) {
 
 void DecimalPopup::onEnter() {
     CCNode::onEnter();
-    CCTouchDispatcher::get()->addPrioTargetedDelegate(this, -550, true);
     close();
 }
 
 void DecimalPopup::onExit() {
-    CCTouchDispatcher::get()->removeDelegate(this);
     CCNode::onExit();
 }
 
@@ -103,7 +101,6 @@ void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8
     m_scroll->setTouchEnabled(true);
     m_label->setEnabled(true);
     scrollBargame->setTouchEnabled(true);
-    isEnabled = true;
 
     auto offset = ccp(2, 3);
 
@@ -242,21 +239,20 @@ void DecimalPopup::update(float dt) {
         m_scroll->moveToTop();
 }
 
-// bool DecimalPopup::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) {
-//     if (!isEnabled)
-//         return false;
+bool DecimalPopup::isTouchOnMe(CCTouch *pTouch, bool begin) {
+    if (begin) {
+        isHolding = this->boundingBox().containsPoint(this->getParent()->convertTouchToNodeSpace(pTouch)) && this->isVisible();
+    }
+    
+    if (isHolding) {
+        return true;
+    }
 
-//     if (this->boundingBox().containsPoint(this->getParent()->convertTouchToNodeSpace(pTouch))) {
-//         return true;
-//     }
-
-//     close();
-//     return false;
-// }
+    return false;
+}
 
 void DecimalPopup::close() {
     this->setVisible(false);
-    isEnabled = false;
 
     m_scroll->setMouseEnabled(false);
     m_scroll->setTouchEnabled(false);
