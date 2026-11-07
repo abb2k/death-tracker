@@ -1563,8 +1563,11 @@ void DTColorPickerPopup::setAllChildrenEnabled(CCNode* node, bool enabled) {
         else if (auto slider = typeinfo_cast<Slider*>(n)) {
             if (enabled)
                 slider->enableSlider();
-            else
+            else {
+                auto value = slider->getValue();
                 slider->disableSlider();
+                slider->setValue(value);
+            }
         }
 
         return true;
