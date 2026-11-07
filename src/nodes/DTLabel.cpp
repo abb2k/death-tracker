@@ -10,6 +10,7 @@
 #include <utils/CCGradientAction.hpp>
 
 #include <regex>
+#include <typeinfo>
 #include <arc/task/Yield.hpp>
 
 #include <managers/AuthManager.hpp>
@@ -88,6 +89,10 @@ bool DTLabel::init(const DTLabelInfo& info) {
     labelText->registerRichTextKey(makeGradientKey([&](){ return donerRichTextEnabled; }));
     
     labelText->registerRichTextKey(makeCPlusKey());
+
+    // labelText->registerRichTextKey(makeRunButtonKey());
+
+    labelText->registerRichTextKey(makeRunMoreKey());
 
     auto textHeight = 0.0f;
     if (!info.isExpanded) textHeight = 0;
@@ -601,7 +606,7 @@ void DTLabel::setDonerRichTextEnabled(bool enabled) {
 
     donerRichTextEnabled = enabled;
     setLabelText(info.text);
-    // labelTitleArea->setText(labelTitleArea->getRawText());
+    labelTitleArea->updateContent();
 }
 
 void DTLabel::setLabelText(const std::string& text) {
@@ -800,10 +805,13 @@ arc::Future<std::string> DTLabel::modifyStrRecursive(const std::string& str) {
         if (dtLayer != nullptr && dtLayer->specialStrings.contains(key)) {
             std::string content = dtLayer->specialStrings.at(key)->getContent();
             
-            if (ignoreExtraSettings) {
-                auto res = co_await dtLayer->specialStrings.at(key)->getUpdatedContentAsync({
-                    {"ignoreExtraSettings", true}
-                });
+            if (ignoreExtraSettings || payload.size()) {
+
+                auto payloadCopy = payload;
+                if (ignoreExtraSettings)
+                    payloadCopy["ignoreExtraSettings"] = true;
+
+                auto res = co_await dtLayer->specialStrings.at(key)->getUpdatedContentAsync(payloadCopy);
                 if (res.isOk())
                     content = res.unwrap();
             }
@@ -941,16 +949,13 @@ std::shared_ptr<RichTextKey<GradientKeyParams>> DTLabel::makeGradientKey(geode::
 
             return Ok(std::make_tuple(colorA, colorB, transitionDuration, stagger));
         },
-        [donerRichTextEnabled = std::move(donerRichTextEnabled)](GradientKeyParams const& value, cocos2d::CCFontSprite* sprite, int, int) mutable {
+        [donerRichTextEnabled = std::move(donerRichTextEnabled)](GradientKeyParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int) mutable {
             if (!donerRichTextEnabled()) return;
 
             auto colorA = std::get<0>(value);
             auto colorB = std::get<1>(value);
             auto transitionDuration = std::get<2>(value);
             auto stagger = std::get<3>(value);
-            auto line = typeinfo_cast<cocos2d::CCLabelBMFont*>(sprite->getParent());
-            auto lineText = line ? std::string(line->getString()) : "";
-            auto columnIndex = std::max(0, static_cast<int>(lineText.size()) - 1);
 
             if (sprite->getActionByTag(12) != nullptr) return;
 
@@ -958,7 +963,7 @@ std::shared_ptr<RichTextKey<GradientKeyParams>> DTLabel::makeGradientKey(geode::
                 transitionDuration,
                 colorA,
                 colorB,
-                -stagger * columnIndex
+                -stagger * localIndex
             ));
             animation->setTag(12);
 
@@ -996,4 +1001,111 @@ std::shared_ptr<RichTextKey<CPlusKeyParams>> DTLabel::makeCPlusKey() {
             sprite->setColor(newColor);
         }
     );
+}
+
+
+//clickable text key im commenting cz it annoying yarg
+// std::shared_ptr<RichTextKey<RunButtonParams>> DTLabel::makeRunButtonKey() {
+//     return std::make_shared<RichTextKey<RunButtonParams>>(
+//         "runBtn",
+//         [](std::string value) -> Result<RunButtonParams> {
+//             if (value.empty()) return Err("Run empty");
+
+//             GEODE_UNWRAP_INTO(auto run, StatsManager::splitRunKey(value));
+
+//             return Ok(run);
+//         },
+//         [&](RunButtonParams const& value, int keyState, bool hoverClickOn, cocos2d::CCFontSprite* specificSpriteClicked, std::set<cocos2d::CCFontSprite*> const& wordClicked) {
+//             this->onRunButtonClick(value, keyState, hoverClickOn, specificSpriteClicked, wordClicked);
+//         }
+//     );
+// }
+
+// void DTLabel::onRunButtonClick(RunButtonParams const& value, int keyState, bool hoverClickOn, cocos2d::CCFontSprite* specificSpriteClicked, std::set<cocos2d::CCFontSprite*> const& wordClicked) {
+//     auto scaleWord = [&](float scale) {
+//         for (const auto& fontSpr : wordClicked) {
+//             fontSpr->stopActionByTag(13);
+
+//             auto scaleAction = CCEaseExponentialOut::create(CCScaleTo::create(0.25f, scale));
+//             scaleAction->setTag(13);
+//             fontSpr->runAction(scaleAction);
+//         }
+//     };
+
+//     if (!hoverToggle && hoverClickOn && (keyState == 2 || keyState == 1)) {
+//         hoverToggle = true;
+//         scaleWord(1.1f);
+//     }
+//     else if (hoverToggle && !hoverClickOn && (keyState == 3 || keyState == 2) || hoverToggle && keyState == 3) {
+//         hoverToggle = false;
+//         scaleWord(1.0f);
+//     }
+
+// }
+
+std::shared_ptr<RichTextKey<RunButtonParams>> DTLabel::makeRunMoreKey() {
+    return std::make_shared<RichTextKey<RunButtonParams>>(
+        "runMoreBtn",
+        [](std::string value) -> Result<RunButtonParams> {
+            if (value.empty()) return Err("Run more empty");
+
+            auto splitStr = utils::string::split(value, ",");
+
+            if (splitStr.size() != 2)
+                return Err("Run more format invalid");
+
+            GEODE_UNWRAP_INTO(auto run, StatsManager::splitRunKey(splitStr[0]));
+            bool isSess = (splitStr[1] == "true");
+
+            return Ok(std::make_tuple(run, isSess));
+        },
+        [&](RunButtonParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
+            auto line = static_cast<CCLabelBMFont*>(sprite->getParent());
+            auto menuParent = line->getParent();
+            auto buttonPosition = menuParent->convertToNodeSpace(line->convertToWorldSpace(sprite->getPosition()));
+
+            auto btnSpr = CCScale9Sprite::create("square02_small.png");
+            btnSpr->setOpacity(100);
+
+            auto btnLabel = geode::Label::create("...", info.font);
+            btnLabel->setColor(line->getColor());
+            btnLabel->setOpacity(line->getOpacity());
+            btnLabel->setLineSpacing(btnLabel->getLineHeight() / 2);
+            btnLabel->setExtraKerning(1);
+
+            auto characterSize = sprite->getContentSize();
+            auto buttonSize = std::min(characterSize.width, characterSize.height) * .85f;
+            auto sourceSize = btnSpr->getContentSize();
+            auto sliceSize = std::max(buttonSize, std::max(sourceSize.width, sourceSize.height));
+            btnSpr->setContentSize({sliceSize, sliceSize});
+            btnSpr->setScale(buttonSize / sliceSize);
+            btnLabel->setScale(.6f / btnSpr->getScale());
+            btnSpr->addChild(btnLabel);
+            btnLabel->setPosition(btnSpr->getContentSize() / 2);
+
+            btnSpr->setScale(btnSpr->getScale() * line->getScale());
+
+            auto moreBtn = CCMenuItemSpriteExtra::create(
+                btnSpr,
+                this,
+                menu_selector(DTLabel::onRunMoreClicked)
+            );
+            btnSpr->setPosition(moreBtn->getContentSize() / 2);
+            moreBtn->setPosition(buttonPosition);
+            moreBtn->setID(StatsManager::createRunKey(std::get<0>(value)).unwrap());
+            moreBtn->setTag(std::get<1>(value) ? 1 : 0);
+
+            menuParent->addChild(moreBtn);
+            sprite->setOpacity(0);
+        }
+    );
+}
+
+void DTLabel::onRunMoreClicked(CCObject* sender) {
+    auto moreBtn = static_cast<CCMenuItemSpriteExtra*>(sender);
+    auto runKeyRes = StatsManager::splitRunKey(moreBtn->getID());
+
+    if (runKeyRes.isErr()) return;
+    
+    DTLayer::get()->openDecimalFor(moreBtn, runKeyRes.unwrap(), moreBtn->getTag() == 1, this);
 }

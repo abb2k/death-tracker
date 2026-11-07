@@ -23,4 +23,5 @@ public:
     static bool getCheatDetect();
     static bool getDisablePractice();
     static bool is12HourClockFormat();
+    static int getDecimalPrecision();
 };

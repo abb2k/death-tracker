@@ -778,6 +778,9 @@ bool DTLayer::init(GJGameLevel* const& level) {
     auto layoutInfoMenu = CCMenu::createWithItem(layoutInfo);
     layoutInfoMenu->setPosition({0, 0});
     m_mainLayer->addChild(layoutInfoMenu);
+ 
+    decimalPopup = DecimalPopup::create({200, scrollLayer->content->getParent()->getContentHeight() / 2.f});
+    scrollLayer->content->addChild(decimalPopup);
 
     donerListenerHandle = OnDonerStateChangedEvent().listen([&](bool state) { return onDonerStateChanged(state); });
 
@@ -1164,6 +1167,12 @@ void DTLayer::populateSpecialStrings() {
     runAttKey->refreshWith(runsKey->getKey());
     runAttKey->setUpdateFunction(BIND_UPDATE_FUNC(DTLayer::onRunAttemptsKey));
     addSpecialString(runAttKey);
+
+    auto dynamicDecimalKey = std::make_shared<SpecialKey>("dynamicDecimal", "Gets how many death tracker attempts youve played from each start position");
+    dynamicDecimalKey->refreshWith(generalKey->getKey());
+    dynamicDecimalKey->refreshWith(runsKey->getKey());
+    dynamicDecimalKey->setUpdateFunction(BIND_UPDATE_FUNC(DTLayer::onDynamicDecimalKey));
+    addSpecialString(dynamicDecimalKey);
 }
 
 void DTLayer::UpdateSharedStats() {
@@ -1380,17 +1389,17 @@ void DTLayer::updateStaticGroupings() {
     }  
 }
 
-bool DTLayer::createDeathsString(const Deaths& deaths, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests, const CustomizationData& newBestCustomizations, bool ignoreExtraSettings) {
+bool DTLayer::createDeathsString(const Deaths& deaths, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests, const CustomizationData& newBestCustomizations, bool ignoreExtraSettings, bool isSession) {
     out = "";
     if (m_MyLevelStats.isErr()) return false;
     auto& stats = m_MyLevelStats.unwrap();
 
-    auto toReturn = createDeathsString(deaths, stats.metadata, custom, out, newBests, newBestCustomizations, ignoreExtraSettings);
+    auto toReturn = createDeathsString(deaths, stats.metadata, custom, out, newBests, newBestCustomizations, ignoreExtraSettings, isSession);
 
     return toReturn;
 }
 
-bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests,  const CustomizationData& newBestCustomizations, bool ignoreExtraSettings) {
+bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests,  const CustomizationData& newBestCustomizations, bool ignoreExtraSettings, bool isSession) {
     out = "";
 
     const auto isNewBest = [&](double percent) {
@@ -1475,24 +1484,36 @@ bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadeta& meta
         std::string nbColor;
 
         if (includeRunStart && !ignoreExtraSettings) {
-            int startValue = runSplit.start.value();
+            int startValue = static_cast<int>(std::floor(runSplit.start.value()));
 
             if (!meta.showAnyRun && !meta.runsToShow.empty()) {
                 auto it = meta.runsToShow.find(startValue);
 
                 if (it != meta.runsToShow.end()) {
                     if (it->second > runSplit.end) {
+                        if (std::numeric_limits<uint64_t>::max() - hiddenRuns < amount) {
+                            log::error("Hidden death count overflow while formatting decimal deaths");
+                            return false;
+                        }
                         hiddenRuns += amount;
                         continue;
                     }
                 }
                 else {
+                    if (std::numeric_limits<uint64_t>::max() - hiddenRuns < amount) {
+                        log::error("Hidden death count overflow while formatting decimal deaths");
+                        return false;
+                    }
                     hiddenRuns += amount;
                     continue;
                 }
             }
             else {
                 if (meta.sharedRunToShow > runSplit.end - startValue) {
+                    if (std::numeric_limits<uint64_t>::max() - hiddenRuns < amount) {
+                        log::error("Hidden death count overflow while formatting decimal deaths");
+                        return false;
+                    }
                     hiddenRuns += amount;
                     continue;
                 }
@@ -1505,6 +1526,10 @@ bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadeta& meta
         }
         else if (!includeRunStart && !ignoreExtraSettings) {
             if (meta.hideUpto > runSplit.end && runSplit.end >= 0) {
+                if (std::numeric_limits<uint64_t>::max() - hiddenRuns < amount) {
+                    log::error("Hidden death count overflow while formatting decimal deaths");
+                    return false;
+                }
                 hiddenRuns += amount;
                 continue;
             }
@@ -1571,10 +1596,288 @@ bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadeta& meta
             }
         }
 
+        auto runKey = StatsManager::createRunKey(runSplit);
+
+        if (runKey.isOk()) {
+            // nbColor += fmt::format("<runBtn={}>", runKey.unwrap());
+            // nbDeColor += "</runBtn>";
+
+            nbDeColor += fmt::format(" <runMoreBtn={},{}>C</runMoreBtn>", runKey.unwrap(), isSession);
+        }
+
         int currentStart = runSplit.start.value_or(-1);
 
         if (prevStart != currentStart) {
             if (prevStart != -2) {
+                out += "----------{nl}";
+            }
+
+            prevStart = currentStart;
+        }
+
+        auto format = custom.format;
+
+        std::string toReplaceWith =
+            includeRunStart
+                ? fmt::format("{}-{}", runSplit.start.value(), runSplit.end)
+                : fmt::format("{}", runSplit.end);
+
+        format = std::regex_replace(
+            format,
+            std::regex("\\{per\\}"),
+            toReplaceWith
+        );
+
+        format = std::regex_replace(
+            format,
+            std::regex("\\{d\\}"),
+            std::to_string(amount)
+        );
+
+        out += fmt::format(
+            "{}{}{}{}",
+            nbColor,
+            format,
+            nbDeColor,
+            custom.seperator
+        );
+
+        runIndex++;
+    }
+
+    if (out.empty() && hiddenRuns == 0) {
+        out = "No Deaths Found!";
+    }
+    else {
+        if (!custom.seperator.empty() && out.size() >= custom.seperator.size()) {
+            out.erase(out.size() - custom.seperator.size());
+        }
+    }
+
+    if (hiddenRuns != 0) {
+        if (!out.empty()) {
+            out += "{nl}";
+        }
+
+        out += fmt::format("{}x hidden", hiddenRuns);
+    }
+
+    return true;
+}
+
+bool DTLayer::createDecimalDeathsString(const ComplexDeathMap& deaths, const Run& selectedRun, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests,  const CustomizationData& newBestCustomizations, bool ignoreExtraSettings, uint8_t decimalDepth) {
+    out = "";
+
+    if (decimalDepth > ComplexPercent::maxDecimalDepth) {
+        log::error("Decimal depth must be between 0 and {}", ComplexPercent::maxDecimalDepth);
+        return false;
+    }
+
+    ComplexPercent::Units decimalFactor = 1;
+    for (auto depth = decimalDepth; depth < ComplexPercent::maxDecimalDepth; ++depth)
+        decimalFactor *= 10;
+
+    const auto floorToDecimalDepth = [decimalFactor](ComplexPercent::Units units) {
+        auto quotient = units / decimalFactor;
+        if (units < 0 && units % decimalFactor != 0)
+            --quotient;
+        return quotient * decimalFactor;
+    };
+
+    const auto isNewBest = [&](ComplexPercent::Units percentUnits) {
+        if (!newBests)
+            return false;
+
+        return std::any_of(newBests->begin(), newBests->end(), [&](double bestPercent) {
+            auto parsedBest = ComplexPercent::fromPercent(bestPercent);
+            return parsedBest.isOk() && floorToDecimalDepth(parsedBest.unwrap().units) == percentUnits;
+        });
+    };
+
+    std::vector<std::pair<std::string, uint64_t>> deathVec;
+
+    std::unordered_map<std::string, uint64_t> mergedDeaths;
+    for (const auto& [run, death] : deaths.records) {
+        Run runSplit{
+            run.second.has_value()
+                ? std::optional<double>(ComplexPercent{floorToDecimalDepth(*run.second)}.asPercent())
+                : std::nullopt,
+            ComplexPercent{floorToDecimalDepth(run.first)}.asPercent()
+        };
+
+        if (!ignoreExtraSettings) {
+            if (runSplit.end >= meta.realEndPercent)
+                runSplit.end = 100;
+
+            if (runSplit.start && runSplit.start.value() >= meta.realEndPercent)
+                runSplit.start = 100;
+        }
+
+        if (std::floor(runSplit.end) != std::floor(selectedRun.end))
+            continue;
+        if (runSplit.start.has_value() != selectedRun.start.has_value())
+            continue;
+        if (runSplit.start && std::floor(runSplit.start.value()) != std::floor(selectedRun.start.value()))
+            continue;
+
+        auto res = StatsManager::createRunKey(runSplit);
+        if (res.isErr()) continue;
+        auto& mergedCount = mergedDeaths[res.unwrap()];
+        if (std::numeric_limits<uint64_t>::max() - mergedCount < death.deaths) {
+            log::error("Death count overflow while formatting decimal deaths");
+            return false;
+        }
+        mergedCount += death.deaths;
+    }
+
+    deathVec.assign(mergedDeaths.begin(), mergedDeaths.end());
+        
+
+    std::sort(deathVec.begin(), deathVec.end(), [](const auto& a, const auto& b) {
+        auto runARes = StatsManager::splitRunKey(a.first);
+        auto runBRes = StatsManager::splitRunKey(b.first);
+
+        if (runARes.isErr() || runBRes.isErr()) {
+            log::error(
+                "Failed to split run key! {} | {}",
+                runARes.isErr() ? runARes.unwrapErr() : "",
+                runBRes.isErr() ? runBRes.unwrapErr() : ""
+            );
+
+            return a.first < b.first;
+        }
+
+        auto& runA = runARes.unwrap();
+        auto& runB = runBRes.unwrap();
+
+        if (runA.start == runB.start)
+            return runA.end < runB.end;
+
+        return runA.start < runB.start;
+    });
+
+    std::optional<double> prevStart;
+    uint64_t hiddenRuns = 0;
+    int runIndex = 0;
+
+    for (const auto& [run, amount] : deathVec) {
+        auto runSplitRes = StatsManager::splitRunKey(run);
+
+        if (runSplitRes.isErr()) {
+            log::error("Failed to split run key! {}", runSplitRes.unwrapErr());
+            continue;
+        }
+
+        auto& runSplit = runSplitRes.unwrap();
+
+        bool includeRunStart = runSplit.start.has_value();
+
+        std::string nbDeColor;
+        std::string nbColor;
+
+        if (includeRunStart && !ignoreExtraSettings) {
+            int startValue = static_cast<int>(std::floor(runSplit.start.value()));
+
+            if (!meta.showAnyRun && !meta.runsToShow.empty()) {
+                auto it = meta.runsToShow.find(startValue);
+
+                if (it != meta.runsToShow.end()) {
+                    if (it->second > runSplit.end) {
+                        hiddenRuns += amount;
+                        continue;
+                    }
+                }
+                else {
+                    hiddenRuns += amount;
+                    continue;
+                }
+            }
+            else {
+                if (meta.sharedRunToShow > runSplit.end - startValue) {
+                    hiddenRuns += amount;
+                    continue;
+                }
+            }
+
+            if (runIndex % 2 == 0) {
+                nbDeColor = "</cplus>";
+                nbColor = fmt::format("<cplus={}>", custom.alternateStrength);
+            }
+        }
+        else if (!includeRunStart && !ignoreExtraSettings) {
+            if (meta.hideUpto > runSplit.end && runSplit.end >= 0) {
+                hiddenRuns += amount;
+                continue;
+            }
+
+            auto endPercent = ComplexPercent::fromPercent(runSplit.end);
+            if (endPercent.isOk() && isNewBest(endPercent.unwrap().units)) {
+                nbDeColor = fmt::format("</color>{}{}",
+                    newBestCustomizations.gradientEnabled && AuthManager::isDoner() ? "</gradient>" : "",
+                    newBestCustomizations.waveEnabled && AuthManager::isDoner() ? "</wave>" : ""
+                );
+
+                std::string colorKey = fmt::format("<color={}>", cc4bToHexString(newBestCustomizations.color));
+                std::string gradientKey = fmt::format("<gradient={},{},{},{}>",
+                    cc4bToHexString(newBestCustomizations.gradient.colorA),
+                    cc4bToHexString(newBestCustomizations.gradient.colorB),
+                    newBestCustomizations.gradient.duration,
+                    newBestCustomizations.gradient.stagger
+                );
+                std::string waveKey = fmt::format("<wave={},{},{},{}>",
+                    newBestCustomizations.wave.speed,
+                    newBestCustomizations.wave.distanceY,
+                    newBestCustomizations.wave.distanceX,
+                    newBestCustomizations.wave.offsetPerIndex
+                );
+
+                nbColor = fmt::format(
+                    "{}{}{}",
+                    colorKey,
+                    newBestCustomizations.gradientEnabled && AuthManager::isDoner() ? gradientKey : "",
+                    newBestCustomizations.waveEnabled && AuthManager::isDoner() ? waveKey : ""
+                );
+            }
+            else if (runIndex % 2 == 0) {
+                nbDeColor = "</cplus>";
+                nbColor = fmt::format("<cplus={}>", custom.alternateStrength);
+            }
+        }
+        else {
+            auto endPercent = ComplexPercent::fromPercent(runSplit.end);
+            if (endPercent.isOk() && isNewBest(endPercent.unwrap().units)) {
+                nbDeColor = fmt::format("</color>{}{}",
+                    newBestCustomizations.gradientEnabled && AuthManager::isDoner() ? "</gradient>" : "",
+                    newBestCustomizations.waveEnabled && AuthManager::isDoner() ? "</wave>" : ""
+                );
+
+                std::string colorKey = fmt::format("<color={}>", cc4bToHexString(newBestCustomizations.color));
+                std::string gradientKey = fmt::format("<gradient={},{},{},{}>",
+                    cc4bToHexString(newBestCustomizations.gradient.colorA),
+                    cc4bToHexString(newBestCustomizations.gradient.colorB),
+                    newBestCustomizations.gradient.duration,
+                    newBestCustomizations.gradient.stagger
+                );
+                std::string waveKey = fmt::format("<wave={},{},{},{}>",
+                    newBestCustomizations.wave.speed,
+                    newBestCustomizations.wave.distanceY,
+                    newBestCustomizations.wave.distanceX,
+                    newBestCustomizations.wave.offsetPerIndex
+                );
+
+                nbColor = fmt::format(
+                    "{}{}{}",
+                    colorKey,
+                    newBestCustomizations.gradientEnabled && AuthManager::isDoner() ? gradientKey : "",
+                    newBestCustomizations.waveEnabled && AuthManager::isDoner() ? waveKey : ""
+                );
+            }
+        }
+
+        auto currentStart = runSplit.start;
+
+        if (prevStart != currentStart) {
+            if (runIndex != 0) {
                 out += "----------{nl}";
             }
 
@@ -2923,11 +3226,11 @@ UpdateFuture DTLayer::onGeneralKey(std::map<std::string, std::any> payload) {
 
     if (payload.contains("ignoreExtraSettings")) {
         if (auto ignoreExtraSettingsTemp = std::any_cast<bool>(&payload["ignoreExtraSettings"]))
-            ignoreExtraSettings = ignoreExtraSettingsTemp;
+            ignoreExtraSettings = *ignoreExtraSettingsTemp;
     }
 
     std::string out;
-    if (!createDeathsString(combinedDeaths.first, Save::getFrom0Customazations(), out, combinedDeaths.second, Save::getNewBestCustomizations(), ignoreExtraSettings))
+    if (!createDeathsString(combinedDeaths.first, Save::getFrom0Customazations(), out, combinedDeaths.second, Save::getNewBestCustomizations(), ignoreExtraSettings, false))
         co_return Err("Failed to create from0 deaths string");
 
     co_return Ok(out);
@@ -2947,11 +3250,11 @@ UpdateFuture DTLayer::onRUNSKey(std::map<std::string, std::any> payload) {
 
     if (payload.contains("ignoreExtraSettings")) {
         if (auto ignoreExtraSettingsTemp = std::any_cast<bool>(&payload["ignoreExtraSettings"]))
-            ignoreExtraSettings = ignoreExtraSettingsTemp;
+            ignoreExtraSettings = *ignoreExtraSettingsTemp;
     }
 
     std::string out;
-    if (!createDeathsString(sharedRuns, Save::getRunsCustomazations(), out, std::nullopt, CustomizationData{.color = to4B({255, 255, 255})}, ignoreExtraSettings))
+    if (!createDeathsString(sharedRuns, Save::getRunsCustomazations(), out, std::nullopt, CustomizationData{.color = to4B({255, 255, 255})}, ignoreExtraSettings, false))
         co_return Err("Failed to create run deaths string");
 
     co_return Ok(out);
@@ -2967,11 +3270,11 @@ UpdateFuture DTLayer::onS0Key(std::map<std::string, std::any> payload) {
 
     if (payload.contains("ignoreExtraSettings")) {
         if (auto ignoreExtraSettingsTemp = std::any_cast<bool>(&payload["ignoreExtraSettings"]))
-            ignoreExtraSettings = ignoreExtraSettingsTemp;
+            ignoreExtraSettings = *ignoreExtraSettingsTemp;
     }
 
     std::string out;
-    if (!createDeathsString(sessioNDeaths.first, Save::getSessionF0Customazations(), out, sessioNDeaths.second, Save::getSessionBestCustomizations(), ignoreExtraSettings))
+    if (!createDeathsString(sessioNDeaths.first, Save::getSessionF0Customazations(), out, sessioNDeaths.second, Save::getSessionBestCustomizations(), ignoreExtraSettings, true))
         co_return Err("Failed to create session from0 deaths string");
 
     co_return Ok(out);
@@ -2986,11 +3289,11 @@ UpdateFuture DTLayer::onSRUNSKey(std::map<std::string, std::any> payload) {
 
     if (payload.contains("ignoreExtraSettings")) {
         if (auto ignoreExtraSettingsTemp = std::any_cast<bool>(&payload["ignoreExtraSettings"]))
-            ignoreExtraSettings = ignoreExtraSettingsTemp;
+            ignoreExtraSettings = *ignoreExtraSettingsTemp;
     }
 
     std::string out;
-    if (!createDeathsString(sruns, Save::getRunsCustomazations(), out, std::nullopt, CustomizationData{.color = to4B({255, 255, 255})}, ignoreExtraSettings))
+    if (!createDeathsString(sruns, Save::getRunsCustomazations(), out, std::nullopt, CustomizationData{.color = to4B({255, 255, 255})}, ignoreExtraSettings, true))
         co_return Err("Failed to create session run deaths string");
 
     co_return Ok(out);
@@ -3218,11 +3521,11 @@ UpdateFuture DTLayer::onRunsTo100Key(std::map<std::string, std::any> payload) {
 
     if (payload.contains("ignoreExtraSettings")) {
         if (auto ignoreExtraSettingsTemp = std::any_cast<bool>(&payload["ignoreExtraSettings"]))
-            ignoreExtraSettings = ignoreExtraSettingsTemp;
+            ignoreExtraSettings = *ignoreExtraSettingsTemp;
     }
 
     std::string out;
-    if (!createDeathsString(to100Deaths, Save::getRunsCustomazations(), out, std::nullopt, {255, 255, 255}, ignoreExtraSettings))
+    if (!createDeathsString(to100Deaths, Save::getRunsCustomazations(), out, std::nullopt, {255, 255, 255}, ignoreExtraSettings, false))
         co_return Err("Failed to create runs to 100 string");
 
     co_return Ok(out);
@@ -3280,11 +3583,11 @@ UpdateFuture DTLayer::onBestRunsKey(std::map<std::string, std::any> payload) {
 
     if (payload.contains("ignoreExtraSettings")) {
         if (auto ignoreExtraSettingsTemp = std::any_cast<bool>(&payload["ignoreExtraSettings"]))
-            ignoreExtraSettings = ignoreExtraSettingsTemp;
+            ignoreExtraSettings = *ignoreExtraSettingsTemp;
     }
 
     std::string out;
-    if (!createDeathsString(bestRunDeaths, Save::getRunsCustomazations(), out, std::nullopt, {255, 255, 255}, ignoreExtraSettings))
+    if (!createDeathsString(bestRunDeaths, Save::getRunsCustomazations(), out, std::nullopt, {255, 255, 255}, ignoreExtraSettings, false))
         co_return Err("Failed best runs string");
 
     co_return Ok(out);
@@ -3318,11 +3621,11 @@ UpdateFuture DTLayer::onSessionRunsTo100Key(std::map<std::string, std::any> payl
 
     if (payload.contains("ignoreExtraSettings")) {
         if (auto ignoreExtraSettingsTemp = std::any_cast<bool>(&payload["ignoreExtraSettings"]))
-            ignoreExtraSettings = ignoreExtraSettingsTemp;
+            ignoreExtraSettings = *ignoreExtraSettingsTemp;
     }
 
     std::string out;
-    if (!createDeathsString(to100Deaths, Save::getRunsCustomazations(), out, std::nullopt, {255, 255, 255}, ignoreExtraSettings))
+    if (!createDeathsString(to100Deaths, Save::getRunsCustomazations(), out, std::nullopt, {255, 255, 255}, ignoreExtraSettings, true))
         co_return Err("Failed to create session runs to 100 string");
 
     co_return Ok(out);
@@ -3374,11 +3677,11 @@ UpdateFuture DTLayer::onSessionBestRunsKey(std::map<std::string, std::any> paylo
 
     if (payload.contains("ignoreExtraSettings")) {
         if (auto ignoreExtraSettingsTemp = std::any_cast<bool>(&payload["ignoreExtraSettings"]))
-            ignoreExtraSettings = ignoreExtraSettingsTemp;
+            ignoreExtraSettings = *ignoreExtraSettingsTemp;
     }
 
     std::string out;
-    if (!createDeathsString(bestRunDeaths, Save::getRunsCustomazations(), out, std::nullopt, {255, 255, 255}, ignoreExtraSettings))
+    if (!createDeathsString(bestRunDeaths, Save::getRunsCustomazations(), out, std::nullopt, {255, 255, 255}, ignoreExtraSettings, true))
         co_return Err("Failed best session runs string");
 
     co_return Ok(out);
@@ -3769,6 +4072,63 @@ UpdateFuture DTLayer::onRunAttemptsKey(std::map<std::string, std::any> payload) 
 
     if (!out.empty())
         out.erase(out.length() - custom.seperator.length());
+
+    co_return Ok(out);
+}
+
+UpdateFuture DTLayer::onDynamicDecimalKey(std::map<std::string, std::any> payload) {
+    auto decimalDepth = payload.find("decimalDepth");
+    if (decimalDepth == payload.end())
+        co_return Err("Missing decimalDepth");
+
+    auto decimalDepthValue = std::any_cast<uint8_t>(&decimalDepth->second);
+    if (!decimalDepthValue)
+        co_return Err("Invalid decimalDepth");
+
+    auto decimalRun = payload.find("decimalRun");
+    if (decimalRun == payload.end())
+        co_return Err("Missing decimalRun");
+
+    auto decimalRunValue = std::any_cast<Run>(&decimalRun->second);
+    if (!decimalRunValue)
+        co_return Err("Invalid decimalRun");
+
+    auto decimalIsSess = payload.find("decimalIsSess");
+    if (decimalIsSess == payload.end())
+        co_return Err("Missing decimalIsSess");
+
+    auto decimalIsSessValue = std::any_cast<bool>(&decimalIsSess->second);
+    if (!decimalIsSessValue)
+        co_return Err("Invalid decimalIsSess");
+
+    if (m_MyLevelStats.isErr()) co_return Err("Failed to calculate runs playtime");
+    auto myStats = m_MyLevelStats.unwrap();
+
+    GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<std::pair<ComplexDeathMap, NewBests>>([](GeneralData const& data) {
+        auto runs = data.runs;
+        StatsManager::mergeMapsAdd(runs, data.deaths);
+        return std::make_pair(runs, data.newBests);
+    },
+    [](auto const& a, auto const& b) {
+        auto map = a.first;
+        StatsManager::mergeMapsAdd(map, b.first);
+
+        auto nbs = a.second;
+        nbs.insert(b.second.begin(), b.second.end());
+
+        return std::make_pair(map, nbs);
+    }, *decimalIsSessValue));
+
+    bool ignoreExtraSettings = false;
+
+    if (payload.contains("ignoreExtraSettings")) {
+        if (auto ignoreExtraSettingsTemp = std::any_cast<bool>(&payload["ignoreExtraSettings"]))
+            ignoreExtraSettings = *ignoreExtraSettingsTemp;
+    }
+
+    std::string out;
+    if (!createDecimalDeathsString(deaths.first, *decimalRunValue, myStats.metadata, Save::getFrom0Customazations(), out, deaths.second, *decimalIsSessValue ? Save::getSessionBestCustomizations() : Save::getNewBestCustomizations(), ignoreExtraSettings, *decimalDepthValue))
+        co_return Err("Failed best session runs string");
 
     co_return Ok(out);
 }
@@ -4221,4 +4581,8 @@ ListenerResult DTLayer::onDonerStateChanged(bool state) {
     specialStrings["s0"]->updateContent();
 
     return ListenerResult::Propagate;
+}
+
+void DTLayer::openDecimalFor(CCNode* origin, const Run& run, bool isSess, DTLabel* referenceLabel) {
+    decimalPopup->setDisplay(origin, run, isSess, Settings::getDecimalPrecision(), referenceLabel);
 }

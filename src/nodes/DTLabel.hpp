@@ -13,6 +13,7 @@ using namespace geode::prelude;
 using WaveKeyParams = std::tuple<float, float, float, float>;
 using GradientKeyParams = std::tuple<ccColor4B, ccColor4B, float, float>;
 using CPlusKeyParams = int;
+using RunButtonParams = std::tuple<Run, bool>;
 
 class DTLabel : public CCMenu {
     public:
@@ -30,6 +31,8 @@ class DTLabel : public CCMenu {
         static float labelLerpSpeed;
 
         bool ignoreExtraSettings;
+
+        std::map<std::string, std::any> payload{};
 
         void removeFromColumns();
 
@@ -153,4 +156,13 @@ class DTLabel : public CCMenu {
         float doubleClickTimer = .2f;
 
         float getSpecificTitleHeight();
+
+        // std::shared_ptr<RichTextKey<RunButtonParams>> makeRunButtonKey();
+        // void onRunButtonClick(RunButtonParams const& value, int keyState, bool hoverClickOn, cocos2d::CCFontSprite* specificSpriteClicked, std::set<cocos2d::CCFontSprite*> const& wordClicked);
+        
+        // bool hoverToggle = false;
+
+        std::shared_ptr<RichTextKey<RunButtonParams>> makeRunMoreKey();
+
+        void onRunMoreClicked(CCObject* sender);
 };

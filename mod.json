@@ -77,6 +77,13 @@
 			"default": "12-hour",
 			"one-of": ["12-hour", "24-hour"]
 		},
+		"decimal-precision": {
+			"name": "Decimal Precision",
+			"description": "Select the number of decimal places to display for percentages.",
+			"type": "string",
+			"default": "2",
+			"one-of": ["1", "2", "3", "4", "5", "6"]
+		},
 		"bakcups-title":{
 			"type": "title",
 			"name": "Backups"
@@ -150,11 +157,6 @@
 			"description": "This is used to convert old saves from death tracker V2 to V3",
 			"type": "custom:button-type-dt"
 		},
-		"claim-dono":{
-			"name": "Claim Donation",
-			"description": "This is used to claim donations in the death tracker",
-			"type": "custom:claim-dono-setting-type-dt"
-		},
 		"save-path-new": {
 			"type": "folder",
 			"name": "Save Path",
@@ -175,6 +177,11 @@
 			"description": "Adds the tracker button to the level complete screen.",
 			"type": "bool",
 			"default": true
+		},
+		"claim-dono":{
+			"name": "Claim Donation",
+			"description": "This is used to claim donations in the death tracker",
+			"type": "custom:claim-dono-setting-type-dt"
 		},
 		"enter-new-line":{
 			"type": "keybind",

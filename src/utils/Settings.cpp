@@ -82,3 +82,7 @@ bool Settings::is12HourClockFormat() {
 
     return clockFormat == "12-hour";
 }
+
+int Settings::getDecimalPrecision() {
+    return utils::numFromString<int>(Mod::get()->getSettingValue<std::string>("decimal-precision")).unwrapOr(2);
+}

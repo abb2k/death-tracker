@@ -11,6 +11,7 @@
 #include <nodes/layers/LayoutOptionsLayer.hpp>
 #include <nodes/TutorialButton.hpp>
 #include <nodes/FloatingList.hpp>
+#include <nodes/DecimalPopup.hpp>
 
 using namespace geode::prelude;
 template<class T>
@@ -116,7 +117,8 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         void foreachLinkedLevel(geode::Function<void(LevelData&)> onLevelVisit);
 
-        bool createDeathsString(const Deaths& deaths, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false);
+        bool createDeathsString(const Deaths& deaths, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false, bool isSession = false);
+        bool createDecimalDeathsString(const ComplexDeathMap& deaths, const Run& selectedRun, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false, uint8_t decimalDepth = 0);
 
         void CleanGetStats();
 
@@ -162,6 +164,8 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         LayoutColumn* addColumn(std::optional<DTColumnInfo> info = std::nullopt);
 
+        void openDecimalFor(CCNode* origin, const Run& run, bool isSess, DTLabel* referenceLabel);
+
     private:
         
         std::mutex dataMutex;
@@ -177,7 +181,7 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         std::set<DTLabel*> keyListeners{};
 
-        bool createDeathsString(const Deaths& deaths, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false);
+        bool createDeathsString(const Deaths& deaths, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false, bool isSession = false);
 
         int currentSession;
 
@@ -297,6 +301,8 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         UpdateFuture onRunAttemptsKey(std::map<std::string, std::any> payload);
 
+        UpdateFuture onDynamicDecimalKey(std::map<std::string, std::any> payload);
+
         UpdateFuture getPlaytimeFor(geode::Function<uint64_t(GeneralData const&)>&& dataGetter, bool session);
         UpdateFuture getAttemptsFor(geode::Function<unsigned long long(GeneralData const&, geode::FunctionRef<unsigned long long(const Deaths&)> const&)>&& dataGetter, bool session);
 
@@ -346,4 +352,6 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
         comm::ListenerHandle donerListenerHandle;
 
         ListenerResult onDonerStateChanged(bool state);
+
+        DecimalPopup* decimalPopup;
 };
