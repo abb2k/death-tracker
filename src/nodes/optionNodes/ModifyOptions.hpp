@@ -7,6 +7,8 @@
 #include <nodes/SessionSelector.hpp>
 #include <nodes/SwitcherButton.hpp>
 
+#include <nodes/DecimalPopup.hpp>
+
 using namespace geode::prelude;
 
 
@@ -48,6 +50,7 @@ class ModifyOptions : public OptionsNode {
 
         SessionSelector* sessionSelector;
         Scrollbar* scrollbar;
+        DecimalPopup* decimalPopup;
 
         int currF0Amount = 1;
         int currRunsAmount = 1;

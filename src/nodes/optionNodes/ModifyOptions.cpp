@@ -259,12 +259,12 @@ bool ModifyOptions::setup() {
     addRunSeperator->setScale(.35f);
     runsBG->addChild(addRunSeperator);
 
-    addRunStartInput = TextInput::create(45, "S%", "gjFont17.fnt");
+    addRunStartInput = TextInput::create(35, "S%", "gjFont17.fnt");
     addRunStartInput->setPosition(addRunSeperator->getPosition() + ccp(-addRunSeperator->getScaledContentWidth() / 2 - addRunStartInput->getContentWidth() / 2 - 5, 0));
     addRunStartInput->setCommonFilter(CommonFilter::Float);
     runsBG->addChild(addRunStartInput);
 
-    addRunEndInput = TextInput::create(45, "E%", "gjFont17.fnt");
+    addRunEndInput = TextInput::create(35, "E%", "gjFont17.fnt");
     addRunEndInput->setPosition(addRunSeperator->getPosition() + ccp(addRunSeperator->getScaledContentWidth() / 2 + addRunEndInput->getContentWidth() / 2 + 5, 0));
     addRunEndInput->setCommonFilter(CommonFilter::Float);
     runsBG->addChild(addRunEndInput);
@@ -594,6 +594,7 @@ bool ModifyOptions::setup() {
     myLabel->setOpacity(0);
     myLabel->setTextColor({255, 255, 255, 0});
     myLabel->fadeTitleColorTo({255, 255, 255, 0}, 0);
+    myLabel->setRunMoreButtonsVisible(false, 0);
     Dev::fadeTextInput(sessionSelector->getTextInput(), false, 0);
 
     static_cast<CCScale9Sprite*>(scrollbar->getChildren()->objectAtIndex(0))->setOpacity(0);
@@ -655,6 +656,10 @@ bool ModifyOptions::setup() {
     f0AmountLabel->setOpacity(0);
     f0Label->setOpacity(0);
 
+    decimalPopup = DecimalPopup::create({200, size.height / 2.f});
+    myLabel->attachedDecimalPopup(decimalPopup);
+    this->addChild(decimalPopup);
+
     return true;
 }
 
@@ -686,6 +691,7 @@ void ModifyOptions::onOpened() {
     myLabel->runAction(CCFadeIn::create(fadeTime));
     myLabel->fadeTextColorTo({255, 255, 255, 255}, fadeTime);
     myLabel->fadeTitleColorTo({255, 255, 255, 255}, fadeTime);
+    myLabel->setRunMoreButtonsVisible(true, fadeTime);
     Dev::fadeTextInput(sessionSelector->getTextInput(), true, fadeTime);
     sessionSelector->setEnabled(true);
 
@@ -722,6 +728,7 @@ void ModifyOptions::onClosed() {
     myLabel->runAction(CCFadeOut::create(fadeTime));
     myLabel->fadeTextColorTo({255, 255, 255, 0}, fadeTime);
     myLabel->fadeTitleColorTo({255, 255, 255, 0}, fadeTime);
+    myLabel->setRunMoreButtonsVisible(false, fadeTime);
     Dev::fadeTextInput(sessionSelector->getTextInput(), false, fadeTime);
     sessionSelector->setEnabled(false);
 
@@ -731,6 +738,8 @@ void ModifyOptions::onClosed() {
 
     this->setEnabled(false);
     previewScroll->setMouseEnabled(false);
+
+    decimalPopup->close();
 }
 
 void ModifyOptions::update(float dt) {

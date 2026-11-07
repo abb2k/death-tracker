@@ -7,6 +7,7 @@
 #include <utils/SpecialKey.hpp>
 
 class LayoutColumn;
+class DecimalPopup;
 
 using namespace geode::prelude;
 
@@ -60,6 +61,7 @@ class DTLabel : public CCMenu {
 
         void setDonerRichTextEnabled(bool enabled);
         void setLabelText(const std::string& text);
+        void setRunMoreButtonsVisible(bool visible, float fadeTime);
 
         arc::Future<std::optional<std::string>> modifyKeys();
 
@@ -91,6 +93,8 @@ class DTLabel : public CCMenu {
         static std::shared_ptr<RichTextKey<CPlusKeyParams>> makeCPlusKey();
 
         void updateInfoWithColumnData();
+
+        void attachedDecimalPopup(DecimalPopup* popup);
 
     private:
         bool init(const DTLabelInfo& info);
@@ -163,6 +167,12 @@ class DTLabel : public CCMenu {
         // bool hoverToggle = false;
 
         std::shared_ptr<RichTextKey<RunButtonParams>> makeRunMoreKey();
+        bool runMoreButtonsVisible = true;
 
         void onRunMoreClicked(CCObject* sender);
+
+        int runMoreButtonFadeActionTag = 1;
+        GLubyte runMoreButtonOpacity = 100;
+
+        DecimalPopup* decimalPopup = nullptr;
 };

@@ -19,6 +19,7 @@ bool FloatingList::init(CCSize const& size, bool startOpen) {
     this->setContentSize(size);
 
     scrollLayer = ScrollLayer::create(size);
+    scrollLayer->ignoreAnchorPointForPosition(true);
     this->addChild(scrollLayer);
 
     scrollLayer->m_contentLayer->setLayout(ColumnLayout::create()

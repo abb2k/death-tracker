@@ -34,4 +34,6 @@ class DecimalPopup : public CCNode, public CCTouchDelegate {
         comm::ListenerHandle donerListenerHandle;
 
         void onClose(CCObject* sender);
+
+        Scrollbar* scrollBargame;
 };

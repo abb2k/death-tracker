@@ -119,6 +119,11 @@ bool RunOptions::setup() {
         }
     }
 
+    runsScrollBar = Scrollbar::create(runsScrollLayer);
+    runsScrollBar->setPosition(runsScrollLayer->getPosition() + ccp(runsScrollLayer->getScaledContentWidth() + runsScrollBar->getContentWidth() / 2, 0));
+    runsScrollBar->ignoreAnchorPointForPosition(true);
+    this->addChild(runsScrollBar);
+
     sharedHideScroll = Slider::create(this, menu_selector(RunOptions::onSharedHideScroll), .75f);
     sharedHideScroll->setPosition({
         runsScrollLayer->getPositionX() + runsScrollLayer->getScaledContentWidth() / 2 - 22,
@@ -365,6 +370,10 @@ bool RunOptions::setup() {
         }
     );
 
+    static_cast<CCScale9Sprite*>(runsScrollBar->getChildren()->objectAtIndex(0))->setOpacity(0);
+    static_cast<CCScale9Sprite*>(runsScrollBar->getChildren()->objectAtIndex(1))->setOpacity(0);
+    runsScrollBar->setTouchEnabled(false);
+
     return true;
 }
 
@@ -385,6 +394,10 @@ void RunOptions::onOpened() {
         child->show();
     }
 
+    static_cast<CCScale9Sprite*>(runsScrollBar->getChildren()->objectAtIndex(0))->runAction(CCFadeTo::create(fadeTime, 150));
+    static_cast<CCScale9Sprite*>(runsScrollBar->getChildren()->objectAtIndex(1))->runAction(CCFadeTo::create(fadeTime, 255));
+    runsScrollBar->setTouchEnabled(true);
+
     this->setEnabled(true);
 }
 void RunOptions::onClosed() {
@@ -400,6 +413,10 @@ void RunOptions::onClosed() {
     for (const auto& child : CCArrayExt<PercentCell*>(runsScrollLayer->m_contentLayer->getChildren())) {
         child->hide();
     }
+
+    static_cast<CCScale9Sprite*>(runsScrollBar->getChildren()->objectAtIndex(0))->runAction(CCFadeTo::create(fadeTime, 0));
+    static_cast<CCScale9Sprite*>(runsScrollBar->getChildren()->objectAtIndex(1))->runAction(CCFadeTo::create(fadeTime, 0));
+    runsScrollBar->setTouchEnabled(false);
 
     this->setEnabled(false);
 }

@@ -15,6 +15,9 @@
 
 #include <managers/AuthManager.hpp>
 
+#include <nodes/DecimalPopup.hpp>
+#include <utils/Settings.hpp>
+
 float DTLabel::labelTitleHeight = 15;
 float DTLabel::moveThreshold = 5;
 float DTLabel::labelLerpSpeed = 10;
@@ -630,6 +633,41 @@ void DTLabel::setLabelText(const std::string& text) {
     });
 }
 
+void DTLabel::setRunMoreButtonsVisible(bool visible, float fadeTime) {
+    runMoreButtonsVisible = visible;
+
+    auto applyVisibility = [&](auto&& self, CCNode* node) -> void {
+        if (auto button = typeinfo_cast<CCMenuItemSpriteExtra*>(node)) {
+            button->setEnabled(visible);
+
+            if (auto image = typeinfo_cast<CCScale9Sprite*>(button->getNormalImage())) {
+                image->stopActionByTag(runMoreButtonFadeActionTag);
+
+                if (fadeTime <= 0) {
+                    image->setOpacity(visible ? runMoreButtonOpacity : 0);
+                }
+                else {
+                    auto fade = CCFadeTo::create(
+                        fadeTime,
+                        visible ? runMoreButtonOpacity : 0
+                    );
+                    fade->setTag(runMoreButtonFadeActionTag);
+                    image->runAction(fade);
+                }
+            }
+        }
+
+        auto children = node->getChildren();
+        if (!children) return;
+
+        for (const auto& child : CCArrayExt<CCNode*>(children)) {
+            self(self, child);
+        }
+    };
+
+    applyVisibility(applyVisibility, labelText);
+}
+
 arc::Future<std::optional<std::string>> DTLabel::modifyKeys() {
     if (currentlyLoadingFor.size() != 0) co_return std::nullopt;
 
@@ -1079,7 +1117,9 @@ std::shared_ptr<RichTextKey<RunButtonParams>> DTLabel::makeRunMoreKey() {
             auto sliceSize = std::max(buttonSize, std::max(sourceSize.width, sourceSize.height));
             btnSpr->setContentSize({sliceSize, sliceSize});
             btnSpr->setScale(buttonSize / sliceSize);
+            btnSpr->setCascadeOpacityEnabled(true);
             btnLabel->setScale(.6f / btnSpr->getScale());
+            btnLabel->setCascadeOpacityEnabled(true);
             btnSpr->addChild(btnLabel);
             btnLabel->setPosition(btnSpr->getContentSize() / 2);
 
@@ -1090,6 +1130,9 @@ std::shared_ptr<RichTextKey<RunButtonParams>> DTLabel::makeRunMoreKey() {
                 this,
                 menu_selector(DTLabel::onRunMoreClicked)
             );
+            moreBtn->setEnabled(runMoreButtonsVisible);
+            if (!runMoreButtonsVisible)
+                btnSpr->setOpacity(0);
             btnSpr->setPosition(moreBtn->getContentSize() / 2);
             moreBtn->setPosition(buttonPosition);
             moreBtn->setID(StatsManager::createRunKey(std::get<0>(value)).unwrap());
@@ -1107,5 +1150,10 @@ void DTLabel::onRunMoreClicked(CCObject* sender) {
 
     if (runKeyRes.isErr()) return;
     
-    DTLayer::get()->openDecimalFor(moreBtn, runKeyRes.unwrap(), moreBtn->getTag() == 1, this);
+    if (decimalPopup && !isEditable)
+        decimalPopup->setDisplay(moreBtn, runKeyRes.unwrap(), moreBtn->getTag() == 1, Settings::getDecimalPrecision(), this);
+}
+
+void DTLabel::attachedDecimalPopup(DecimalPopup* popup) {
+    decimalPopup = popup;
 }

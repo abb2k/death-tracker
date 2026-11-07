@@ -34,6 +34,7 @@ bool LinkOptions::setup() {
         ->setAxisAlignment(AxisAlignment::End)
     );
     linkedScroll->setMouseEnabled(false);
+    linkedScroll->ignoreAnchorPointForPosition(true);
     this->addChild(linkedScroll);
     
     playedScroll = ScrollLayer::create({size.width / 2 - 5, size.height - 70});
@@ -49,6 +50,7 @@ bool LinkOptions::setup() {
         ->setAxisReverse(true)
         ->setAxisAlignment(AxisAlignment::End)
     );
+    playedScroll->ignoreAnchorPointForPosition(true);
     playedScroll->setMouseEnabled(false);
     this->addChild(playedScroll);
 
@@ -343,8 +345,10 @@ void LinkOptions::getAllLevelsData() {
 }
 
 void LinkOptions::onGetLevelsProgress(const GetLevelsTaskProgress& progress) {
-    geode::queueInMainThread([&, progress]() {
-        loadingLabel->setString(fmt::format("{}\n{}/{}", progress.message, progress.current, progress.max).c_str());
+    geode::queueInMainThread([WeakRef = geode::WeakRef<CCLabelBMFont>(loadingLabel), progress]() {
+        if (auto self = WeakRef.lock()) {
+            self->setString(fmt::format("{}\n{}/{}", progress.message, progress.current, progress.max).c_str());
+        }
     });
 }
 

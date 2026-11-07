@@ -400,6 +400,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
         ->setAxisAlignment(AxisAlignment::End)
         ->setAxisReverse(true)
     );
+    fontsScroll->ignoreAnchorPointForPosition(true);
     fontSelectionNode->addChild(fontsScroll);
 
     auto fontsScrollbar = Scrollbar::create(fontsScroll);
@@ -450,6 +451,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
         ->setAxisAlignment(AxisAlignment::End)
         ->setAxisReverse(true)
     );
+    specialKeysScroll->ignoreAnchorPointForPosition(true);
     specialKeysNode->addChild(specialKeysScroll);
 
     auto specialKeysScrollbar = Scrollbar::create(specialKeysScroll);

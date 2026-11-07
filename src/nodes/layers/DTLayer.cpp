@@ -149,6 +149,10 @@ bool DTLayer::init(GJGameLevel* const& level) {
         scrollLayer->getPosition(),
     };
 
+    decimalPopup = DecimalPopup::create({200, scrollLayer->content->getParent()->getContentHeight() / 2.f});
+    decimalPopup->setZOrder(3);
+    scrollLayer->content->addChild(decimalPopup);
+
     auto outline = CCDrawNode::create();
     outline->m_bUseArea = false;
     outline->drawLines(&points[0], points.size(), .5f, ccc4FFromccc4B({ 143, 143, 143, 255 }));
@@ -778,9 +782,6 @@ bool DTLayer::init(GJGameLevel* const& level) {
     auto layoutInfoMenu = CCMenu::createWithItem(layoutInfo);
     layoutInfoMenu->setPosition({0, 0});
     m_mainLayer->addChild(layoutInfoMenu);
- 
-    decimalPopup = DecimalPopup::create({200, scrollLayer->content->getParent()->getContentHeight() / 2.f});
-    scrollLayer->content->addChild(decimalPopup);
 
     donerListenerHandle = OnDonerStateChangedEvent().listen([&](bool state) { return onDonerStateChanged(state); });
 
@@ -816,6 +817,8 @@ void DTLayer::onEditLayout(CCObject*) {
             label->setEditable(true);
         }
     }
+
+    decimalPopup->close();
 
     bottomLeftMenu->setEnabled(false);
     bottomLeftMenu->stopAllActions();
@@ -2605,6 +2608,7 @@ LayoutColumn* DTLayer::addColumn(std::optional<DTColumnInfo> info) {
 DTLabel* DTLayer::createNewLabel(DTLabelInfo info) {
     auto newLabel = DTLabel::create(info);
     labelsHolder->addChild(newLabel);
+    newLabel->attachedDecimalPopup(decimalPopup);
     if (isEditingLayout) newLabel->setEditable(true);
 
     return newLabel;
@@ -4581,8 +4585,4 @@ ListenerResult DTLayer::onDonerStateChanged(bool state) {
     specialStrings["s0"]->updateContent();
 
     return ListenerResult::Propagate;
-}
-
-void DTLayer::openDecimalFor(CCNode* origin, const Run& run, bool isSess, DTLabel* referenceLabel) {
-    decimalPopup->setDisplay(origin, run, isSess, Settings::getDecimalPrecision(), referenceLabel);
 }

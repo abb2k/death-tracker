@@ -76,7 +76,7 @@ bool DecimalPopup::init(CCSize size) {
     closeBtn->setPosition({2, size.height - 7});
     buttMenu->addChild(closeBtn);
 
-    auto scrollBargame = Scrollbar::create(m_scroll);
+    scrollBargame = Scrollbar::create(m_scroll);
     scrollBargame->setPosition({size.width - 2, size.height / 2});
     scrollBargame->setAnchorPoint({1, 0.5f});
     this->addChild(scrollBargame);
@@ -102,6 +102,7 @@ void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8
     m_scroll->setMouseEnabled(true);
     m_scroll->setTouchEnabled(true);
     m_label->setEnabled(true);
+    scrollBargame->setTouchEnabled(true);
     isEnabled = true;
 
     auto offset = ccp(2, 3);
@@ -113,28 +114,96 @@ void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8
 
     this->setPosition(posNode + offset);
 
-    auto posWorldBottom = this->convertToWorldSpace({this->getContentWidth(), 0});
-    auto posNodeBottom = this->getParent()->getParent()->convertToNodeSpace(posWorldBottom);
+    bool tooFarSide;
+    bool tooFarBottom;
 
-    auto posWorldSide = this->convertToWorldSpace({this->getContentWidth(), this->getContentHeight()});
-    auto posNodeSide = this->getParent()->getParent()->convertToNodeSpace(posWorldSide);
+    auto updateFarChecks = [&]() {
+        auto posWorldBottom = this->convertToWorldSpace({this->getContentWidth(), 0});
+        auto posNodeBottom = this->getParent()->getParent()->convertToNodeSpace(posWorldBottom);
 
-    if (!this->getParent()->boundingBox().containsPoint(posNodeBottom) && this->getParent()->boundingBox().containsPoint(posNodeSide)) {
-        this->setAnchorPoint({this->getAnchorPoint().x, 0});
+        auto posWorldSide = this->convertToWorldSpace({0, this->getContentHeight()});
+        auto posNodeSide = this->getParent()->getParent()->convertToNodeSpace(posWorldSide);
 
-        auto posWorld = origin->convertToWorldSpace({origin->getContentWidth(), 0});
+        tooFarSide = !this->getParent()->boundingBox().containsPoint(posNodeSide);
+        tooFarBottom = !this->getParent()->boundingBox().containsPoint(posNodeBottom);
+    };
+    updateFarChecks();
+
+    if (tooFarSide && tooFarBottom) {
+        this->setAnchorPoint({1, 0});
+
+        auto posWorld = origin->convertToWorldSpace({0, 0});
         auto posNode = this->getParent()->convertToNodeSpace(posWorld);
 
-        this->setPositionY(posNode.y - offset.y);
+        this->setPosition(posNode - offset);
+
+        updateFarChecks();
     }
+    else {
+        if (tooFarBottom) {
+            this->setAnchorPoint({this->getAnchorPoint().x, 0});
 
-    if (!this->getParent()->boundingBox().containsPoint(posNodeSide)) {
-        this->setAnchorPoint({1, this->getAnchorPoint().y});
+            auto posWorld = origin->convertToWorldSpace({origin->getContentWidth(), 0});
+            auto posNode = this->getParent()->convertToNodeSpace(posWorld);
 
-        auto posWorld = origin->convertToWorldSpace({0, origin->getContentHeight()});
-        auto posNode = this->getParent()->convertToNodeSpace(posWorld);
+            this->setPositionY(posNode.y - offset.y);
 
-        this->setPositionX(posNode.x - offset.x);
+            updateFarChecks();
+        }
+
+        if (tooFarSide) {
+            this->setAnchorPoint({1, this->getAnchorPoint().y});
+
+            auto posWorld = origin->convertToWorldSpace({0, origin->getContentHeight()});
+            auto posNode = this->getParent()->convertToNodeSpace(posWorld);
+
+            this->setPositionX(posNode.x - offset.x);
+
+            updateFarChecks();
+        }
+
+        auto posWorldTop = this->convertToWorldSpace({this->getContentWidth(), this->getContentHeight()});
+        auto posNodeTop = this->getParent()->getParent()->convertToNodeSpace(posWorldTop);
+
+        bool tooFarTop = !this->getParent()->boundingBox().containsPoint(posNodeTop);
+
+        if (tooFarTop) {
+            this->setAnchorPoint({this->getAnchorPoint().x, 1});
+
+            auto posWorld = origin->convertToWorldSpace({origin->getContentWidth(), origin->getContentHeight()});
+            auto posNode = this->getParent()->convertToNodeSpace(posWorld);
+
+            this->setPositionY(posNode.y + offset.y);
+
+            updateFarChecks();
+        }
+
+        auto posWorldRight = this->convertToWorldSpace({this->getContentWidth(), 0});
+        auto posNodeRight = this->getParent()->getParent()->convertToNodeSpace(posWorldRight);
+
+        bool tooFarRight = !this->getParent()->boundingBox().containsPoint(posNodeRight);
+
+        if (tooFarRight) {
+            this->setAnchorPoint({1, this->getAnchorPoint().y});
+
+            auto posWorld = origin->convertToWorldSpace({0, 0});
+            auto posNode = this->getParent()->convertToNodeSpace(posWorld);
+
+            this->setPositionX(posNode.x - offset.x);
+
+            updateFarChecks();
+        }
+
+        if (tooFarBottom) {
+            this->setAnchorPoint({this->getAnchorPoint().x, 0});
+
+            auto posWorld = origin->convertToWorldSpace({origin->getContentWidth(), 0});
+            auto posNode = this->getParent()->convertToNodeSpace(posWorld);
+
+            this->setPositionY(posNode.y - offset.y);
+
+            updateFarChecks();
+        }
     }
 
     m_label->payload["decimalDepth"] = decimalDepth;
@@ -192,6 +261,7 @@ void DecimalPopup::close() {
     m_scroll->setMouseEnabled(false);
     m_scroll->setTouchEnabled(false);
     m_label->setEnabled(false);
+    scrollBargame->setTouchEnabled(false);
 }
 
 void DecimalPopup::onClose(CCObject* sender) {

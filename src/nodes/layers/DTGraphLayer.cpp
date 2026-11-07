@@ -83,6 +83,7 @@ bool DTGraphLayer::init() {
         ->setAxisAlignment(AxisAlignment::End)
         ->setAxisReverse(true)
     );
+    graphsScroll->ignoreAnchorPointForPosition(true);
     graphsPage->addChild(graphsScroll);
 
     graphsScrollbar = Scrollbar::create(graphsScroll);

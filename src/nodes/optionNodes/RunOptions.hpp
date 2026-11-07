@@ -36,6 +36,8 @@ class RunOptions : public OptionsNode, public SliderDelegate {
         void sliderEnded(Slider* slider);
         TextInput* sharedRunsToShowInput;
 
+        Scrollbar* runsScrollBar;
+
     public:
         virtual void onOpened();
         virtual void onClosed();

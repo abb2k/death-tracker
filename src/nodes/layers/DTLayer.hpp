@@ -164,8 +164,6 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         LayoutColumn* addColumn(std::optional<DTColumnInfo> info = std::nullopt);
 
-        void openDecimalFor(CCNode* origin, const Run& run, bool isSess, DTLabel* referenceLabel);
-
     private:
         
         std::mutex dataMutex;
