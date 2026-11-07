@@ -44,49 +44,22 @@ bool ScrollableTextInput::init(float width, const std::string& placeholder, cons
 }
 
 void ScrollableTextInput::updateTextInput() {
-    if (textInput == nullptr) {
-        recreateTextInput(0);
+    auto newWidth = width;
+    if (textInput != nullptr) {
+        newWidth = std::max(
+            width,
+            textInput->getInputNode()->m_textLabel->getContentWidth() * .6f + 10.f
+        );
+        textInput->setWidth(newWidth);
     }
     else {
-        recreateTextInput(
-            (
-                textInput->getInputNode()->m_textLabel->getContentWidth() * 
-                .6f - 
-                (width - 10)
-            )
-        );
+        textInput = TextInput::create(newWidth, placeholder.c_str(), font.c_str());
+        textInput->setDelegate(this);
+        textInput->setAnchorPoint({0, 0});
+        scrollLayer->addChild(textInput);
     }
-}
-
-void ScrollableTextInput::recreateTextInput(float extraWidth) {
-    std::string oldText;
-    int oldCursorPos = 0;
-
-    bool doFocus = isFocused;
-
-    if (textInput != nullptr) {
-        oldText = textInput->getString();
-        oldCursorPos = textInput->getInputNode()->m_textField->m_uCursorPos;
-        textInput->removeMeAndCleanup();
-    }
-
-    float newWidth = width + extraWidth;
-
-    textInput = TextInput::create(newWidth <= width ? width : newWidth, placeholder.c_str(), font.c_str());
-    textInput->setString(oldText);
-    textInput->setDelegate(this);
-    #if !defined(GEODE_IS_MOBILE)
-    if (doFocus) {
-        textInput->focus();
-    }
-    #endif
-    textInput->getInputNode()->m_textField->m_uCursorPos = oldCursorPos;
-    textInput->getInputNode()->updateBlinkLabelToChar(oldCursorPos);
-    textInput->setAnchorPoint({0, 0});
-    scrollLayer->addChild(textInput);
 
     scrollLayer->m_contentLayer->setContentHeight(textInput->getContentWidth());
-
     textInput->setCommonFilter(filter);
     textInput->setEnabled(enabled);
 }

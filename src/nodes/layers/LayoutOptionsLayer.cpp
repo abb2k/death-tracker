@@ -461,6 +461,8 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
 
     for (const auto& [key, keyObj] : DTLayer::get()->specialStrings)
     {
+        if (!keyObj->shouldShowInAddList()) continue;
+
         auto cell = SpecialKeyCell::create(keyObj, [&](auto str) {LayoutOptionsLayer::onSpecialKeyAdded(str);});
         specialKeysScroll->m_contentLayer->addChild(cell);
     }

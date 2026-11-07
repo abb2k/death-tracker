@@ -38,6 +38,7 @@ class SpecialKey : public CCObject, public std::enable_shared_from_this<SpecialK
 
         std::string key;
         std::string description;
+        bool showInAddList;
 
         std::optional<geode::Function<UpdateFuture(std::map<std::string, std::any>)>> updateFunction = std::nullopt;
 
@@ -54,7 +55,7 @@ class SpecialKey : public CCObject, public std::enable_shared_from_this<SpecialK
         std::set<std::string> toRefreshWith{};
 
     public:
-        SpecialKey(const std::string& key, const std::string& description);
+        SpecialKey(const std::string& key, const std::string& description, bool showInAddList = true);
         ~SpecialKey() {
             //log::info("destroyed special key {}", key);
             cancel();
@@ -75,6 +76,9 @@ class SpecialKey : public CCObject, public std::enable_shared_from_this<SpecialK
         }
         std::string getDescription() const{
             return this->description;
+        }
+        bool shouldShowInAddList() const {
+            return this->showInAddList;
         }
 
         void setUpdateCompletedCallback(geode::Function<void(const std::shared_ptr<SpecialKey>&)> callback);

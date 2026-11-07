@@ -33,8 +33,6 @@ class ScrollableTextInput : public CCNode, public TextInputDelegate {
 
         bool isFocused = false;
 
-        void recreateTextInput(float extraWidth);
-
         virtual void textChanged(CCTextInputNode* node) override;
 
         virtual void textInputOpened(CCTextInputNode* node) override;
@@ -45,7 +43,7 @@ class ScrollableTextInput : public CCNode, public TextInputDelegate {
 
         void update(float dt) override;
 
-        CommonFilter filter;
+        CommonFilter filter = CommonFilter::Any;
 
         geode::Function<void(std::string const&)> onInput = NULL;
 

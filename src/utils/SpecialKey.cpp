@@ -1,8 +1,9 @@
 #include "SpecialKey.hpp"
 
-SpecialKey::SpecialKey(const std::string& key, const std::string& description) {
+SpecialKey::SpecialKey(const std::string& key, const std::string& description, bool showInAddList) {
     this->key = key;
     this->description = description;
+    this->showInAddList = showInAddList;
 }
 
 bool SpecialKey::compareToKey(const std::string& otherKey) {

@@ -1171,7 +1171,7 @@ void DTLayer::populateSpecialStrings() {
     runAttKey->setUpdateFunction(BIND_UPDATE_FUNC(DTLayer::onRunAttemptsKey));
     addSpecialString(runAttKey);
 
-    auto dynamicDecimalKey = std::make_shared<SpecialKey>("dynamicDecimal", "Gets how many death tracker attempts youve played from each start position");
+    auto dynamicDecimalKey = std::make_shared<SpecialKey>("dynamicDecimal", "Gets how many death tracker attempts youve played from each start position", false);
     dynamicDecimalKey->refreshWith(generalKey->getKey());
     dynamicDecimalKey->refreshWith(runsKey->getKey());
     dynamicDecimalKey->setUpdateFunction(BIND_UPDATE_FUNC(DTLayer::onDynamicDecimalKey));
