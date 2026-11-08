@@ -11,7 +11,7 @@ class DecimalPopup : public CCNode {
     public:
         static DecimalPopup* create(CCSize size);
 
-        void setDisplay(CCNode* origin, const Run& run, bool isSess, uint8_t decimalDepth, DTLabel* referenceLabel);
+        void setDisplay(CCNode* origin, const Run& run, bool isSess, uint8_t decimalDepth, DTLabel* referenceLabel, std::optional<std::pair<long long, size_t>> occurrenceSelection = std::nullopt);
 
         void close();
 

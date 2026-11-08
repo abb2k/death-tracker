@@ -301,6 +301,8 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         UpdateFuture onDynamicDecimalKey(std::map<std::string, std::any> payload);
 
+        UpdateFuture onRecentDeathsKey(std::map<std::string, std::any> payload);
+
         UpdateFuture getPlaytimeFor(geode::Function<uint64_t(GeneralData const&)>&& dataGetter, bool session);
         UpdateFuture getAttemptsFor(geode::Function<unsigned long long(GeneralData const&, geode::FunctionRef<unsigned long long(const Deaths&)> const&)>&& dataGetter, bool session);
 

@@ -95,7 +95,7 @@ void DecimalPopup::onExit() {
     CCNode::onExit();
 }
 
-void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8_t decimalDepth, DTLabel* referenceLabel) {    
+void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8_t decimalDepth, DTLabel* referenceLabel, std::optional<std::pair<long long, size_t>> occurrenceSelection) {
     this->setVisible(true);
     m_scroll->setMouseEnabled(true);
     m_scroll->setTouchEnabled(true);
@@ -206,8 +206,16 @@ void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8
     m_label->payload["decimalDepth"] = decimalDepth;
     m_label->payload["decimalRun"] = run;
     m_label->payload["decimalIsSess"] = isSess;
+    if (occurrenceSelection) {
+        m_label->payload["decimalOccurrenceTimestamp"] = occurrenceSelection->first;
+        m_label->payload["decimalOccurrenceIndex"] = occurrenceSelection->second;
+    }
+    else {
+        m_label->payload.erase("decimalOccurrenceTimestamp");
+        m_label->payload.erase("decimalOccurrenceIndex");
+    }
 
-    auto runStrRes = StatsManager::createRunKey(run);
+    auto runStrRes = StatsManager::createRunKey(run, occurrenceSelection.has_value());
 
     if (referenceLabel) {
         m_label->setFontSize(referenceLabel->info.scale);

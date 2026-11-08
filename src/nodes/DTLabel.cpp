@@ -1089,13 +1089,20 @@ std::shared_ptr<RichTextKey<RunButtonParams>> DTLabel::makeRunMoreKey() {
 
             auto splitStr = utils::string::split(value, ",");
 
-            if (splitStr.size() != 2)
+            if (splitStr.size() != 2 && splitStr.size() != 4)
                 return Err("Run more format invalid");
 
             GEODE_UNWRAP_INTO(auto run, StatsManager::splitRunKey(splitStr[0]));
             bool isSess = (splitStr[1] == "true");
 
-            return Ok(std::make_tuple(run, isSess));
+            std::optional<long long> occurrenceTimestamp;
+            size_t occurrenceIndex = 0;
+            if (splitStr.size() == 4) {
+                GEODE_UNWRAP_INTO(occurrenceTimestamp, utils::numFromString<long long>(splitStr[2]));
+                GEODE_UNWRAP_INTO(occurrenceIndex, utils::numFromString<size_t>(splitStr[3]));
+            }
+
+            return Ok(std::make_tuple(run, isSess, occurrenceTimestamp, occurrenceIndex));
         },
         [&](RunButtonParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
             auto line = static_cast<CCLabelBMFont*>(sprite->getParent());
@@ -1135,7 +1142,11 @@ std::shared_ptr<RichTextKey<RunButtonParams>> DTLabel::makeRunMoreKey() {
                 btnSpr->setOpacity(0);
             btnSpr->setPosition(moreBtn->getContentSize() / 2);
             moreBtn->setPosition(buttonPosition);
-            moreBtn->setID(StatsManager::createRunKey(std::get<0>(value)).unwrap());
+            auto buttonID = StatsManager::createRunKey(std::get<0>(value)).unwrap();
+            if (std::get<2>(value)) {
+                buttonID += fmt::format(",{},{}", *std::get<2>(value), std::get<3>(value));
+            }
+            moreBtn->setID(buttonID);
             moreBtn->setTag(std::get<1>(value) ? 1 : 0);
 
             menuParent->addChild(moreBtn);
@@ -1146,12 +1157,26 @@ std::shared_ptr<RichTextKey<RunButtonParams>> DTLabel::makeRunMoreKey() {
 
 void DTLabel::onRunMoreClicked(CCObject* sender) {
     auto moreBtn = static_cast<CCMenuItemSpriteExtra*>(sender);
-    auto runKeyRes = StatsManager::splitRunKey(moreBtn->getID());
+    auto buttonIDParts = utils::string::split(moreBtn->getID(), ",");
+    if (buttonIDParts.size() != 1 && buttonIDParts.size() != 3) return;
+
+    auto runKeyRes = StatsManager::splitRunKey(buttonIDParts[0]);
 
     if (runKeyRes.isErr()) return;
+
+    std::optional<std::pair<long long, size_t>> occurrenceSelection;
+    if (buttonIDParts.size() == 3) {
+        auto timestampRes = utils::numFromString<long long>(buttonIDParts[1]);
+        auto indexRes = utils::numFromString<size_t>(buttonIDParts[2]);
+        if (timestampRes.isErr() || indexRes.isErr()) {
+            log::error("Invalid recent-death decimal button selection");
+            return;
+        }
+        occurrenceSelection = std::make_pair(timestampRes.unwrap(), indexRes.unwrap());
+    }
     
     if (decimalPopup && !isEditable)
-        decimalPopup->setDisplay(moreBtn, runKeyRes.unwrap(), moreBtn->getTag() == 1, Settings::getDecimalPrecision(), this);
+        decimalPopup->setDisplay(moreBtn, runKeyRes.unwrap(), moreBtn->getTag() == 1, Settings::getDecimalPrecision(), this, occurrenceSelection);
 }
 
 void DTLabel::attachedDecimalPopup(DecimalPopup* popup) {

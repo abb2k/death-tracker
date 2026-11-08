@@ -1176,6 +1176,12 @@ void DTLayer::populateSpecialStrings() {
     dynamicDecimalKey->refreshWith(runsKey->getKey());
     dynamicDecimalKey->setUpdateFunction(BIND_UPDATE_FUNC(DTLayer::onDynamicDecimalKey));
     addSpecialString(dynamicDecimalKey);
+
+    auto recentDeathsKey = std::make_shared<SpecialKey>("recentDeaths", "Get your top 10 recent deaths");
+    recentDeathsKey->refreshWith(generalKey->getKey());
+    recentDeathsKey->refreshWith(runsKey->getKey());
+    recentDeathsKey->setUpdateFunction(BIND_UPDATE_FUNC(DTLayer::onRecentDeathsKey));
+    addSpecialString(recentDeathsKey);
 }
 
 void DTLayer::UpdateSharedStats() {
@@ -4111,6 +4117,56 @@ UpdateFuture DTLayer::onDynamicDecimalKey(std::map<std::string, std::any> payloa
         return std::make_pair(map, nbs);
     }, *decimalIsSessValue));
 
+    auto occurrenceTimestamp = payload.find("decimalOccurrenceTimestamp");
+    auto occurrenceIndex = payload.find("decimalOccurrenceIndex");
+    if (occurrenceTimestamp != payload.end() || occurrenceIndex != payload.end()) {
+        if (occurrenceTimestamp == payload.end() || occurrenceIndex == payload.end())
+            co_return Err("Incomplete recent death selection");
+
+        auto timestampValue = std::any_cast<long long>(&occurrenceTimestamp->second);
+        auto indexValue = std::any_cast<size_t>(&occurrenceIndex->second);
+        if (!timestampValue || !indexValue)
+            co_return Err("Invalid recent death selection");
+
+        auto endPercent = ComplexPercent::fromPercent(decimalRunValue->end);
+        if (endPercent.isErr())
+            co_return Err("Invalid recent death end percent");
+
+        std::optional<ComplexPercent::Units> startPercent;
+        if (decimalRunValue->start) {
+            auto parsedStart = ComplexPercent::fromPercent(*decimalRunValue->start);
+            if (parsedStart.isErr())
+                co_return Err("Invalid recent death start percent");
+            startPercent = parsedStart.unwrap().units;
+        }
+
+        ComplexDeathMap::Run selectedRun{endPercent.unwrap().units, startPercent};
+        auto deathIt = deaths.first.records.find(selectedRun);
+        if (deathIt == deaths.first.records.end())
+            co_return Err("Selected recent death no longer exists");
+
+        size_t matchingIndex = 0;
+        std::optional<ComplexDeathOccurrence> selectedOccurrence;
+        for (const auto& occurrence : deathIt->second.occurrences) {
+            if (!occurrence.runEndTimestamp || occurrence.runEndTimestamp.value() != *timestampValue)
+                continue;
+            if (matchingIndex++ == *indexValue) {
+                selectedOccurrence = occurrence;
+                break;
+            }
+        }
+        if (!selectedOccurrence)
+            co_return Err("Selected recent death occurrence no longer exists");
+
+        auto selectedDeath = deathIt->second;
+        selectedDeath.deaths = 1;
+        selectedDeath.occurrences = {*selectedOccurrence};
+
+        ComplexDeathMap selectedDeaths;
+        selectedDeaths.records.emplace(selectedRun, std::move(selectedDeath));
+        deaths.first = std::move(selectedDeaths);
+    }
+
     bool ignoreExtraSettings = false;
 
     if (payload.contains("ignoreExtraSettings")) {
@@ -4121,6 +4177,131 @@ UpdateFuture DTLayer::onDynamicDecimalKey(std::map<std::string, std::any> payloa
     std::string out;
     if (!createDecimalDeathsString(deaths.first, *decimalRunValue, myStats.metadata, Save::getFrom0Customazations(), out, deaths.second, *decimalIsSessValue ? Save::getSessionBestCustomizations() : Save::getNewBestCustomizations(), ignoreExtraSettings, *decimalDepthValue))
         co_return Err("Failed best session runs string");
+
+    co_return Ok(out);
+}
+
+UpdateFuture DTLayer::onRecentDeathsKey(std::map<std::string, std::any> payload) {
+    GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<ComplexDeathMap>([](GeneralData const& data) {
+        auto runs = data.runs;
+        StatsManager::mergeMapsAdd(runs, data.deaths);
+        return runs;
+    },
+    [](auto const& a, auto const& b) {
+        auto map = a;
+        StatsManager::mergeMapsAdd(map, b);
+        return map;
+    }, false));
+
+    struct RecentDeathOccurrence {
+        long long timestamp;
+        ComplexDeathMap::Run run;
+        ComplexDeathOccurrence occurrence;
+        size_t occurrenceIndex;
+    };
+    std::vector<RecentDeathOccurrence> recentOccurrences;
+    std::map<std::pair<ComplexDeathMap::Run, long long>, size_t> occurrenceIndices;
+
+    for (const auto& [run, death] : deaths.records) {
+        for (const auto& occurrence : death.occurrences) {
+            if (!occurrence.runEndTimestamp.has_value()) continue;
+
+            auto timestamp = occurrence.runEndTimestamp.value();
+            auto& occurrenceIndex = occurrenceIndices[{run, timestamp}];
+            recentOccurrences.push_back({timestamp, run, occurrence, occurrenceIndex++});
+        }
+    }
+
+    std::stable_sort(recentOccurrences.begin(), recentOccurrences.end(), [](const auto& a, const auto& b) {
+        return a.timestamp > b.timestamp;
+    });
+
+    bool ignoreExtraSettings = false;
+
+    if (payload.contains("ignoreExtraSettings")) {
+        if (auto ignoreExtraSettingsTemp = std::any_cast<bool>(&payload["ignoreExtraSettings"]))
+            ignoreExtraSettings = *ignoreExtraSettingsTemp;
+    }
+
+    if (m_MyLevelStats.isErr())
+        co_return Err("Failed to calculate recent deaths");
+    auto myStats = m_MyLevelStats.unwrap();
+    auto custom = Save::getRunsCustomazations();
+
+    std::string out;
+    int hiddenDeaths = 0;
+    size_t shownDeaths = 0;
+
+    constexpr size_t maxRecentDeaths = 10;
+    auto count = std::min(recentOccurrences.size(), maxRecentDeaths);
+
+    for (size_t i = 0; i < count; ++i) {
+        auto& recent = recentOccurrences[i];
+        Run run;
+        run.start = recent.run.second ? std::optional<double>(ComplexPercent{recent.run.second.value()}.asPercent()) : std::nullopt;
+        run.end = ComplexPercent{recent.run.first}.asPercent();
+
+        if (!ignoreExtraSettings) {
+            if (run.start) {
+                int startValue = static_cast<int>(run.start.value());
+                if (!myStats.metadata.showAnyRun && !myStats.metadata.runsToShow.empty()) {
+                    auto it = myStats.metadata.runsToShow.find(startValue);
+                    if (it == myStats.metadata.runsToShow.end() || it->second > run.end) {
+                        hiddenDeaths++;
+                        continue;
+                    }
+                }
+                else if (myStats.metadata.sharedRunToShow > run.end - startValue) {
+                    hiddenDeaths++;
+                    continue;
+                }
+            }
+            else if (myStats.metadata.hideUpto > run.end && run.end >= 0) {
+                hiddenDeaths++;
+                continue;
+            }
+        }
+
+        auto runKey = StatsManager::createRunKey(run);
+        if (runKey.isErr())
+            co_return Err("Failed to create recent death run key");
+
+        auto percentText = run.start
+            ? fmt::format("{}-{}", static_cast<int>(run.start.value()), static_cast<int>(run.end))
+            : fmt::format("{}", static_cast<int>(run.end));
+        auto format = fmt::format("{}%", percentText);
+
+        std::string colorOpen;
+        std::string colorClose;
+        if (shownDeaths % 2 == 0) {
+            colorOpen = fmt::format("<cplus={}>", custom.alternateStrength);
+            colorClose = "</cplus>";
+        }
+
+        auto decimalButton = fmt::format(
+            " <runMoreBtn={},{},{},{}>C</runMoreBtn>",
+            runKey.unwrap(),
+            false,
+            recent.timestamp,
+            recent.occurrenceIndex
+        );
+        out += fmt::format("{}{}{}{}{}", colorOpen, format, decimalButton, colorClose, custom.seperator);
+        shownDeaths++;
+    }
+
+    if (out.empty() && hiddenDeaths == 0) {
+        out = "No Deaths Found!";
+    }
+    else {
+        if (!custom.seperator.empty() && out.size() >= custom.seperator.size())
+            out.erase(out.size() - custom.seperator.size());
+    }
+
+    if (hiddenDeaths != 0) {
+        if (!out.empty())
+            out += "{nl}";
+        out += fmt::format("{}x hidden", hiddenDeaths);
+    }
 
     co_return Ok(out);
 }

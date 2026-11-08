@@ -14,7 +14,7 @@ using namespace geode::prelude;
 using WaveKeyParams = std::tuple<float, float, float, float>;
 using GradientKeyParams = std::tuple<ccColor4B, ccColor4B, float, float>;
 using CPlusKeyParams = int;
-using RunButtonParams = std::tuple<Run, bool>;
+using RunButtonParams = std::tuple<Run, bool, std::optional<long long>, size_t>;
 
 class DTLabel : public CCMenu {
     public:

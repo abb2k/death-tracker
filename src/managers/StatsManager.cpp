@@ -827,12 +827,12 @@ Result<Run> StatsManager::splitRunKey(const std::string& runKey) {
     return Ok(r);
 }
 
-Result<std::string> StatsManager::createRunKey(const Run& runKey) {
+Result<std::string> StatsManager::createRunKey(const Run& runKey, bool roundToInt) {
     if (runKey.start == std::nullopt) {
-        return Ok(fmt::format("{}", runKey.end));
+        return Ok(fmt::format("{}", roundToInt ? static_cast<int>(runKey.end) : runKey.end));
     }
     else if (runKey.start.value() >= 0) {
-        return Ok(fmt::format("{}-{}", runKey.start.value(), runKey.end));
+        return Ok(fmt::format("{}-{}", roundToInt ? static_cast<int>(runKey.start.value()) : runKey.start.value(), roundToInt ? static_cast<int>(runKey.end) : runKey.end));
     }
 
     return Err("Bad percentages");
