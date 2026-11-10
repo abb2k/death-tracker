@@ -146,6 +146,8 @@ void LabelEditSpecialKeyEditorPopup::onOperatorClick(CCObject*) {
 
 void LabelEditSpecialKeyEditorPopup::updateControls() {
 
+    m_secondValue->setCommonFilter(m_keyType == 1 ? CommonFilter::Float : CommonFilter::Uint);
+
     auto keyTypeSprite = ButtonSprite::create(m_keyTypeList->getItemForID(m_keyType).value_or({}).text.c_str());
     keyTypeSprite->setScale(.55f);
     m_keyTypeButton->setSprite(keyTypeSprite);
@@ -204,7 +206,7 @@ void LabelEditSpecialKeyEditorPopup::updateControls() {
 }
 
 void LabelEditSpecialKeyEditorPopup::onCreateKey(CCObject* sender) {
-    if (m_firstValue->getString().empty() || (m_keyType == 1 || (m_keyType == 0 && m_operator == 3)) && m_secondValue->getString().empty()) {
+    if (m_firstValue->getString().empty() || (m_keyType == 0 && m_operator == 3) && m_secondValue->getString().empty()) {
         FLAlertLayer::create("Could not create key", "Fill the values to create a key", "OK")->show();
         return;
     }

@@ -967,21 +967,29 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
             return "Invalid count";
         auto count = countRes.unwrap();
         
-        auto startPercentRes = utils::numFromString<int>(match[7].str());
-        if (startPercentRes.isErr())
-            return "Invalid start percent";
-        auto startPercent = startPercentRes.unwrap();
+        std::optional<ComplexPercent> startPercent;
+        if (match[7].matched && !match[7].str().empty()) {
+            auto startPercentRes = utils::numFromString<double>(match[7].str());
+            if (startPercentRes.isErr())
+                return "Invalid start percent";
+            auto parsedStartPercent = ComplexPercent::fromPercent(startPercentRes.unwrap());
+            if (parsedStartPercent.isErr())
+                return "Invalid start percent";
+            startPercent = parsedStartPercent.unwrap();
+        }
         
         std::vector<std::pair<Run, uint64_t>> bestRuns;
-        for (const auto& [key, count] : data.runs.toLegacyDeaths()) {
-            auto runResult = StatsManager::splitRunKey(key);
-            if (runResult.isErr())
-                continue;
-
-            auto run = runResult.unwrap();
-            auto runStart = run.start.value_or(0);
-            if (runStart == startPercent)
-                bestRuns.emplace_back(run, static_cast<uint64_t>(count));
+        auto runData = startPercent ? data.runs.records : data.deaths.records;
+        for (const auto& entry : runData) {
+            auto& death = entry.second;
+            bool matchesStart = startPercent ? death.runStartPercent.has_value() && death.runStartPercent->units == startPercent->units : !death.runStartPercent.has_value();
+            if (matchesStart) {
+                Run run{
+                    death.runStartPercent ? std::optional<double>(death.runStartPercent->asPercent()) : std::nullopt,
+                    death.runEndPercent.asPercent()
+                };
+                bestRuns.emplace_back(run, death.deaths);
+            }
         }
 
         std::stable_sort(bestRuns.begin(), bestRuns.end(), [](const auto& a, const auto& b) {
@@ -1058,7 +1066,7 @@ std::string LabelEditLayer::expandDeaths(const std::string& text) {
 }
 
 std::string LabelEditLayer::expandDeaths(const std::string& text, const std::function<Result<GeneralData>(char)>& dataProvider) {
-    std::regex queryPattern(R"(\{\(([sgd])\)(?:>=?(\d+)|<(\d+)|(\d+)-(\d+)|(\d+)b(\d+))\})");
+    std::regex queryPattern(R"(\{\(([sgd])\)(?:>=?(\d+)|<(\d+)|(\d+)-(\d+)|(\d+)b(\d+(?:\.\d+)?)?)\})");
 
     std::map<char, std::optional<GeneralData>> dataByScope;
     std::string expanded;
