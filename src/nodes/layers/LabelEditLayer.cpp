@@ -3,11 +3,14 @@
 #include <types/DTTypes.hpp>
 
 #include <utils/Save.hpp>
+#include <utils/Settings.hpp>
 
 #include <nodes/DTLabel.hpp>
 #include <nodes/layers/DTLayer.hpp>
 
 #include <managers/AuthManager.hpp>
+
+#include <nodes/layers/LabelEditSpecialKeyEditorPopup.hpp>
 
 LabelEditLayer* LabelEditLayer::create() {
     auto ret = new LabelEditLayer();
@@ -367,7 +370,7 @@ bool LabelEditLayer::init() {
     m_editMenu->addChildAtPosition(textLabel, Anchor::BottomLeft, {10, 15});
 
     auto richTextBtnSpr = ButtonSprite::create(
-        "< >",
+        "{ }",
         40,
         40,
         1,
@@ -377,15 +380,16 @@ bool LabelEditLayer::init() {
         40
     );
     richTextBtnSpr->setScale(.5f);
-    auto richTextBtn = CCMenuItemSpriteExtra::create(
+    richTextBtnSpr->setCascadeOpacityEnabled(true);
+    m_richTextBtn = CCMenuItemSpriteExtra::create(
         richTextBtnSpr,
         this,
         menu_selector(LabelEditLayer::onRichTextBtn)
     );
-    m_editMenu->addChild(richTextBtn);
+    m_editMenu->addChild(m_richTextBtn);
 
     m_textInput = TextInput::create(
-        (m_editMenu->getScaledContentWidth() - textLabel->getPositionX() - textLabel->getScaledContentWidth() - richTextBtn->getScaledContentWidth() - 25) / .75f,
+        (m_editMenu->getScaledContentWidth() - textLabel->getPositionX() - textLabel->getScaledContentWidth() - m_richTextBtn->getScaledContentWidth() - 25) / .75f,
         "Text"
     );
     m_textInput->setScale(.75f);
@@ -405,8 +409,8 @@ bool LabelEditLayer::init() {
     m_textInput->setFilter("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_=<>. {}()");
     m_editMenu->addChild(m_textInput);
 
-    richTextBtn->setPosition(m_textInput->getPosition() + ccp(
-        m_textInput->getScaledContentWidth() + richTextBtn->getScaledContentWidth() / 2 + 5,
+    m_richTextBtn->setPosition(m_textInput->getPosition() + ccp(
+        m_textInput->getScaledContentWidth() + m_richTextBtn->getScaledContentWidth() / 2 + 5,
         0
     ));
 
@@ -493,6 +497,7 @@ void LabelEditLayer::onCellDelete(OverlayLabelCell* cell) {
 
     m_labels.erase(labelIt);
 
+    cell->setVisible(false);
     cell->removeMeAndCleanup();
 
     m_scroll->m_contentLayer->updateLayout();
@@ -666,7 +671,17 @@ void LabelEditLayer::onAnchorClicked(CCObject* sender) {
 }
 
 void LabelEditLayer::onRichTextBtn(CCObject*) {
-    
+    LabelEditSpecialKeyEditorPopup::create([this](const std::string& key) {
+        if (!m_textInput || !m_currentEdit)
+            return;
+
+        auto text = m_textInput->getString() + key;
+        m_textInput->setString(text);
+        auto label = m_currentEdit->getData();
+        label.text = text;
+        m_currentEdit->setData(label);
+        updateSavedLabels();
+    })->show();
 }
 
 void LabelEditLayer::updateSavedLabels() {
@@ -890,7 +905,6 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
     };
 
     sumDeaths(data.deaths);
-    sumDeaths(data.runs);
 
     if (match[6].matched) {
         std::vector<std::string> output;
@@ -922,12 +936,22 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
         });
 
         for (int i = 0; i < count && i < static_cast<int>(bestRuns.size()); i++) {
-            auto entry = fmt::format("{:.0f}-{}% ({})", bestRuns[i].first.start.value_or(0), bestRuns[i].first.end, bestRuns[i].second);
+            auto decimalPrecision = Settings::getDecimalPrecision();
+
+            std::string entry;
+
+            if (bestRuns[i].first.start.has_value()) {
+                entry = fmt::format("{:.{}f}-{:.{}f}% {}x", bestRuns[i].first.start.value(), decimalPrecision, bestRuns[i].first.end, decimalPrecision, bestRuns[i].second);
+            }
+            else {
+                entry = fmt::format("{:.{}f}% {}x", bestRuns[i].first.end, decimalPrecision, bestRuns[i].second);
+            }
+
             output.push_back(entry);
         }
 
         if (output.empty())
-            return "No matching runs";
+            return "[None]";
 
         return fmt::format("{}", fmt::join(output, ", "));
     }
@@ -971,7 +995,7 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
 
         totalDeaths += count;
     }
-    return std::to_string(totalDeaths) + " deaths";
+    return std::to_string(totalDeaths);
 }
 
 std::string LabelEditLayer::expandDeaths(const std::string& text) {
@@ -997,7 +1021,7 @@ std::string LabelEditLayer::expandDeaths(const std::string& text) {
         }
         else {
             dataByScope[scope] = std::nullopt;
-            expanded += "[No deaths found]";
+            expanded += "[None]";
         }
         
         textStart = match[0].second;

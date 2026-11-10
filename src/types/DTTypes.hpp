@@ -488,7 +488,7 @@ struct OverlayLabelSettings_s {
 
     std::vector<OverlayLabel> labels;
 
-    float size = 0.25f;
+    float size = 0.35f;
     CCPoint offset = ccp(1, 1) * 5;
     std::string font = "bigFont.fnt";
 };

@@ -79,6 +79,9 @@ class LabelEditLayer : public Popup {
         Result<GeneralData> getDeathsData(char scope);
         std::string formatDeaths(const GeneralData& data, const std::smatch& match);
         std::string expandDeaths(const std::string& text);
+        size_t getTextCursorIndex(const std::string& text) const;
+
+        CCMenuItemSpriteExtra* m_richTextBtn = nullptr;
 
     public:
         static LabelEditLayer* create();
