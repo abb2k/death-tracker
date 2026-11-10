@@ -1,7 +1,8 @@
 #include <Geode/modify/PlayLayer.hpp>
-#include "../managers/StatsManager.hpp"
-#include "../utils/Settings.hpp"
-#include <chrono>
+#include <managers/StatsManager.hpp>
+#include <utils/Save.hpp>
+#include <utils/Settings.hpp>
+#include <nodes/DTLabel.hpp>
 
 using namespace geode::prelude;
 
@@ -33,6 +34,7 @@ class $modify(DTPlayLayer, PlayLayer) {
         std::optional<std::chrono::steady_clock::time_point> startTime;
 
         std::vector<double> fzeroToSave{};
+        std::vector<long long> fzeroEndTimestamps{};
         std::vector<Run> runsToSave{};
         
         bool levelBeaten = false;
@@ -42,7 +44,21 @@ class $modify(DTPlayLayer, PlayLayer) {
         bool didGameStartThisFrame;
 
         ListenerHandle saveDeleteHandle;
+        std::vector<RichTextArea*> overlayLabels;
+        ListenerHandle overlayLabelsChangedListener;
+        CCNode* overlayLabelsParent = nullptr;
+        std::string overlayLevelKey;
+        std::set<std::string> overlayLevelKeys;
+        GeneralData overlayLinkedData;
+        GeneralData overlaySessionData;
+        long long overlaySessionDate = 0;
+        bool overlayDataLoaded = false;
     };
+
+    void refreshOverlayLabels();
+    void preloadOverlayData();
+    void updateOverlaySessionData();
+    Result<GeneralData> getOverlayDeathsData(char scope);
 
     bool disableCompletedLevelTracking();
 
@@ -99,4 +115,6 @@ class $modify(DTPlayLayer, PlayLayer) {
     void updateTimeWarp(float timeWarp);
 
     void savePlaytime();
+
+    ComplexDeathMap filterByEndTimestamp(const ComplexDeathMap& source, long long earliestTimestamp, long long latestTimestamp);
 };

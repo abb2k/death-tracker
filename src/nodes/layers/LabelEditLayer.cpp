@@ -813,8 +813,8 @@ CCPoint LabelEditLayer::anchorDirection(Anchor anchor) {
 
 CCPoint LabelEditLayer::anchorDirection(CCPoint anchor) {
     return ccp(
-        anchor.x < 0.5f ? 1.f : anchor.x > 0.5f ? -1.f : 0.f,
-        anchor.y < 0.5f ? 1.f : anchor.y > 0.5f ? -1.f : 0.f
+        1.f - 2.f * anchor.x,
+        1.f - 2.f * anchor.y
     );
 }
 
@@ -887,7 +887,6 @@ Result<GeneralData> LabelEditLayer::getDeathsData(char scope) {
 
 std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::smatch& match) {
     std::map<int, uint64_t> deathsByPercent;
-    std::map<std::string, uint64_t> runCounts;
 
     auto sumDeaths = [&](const ComplexDeathMap& deathMap) {
         for (const auto& [key, count] : deathMap.toLegacyDeaths()) {
@@ -900,7 +899,6 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
             auto deathCount = static_cast<uint64_t>(count);
 
             deathsByPercent[static_cast<int>(run.end)] += deathCount;
-            runCounts[key] += deathCount;
         }
     };
 
@@ -920,7 +918,7 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
         auto startPercent = startPercentRes.unwrap();
         
         std::vector<std::pair<Run, uint64_t>> bestRuns;
-        for (const auto& [key, deathCount] : runCounts) {
+        for (const auto& [key, count] : data.runs.toLegacyDeaths()) {
             auto runResult = StatsManager::splitRunKey(key);
             if (runResult.isErr())
                 continue;
@@ -928,7 +926,7 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
             auto run = runResult.unwrap();
             auto runStart = run.start.value_or(0);
             if (runStart == startPercent)
-                bestRuns.emplace_back(run, deathCount);
+                bestRuns.emplace_back(run, static_cast<uint64_t>(count));
         }
 
         std::stable_sort(bestRuns.begin(), bestRuns.end(), [](const auto& a, const auto& b) {
@@ -999,6 +997,12 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
 }
 
 std::string LabelEditLayer::expandDeaths(const std::string& text) {
+    return expandDeaths(text, [](char scope) {
+        return getDeathsData(scope);
+    });
+}
+
+std::string LabelEditLayer::expandDeaths(const std::string& text, const std::function<Result<GeneralData>(char)>& dataProvider) {
     std::regex queryPattern(R"(\{\(([sgd])\)(?:>=?(\d+)|<(\d+)|(\d+)-(\d+)|(\d+)b(\d+))\})");
 
     std::map<char, std::optional<GeneralData>> dataByScope;
@@ -1009,18 +1013,19 @@ std::string LabelEditLayer::expandDeaths(const std::string& text) {
         const auto& match = *it;
         expanded.append(textStart, match[0].first);
 
-        geode::Result<GeneralData> result = Err("No data available");
-
         auto scope = match[1].str()[0];
-        if (!dataByScope.contains(scope))
-            result = getDeathsData(scope);
-
-        if (result.isOk()) {
-            dataByScope[scope] = result.unwrap();
-            expanded += formatDeaths(dataByScope[scope].value(), match);
+        auto dataIt = dataByScope.find(scope);
+        if (dataIt == dataByScope.end()) {
+            auto result = dataProvider(scope);
+            dataIt = dataByScope.emplace(
+                scope,
+                result.isOk() ? std::optional<GeneralData>(result.unwrap()) : std::nullopt
+            ).first;
         }
-        else {
-            dataByScope[scope] = std::nullopt;
+
+        if (dataIt->second) {
+            expanded += formatDeaths(dataIt->second.value(), match);
+        } else {
             expanded += "[None]";
         }
         

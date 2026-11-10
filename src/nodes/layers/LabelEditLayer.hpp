@@ -2,6 +2,7 @@
 
 #include <Geode/Geode.hpp>
 #include <nodes/OverlayLabelCell.hpp>
+#include <functional>
 #include <regex>
 #include <nodes/SimpleToggler.hpp>
 
@@ -66,23 +67,23 @@ class LabelEditLayer : public Popup {
         TextInput* m_sizeInput = nullptr;
         Slider* m_sizeSlider = nullptr;
 
-        Anchor invertAnchor(Anchor anchor);
-        CCPoint anchorPoint(Anchor anchor);
-        CCPoint anchorDirection(Anchor anchor);
-        CCPoint anchorDirection(CCPoint anchor);
-
         CCScale9Sprite* m_disabledAnchorSlidersFG = nullptr;
 
         float OFFSET_SLIDER_MIN = 0.f;
         float OFFSET_SLIDER_MAX = 20.f;
 
-        Result<GeneralData> getDeathsData(char scope);
-        std::string formatDeaths(const GeneralData& data, const std::smatch& match);
-        std::string expandDeaths(const std::string& text);
-        size_t getTextCursorIndex(const std::string& text) const;
+        static std::string formatDeaths(const GeneralData& data, const std::smatch& match);
+        static Result<GeneralData> getDeathsData(char scope);
 
         CCMenuItemSpriteExtra* m_richTextBtn = nullptr;
 
     public:
         static LabelEditLayer* create();
+        static std::string expandDeaths(const std::string& text);
+        static std::string expandDeaths(const std::string& text, const std::function<Result<GeneralData>(char)>& dataProvider);
+
+        static Anchor invertAnchor(Anchor anchor);
+        static CCPoint anchorPoint(Anchor anchor);
+        static CCPoint anchorDirection(Anchor anchor);
+        static CCPoint anchorDirection(CCPoint anchor);
 };

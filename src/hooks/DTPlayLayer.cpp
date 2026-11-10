@@ -1,4 +1,8 @@
 #include "../hooks/DTPlayLayer.hpp"
+#include <nodes/layers/LabelEditLayer.hpp>
+#include <managers/AuthManager.hpp>
+
+#include <nodes/layers/LabelEditLayer.hpp>
 
 using namespace geode::prelude;
 
@@ -53,9 +57,15 @@ bool DTPlayLayer::init(GJGameLevel* level, bool p1) {
 
     StatsManager::setCurrentLevel(level);
 
+    m_fields->overlayLabelsChangedListener = Save::OverlayLabelsChangedEvent().listen([this]() {
+        refreshOverlayLabels();
+        return ListenerResult::Propagate;
+    });
+
     m_fields->saveDeleteHandle = SaveDeletionEvent().listen([&]() {
 
         m_fields->fzeroToSave.clear();
+        m_fields->fzeroEndTimestamps.clear();
         m_fields->runsToSave.clear();
 
         m_fields->timePassedGeneral = PlaytimePair{};
@@ -68,6 +78,8 @@ bool DTPlayLayer::init(GJGameLevel* level, bool p1) {
         }
 
         StatsManager::scheduleCreateNewSession(true);
+        preloadOverlayData();
+        refreshOverlayLabels();
         
         return ListenerResult::Propagate;
     });
@@ -81,6 +93,8 @@ bool DTPlayLayer::init(GJGameLevel* level, bool p1) {
     if (session == nullptr) {
         StatsManager::scheduleCreateNewSession(true);
         DTPlayLayer::updateSessionLastPlayed();
+        preloadOverlayData();
+        refreshOverlayLabels();
         //log::info("first session created");
         return true;
     }
@@ -113,6 +127,8 @@ bool DTPlayLayer::init(GJGameLevel* level, bool p1) {
     }
 
     DTPlayLayer::updateSessionLastPlayed();
+    preloadOverlayData();
+    refreshOverlayLabels();
 
     return true;
 }
@@ -286,13 +302,17 @@ void DTPlayLayer::saveRun() {
         }
 
         savePlaytime();
+        updateOverlaySessionData();
+        refreshOverlayLabels();
     }
     else {
         if (m_fields->currentRun.start == 0 && !m_isPracticeMode) {
             m_fields->fzeroToSave.push_back(m_fields->currentRun.end);
+            m_fields->fzeroEndTimestamps.push_back(m_fields->currentRun.endTimestamp.value());
         }
         else if (!m_isPracticeMode && m_level->isPlatformer()) {
             m_fields->fzeroToSave.push_back(m_fields->currentRun.end);
+            m_fields->fzeroEndTimestamps.push_back(m_fields->currentRun.endTimestamp.value());
         }
 
         else if (m_level->isPlatformer() && m_isPracticeMode) {
@@ -301,6 +321,8 @@ void DTPlayLayer::saveRun() {
         else {
             m_fields->runsToSave.push_back(m_fields->currentRun);
         }
+
+        refreshOverlayLabels();
     }
 }
 
@@ -362,6 +384,7 @@ void DTPlayLayer::pauseGame(bool unfocused) {
     if (m_fields->fzeroToSave.size()) {
         StatsManager::logDeaths(m_fields->fzeroToSave);
         m_fields->fzeroToSave.clear();
+        m_fields->fzeroEndTimestamps.clear();
     }
 
     if (m_fields->runsToSave.size()) {
@@ -370,6 +393,8 @@ void DTPlayLayer::pauseGame(bool unfocused) {
     }
 
     savePlaytime();
+    updateOverlaySessionData();
+    refreshOverlayLabels();
 
     auto lvlKey = StatsManager::getLevelKey(m_level);
     if (lvlKey.isOk() && Settings::getAutoBackupEnabled() && Settings::getAutoBackupAtLvlExit()) {
@@ -410,6 +435,7 @@ void DTPlayLayer::onExit() {
     if (m_fields->fzeroToSave.size()) {
         StatsManager::logDeaths(m_fields->fzeroToSave);
         m_fields->fzeroToSave.clear();
+        m_fields->fzeroEndTimestamps.clear();
     }
 
     if (m_fields->runsToSave.size()) {
@@ -574,4 +600,256 @@ void DTPlayLayer::savePlaytime() {
     m_fields->timePassedGeneral.reset();
     m_fields->timePassedDead.reset();
     m_fields->timePassedPaused.reset();
+}
+
+void DTPlayLayer::preloadOverlayData() {
+    m_fields->overlayDataLoaded = false;
+    m_fields->overlayLevelKeys.clear();
+    m_fields->overlayLinkedData = GeneralData{};
+    m_fields->overlaySessionData = GeneralData{};
+
+    auto levelKeyResult = StatsManager::getLevelKey(m_level);
+    if (levelKeyResult.isErr()) {
+        log::error("Failed to preload overlay label data: {}", levelKeyResult.unwrapErr());
+        return;
+    }
+
+    m_fields->overlayLevelKey = levelKeyResult.unwrap();
+    m_fields->overlayLevelKeys.insert(m_fields->overlayLevelKey);
+
+    auto currentSession = StatsManager::getCurrentSession();
+    m_fields->overlaySessionDate = currentSession ? currentSession->sessionStartDate : 0;
+
+    if (currentSession && m_fields->overlaySessionDate) {
+        auto sessionResult = StatsManager::getSession(m_fields->overlayLevelKey, m_fields->overlaySessionDate);
+        if (sessionResult.isOk()) {
+            m_fields->overlaySessionData = sessionResult.unwrap().data;
+        }
+        else if (sessionResult.unwrapErr().code == 1) {
+            m_fields->overlaySessionData = currentSession->data;
+        }
+        else {
+            log::error("Failed to preload current session for overlay labels: {}", sessionResult.unwrapErr().error);
+        }
+    }
+
+    std::vector<std::string> levelsToVisit;
+    auto metadataResult = StatsManager::getMetadata(m_fields->overlayLevelKey);
+    if (metadataResult.isOk()) {
+        auto linkedLevels = metadataResult.unwrap().linkedLevels;
+        levelsToVisit.assign(linkedLevels.begin(), linkedLevels.end());
+    }
+    else if (metadataResult.unwrapErr().code != 1) {
+        log::error("Failed to preload linked overlay label data: {}", metadataResult.unwrapErr().error);
+    }
+
+    while (!levelsToVisit.empty()) {
+        auto levelKey = std::move(levelsToVisit.back());
+        levelsToVisit.pop_back();
+        if (!m_fields->overlayLevelKeys.insert(levelKey).second) continue;
+
+        auto levelDataResult = StatsManager::getLevelData(levelKey);
+        if (levelDataResult.isErr()) {
+            log::warn("Failed to preload linked level {} for overlay labels: {}", levelKey, levelDataResult.unwrapErr().error);
+            continue;
+        }
+
+        auto levelData = levelDataResult.unwrap();
+        if (levelData.from0.isOk()) {
+            m_fields->overlayLinkedData += levelData.from0.unwrap();
+        }
+        else if (levelData.from0.unwrapErr().code != 1) {
+            log::warn("Failed to preload general data for linked level {}: {}", levelKey, levelData.from0.unwrapErr().error);
+        }
+        levelsToVisit.insert(
+            levelsToVisit.end(),
+            levelData.metadata.linkedLevels.begin(),
+            levelData.metadata.linkedLevels.end()
+        );
+    }
+
+    m_fields->overlayDataLoaded = true;
+}
+
+void DTPlayLayer::updateOverlaySessionData() {
+    if (!m_fields->overlayDataLoaded) return;
+
+    auto currentSession = StatsManager::getCurrentSession();
+    auto sessionDate = currentSession ? currentSession->sessionStartDate : 0;
+    if (sessionDate != m_fields->overlaySessionDate) {
+        preloadOverlayData();
+        return;
+    }
+
+    if (!currentSession || !sessionDate) {
+        m_fields->overlaySessionData = GeneralData{};
+        return;
+    }
+
+    auto sessionResult = StatsManager::getSession(m_fields->overlayLevelKey, sessionDate);
+    if (sessionResult.isOk()) {
+        m_fields->overlaySessionData = sessionResult.unwrap().data;
+    }
+    else if (sessionResult.unwrapErr().code == 1) {
+        m_fields->overlaySessionData = currentSession->data;
+    }
+    else {
+        log::error("Failed to refresh current session for overlay labels: {}", sessionResult.unwrapErr().error);
+    }
+}
+
+Result<GeneralData> DTPlayLayer::getOverlayDeathsData(char scope) {
+    if (!m_fields->overlayDataLoaded) return Err("Overlay label data is not loaded");
+
+    GeneralData currentLevelData{};
+    if (StatsManager::currentFrom0.has_value())
+        currentLevelData = StatsManager::currentFrom0.value();
+
+    for (size_t i = 0; i < m_fields->fzeroToSave.size(); i++) {
+        ComplexDeathOccurrence occurrence;
+        occurrence.runEndTimestamp = m_fields->fzeroEndTimestamps[i];
+        (void)currentLevelData.deaths.recordDeath(
+            m_fields->fzeroToSave[i],
+            std::nullopt,
+            occurrence
+        );
+    }
+    for (const auto& run : m_fields->runsToSave) {
+        ComplexDeathOccurrence occurrence;
+        occurrence.runEndTimestamp = run.endTimestamp.value_or(StatsManager::getNowSeconds());
+        (void)currentLevelData.runs.recordDeath(run.end, run.start, occurrence);
+    }
+
+    if (scope == 'g') {
+        currentLevelData += m_fields->overlayLinkedData;
+        return Ok(currentLevelData);
+    }
+    if (scope == 'd') {
+        currentLevelData += m_fields->overlayLinkedData;
+        auto now = StatsManager::getNowSeconds();
+        auto earliest = now - 24 * 60 * 60;
+
+        return Ok(GeneralData{
+            .deaths = filterByEndTimestamp(currentLevelData.deaths, earliest, now),
+            .runs = filterByEndTimestamp(currentLevelData.runs, earliest, now)
+        });
+    }
+
+    GeneralData currentSessionData = m_fields->overlaySessionData;
+    for (size_t i = 0; i < m_fields->fzeroToSave.size(); i++) {
+        ComplexDeathOccurrence occurrence;
+        occurrence.runEndTimestamp = m_fields->fzeroEndTimestamps[i];
+        (void)currentSessionData.deaths.recordDeath(
+            m_fields->fzeroToSave[i],
+            std::nullopt,
+            occurrence
+        );
+    }
+    for (const auto& run : m_fields->runsToSave) {
+        ComplexDeathOccurrence occurrence;
+        occurrence.runEndTimestamp = run.endTimestamp.value_or(StatsManager::getNowSeconds());
+        (void)currentSessionData.runs.recordDeath(run.end, run.start, occurrence);
+    }
+
+    if (scope == 's')
+        return Ok(currentSessionData);
+
+    return Err("Unknown overlay label data scope");
+}
+
+void DTPlayLayer::refreshOverlayLabels() {
+    for (auto label : m_fields->overlayLabels)
+        label->removeMeAndCleanup();
+    m_fields->overlayLabels.clear();
+
+    if (!m_fields->overlayLabelsParent) {
+        auto parent = CCNode::create();
+        parent->setContentSize(CCDirector::sharedDirector()->getWinSize());
+        parent->setAnchorPoint({0, 0});
+        parent->ignoreAnchorPointForPosition(false);
+        parent->setPosition({0, 0});
+        parent->setID("death-tracker-overlay-labels");
+        this->addChild(parent, 10000);
+        m_fields->overlayLabelsParent = parent;
+    }
+
+    auto labelSettings = Save::getOverlayLabels();
+    auto orderedLabels = labelSettings.labels;
+
+    std::stable_sort(orderedLabels.begin(), orderedLabels.end(), [](const auto& a, const auto& b) {
+        return a.order > b.order;
+    });
+
+    std::map<Anchor, float> anchorOffsets;
+
+    for (const auto& label : orderedLabels) {
+        if (!label.enabled) continue;
+
+        auto overlayLabel = RichTextArea::create(
+            LabelEditLayer::expandDeaths(label.text, [this](char scope) {
+                return getOverlayDeathsData(scope);
+            }),
+            labelSettings.font,
+            labelSettings.size
+        );
+        m_fields->overlayLabels.push_back(overlayLabel);
+
+        auto isDoner = []() { return AuthManager::isDoner(); };
+        overlayLabel->registerRichTextKey(DTLabel::makeGradientKey(isDoner));
+        overlayLabel->registerRichTextKey(DTLabel::makeWaveKey(isDoner));
+        overlayLabel->registerRichTextKey(DTLabel::makeCPlusKey());
+
+        float widest = 0;
+        for (const auto& line : overlayLabel->getLines())
+            widest = std::max(widest, line->getScaledContentWidth());
+        overlayLabel->setWidth(widest);
+        overlayLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+
+        auto anchor = label.freeMode ? ccp(label.posX, label.posY) : LabelEditLayer::anchorPoint(label.anchor);
+        auto direction = LabelEditLayer::anchorDirection(anchor);
+        overlayLabel->setAnchorPoint(anchor);
+
+        if (!label.freeMode) {
+            auto& offset = anchorOffsets[label.anchor];
+            auto stackDirection = LabelEditLayer::anchorDirection(LabelEditLayer::anchorPoint(label.anchor)).y;
+            if (stackDirection == 0) stackDirection = -1;
+            m_fields->overlayLabelsParent->addChildAtPosition(
+                overlayLabel,
+                label.anchor,
+                ccp(0, stackDirection * offset) + labelSettings.offset * direction,
+                1000
+            );
+            offset += overlayLabel->getScaledContentHeight();
+        }
+        else {
+            m_fields->overlayLabelsParent->addChild(overlayLabel, 1000);
+            overlayLabel->setPosition(
+                m_fields->overlayLabelsParent->getContentSize() * anchor + labelSettings.offset * direction
+            );
+        }
+    }
+}
+
+ComplexDeathMap DTPlayLayer::filterByEndTimestamp(const ComplexDeathMap& source, long long earliestTimestamp, long long latestTimestamp) {
+    ComplexDeathMap filtered;
+
+    for (const auto& [key, death] : source.records) {
+        auto matching = death;
+        matching.deaths = 0;
+        matching.occurrences.clear();
+
+        for (const auto& occurrence : death.occurrences) {
+            if (!occurrence.runEndTimestamp) continue;
+
+            auto timestamp = occurrence.runEndTimestamp.value();
+            if (timestamp < earliestTimestamp || timestamp > latestTimestamp) continue;
+            matching.occurrences.push_back(occurrence);
+        }
+
+        matching.deaths = matching.occurrences.size();
+        if (matching.deaths != 0)
+            filtered.records.emplace(key, std::move(matching));
+    }
+
+    return filtered;
 }
