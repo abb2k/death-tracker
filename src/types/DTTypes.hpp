@@ -485,10 +485,13 @@ struct matjson::Serialize<OverlayLabel> {
 struct OverlayLabelSettings_s {
     static constexpr float MIN_SIZE = .01f;
     static constexpr float MAX_SIZE = 2.f;
+    static constexpr int MIN_OPACITY = 0;
+    static constexpr int MAX_OPACITY = 255;
 
     std::vector<OverlayLabel> labels;
 
     float size = 0.35f;
+    int opacity = 125;
     CCPoint offset = ccp(1, 1) * 5;
     std::string font = "bigFont.fnt";
 };

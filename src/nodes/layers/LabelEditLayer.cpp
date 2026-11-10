@@ -136,20 +136,20 @@ bool LabelEditLayer::init() {
 
     auto addGlobalSettingRow = [&](const char* title, float y, TextInput*& input, Slider*& slider, auto sliderCallback) {
         auto label = CCLabelBMFont::create(title, "bigFont.fnt");
-        label->setScale(.35f);
+        label->setScale(.28f);
         label->setAnchorPoint({0, .5f});
         label->setPosition({5, y});
         settingsMenu->addChild(label);
         
         input = TextInput::create(60, title);
-        input->setScale(.55f);
+        input->setScale(.45f);
         input->setAnchorPoint({1, .5f});
         input->setCommonFilter(CommonFilter::Float);
         input->setPosition({settingsMenu->getContentWidth() - 5, y});
         settingsMenu->addChild(input);
 
         slider = Slider::create(this, sliderCallback);
-        slider->setScale(.6f);
+        slider->setScale(.5f);
         slider->setPosition({
             settingsMenu->getContentWidth() / 2,
             y - slider->m_sliderBar->getContentHeight() / 2 - input->getScaledContentHeight() / 2 - 2.5f
@@ -158,8 +158,10 @@ bool LabelEditLayer::init() {
         settingsMenu->addChild(slider);
     };
 
-    addGlobalSettingRow("Offset:", 65, m_offsetInput, m_offsetSlider, menu_selector(LabelEditLayer::onOffsetSliderChanged));
-    addGlobalSettingRow("Size:", 27, m_sizeInput, m_sizeSlider, menu_selector(LabelEditLayer::onSizeSliderChanged));
+    addGlobalSettingRow("Offset:", 70, m_offsetInput, m_offsetSlider, menu_selector(LabelEditLayer::onOffsetSliderChanged));
+    addGlobalSettingRow("Size:", 44, m_sizeInput, m_sizeSlider, menu_selector(LabelEditLayer::onSizeSliderChanged));
+    addGlobalSettingRow("Opacity:", 19, m_opacityInput, m_opacitySlider, menu_selector(LabelEditLayer::onOpacitySliderChanged));
+    m_opacityInput->setCommonFilter(CommonFilter::Uint);
 
     m_offsetInput->setCallback([this](const std::string& value) {
         if (m_updatingControls) return;
@@ -189,6 +191,16 @@ bool LabelEditLayer::init() {
         setCurrentLabelSize(size, false);
     });
 
+    m_opacityInput->setCallback([this](const std::string& value) {
+        if (m_updatingControls) return;
+
+        auto parsedValue = geode::utils::numFromString<int>(value);
+        if (parsedValue.isErr()) return;
+        auto opacity = parsedValue.unwrap();
+        if (opacity < OverlayLabelSettings::MIN_OPACITY || opacity > OverlayLabelSettings::MAX_OPACITY) return;
+        setCurrentLabelOpacity(opacity, false);
+    });
+
     auto initialSettings = Save::getOverlayLabels();
     auto initialOffset = std::clamp(
         (initialSettings.offset.x + initialSettings.offset.y) / 2.f,
@@ -198,12 +210,17 @@ bool LabelEditLayer::init() {
     m_updatingControls = true;
     m_offsetInput->setString(fmt::format("{:.1f}", initialOffset));
     m_sizeInput->setString(fmt::format("{:.2f}", initialSettings.size));
+    m_opacityInput->setString(fmt::format("{}", initialSettings.opacity));
     m_offsetSlider->setValue(
         (initialOffset - OFFSET_SLIDER_MIN) / (OFFSET_SLIDER_MAX - OFFSET_SLIDER_MIN)
     );
     m_sizeSlider->setValue(
         (initialSettings.size - OverlayLabelSettings::MIN_SIZE) /
         (OverlayLabelSettings::MAX_SIZE - OverlayLabelSettings::MIN_SIZE)
+    );
+    m_opacitySlider->setValue(
+        static_cast<float>(initialSettings.opacity - OverlayLabelSettings::MIN_OPACITY) /
+        (OverlayLabelSettings::MAX_OPACITY - OverlayLabelSettings::MIN_OPACITY)
     );
     m_updatingControls = false;
 
@@ -406,7 +423,7 @@ bool LabelEditLayer::init() {
         m_currentEdit->setData(label);
         updateSavedLabels();
     });
-    m_textInput->setFilter("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_=<>. {}()");
+    m_textInput->setFilter("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_=<>. {}()%");
     m_editMenu->addChild(m_textInput);
 
     m_richTextBtn->setPosition(m_textInput->getPosition() + ccp(
@@ -600,6 +617,17 @@ void LabelEditLayer::onSizeSliderChanged(CCObject*) {
     setCurrentLabelSize(size);
 }
 
+void LabelEditLayer::onOpacitySliderChanged(CCObject*) {
+    if (m_updatingControls) return;
+
+    auto opacity = static_cast<int>(
+        OverlayLabelSettings::MIN_OPACITY +
+        (OverlayLabelSettings::MAX_OPACITY - OverlayLabelSettings::MIN_OPACITY) * m_opacitySlider->getValue() +
+        0.5f
+    );
+    setCurrentLabelOpacity(opacity);
+}
+
 void LabelEditLayer::setCurrentLabelSize(float size, bool updateInput) {
     size = std::clamp(size, OverlayLabelSettings::MIN_SIZE, OverlayLabelSettings::MAX_SIZE);
 
@@ -618,6 +646,23 @@ void LabelEditLayer::setCurrentLabelSize(float size, bool updateInput) {
     if (settings.size == size) return;
     settings.size = size;
 
+    Save::setOverlayLabels(settings);
+}
+
+void LabelEditLayer::setCurrentLabelOpacity(int opacity, bool updateInput) {
+    opacity = std::clamp(opacity, OverlayLabelSettings::MIN_OPACITY, OverlayLabelSettings::MAX_OPACITY);
+
+    m_updatingControls = true;
+    if (updateInput) m_opacityInput->setString(fmt::format("{}", opacity));
+    m_opacitySlider->setValue(
+        static_cast<float>(opacity - OverlayLabelSettings::MIN_OPACITY) /
+        (OverlayLabelSettings::MAX_OPACITY - OverlayLabelSettings::MIN_OPACITY)
+    );
+    m_updatingControls = false;
+
+    auto settings = Save::getOverlayLabels();
+    if (settings.opacity == opacity) return;
+    settings.opacity = opacity;
     Save::setOverlayLabels(settings);
 }
 
@@ -705,6 +750,13 @@ void LabelEditLayer::RefreshPreviewLabels() {
 
     m_previewLabels.clear();
 
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
+    auto previewSize = m_previewArea->getContentSize();
+    auto previewScale = std::min(
+        previewSize.width / winSize.width,
+        previewSize.height / winSize.height
+    );
+
     auto labelSettings = Save::getOverlayLabels();
     std::optional<size_t> selectedIndex;
     if (m_currentEdit) {
@@ -727,7 +779,7 @@ void LabelEditLayer::RefreshPreviewLabels() {
     for (const auto& [index, label] : orderedLabels) {
         if (!label.enabled) continue;
 
-        auto previewLabel = RichTextArea::create(expandDeaths(label.text), labelSettings.font, labelSettings.size);
+        auto previewLabel = RichTextArea::create(expandDeaths(label.text), labelSettings.font, labelSettings.size * previewScale);
         m_previewLabels.push_back(previewLabel);
 
         auto isDoner = [](){ return AuthManager::isDoner(); };
@@ -752,7 +804,7 @@ void LabelEditLayer::RefreshPreviewLabels() {
             background->setContentSize(previewLabel->getContentSize() + ccp(8, 6));
             background->setAnchorPoint({0, 0});
             background->setPosition({-4, -3});
-            background->setScale(.5f);
+            background->setScale(.2f);
             background->setContentSize(background->getContentSize() / background->getScale());
             previewLabel->addChild(background, -1);
         }
@@ -774,6 +826,9 @@ void LabelEditLayer::RefreshPreviewLabels() {
             previewLabel->setAnchorPoint(anchor);
             previewLabel->setPosition(m_previewArea->getContentSize() * anchor + labelSettings.offset * anchorDirection(anchor));
         }
+
+        for (const auto& line : previewLabel->getLines())
+            line->setOpacity(labelSettings.opacity);
     }
 }
 

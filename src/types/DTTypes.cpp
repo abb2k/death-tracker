@@ -902,6 +902,10 @@ Result<OverlayLabelSettings> matjson::Serialize<OverlayLabelSettings>::fromJson(
     GEODE_UNWRAP_INTO(settings.labels, value["labels"].as<std::vector<OverlayLabel>>());
     GEODE_UNWRAP_INTO(settings.size, value["size"].asDouble());
     settings.size = std::clamp(settings.size, OverlayLabelSettings::MIN_SIZE, OverlayLabelSettings::MAX_SIZE);
+    if (value.contains("opacity")) {
+        GEODE_UNWRAP_INTO(settings.opacity, value["opacity"].asInt());
+        settings.opacity = std::clamp(settings.opacity, OverlayLabelSettings::MIN_OPACITY, OverlayLabelSettings::MAX_OPACITY);
+    }
     GEODE_UNWRAP_INTO(settings.offset.x, value["offsetX"].asDouble());
     GEODE_UNWRAP_INTO(settings.offset.y, value["offsetY"].asDouble());
     GEODE_UNWRAP_INTO(settings.font, value["font"].asString());
@@ -912,6 +916,7 @@ matjson::Value matjson::Serialize<OverlayLabelSettings>::toJson(const OverlayLab
     return matjson::makeObject({
         { "labels", value.labels },
         { "size", value.size },
+        { "opacity", value.opacity },
         { "offsetX", value.offset.x },
         { "offsetY", value.offset.y },
         { "font", value.font }

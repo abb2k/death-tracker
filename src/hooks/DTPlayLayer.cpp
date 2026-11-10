@@ -800,8 +800,9 @@ void DTPlayLayer::refreshOverlayLabels() {
         overlayLabel->registerRichTextKey(DTLabel::makeCPlusKey());
 
         float widest = 0;
-        for (const auto& line : overlayLabel->getLines())
+        for (const auto& line : overlayLabel->getLines()) {
             widest = std::max(widest, line->getScaledContentWidth());
+        }
         overlayLabel->setWidth(widest);
         overlayLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
 
@@ -827,6 +828,9 @@ void DTPlayLayer::refreshOverlayLabels() {
                 m_fields->overlayLabelsParent->getContentSize() * anchor + labelSettings.offset * direction
             );
         }
+
+        for (const auto& line : overlayLabel->getLines())
+            line->setOpacity(labelSettings.opacity);
     }
 }
 

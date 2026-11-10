@@ -2,7 +2,6 @@
 
 #include <Geode/Geode.hpp>
 #include <nodes/OverlayLabelCell.hpp>
-#include <functional>
 #include <regex>
 #include <nodes/SimpleToggler.hpp>
 
@@ -28,9 +27,11 @@ class LabelEditLayer : public Popup {
         Slider* m_xSlider = nullptr;
         Slider* m_ySlider = nullptr;
         Slider* m_offsetSlider = nullptr;
+        Slider* m_opacitySlider = nullptr;
         TextInput* m_nameInput = nullptr;
         TextInput* m_textInput = nullptr;
         TextInput* m_offsetInput = nullptr;
+        TextInput* m_opacityInput = nullptr;
 
         void onCellDelete(OverlayLabelCell* cell);
         void onCellEdit(OverlayLabelCell* cell);
@@ -43,7 +44,9 @@ class LabelEditLayer : public Popup {
         void onSliderY(CCObject*);
         void onOffsetSliderChanged(CCObject*);
         void onSizeSliderChanged(CCObject*);
+        void onOpacitySliderChanged(CCObject*);
         void setCurrentLabelSize(float size, bool updateInput = true);
+        void setCurrentLabelOpacity(int opacity, bool updateInput = true);
 
         std::map<CCObject*, geode::Anchor> m_anchorButtons{};
 
