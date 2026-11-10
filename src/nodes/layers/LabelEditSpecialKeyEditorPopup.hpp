@@ -24,11 +24,13 @@ class LabelEditSpecialKeyEditorPopup : public Popup {
         FloatingList* m_keyTypeList = nullptr;
         FloatingList* m_scopeList = nullptr;
         FloatingList* m_operatorList = nullptr;
+        FloatingList* m_decimalList = nullptr;
         TextInput* m_firstValue = nullptr;
         TextInput* m_secondValue = nullptr;
         int m_keyType = 0;
         int m_scope = 0;
         int m_operator = 0;
+        bool m_decimals = false;
 
     public:
         static LabelEditSpecialKeyEditorPopup* create(geode::Function<void(const std::string&)> callback);

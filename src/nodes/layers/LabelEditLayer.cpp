@@ -423,7 +423,7 @@ bool LabelEditLayer::init() {
         m_currentEdit->setData(label);
         updateSavedLabels();
     });
-    m_textInput->setFilter("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_=<>. {}()%");
+    m_textInput->setFilter("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_=<>. {}()%:");
     m_editMenu->addChild(m_textInput);
 
     m_richTextBtn->setPosition(m_textInput->getPosition() + ccp(
@@ -979,6 +979,8 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
         }
         
         std::vector<std::pair<Run, uint64_t>> bestRuns;
+        std::map<int64_t, uint64_t> bestRunsByWholePercent;
+        auto showDecimals = match[8].matched;
         auto runData = startPercent ? data.runs.records : data.deaths.records;
         for (const auto& entry : runData) {
             auto& death = entry.second;
@@ -988,7 +990,26 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
                     death.runStartPercent ? std::optional<double>(death.runStartPercent->asPercent()) : std::nullopt,
                     death.runEndPercent.asPercent()
                 };
-                bestRuns.emplace_back(run, death.deaths);
+                if (showDecimals) {
+                    bestRuns.emplace_back(run, death.deaths);
+                }
+                else {
+                    auto wholePercent = static_cast<int64_t>(std::floor(run.end));
+                    auto& count = bestRunsByWholePercent[wholePercent];
+                    if (std::numeric_limits<uint64_t>::max() - count < death.deaths)
+                        count = std::numeric_limits<uint64_t>::max();
+                    else
+                        count += death.deaths;
+                }
+            }
+        }
+
+        if (!showDecimals) {
+            auto wholeStart = startPercent
+                ? std::optional<double>(std::floor(startPercent->asPercent()))
+                : std::nullopt;
+            for (const auto& [wholePercent, count] : bestRunsByWholePercent) {
+                bestRuns.emplace_back(Run{wholeStart, static_cast<double>(wholePercent)}, count);
             }
         }
 
@@ -997,15 +1018,15 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
         });
 
         for (int i = 0; i < count && i < static_cast<int>(bestRuns.size()); i++) {
-            auto decimalPrecision = Settings::getDecimalPrecision();
+            auto decimalPrecision = match[8].matched ? Settings::getDecimalPrecision() : 0;
 
             std::string entry;
 
             if (bestRuns[i].first.start.has_value()) {
-                entry = fmt::format("{:.{}f}-{:.{}f}% {}x", bestRuns[i].first.start.value(), decimalPrecision, bestRuns[i].first.end, decimalPrecision, bestRuns[i].second);
+                entry = fmt::format("{:.{}f}-{:.{}f}% X{}", bestRuns[i].first.start.value(), decimalPrecision, bestRuns[i].first.end, decimalPrecision, bestRuns[i].second);
             }
             else {
-                entry = fmt::format("{:.{}f}% {}x", bestRuns[i].first.end, decimalPrecision, bestRuns[i].second);
+                entry = fmt::format("{:.{}f}% X{}", bestRuns[i].first.end, decimalPrecision, bestRuns[i].second);
             }
 
             output.push_back(entry);
@@ -1066,17 +1087,8 @@ std::string LabelEditLayer::expandDeaths(const std::string& text) {
 }
 
 std::string LabelEditLayer::expandDeaths(const std::string& text, const std::function<Result<GeneralData>(char)>& dataProvider) {
-    std::regex queryPattern(R"(\{\(([sgd])\)(?:>=?(\d+)|<(\d+)|(\d+)-(\d+)|(\d+)b(\d+(?:\.\d+)?)?)\})");
-
     std::map<char, std::optional<GeneralData>> dataByScope;
-    std::string expanded;
-    auto textStart = text.cbegin();
-
-    for (std::sregex_iterator it(text.begin(), text.end(), queryPattern), end; it != end; ++it) {
-        const auto& match = *it;
-        expanded.append(textStart, match[0].first);
-
-        auto scope = match[1].str()[0];
+    auto getData = [&](char scope) -> const std::optional<GeneralData>& {
         auto dataIt = dataByScope.find(scope);
         if (dataIt == dataByScope.end()) {
             auto result = dataProvider(scope);
@@ -1085,9 +1097,78 @@ std::string LabelEditLayer::expandDeaths(const std::string& text, const std::fun
                 result.isOk() ? std::optional<GeneralData>(result.unwrap()) : std::nullopt
             ).first;
         }
+        return dataIt->second;
+    };
 
-        if (dataIt->second) {
-            expanded += formatDeaths(dataIt->second.value(), match);
+    std::regex currentDeathCountPattern(R"(\{\(([sgd])\)cd(d)?\})");
+    std::string expandedCurrentDeathCount;
+    auto textStart = text.cbegin();
+
+    for (std::sregex_iterator it(text.begin(), text.end(), currentDeathCountPattern), end; it != end; ++it) {
+        const auto& match = *it;
+        expandedCurrentDeathCount.append(textStart, match[0].first);
+
+        auto scope = match[1].str()[0];
+        const auto& data = getData(scope);
+        std::optional<long long> latestTimestamp;
+        const ComplexDeath* latestDeath = nullptr;
+
+        if (data) {
+            for (const auto& [key, death] : data->deaths.records) {
+                for (const auto& occurrence : death.occurrences) {
+                    if (!occurrence.runEndTimestamp)
+                        continue;
+
+                    auto timestamp = occurrence.runEndTimestamp.value();
+                    if (!latestTimestamp || timestamp >= latestTimestamp.value()) {
+                        latestTimestamp = timestamp;
+                        latestDeath = &death;
+                    }
+                }
+            }
+        }
+
+        if (latestDeath) {
+            if (match[2].matched) {
+                expandedCurrentDeathCount += fmt::format(
+                    "{:.{}f}% X{}",
+                    latestDeath->runEndPercent.asPercent(),
+                    Settings::getDecimalPrecision(),
+                    latestDeath->deaths
+                );
+            }
+            else {
+                auto wholePercent = static_cast<int64_t>(std::floor(latestDeath->runEndPercent.asPercent()));
+                auto legacyDeaths = data->deaths.toLegacyDeaths();
+                auto count = legacyDeaths.find(std::to_string(wholePercent));
+                expandedCurrentDeathCount += fmt::format(
+                    "{}% X{}",
+                    wholePercent,
+                    count == legacyDeaths.end() ? latestDeath->deaths : count->second
+                );
+            }
+        }
+        else {
+            expandedCurrentDeathCount += "[None]";
+        }
+        textStart = match[0].second;
+    }
+
+    expandedCurrentDeathCount.append(textStart, text.cend());
+
+    std::regex queryPattern(R"(\{\(([sgd])\)(?:>=?(\d+)|<(\d+)|(\d+)-(\d+)|(\d+)b(\d+(?:\.\d+)?)?(d)?)\})");
+
+    std::string expanded;
+    textStart = expandedCurrentDeathCount.cbegin();
+
+    for (std::sregex_iterator it(expandedCurrentDeathCount.begin(), expandedCurrentDeathCount.end(), queryPattern), end; it != end; ++it) {
+        const auto& match = *it;
+        expanded.append(textStart, match[0].first);
+
+        auto scope = match[1].str()[0];
+        const auto& data = getData(scope);
+        if (data) {
+            expanded += formatDeaths(data.value(), match);
         } else {
             expanded += "[None]";
         }
@@ -1095,6 +1176,6 @@ std::string LabelEditLayer::expandDeaths(const std::string& text, const std::fun
         textStart = match[0].second;
     }
 
-    expanded.append(textStart, text.cend());
+    expanded.append(textStart, expandedCurrentDeathCount.cend());
     return expanded;
 }

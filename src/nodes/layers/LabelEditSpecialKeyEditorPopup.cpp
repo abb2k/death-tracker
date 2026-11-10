@@ -50,7 +50,8 @@ bool LabelEditSpecialKeyEditorPopup::init(geode::Function<void(const std::string
     m_keyTypeList = FloatingList::create({100, 60});
     m_scopeList = FloatingList::create({90, 90});
     m_operatorList = FloatingList::create({85, 110});
-    for (auto list : {m_keyTypeList, m_scopeList, m_operatorList}) {
+    m_decimalList = FloatingList::create({85, 55});
+    for (auto list : {m_keyTypeList, m_scopeList, m_operatorList, m_decimalList}) {
         list->setAnchorPoint({.5f, 1});
         list->setListOpenAnchor({.5f, 1});
         list->setZOrder(2);
@@ -59,7 +60,8 @@ bool LabelEditSpecialKeyEditorPopup::init(geode::Function<void(const std::string
 
     m_keyTypeList->addItems({
         FloatingListItem{.id = 0, .text = "Death Count", .BGTexture = "GJ_button_04.png"},
-        FloatingListItem{.id = 1, .text = "Best Runs", .BGTexture = "GJ_button_04.png"}
+        FloatingListItem{.id = 1, .text = "Best Runs", .BGTexture = "GJ_button_04.png"},
+        FloatingListItem{.id = 2, .text = "Same Death Count", .BGTexture = "GJ_button_04.png"}
     });
     m_scopeList->addItems({
         FloatingListItem{.id = 0, .text = "Session", .BGTexture = "GJ_button_04.png"},
@@ -71,6 +73,10 @@ bool LabelEditSpecialKeyEditorPopup::init(geode::Function<void(const std::string
         FloatingListItem{.id = 1, .text = ">", .BGTexture = "GJ_button_04.png"},
         FloatingListItem{.id = 2, .text = "<", .BGTexture = "GJ_button_04.png"},
         FloatingListItem{.id = 3, .text = "Range", .BGTexture = "GJ_button_04.png"}
+    });
+    m_decimalList->addItems({
+        FloatingListItem{.id = 0, .text = "Off", .BGTexture = "GJ_button_04.png"},
+        FloatingListItem{.id = 1, .text = "On", .BGTexture = "GJ_button_04.png"}
     });
 
     m_keyTypeList->setCallback([this](const int& id) {
@@ -86,6 +92,11 @@ bool LabelEditSpecialKeyEditorPopup::init(geode::Function<void(const std::string
     m_operatorList->setCallback([this](const int& id) {
         m_operator = id;
         m_operatorList->close();
+        updateControls();
+    });
+    m_decimalList->setCallback([this](const int& id) {
+        m_decimals = id == 1;
+        m_decimalList->close();
         updateControls();
     });
 
@@ -120,6 +131,7 @@ void LabelEditSpecialKeyEditorPopup::onKeyTypeClick(CCObject*) {
     else {
         m_scopeList->close();
         m_operatorList->close();
+        m_decimalList->close();
         m_keyTypeList->open();
     }
 }
@@ -130,17 +142,21 @@ void LabelEditSpecialKeyEditorPopup::onScopeClick(CCObject*) {
     else {
         m_keyTypeList->close();
         m_operatorList->close();
+        m_decimalList->close();
         m_scopeList->open();
     }
 }
 
 void LabelEditSpecialKeyEditorPopup::onOperatorClick(CCObject*) {
-    if (m_operatorList->isOpened())
-        m_operatorList->close();
+    auto activeList = m_keyType == 0 ? m_operatorList : m_decimalList;
+    if (activeList->isOpened())
+        activeList->close();
     else {
         m_keyTypeList->close();
         m_scopeList->close();
-        m_operatorList->open();
+        m_operatorList->close();
+        m_decimalList->close();
+        activeList->open();
     }
 }
 
@@ -156,18 +172,27 @@ void LabelEditSpecialKeyEditorPopup::updateControls() {
     scopeSprite->setScale(.5f);
     m_scopeButton->setSprite(scopeSprite);
 
-    auto operatorSprite = ButtonSprite::create(m_operatorList->getItemForID(m_operator).value_or({}).text.c_str());
+    auto operatorText = m_keyType == 0
+        ? m_operatorList->getItemForID(m_operator).value_or({}).text
+        : m_decimals ? "On" : "Off";
+    auto operatorSprite = ButtonSprite::create(operatorText.c_str());
     operatorSprite->setScale(.55f);
     m_operatorButton->setSprite(operatorSprite);
 
-    m_operatorButton->setVisible(m_keyType == 0);
-
-    if (m_keyType != 0)
+    if (m_keyType == 0) {
         m_operatorList->close();
+        m_decimalList->close();
+        m_operatorLabel->setString("Operator");
+    }
+    else {
+        m_operatorList->close();
+        m_operatorLabel->setString("Decimals");
+    }
 
-    m_scopeButton->setPosition({m_keyType == 0 ? m_size.width / 3 : m_size.width / 2, 78});
+    m_scopeButton->setPosition({m_size.width / 3, 78});
     m_operatorButton->setPosition({m_size.width * 2 / 3, 78});
-    m_operatorLabel->setVisible(m_keyType == 0);
+    m_firstValue->setVisible(m_keyType != 2);
+    m_secondValue->setVisible(m_keyType == 1 || (m_keyType == 0 && m_operator == 3));
 
     auto setListPosition = [](FloatingList* list, CCMenuItemSpriteExtra* button) {
         list->setPosition(button->getPosition() - ccp(0, button->getScaledContentHeight() / 2));
@@ -181,20 +206,19 @@ void LabelEditSpecialKeyEditorPopup::updateControls() {
     setListPosition(m_keyTypeList, m_keyTypeButton);
     setListPosition(m_scopeList, m_scopeButton);
     setListPosition(m_operatorList, m_operatorButton);
+    setListPosition(m_decimalList, m_operatorButton);
     setLabelPosition(m_scopeLabel, m_scopeButton);
     setLabelPosition(m_operatorLabel, m_operatorButton);
 
     if (m_keyType == 1) {
         m_firstValue->setPlaceholder("Count");
         m_secondValue->setPlaceholder("Start %");
-        m_secondValue->setVisible(true);
         m_firstValue->setPosition({m_size.width / 3, 48});
         m_secondValue->setPosition({m_size.width * 2 / 3, 48});
     }
     else if (m_operator == 3) {
         m_firstValue->setPlaceholder("Min%");
         m_secondValue->setPlaceholder("Max%");
-        m_secondValue->setVisible(true);
         m_firstValue->setPosition({m_size.width / 3, 48});
         m_secondValue->setPosition({m_size.width * 2 / 3, 48});
     }
@@ -206,7 +230,7 @@ void LabelEditSpecialKeyEditorPopup::updateControls() {
 }
 
 void LabelEditSpecialKeyEditorPopup::onCreateKey(CCObject* sender) {
-    if (m_firstValue->getString().empty() || (m_keyType == 0 && m_operator == 3) && m_secondValue->getString().empty()) {
+    if (m_keyType != 2 && (m_firstValue->getString().empty() || (m_keyType == 0 && m_operator == 3 && m_secondValue->getString().empty()))) {
         FLAlertLayer::create("Could not create key", "Fill the values to create a key", "OK")->show();
         return;
     }
@@ -219,10 +243,19 @@ void LabelEditSpecialKeyEditorPopup::onCreateKey(CCObject* sender) {
     }
 
     auto key = fmt::format("{{({})", scope);
-    if (m_keyType == 1) {
+    if (m_keyType == 2) {
+        key += "cd";
+        if (m_decimals)
+            key += "d";
+    }
+    else if (m_keyType == 1) {
         key += fmt::format("{}b{}", m_firstValue->getString(), m_secondValue->getString());
+        if (m_decimals)
+            key += "d";
     }
     else {
+        key.insert(key.begin(), 'X');
+
         switch (m_operator) {
             case 0: key += ">="; break;
             case 1: key += ">"; break;
@@ -248,9 +281,6 @@ void LabelEditSpecialKeyEditorPopup::onCreateKey(CCObject* sender) {
     }
 
     key += "}";
-
-    if (m_keyType != 1)
-        key += "X";
 
     if (m_callback)
         m_callback(key);
