@@ -463,17 +463,44 @@ struct matjson::Serialize<DTLayoutPreset> {
     static matjson::Value toJson(const DTLayoutPreset& value);
 };
 
-typedef struct {
-    std::string labelName;
-    std::string text;
-    float posX;
-    float posY;
-    geode::Anchor anchor;
-    bool freeMode;
-    int order;
-} OverlayLabel;
+struct OverlayLabel_s {
+    std::string labelName = "Label";
+    std::string text = "New Label";
 
-typedef struct {
+    float posX = .5f;
+    float posY = .5f;
+    geode::Anchor anchor = geode::Anchor::TopLeft;
+    bool freeMode = false;
+    int order = 0;
+    bool enabled = true;
+};
+typedef struct OverlayLabel_s OverlayLabel;
+
+template <>
+struct matjson::Serialize<OverlayLabel> {
+    static Result<OverlayLabel> fromJson(const matjson::Value& value);
+    static matjson::Value toJson(const OverlayLabel& value);
+};
+
+struct OverlayLabelSettings_s {
+    static constexpr float MIN_SIZE = .01f;
+    static constexpr float MAX_SIZE = 2.f;
+
+    std::vector<OverlayLabel> labels;
+
+    float size = 0.25f;
+    CCPoint offset = ccp(1, 1) * 5;
+    std::string font = "bigFont.fnt";
+};
+typedef struct OverlayLabelSettings_s OverlayLabelSettings;
+
+template <>
+struct matjson::Serialize<OverlayLabelSettings> {
+    static Result<OverlayLabelSettings> fromJson(const matjson::Value& value);
+    static matjson::Value toJson(const OverlayLabelSettings& value);
+};
+
+typedef struct V2LabelLayout {
     std::string labelName;
     std::string text;
     int line;
@@ -502,7 +529,7 @@ struct matjson::Serialize<stringCustomazations> {
     static matjson::Value toJson(const stringCustomazations& value);
 };
 
-typedef struct {
+typedef struct V2Session {
     long long lastPlayed;
     Deaths deaths;
     Deaths runs;

@@ -1246,9 +1246,9 @@ void DTLayer::UpdateSharedStats() {
 }
 
 void DTLayer::onSettings(CCObject*) {
-    // LabelEditLayer::create()->show();
+    LabelEditLayer::create()->show();
 
-    geode::openSettingsPopup(Mod::get());
+    // geode::openSettingsPopup(Mod::get());
 }
 
 void DTLayer::keyBackClicked() {

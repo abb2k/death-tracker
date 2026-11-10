@@ -113,6 +113,15 @@ void Save::setLayoutPresets(const std::vector<DTLayoutPreset>& presets) {
     Mod::get()->setSavedValue("layoutPresets", presets);
 }
 
+OverlayLabelSettings Save::getOverlayLabels() {
+    return Mod::get()->getSavedValue<OverlayLabelSettings>("overlayLabelsSettings");
+}
+void Save::setOverlayLabels(const OverlayLabelSettings& labels) {
+    Mod::get()->setSavedValue("overlayLabelsSettings", labels);
+
+    OverlayLabelsChangedEvent().send();
+}
+
 bool Save::getLevelWasPTTransferred(std::string const& lvlKey) {
     auto PTTransferData = Mod::get()->getSavedValue<std::set<std::string>>("PTTransferData");
 

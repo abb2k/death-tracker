@@ -49,6 +49,14 @@ class Save {
         static std::vector<DTLayoutPreset> getLayoutPresets();
         static void setLayoutPresets(const std::vector<DTLayoutPreset>& presets);
 
+        class OverlayLabelsChangedEvent : public Event<OverlayLabelsChangedEvent, bool()> {
+            public:
+                using Event::Event;
+        };
+
+        static OverlayLabelSettings getOverlayLabels();
+        static void setOverlayLabels(const OverlayLabelSettings& labels);
+
         static bool getLevelWasPTTransferred(std::string const& lvlKey);
         static void setLevelWasPTTransferred(std::string const& lvlKey);
 

@@ -867,6 +867,57 @@ matjson::Value matjson::Serialize<DTLayoutPreset>::toJson(const DTLayoutPreset& 
     });
 }
 
+Result<OverlayLabel> matjson::Serialize<OverlayLabel>::fromJson(const matjson::Value& value) {
+    OverlayLabel label;
+    GEODE_UNWRAP_INTO(label.labelName, value["labelName"].asString());
+    GEODE_UNWRAP_INTO(label.text, value["text"].asString());
+
+    GEODE_UNWRAP_INTO(label.posX, value["posX"].asDouble());
+    GEODE_UNWRAP_INTO(label.posY, value["posY"].asDouble());
+
+    GEODE_UNWRAP_INTO(auto anchorEnumInt, value["anchor"].asInt());
+    label.anchor = static_cast<geode::Anchor>(anchorEnumInt);
+
+    GEODE_UNWRAP_INTO(label.freeMode, value["freeMode"].asBool());
+    GEODE_UNWRAP_INTO(label.order, value["order"].asInt());
+    GEODE_UNWRAP_INTO(label.enabled, value["enabled"].asBool());
+    return Ok(label);
+}
+
+matjson::Value matjson::Serialize<OverlayLabel>::toJson(const OverlayLabel& value) {
+    return matjson::makeObject({
+        { "labelName", value.labelName },
+        { "text", value.text },
+        { "posX", value.posX },
+        { "posY", value.posY },
+        { "anchor", static_cast<int>(value.anchor) },
+        { "freeMode", value.freeMode },
+        { "order", value.order },
+        { "enabled", value.enabled }
+    });
+}
+
+Result<OverlayLabelSettings> matjson::Serialize<OverlayLabelSettings>::fromJson(const matjson::Value& value) {
+    OverlayLabelSettings settings;
+    GEODE_UNWRAP_INTO(settings.labels, value["labels"].as<std::vector<OverlayLabel>>());
+    GEODE_UNWRAP_INTO(settings.size, value["size"].asDouble());
+    settings.size = std::clamp(settings.size, OverlayLabelSettings::MIN_SIZE, OverlayLabelSettings::MAX_SIZE);
+    GEODE_UNWRAP_INTO(settings.offset.x, value["offsetX"].asDouble());
+    GEODE_UNWRAP_INTO(settings.offset.y, value["offsetY"].asDouble());
+    GEODE_UNWRAP_INTO(settings.font, value["font"].asString());
+    return Ok(settings);
+}
+
+matjson::Value matjson::Serialize<OverlayLabelSettings>::toJson(const OverlayLabelSettings& value) {
+    return matjson::makeObject({
+        { "labels", value.labels },
+        { "size", value.size },
+        { "offsetX", value.offset.x },
+        { "offsetY", value.offset.y },
+        { "font", value.font }
+    });
+}
+
 Result<V2LabelLayout> matjson::Serialize<V2LabelLayout>::fromJson(const matjson::Value& value) {
     V2LabelLayout layout;
     GEODE_UNWRAP_INTO(layout.labelName, value["labelName"].asString());
