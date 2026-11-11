@@ -3,7 +3,7 @@
 #include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
-#include <nodes/CalculatorMode.hpp>
+#include <nodes/CalculatorModes/CalculatorMode.hpp>
 
 class BeforeCalcMode : public CalculatorMode {
     protected:

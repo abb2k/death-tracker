@@ -1,6 +1,6 @@
-#include "LevelLinkCell.hpp"
+#include <nodes/cells/LevelLinkCell.hpp>
 
-LevelLinkCell* LevelLinkCell::create(float width, const std::string& levelKey, const LevelMetadeta& data) {
+LevelLinkCell* LevelLinkCell::create(float width, const std::string& levelKey, const LevelMetadata& data) {
     auto ret = new LevelLinkCell();
     if (ret && ret->init(width, levelKey, data)) {
         ret->autorelease();
@@ -11,7 +11,7 @@ LevelLinkCell* LevelLinkCell::create(float width, const std::string& levelKey, c
     return ret;
 }
 
-bool LevelLinkCell::init(float width, const std::string& levelKey, const LevelMetadeta& data) {
+bool LevelLinkCell::init(float width, const std::string& levelKey, const LevelMetadata& data) {
     if (!CCMenu::init()) return false;
 
     this->levelKey = levelKey;

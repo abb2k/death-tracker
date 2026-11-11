@@ -38,7 +38,7 @@ bool StatsManager::m_scheduleCreateNewSession = false;
 
 GJGameLevel* StatsManager::currentLevel = nullptr;
 std::optional<GeneralData> StatsManager::currentFrom0{};
-std::optional<LevelMetadeta> StatsManager::currentMetadata{};
+std::optional<LevelMetadata> StatsManager::currentMetadata{};
 std::optional<Session> StatsManager::currentSession{};
 
 const std::string StatsManager::METADATA_FILE_NAME = "metadata";
@@ -124,15 +124,15 @@ std::array<std::string, 62> StatsManager::m_AllFontsMap{
 /* main functions
 ================== */
 
-Result<LevelMetadeta, ErrorWithCode> StatsManager::getMetadata(GJGameLevel* const level) {
+Result<LevelMetadata, ErrorWithCode> StatsManager::getMetadata(GJGameLevel* const level) {
     GEODE_UNWRAP_INTO(auto levelKey, StatsManager::getLevelKey(level));
     return getMetadata(levelKey);
 }
-Result<LevelMetadeta, ErrorWithCode> StatsManager::getMetadata(const std::string& levelKey) {
+Result<LevelMetadata, ErrorWithCode> StatsManager::getMetadata(const std::string& levelKey) {
     return getMetadata(getSavesFolderPath() / levelKey);
 }
 
-Result<LevelMetadeta, ErrorWithCode> StatsManager::getMetadata(const asp::fs::Path& path) {
+Result<LevelMetadata, ErrorWithCode> StatsManager::getMetadata(const asp::fs::Path& path) {
     auto levelSaveFilePath = path / StatsManager::METADATA_FILE_NAME;
 
     if (!StatsManager::getSavesFolderPath().exists())
@@ -143,7 +143,7 @@ Result<LevelMetadeta, ErrorWithCode> StatsManager::getMetadata(const asp::fs::Pa
 
     auto readRes = file::readJson(levelSaveFilePath);
     if (readRes.isErr()) return Err("Metadata Corrupted");
-    auto json = readRes.unwrap().as<LevelMetadeta>();
+    auto json = readRes.unwrap().as<LevelMetadata>();
     if (json.isErr()) return Err("Metadata Corrupted");
         
     return Ok(json.unwrap());
@@ -262,7 +262,7 @@ Result<BackupLevelData> StatsManager::getBackupData(const std::string& levelKey,
         if (levelStatsJsonRes.isErr()) return Err("Failed to get backup level stats!");
         auto levelStatsJson = levelStatsJsonRes.unwrap();
         
-        auto metaJsonObjRes = levelStatsJson.as<LevelMetadeta>();
+        auto metaJsonObjRes = levelStatsJson.as<LevelMetadata>();
         if (metaJsonObjRes.isErr()) return Err("Failed to get backup metadata!");
         data.meta = metaJsonObjRes.unwrap();
     }
@@ -302,13 +302,13 @@ Result<BackupLevelData> StatsManager::getBackupData(const std::string& levelKey,
     return Ok(data);
 }
 
-Result<> StatsManager::setMetadata(const LevelMetadeta& stats, GJGameLevel* const level) {
+Result<> StatsManager::setMetadata(const LevelMetadata& stats, GJGameLevel* const level) {
     GEODE_UNWRAP_INTO(auto levelKey, StatsManager::getLevelKey(level));
     GEODE_UNWRAP(setMetadata(stats, levelKey));
 
     return Ok();
 }
-Result<> StatsManager::setMetadata(const LevelMetadeta& stats, const std::string& levelKey) {
+Result<> StatsManager::setMetadata(const LevelMetadata& stats, const std::string& levelKey) {
     createFilesIfNeeded(levelKey);
 
     auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::METADATA_FILE_NAME;
@@ -531,7 +531,7 @@ void StatsManager::createFilesIfNeeded(const std::string& levelKey) {
     if (lvlSavesDirRes.isErr() && !lvlSavesDirRes.unwrapErr().starts_with("AlreadyExists"))
         log::error("failed to create level folder: {}", lvlSavesDirRes.unwrapErr());
 
-    createFile((levelSaveFilePath / METADATA_FILE_NAME), LevelMetadeta{});
+    createFile((levelSaveFilePath / METADATA_FILE_NAME), LevelMetadata{});
     createFile((levelSaveFilePath / FROM0_FILE_NAME), GeneralData{});
     (void)geode::utils::file::createDirectory((levelSaveFilePath / SESSIONS_DIR_NAME));
 }
@@ -555,7 +555,7 @@ void StatsManager::setCurrentLevel(GJGameLevel* const& level) {
     if (level == nullptr) {
         currentFrom0 = GeneralData{};
         currentSession = Session{};
-        currentMetadata = LevelMetadeta{};
+        currentMetadata = LevelMetadata{};
         return;
     }
 
@@ -1027,10 +1027,10 @@ std::array<std::string, 62> StatsManager::getAllFonts() {
     return m_AllFontsMap;
 }
 
-Result<std::vector<std::pair<std::string, LevelMetadeta>>> StatsManager::getAllLevels() {
+Result<std::vector<std::pair<std::string, LevelMetadata>>> StatsManager::getAllLevels() {
     GEODE_UNWRAP_INTO(auto allLevels, file::readDirectory(getSavesFolderPath()));
 
-    std::vector<std::pair<std::string, LevelMetadeta>> toReturn{};
+    std::vector<std::pair<std::string, LevelMetadata>> toReturn{};
 
     std::vector<std::string> failedKeys{};
 
@@ -1315,7 +1315,7 @@ Result<> StatsManager::convertV2SaveToV3(const std::string& levelKey) {
 
     auto stats = statsRes.unwrap();
 
-    auto v3Meta = LevelMetadeta{};
+    auto v3Meta = LevelMetadata{};
     std::map<int, int> runsMap{};
     bool showAnyRun = false;
     for (const auto& percent : stats.RunsToSave)

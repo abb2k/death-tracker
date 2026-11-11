@@ -867,6 +867,18 @@ matjson::Value matjson::Serialize<DTLayoutPreset>::toJson(const DTLayoutPreset& 
     });
 }
 
+bool OverlayLabel::isOverlayLabelVisibleOnLevel(GJGameLevel* level, LevelMetadata const& meta) const {
+    if (!this->levelSpecific.has_value()) return true;
+
+    auto levelKeyRes = StatsManager::getLevelKey(level);
+    if (levelKeyRes.isErr()) return false;
+
+    std::set<std::string> levelKeys = meta.linkedLevels;
+    levelKeys.insert(levelKeyRes.unwrap());
+
+    return levelKeys.contains(this->levelSpecific.value());
+}
+
 Result<OverlayLabel> matjson::Serialize<OverlayLabel>::fromJson(const matjson::Value& value) {
     OverlayLabel label;
     GEODE_UNWRAP_INTO(label.labelName, value["labelName"].asString());
@@ -881,6 +893,9 @@ Result<OverlayLabel> matjson::Serialize<OverlayLabel>::fromJson(const matjson::V
     GEODE_UNWRAP_INTO(label.freeMode, value["freeMode"].asBool());
     GEODE_UNWRAP_INTO(label.order, value["order"].asInt());
     GEODE_UNWRAP_INTO(label.enabled, value["enabled"].asBool());
+    if (value.contains("levelSpecificKey")) {
+        GEODE_UNWRAP_INTO(label.levelSpecific, value["levelSpecificKey"].as<std::optional<std::string>>());
+    }
     return Ok(label);
 }
 
@@ -893,7 +908,8 @@ matjson::Value matjson::Serialize<OverlayLabel>::toJson(const OverlayLabel& valu
         { "anchor", static_cast<int>(value.anchor) },
         { "freeMode", value.freeMode },
         { "order", value.order },
-        { "enabled", value.enabled }
+        { "enabled", value.enabled },
+        { "levelSpecificKey", value.levelSpecific }
     });
 }
 

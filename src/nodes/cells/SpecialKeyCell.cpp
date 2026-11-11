@@ -1,4 +1,4 @@
-#include "SpecialKeyCell.hpp"
+#include <nodes/cells/SpecialKeyCell.hpp>
 
 SpecialKeyCell* SpecialKeyCell::create(std::shared_ptr<SpecialKey> key, geode::Function<void(const std::string&)> onSelected) {
     auto ret = new SpecialKeyCell();

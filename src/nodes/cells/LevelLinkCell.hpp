@@ -7,7 +7,7 @@ using namespace geode::prelude;
 
 class LevelLinkCell : public CCMenu {
     public:
-        static LevelLinkCell* create(float width, const std::string& levelKey, const LevelMetadeta& data);
+        static LevelLinkCell* create(float width, const std::string& levelKey, const LevelMetadata& data);
 
         void setAlignment(bool left);
 
@@ -17,7 +17,7 @@ class LevelLinkCell : public CCMenu {
         bool isEnabledAndFade() const { return enabledAndFade; }
 
     private:
-        bool init(float width, const std::string& levelKey, const LevelMetadeta& data);
+        bool init(float width, const std::string& levelKey, const LevelMetadata& data);
 
         std::string levelKey;
 

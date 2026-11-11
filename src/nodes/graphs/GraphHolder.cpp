@@ -1,4 +1,4 @@
-#include "GraphHolder.hpp"
+#include <nodes/graphs/GraphHolder.hpp>
 
 GraphHolder* GraphHolder::create(const CCSize& scaling) {
     auto ret = new GraphHolder();

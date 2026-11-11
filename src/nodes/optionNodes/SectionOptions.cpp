@@ -1,6 +1,6 @@
 #include <nodes/optionNodes/SectionOptions.hpp>
 #include <nodes/layers/DTLayer.hpp>
-#include <nodes/SectionCell.hpp>
+#include <nodes/cells/SectionCell.hpp>
 
 SectionOptions* SectionOptions::create(const CCSize& size) {
     auto ret = new SectionOptions();

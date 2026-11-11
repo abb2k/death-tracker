@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
-#include <nodes/OptionsNode.hpp>
+#include <nodes/optionNodes/OptionsNode.hpp>
 
 using namespace geode::prelude;
 

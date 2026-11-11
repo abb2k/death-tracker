@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
-#include <nodes/OptionsNode.hpp>
+#include <nodes/optionNodes/OptionsNode.hpp>
 #include <types/DTTypes.hpp>
 #include <nodes/SimpleToggler.hpp>
 
@@ -18,7 +18,7 @@ struct GetLevelsTaskProgress {
 };
 
 struct LinkData {
-    LevelMetadeta metadata;
+    LevelMetadata metadata;
     std::string levelKey;
 };
 

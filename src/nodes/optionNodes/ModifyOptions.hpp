@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
-#include <nodes/OptionsNode.hpp>
+#include <nodes/optionNodes/OptionsNode.hpp>
 #include <nodes/SimpleToggler.hpp>
 #include <nodes/DTLabel.hpp>
 #include <nodes/SessionSelector.hpp>

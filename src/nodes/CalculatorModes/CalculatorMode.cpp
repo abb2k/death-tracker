@@ -1,4 +1,4 @@
-#include "CalculatorMode.hpp"
+#include <nodes/CalculatorModes/CalculatorMode.hpp>
 
 CalculatorMode* CalculatorMode::create(CCSize const& size, geode::Function<void(std::string const&)>&& onVariablesChanged, geode::Function<void(std::string const&)>&& onCalculate) {
     auto ret = new CalculatorMode();

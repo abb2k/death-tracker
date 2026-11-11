@@ -2,9 +2,9 @@
 
 #include <Geode/Geode.hpp>
 #include <types/DTTypes.hpp>
-#include <nodes/DTGraphNode.hpp>
+#include <nodes/graphs/DTGraphNode.hpp>
 #include <nodes/layers/AdvancedScrollLayer.hpp>
-#include <nodes/GraphPoint.hpp>
+#include <nodes/graphs/GraphPoint.hpp>
 
 class GraphHolder : public CCNode {
     public:

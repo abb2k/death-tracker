@@ -1408,7 +1408,7 @@ bool DTLayer::createDeathsString(const Deaths& deaths, const stringCustomazation
     return toReturn;
 }
 
-bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests,  const CustomizationData& newBestCustomizations, bool ignoreExtraSettings, bool isSession) {
+bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadata& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests,  const CustomizationData& newBestCustomizations, bool ignoreExtraSettings, bool isSession) {
     out = "";
 
     const auto isNewBest = [&](double percent) {
@@ -1674,7 +1674,7 @@ bool DTLayer::createDeathsString(const Deaths& deaths, const LevelMetadeta& meta
     return true;
 }
 
-bool DTLayer::createDecimalDeathsString(const ComplexDeathMap& deaths, const Run& selectedRun, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests,  const CustomizationData& newBestCustomizations, bool ignoreExtraSettings, uint8_t decimalDepth) {
+bool DTLayer::createDecimalDeathsString(const ComplexDeathMap& deaths, const Run& selectedRun, const LevelMetadata& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests,  const CustomizationData& newBestCustomizations, bool ignoreExtraSettings, uint8_t decimalDepth) {
     out = "";
 
     if (decimalDepth > ComplexPercent::maxDecimalDepth) {

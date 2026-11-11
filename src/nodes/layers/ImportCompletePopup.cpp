@@ -1,6 +1,6 @@
 #include "ImportCompletePopup.hpp"
 #include <nodes/layers/DTLayer.hpp>
-#include <nodes/SessionCell.hpp>
+#include <nodes/cells/SessionCell.hpp>
 
 ImportCompletePopup* ImportCompletePopup::create(LevelData&& data, std::vector<Session> const& sessions) {
     auto ret = new ImportCompletePopup();

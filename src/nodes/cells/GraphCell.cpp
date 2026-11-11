@@ -1,4 +1,4 @@
-#include "GraphCell.hpp"
+#include <nodes/cells/GraphCell.hpp>
 
 #include <managers/StatsManager.hpp>
 #include <nodes/layers/DTLayer.hpp>

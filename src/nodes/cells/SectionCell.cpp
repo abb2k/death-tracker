@@ -1,4 +1,4 @@
-#include "SectionCell.hpp"
+#include <nodes/cells/SectionCell.hpp>
 #include <managers/StatsManager.hpp>
 #include <utils/Dev.hpp>
 

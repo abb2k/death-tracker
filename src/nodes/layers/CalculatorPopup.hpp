@@ -3,7 +3,7 @@
 #include <Geode/Geode.hpp>
 #include <nodes/SwitcherButton.hpp>
 
-#include <nodes/CalculatorMode.hpp>
+#include <nodes/CalculatorModes/CalculatorMode.hpp>
 
 using namespace geode::prelude;
 

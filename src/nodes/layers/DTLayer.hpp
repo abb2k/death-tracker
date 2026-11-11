@@ -117,8 +117,8 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         void foreachLinkedLevel(geode::Function<void(LevelData&)> onLevelVisit);
 
-        bool createDeathsString(const Deaths& deaths, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false, bool isSession = false);
-        bool createDecimalDeathsString(const ComplexDeathMap& deaths, const Run& selectedRun, const LevelMetadeta& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false, uint8_t decimalDepth = 0);
+        bool createDeathsString(const Deaths& deaths, const LevelMetadata& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false, bool isSession = false);
+        bool createDecimalDeathsString(const ComplexDeathMap& deaths, const Run& selectedRun, const LevelMetadata& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false, uint8_t decimalDepth = 0);
 
         void CleanGetStats();
 

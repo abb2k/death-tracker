@@ -35,7 +35,7 @@ public:
 
     static GJGameLevel* currentLevel;
     static std::optional<GeneralData> currentFrom0;
-    static std::optional<LevelMetadeta> currentMetadata;
+    static std::optional<LevelMetadata> currentMetadata;
     static std::optional<Session> currentSession;
 
     static bool isGameClosing;
@@ -44,9 +44,9 @@ public:
 
 #pragma region level setters/getters
 
-    static Result<LevelMetadeta, ErrorWithCode> getMetadata(GJGameLevel* const level);
-    static Result<LevelMetadeta, ErrorWithCode> getMetadata(const std::string& levelKey);
-    static Result<LevelMetadeta, ErrorWithCode> getMetadata(const asp::fs::Path& path);
+    static Result<LevelMetadata, ErrorWithCode> getMetadata(GJGameLevel* const level);
+    static Result<LevelMetadata, ErrorWithCode> getMetadata(const std::string& levelKey);
+    static Result<LevelMetadata, ErrorWithCode> getMetadata(const asp::fs::Path& path);
     static Result<Session, ErrorWithCode> getSession(GJGameLevel* const level, long long sessionTime);
     static Result<Session, ErrorWithCode> getSession(const std::string& levelKey, long long sessionTime);
     static Result<Session, ErrorWithCode> getSession(const asp::fs::Path& path, long long sessionTime);
@@ -58,8 +58,8 @@ public:
     static Result<LevelData, ErrorWithCode> getLevelData(const asp::fs::Path& path);
     static Result<BackupLevelData> getBackupData(const std::string& levelKey, long long backupName);
 
-    static Result<> setMetadata(const LevelMetadeta& stats, GJGameLevel* const level);
-    static Result<> setMetadata(const LevelMetadeta& stats, const std::string& levelKey);
+    static Result<> setMetadata(const LevelMetadata& stats, GJGameLevel* const level);
+    static Result<> setMetadata(const LevelMetadata& stats, const std::string& levelKey);
     static Result<> setSession(Session& stats, GJGameLevel* const level, long long sessionTime, bool updateLastPlayed);
     static Result<> setSession(Session& stats, const std::string& levelKey, long long sessionTime, bool updateLastPlayed);
     static Result<> setGeneral(const GeneralData& stats, GJGameLevel* const level);
@@ -130,7 +130,7 @@ public:
     //get an array of all fonts
     static std::array<std::string, 62> getAllFonts();
     //gets an array of all levels you have progress on
-    static Result<std::vector<std::pair<std::string, LevelMetadeta>>> getAllLevels();
+    static Result<std::vector<std::pair<std::string, LevelMetadata>>> getAllLevels();
     //seperate a level key to [levelID, levelType]
     static std::pair<std::string, std::string> splitLevelKey(const std::string& levelKey);
     //get the difficulty of a level

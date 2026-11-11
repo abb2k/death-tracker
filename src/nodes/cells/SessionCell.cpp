@@ -1,4 +1,4 @@
-#include "SessionCell.hpp"
+#include <nodes/cells/SessionCell.hpp>
 #include <managers/StatsManager.hpp>
 #include <utils/DateFormatter.hpp>
 

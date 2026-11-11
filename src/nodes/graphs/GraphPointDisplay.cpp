@@ -1,4 +1,4 @@
-#include "GraphPointDisplay.hpp"
+#include <nodes/graphs/GraphPointDisplay.hpp>
 #include <managers/StatsManager.hpp>
 
 GraphPointDisplay* GraphPointDisplay::create() {

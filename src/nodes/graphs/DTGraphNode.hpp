@@ -2,7 +2,7 @@
 
 #include <Geode/Geode.hpp>
 #include <managers/StatsManager.hpp>
-#include <nodes/GraphPoint.hpp>
+#include <nodes/graphs/GraphPoint.hpp>
 #include <types/DTTypes.hpp>
 #include <nodes/SessionSelector.hpp>
 #include <nodes/layers/DTLayer.hpp>

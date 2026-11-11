@@ -3,7 +3,7 @@
 #include <Geode/Geode.hpp>
 #include <nodes/DTLabel.hpp>
 #include <nodes/LayoutColumn.hpp>
-#include <nodes/FontSelectionCell.hpp>
+#include <nodes/cells/FontSelectionCell.hpp>
 #include <nodes/ScrollableTextInput.hpp>
 #include <nodes/SimpleToggler.hpp>
 

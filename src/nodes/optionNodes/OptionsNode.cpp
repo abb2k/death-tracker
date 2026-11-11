@@ -1,4 +1,4 @@
-#include <nodes/OptionsNode.hpp>
+#include <nodes/optionNodes/OptionsNode.hpp>
 
 bool OptionsNode::initWithSetup(const CCSize& size) {
     if (!CCMenu::init()) return false;

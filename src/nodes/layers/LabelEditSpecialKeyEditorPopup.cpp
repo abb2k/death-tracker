@@ -1,4 +1,5 @@
 #include "LabelEditSpecialKeyEditorPopup.hpp"
+#include <nodes/TutorialButton.hpp>
 
 LabelEditSpecialKeyEditorPopup* LabelEditSpecialKeyEditorPopup::create(geode::Function<void(const std::string&)> callback) {
     auto ret = new LabelEditSpecialKeyEditorPopup();
@@ -65,7 +66,7 @@ bool LabelEditSpecialKeyEditorPopup::init(geode::Function<void(const std::string
     });
     m_scopeList->addItems({
         FloatingListItem{.id = 0, .text = "Session", .BGTexture = "GJ_button_04.png"},
-        FloatingListItem{.id = 1, .text = "Level", .BGTexture = "GJ_button_04.png"},
+        FloatingListItem{.id = 1, .text = "General", .BGTexture = "GJ_button_04.png"},
         FloatingListItem{.id = 2, .text = "Day", .BGTexture = "GJ_button_04.png"}
     });
     m_operatorList->addItems({
@@ -121,6 +122,58 @@ bool LabelEditSpecialKeyEditorPopup::init(geode::Function<void(const std::string
     menu->addChild(createButton);
 
     updateControls();
+
+    auto tutorialButton = TutorialButton::create(.65f, "label-edit-special-key", [this, createButton](DTTutorialLayer* tutorial) {
+        tutorial->appendDialogue("This popup builds a <cd>special key</c> for label text", TutorialCharacterFace::TCFHappy, {255, 255, 255})
+            ->appendDialogue("Coverage allows you to only include a <cy>specific set</c> of data the key covers", TutorialCharacterFace::TCFNormal, {255, 255, 255})
+            ->joinTransform(TutorialBoxPlacement::TBPBottom, .75f)
+            ->joinHighlight(m_scopeButton)
+            ->appendDialogue("You can use \"General\": for everything, \"Session\": for latest session, or \"Day\": for the last 24 hours", TutorialCharacterFace::TCFNormalTilted, {255, 255, 255})
+            ->joinPreviousHighlight();
+
+        switch (m_keyType) {
+            case 0:
+                tutorial->appendDialogue("You can choose the <cy>comparison operator</c> for Death Count", TutorialCharacterFace::TCFNormal, {255, 255, 255})
+                    ->joinHighlight(m_operatorButton);
+                tutorial->appendDialogue("Either after and including % (<cd>\">=\"</c>), after % (<cd>\">\"</c>), before % (<cd>\"<\"</c>), or <cd>\"Range\"</c>", TutorialCharacterFace::TCFNormalTilted, {255, 255, 255})
+                    ->joinPreviousHighlight();
+                if (m_operator == 3) {
+                    tutorial->appendDialogue("Range requires a <cy>minimum</c> and <cy>maximum</c> value", TutorialCharacterFace::TCFNormal, {255, 255, 255})
+                        ->joinHighlight(m_firstValue)
+                        ->joinHighlight(m_secondValue)
+                        ->joinTransform(TutorialBoxPlacement::TBPTop, .75f);
+                    tutorial->appendDialogue("And it will gather all your deaths between the <cy>minimum</c> and <cy>maximum</c> values from 0", TutorialCharacterFace::TCFHappy, {255, 255, 255})
+                        ->joinPreviousHighlight();
+                }
+                else {
+                    tutorial->appendDialogue("Enter a <cy>percentage</c> and it will gather all deaths <cy>according to your operator</c> set", TutorialCharacterFace::TCFNormalTilted, {255, 255, 255})
+                        ->joinHighlight(m_firstValue)
+                        ->joinTransform(TutorialBoxPlacement::TBPTop, .75f);
+                }
+                break;
+            case 1:
+                tutorial->appendDialogue("For best runs. you need to enter a <cy>\"Top X runs\"</c> on the left", TutorialCharacterFace::TCFNormal, {255, 255, 255})
+                    ->joinHighlight(m_firstValue)
+                    ->joinTransform(TutorialBoxPlacement::TBPTop, .75f)
+                    ->appendDialogue("And the <cy>starting percent</c> of those top runs on the right", TutorialCharacterFace::TCFNormal, {255, 255, 255})
+                    ->joinHighlight(m_secondValue)
+                    ->appendDialogue("And it will display your top X runs accordingly!", TutorialCharacterFace::TCFHappy, {255, 255, 255})
+                    ->appendDialogue("You can include or disclude decimals if you want", TutorialCharacterFace::TCFNormalTilted, {255, 255, 255})
+                    ->joinHighlight(m_operatorButton);
+                break;
+            default:
+                tutorial->appendDialogue("Same Death Count doesnt need a value, and it will <cy>display your death count</c> to the <cy>latest death</c> recorded", TutorialCharacterFace::TCFNormal, {255, 255, 255})
+                    ->appendDialogue("You can include or disclude decimals if you want", TutorialCharacterFace::TCFNormal, {255, 255, 255})
+                    ->joinHighlight(m_operatorButton);
+                break;
+        }
+
+        tutorial->appendDialogue("After your done press \"OK\" to insert the key in your text!", TutorialCharacterFace::TCFHappy, {255, 255, 255})
+            ->joinHighlight(createButton)
+            ->joinTransform(TutorialBoxPlacement::TBPTop, .75f);
+    });
+    tutorialButton->setPosition(m_size);
+    m_buttonMenu->addChild(tutorialButton);
 
     return true;
 }

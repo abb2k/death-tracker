@@ -7,6 +7,7 @@
 
 #include <nodes/DTLabel.hpp>
 #include <nodes/layers/DTLayer.hpp>
+#include <nodes/TutorialButton.hpp>
 
 #include <managers/AuthManager.hpp>
 
@@ -459,7 +460,7 @@ bool LabelEditLayer::init() {
         m_labels.push_back(labelCell);
     }
     m_scroll->m_contentLayer->updateLayout();
-    m_noLabelsText->setVisible(m_labels.empty());
+    updateNoLabelsText();
 
     m_overlayLabelsChangedListener = Save::OverlayLabelsChangedEvent().listen([&](){
         RefreshPreviewLabels();
@@ -468,6 +469,72 @@ bool LabelEditLayer::init() {
     });
 
     RefreshPreviewLabels();
+
+    auto labelTutorial = TutorialButton::create(.75f, "label-edit", [this, addLabelButton, settingsBG, nameLabel, textLabel, xLabel, yLabel, freeModeToggleLabel](DTTutorialLayer* tutorial) {
+        tutorial->appendDialogue("Welcome to the <cy>overlay label</c> editor!", TutorialCharacterFace::TCFHappy, {255, 255, 255})
+            ->appendDialogue("Here is a list of <cy>all your labels</c>!! Add ones with the <cg>plus button</c>", TutorialCharacterFace::TCFNormal, {255, 255, 255})
+            ->joinHighlight(m_scroll)
+            ->joinHighlight(addLabelButton)
+            ->joinTransform(TutorialBoxPlacement::TBPRight, .75f);
+        
+        tutorial->appendDialogue("You can <cg>enable</c>/<cr>disable</c>, <cy>edit the settings</c>, or even <cr>delete</c> labels", TutorialCharacterFace::TCFHappy, {255, 255, 255});
+        
+        for (auto& label : m_labels) {
+            tutorial->joinHighlight(label->getEnableLabel());
+            tutorial->joinHighlight(label->getEnabledToggle());
+
+            tutorial->joinHighlight(label->getEditButton(), .7f);
+            tutorial->joinTextToHighlight("Edit", .25f);
+
+            tutorial->joinHighlight(label->getDeleteButton(), 1.4f);
+            tutorial->joinTextToHighlight("Delete", .25f);
+        }
+
+        tutorial->appendDialogue("You can also set a label to <cf>only work on this level</c>, or <cy>order</c> them differently", TutorialCharacterFace::TCFNormal, {255, 255, 255});
+
+        for (auto& label : m_labels) {
+            tutorial->joinHighlight(label->getLevelSpecificLabel());
+            tutorial->joinHighlight(label->getLevelSpecificToggle());
+
+            tutorial->joinHighlight(label->getOrderInput(), 1);
+            tutorial->joinHighlight(label->getOrderLabel(), 1);
+        }
+
+        tutorial->appendDialogue("In the <cf>preview window</c> you can see an approximation of how the <cy>labels will look</c>", TutorialCharacterFace::TCFNormal, {255, 255, 255})
+            ->joinHighlight(m_previewArea)
+            ->joinTextToHighlight("Preview area", .5f)
+            ->joinTransform(TutorialBoxPlacement::TBPBottomRight, .75f)
+
+            ->appendDialogue("Set the selected labels <cy>name</c> and <cy>displayed text</c> here", TutorialCharacterFace::TCFNormal, {255, 255, 255})
+            ->joinHighlight(m_nameInput)
+            ->joinHighlight(nameLabel)
+            ->joinHighlight(m_textInput)
+            ->joinHighlight(textLabel)
+            ->joinTransform(TutorialBoxPlacement::TBPTopRight, .75f)
+
+            ->appendDialogue("And use the <cd>create key button</c> to use dynamic values to display!", TutorialCharacterFace::TCFHappy, {255, 255, 255})
+            ->joinHighlight(m_richTextBtn)
+            ->joinTextToHighlight("Create Key", .25f)
+
+            ->appendDialogue("You can edit the position using the <cy>anchor buttons</c> in the preview window OR use <cy>\"free mode\"</c>", TutorialCharacterFace::TCFNormal, {255, 255, 255})
+            ->joinHighlight(m_freeModeToggle)
+            ->joinHighlight(m_xSlider->m_groove)
+            ->joinHighlight(m_ySlider->m_groove)
+            ->joinHighlight(m_xSlider->m_touchLogic->m_thumb)
+            ->joinHighlight(m_ySlider->m_touchLogic->m_thumb)
+            ->joinHighlight(xLabel)
+            ->joinHighlight(yLabel)
+            ->joinHighlight(freeModeToggleLabel)
+
+            ->appendDialogue("There are some settings that are <cg>global</c> to <cg>all labels</c> that you can edit over here", TutorialCharacterFace::TCFNormal, {255, 255, 255})
+            ->joinHighlight(settingsBG)
+            ->joinTransform(TutorialBoxPlacement::TBPTopLeft, .75f)
+            
+            ->appendDialogue("Hope you find overlay labels useful :D", TutorialCharacterFace::TCFHappy, {255, 255, 255})
+            ->joinTransform(TutorialBoxPlacement::TBPCenter, 1);
+    });
+    labelTutorial->setPosition(m_size);
+    m_buttonMenu->addChild(labelTutorial);
 
     return true;
 }
@@ -487,7 +554,7 @@ void LabelEditLayer::onLabelAdded(CCObject*) {
     m_labels.push_back(newLabelCell);
     onCellEdit(newLabelCell);
 
-    m_noLabelsText->setVisible(!m_labels.size());
+    updateNoLabelsText();
 
     updateSavedLabels();
 }
@@ -519,7 +586,7 @@ void LabelEditLayer::onCellDelete(OverlayLabelCell* cell) {
 
     m_scroll->m_contentLayer->updateLayout();
 
-    m_noLabelsText->setVisible(!m_labels.size());
+    updateNoLabelsText();
 
     updateSavedLabels();
 }
@@ -566,6 +633,13 @@ void LabelEditLayer::setLabelEditEnabled(bool enabled) {
     }
     m_noLabelEditedOverlay->setVisible(!enabled);
     m_noLabelEditedText->setVisible(!enabled);
+}
+
+void LabelEditLayer::updateNoLabelsText() {
+    auto hasVisibleLabels = std::any_of(m_labels.begin(), m_labels.end(), [](auto* label) {
+        return label->isVisible();
+    });
+    m_noLabelsText->setVisible(!hasVisibleLabels);
 }
 
 void LabelEditLayer::updateAnchorButtons() {
@@ -758,6 +832,8 @@ void LabelEditLayer::RefreshPreviewLabels() {
     );
 
     auto labelSettings = Save::getOverlayLabels();
+    auto dtLayer = DTLayer::get();
+    auto currentLevel = dtLayer ? dtLayer->m_Level : nullptr;
     std::optional<size_t> selectedIndex;
     if (m_currentEdit) {
         auto it = std::find(m_labels.begin(), m_labels.end(), m_currentEdit);
@@ -777,7 +853,7 @@ void LabelEditLayer::RefreshPreviewLabels() {
     std::map<Anchor, float> anchorOffsets;
     
     for (const auto& [index, label] : orderedLabels) {
-        if (!label.enabled) continue;
+        if (!label.enabled || !label.isOverlayLabelVisibleOnLevel(currentLevel, dtLayer ? (dtLayer->m_MyLevelStats.isOk() ? dtLayer->m_MyLevelStats.unwrap().metadata : LevelMetadata{}) : LevelMetadata{})) continue;
 
         auto previewLabel = RichTextArea::create(expandDeaths(label.text), labelSettings.font, labelSettings.size * previewScale);
         m_previewLabels.push_back(previewLabel);

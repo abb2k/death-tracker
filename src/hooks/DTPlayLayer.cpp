@@ -33,7 +33,7 @@ bool DTPlayLayer::init(GJGameLevel* level, bool p1) {
 
     auto metaRes = StatsManager::getMetadata(level);
     if (metaRes.isErr() && metaRes.unwrapErr().code == 1) {
-        LevelMetadeta newMeta{};
+        LevelMetadata newMeta{};
         metaRes = Ok(newMeta);
     }
     else if (metaRes.isErr()) {
@@ -638,6 +638,7 @@ void DTPlayLayer::preloadOverlayData() {
     if (metadataResult.isOk()) {
         auto linkedLevels = metadataResult.unwrap().linkedLevels;
         levelsToVisit.assign(linkedLevels.begin(), linkedLevels.end());
+        m_fields->preloadedMetadata = metadataResult.unwrap();
     }
     else if (metadataResult.unwrapErr().code != 1) {
         log::error("Failed to preload linked overlay label data: {}", metadataResult.unwrapErr().error);
@@ -783,7 +784,7 @@ void DTPlayLayer::refreshOverlayLabels() {
     std::map<Anchor, float> anchorOffsets;
 
     for (const auto& label : orderedLabels) {
-        if (!label.enabled) continue;
+        if (!label.enabled || !label.isOverlayLabelVisibleOnLevel(m_level, m_fields->preloadedMetadata.has_value() ? m_fields->preloadedMetadata.value() : LevelMetadata{})) continue;
 
         auto overlayLabel = RichTextArea::create(
             LabelEditLayer::expandDeaths(label.text, [this](char scope) {

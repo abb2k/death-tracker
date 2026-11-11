@@ -2,11 +2,11 @@
 
 #include <Geode/Geode.hpp>
 #include <nodes/layers/DTLayer.hpp>
-#include <nodes/GraphPoint.hpp>
-#include <nodes/GraphHolder.hpp>
-#include <nodes/GraphCell.hpp>
+#include <nodes/graphs/GraphPoint.hpp>
+#include <nodes/graphs/GraphHolder.hpp>
+#include <nodes/cells/GraphCell.hpp>
 #include <nodes/OptionSwitcher.hpp>
-#include <nodes/GraphPointDisplay.hpp>
+#include <nodes/graphs/GraphPointDisplay.hpp>
 #include <nodes/FloatingList.hpp>
 
 using namespace geode::prelude;

@@ -51,6 +51,7 @@ class $modify(DTPlayLayer, PlayLayer) {
         std::set<std::string> overlayLevelKeys;
         GeneralData overlayLinkedData;
         GeneralData overlaySessionData;
+        std::optional<LevelMetadata> preloadedMetadata = std::nullopt;
         long long overlaySessionDate = 0;
         bool overlayDataLoaded = false;
     };

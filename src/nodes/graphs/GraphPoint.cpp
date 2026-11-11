@@ -1,4 +1,4 @@
-#include <nodes/GraphPoint.hpp>
+#include <nodes/graphs/GraphPoint.hpp>
 
 GraphPoint* GraphPoint::create(const std::string& run, const float& rate, const ccColor4B& color) {
     auto ret = new GraphPoint();

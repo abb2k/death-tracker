@@ -1,4 +1,4 @@
-#include <nodes/DTGraphNode.hpp>
+#include <nodes/graphs/DTGraphNode.hpp>
 
 DTGraphNode* DTGraphNode::create() {
     auto ret = new DTGraphNode();

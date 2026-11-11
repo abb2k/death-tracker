@@ -288,7 +288,7 @@ struct matjson::Serialize<CustomizationData> {
 };
 
 
-typedef struct LevelMetadeta {
+typedef struct LevelMetadata {
     std::map<int, int> runsToShow{};
     int sharedRunToShow = 0;
     bool showAnyRun = true;
@@ -303,7 +303,7 @@ typedef struct LevelMetadeta {
     std::vector<Section> sections{};
     bool hasGottenDataFromPT = false;
     std::vector<SessionCategory> sessionGroups;
-} LevelMetadeta;
+} LevelMetadata;
 
 template <>
 struct matjson::Serialize<std::map<int, int>> {
@@ -312,10 +312,10 @@ struct matjson::Serialize<std::map<int, int>> {
 };
 
 template <>
-struct matjson::Serialize<LevelMetadeta> {
-    static Result<LevelMetadeta> fromJson(const matjson::Value& value) {
+struct matjson::Serialize<LevelMetadata> {
+    static Result<LevelMetadata> fromJson(const matjson::Value& value) {
 
-        LevelMetadeta stats;
+        LevelMetadata stats;
         if (value.contains("RunsToSave")) {
             auto oldRunsToSave = value["RunsToSave"].as<std::set<int>>().unwrapOr(std::set<int>{});
 
@@ -358,7 +358,7 @@ struct matjson::Serialize<LevelMetadeta> {
         return Ok(stats);
     }
 
-    static matjson::Value toJson(const LevelMetadeta& value) {
+    static matjson::Value toJson(const LevelMetadata& value) {
         matjson::Value obj = matjson::makeObject({
             { "RunsToShow", value.runsToShow },
             { "showAnyRun", value.showAnyRun },
@@ -381,7 +381,7 @@ struct matjson::Serialize<LevelMetadeta> {
 
 struct LevelData {
     std::string levelKey;
-    LevelMetadeta metadata;
+    LevelMetadata metadata;
     Result<GeneralData, ErrorWithCode> from0 = Err(ErrorWithCode("Not loaded", 1));
     std::set<long long> sessionNames;
 
@@ -389,7 +389,7 @@ struct LevelData {
 };
 
 struct BackupLevelData {
-    std::optional<LevelMetadeta> meta;
+    std::optional<LevelMetadata> meta;
     std::optional<GeneralData> from0 = std::nullopt;
     std::optional<std::set<long long>> sessionNames = std::nullopt;
     long long backupDate;
@@ -473,6 +473,10 @@ struct OverlayLabel_s {
     bool freeMode = false;
     int order = 0;
     bool enabled = true;
+
+    std::optional<std::string> levelSpecific = std::nullopt;
+
+    bool isOverlayLabelVisibleOnLevel(GJGameLevel* level, LevelMetadata const& meta) const;
 };
 typedef struct OverlayLabel_s OverlayLabel;
 

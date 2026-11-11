@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
-#include <nodes/OverlayLabelCell.hpp>
+#include <nodes/cells/OverlayLabelCell.hpp>
 #include <regex>
 #include <nodes/SimpleToggler.hpp>
 
@@ -36,6 +36,7 @@ class LabelEditLayer : public Popup {
         void onCellDelete(OverlayLabelCell* cell);
         void onCellEdit(OverlayLabelCell* cell);
         void setLabelEditEnabled(bool enabled);
+        void updateNoLabelsText();
         void updateAnchorButtons();
 
         CCLabelBMFont* m_noLabelsText;

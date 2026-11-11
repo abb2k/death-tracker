@@ -1,4 +1,6 @@
-#include "OverlayLabelCell.hpp"
+#include <nodes/cells/OverlayLabelCell.hpp>
+
+#include <nodes/layers/DTLayer.hpp>
 
 OverlayLabelCell* OverlayLabelCell::create(float width, OverlayLabel const& label) {
     auto ret = new OverlayLabelCell();
@@ -15,8 +17,9 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
     if (!CCMenu::init()) return false;
 
     m_myLabelData = label;
+    updateLevelVisibility();
 
-    this->setContentSize({width, 60});
+    this->setContentSize({width, 80});
 
     m_background = CCScale9Sprite::create("GJ_square01.png");
     m_background->setAnchorPoint({0, 0});
@@ -48,24 +51,47 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
         if (m_onChanged != NULL) m_onChanged(this);
     });
 
-    auto enabledLabel = CCLabelBMFont::create("Enabled", "bigFont.fnt");
-    enabledLabel->setScale(.35f);
-    enabledLabel->setAnchorPoint({0, .5f});
-    enabledLabel->setPosition({m_enabledToggle->getPositionX() + m_enabledToggle->getScaledContentWidth() / 2 + 3, 10});
-    settingsMenu->addChild(enabledLabel);
+    m_enableLabel = CCLabelBMFont::create("Enabled", "bigFont.fnt");
+    m_enableLabel->setScale(.35f);
+    m_enableLabel->setAnchorPoint({0, .5f});
+    m_enableLabel->setPosition({m_enabledToggle->getPositionX() + m_enabledToggle->getScaledContentWidth() / 2 + 3, 10});
+    settingsMenu->addChild(m_enableLabel);
 
-    auto orderLabel = CCLabelBMFont::create("Order:", "bigFont.fnt");
-    orderLabel->setScale(.35f);
-    orderLabel->setAnchorPoint({0, .5f});
-    orderLabel->setPosition({5, this->getContentHeight() / 2});
-    this->addChild(orderLabel);
+    m_levelSpecificToggle = SimpleToggler::createWithDefaults(.35f, label.levelSpecific.has_value());
+    m_levelSpecificToggle->setPosition({10, 18 + m_enabledToggle->getContentHeight()});
+    settingsMenu->addChild(m_levelSpecificToggle);
+    m_levelSpecificToggle->setCallback([this](bool enabled) {
+        if (m_updatingControls) return;
+
+        if (enabled) {
+            auto levelKeyRes = StatsManager::getLevelKey(DTLayer::get()->m_Level);
+            m_myLabelData.levelSpecific = levelKeyRes.isOk() ? std::optional<std::string>(levelKeyRes.unwrap()) : std::nullopt;
+        } else {
+            m_myLabelData.levelSpecific = std::nullopt;
+        }
+        updateLevelVisibility();
+        updateBackgroundColor();
+        if (m_onChanged != NULL) m_onChanged(this);
+    });
+
+    m_levelSpecificLabel = CCLabelBMFont::create("Level\nSpecific", "bigFont.fnt");
+    m_levelSpecificLabel->setScale(.35f);
+    m_levelSpecificLabel->setAnchorPoint({0, .5f});
+    m_levelSpecificLabel->setPosition({m_levelSpecificToggle->getPositionX() + m_levelSpecificToggle->getScaledContentWidth() / 2 + 3, 18 + m_enabledToggle->getContentHeight()});
+    settingsMenu->addChild(m_levelSpecificLabel);
+
+    m_orderLabel = CCLabelBMFont::create("Order:", "bigFont.fnt");
+    m_orderLabel->setScale(.35f);
+    m_orderLabel->setAnchorPoint({0, .5f});
+    m_orderLabel->setPosition({5, this->getContentHeight() / 2 + 9});
+    this->addChild(m_orderLabel);
 
     m_orderInput = TextInput::create(50, "Order");
     m_orderInput->setScale(.55f);
     m_orderInput->setCommonFilter(CommonFilter::Uint);
     m_orderInput->setString(std::to_string(label.order));
     m_orderInput->setAnchorPoint({0, .5f});
-    m_orderInput->setPosition({orderLabel->getPositionX() + orderLabel->getScaledContentWidth() + 3, orderLabel->getPositionY()});
+    m_orderInput->setPosition({m_orderLabel->getPositionX() + m_orderLabel->getScaledContentWidth() + 3, m_orderLabel->getPositionY()});
     m_orderInput->setCallback([this](const std::string& value) {
         if (m_updatingControls) return;
 
@@ -95,20 +121,20 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
     this->addChildAtPosition(buttonMenu, Anchor::BottomRight, {-4, 4});
     
     auto deleteBtnSpr = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
-    auto deleteBtn = CCMenuItemSpriteExtra::create(
+    m_deleteButton = CCMenuItemSpriteExtra::create(
         deleteBtnSpr,
         this,
         menu_selector(OverlayLabelCell::onDelete)
     );
-    buttonMenu->addChild(deleteBtn);
+    buttonMenu->addChild(m_deleteButton);
     
     auto editBtnSpr = CCSprite::createWithSpriteFrameName("GJ_optionsBtn02_001.png");
-    auto editBtn = CCMenuItemSpriteExtra::create(
+    m_editButton = CCMenuItemSpriteExtra::create(
         editBtnSpr,
         this,
         menu_selector(OverlayLabelCell::onEdit)
     );
-    buttonMenu->addChild(editBtn);
+    buttonMenu->addChild(m_editButton);
 
     buttonMenu->updateLayout();
 
@@ -118,6 +144,7 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
 void OverlayLabelCell::setData(OverlayLabel const& label) {
     m_myLabelData = label;
     m_labelName->setText(label.labelName);
+    updateLevelVisibility();
     updateBackgroundColor();
     m_updatingControls = true;
     m_enabledToggle->toggle(label.enabled);
@@ -130,6 +157,19 @@ void OverlayLabelCell::setEditing(bool isEditing) {
     updateBackgroundColor();
 }
 
+void OverlayLabelCell::updateLevelVisibility() {
+    auto dtLayer = DTLayer::get();
+
+    LevelMetadata meta = dtLayer ? (dtLayer->m_MyLevelStats.isOk() ? dtLayer->m_MyLevelStats.unwrap().metadata : LevelMetadata{}) : LevelMetadata{};
+
+    auto isVisible = m_myLabelData.isOverlayLabelVisibleOnLevel(
+        dtLayer ? dtLayer->m_Level : nullptr,
+        meta
+    );
+
+    this->setVisible(isVisible);
+}
+
 void OverlayLabelCell::updateBackgroundColor() {
     if (!m_myLabelData.enabled) {
         m_background->setColor({120, 120, 120});
@@ -138,7 +178,11 @@ void OverlayLabelCell::updateBackgroundColor() {
         m_background->setColor({100, 255, 100});
     }
     else {
-        m_background->setColor({255, 255, 255});
+
+        if (m_myLabelData.levelSpecific.has_value())
+            m_background->setColor({ 76, 86, 228 });
+        else
+            m_background->setColor({ 255, 255, 255 });
     }
 }
 
