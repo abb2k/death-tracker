@@ -200,6 +200,73 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
         0
     });
 
+    sectionContainer = CCMenu::create();
+    sectionContainer->setVisible(false);
+    extrasContainer->addChild(sectionContainer);
+
+    sectionSelectorLabel = CCLabelBMFont::create("Section:", "bigFont.fnt");
+    sectionSelectorLabel->setScale(.4f);
+    sectionSelectorLabel->setAnchorPoint({.5f, 1});
+    sectionContainer->addChild(sectionSelectorLabel);
+
+    if (DTLayer::get() != nullptr && DTLayer::get()->m_MyLevelStats.isOk()) {
+        sections = DTLayer::get()->m_MyLevelStats.unwrap().metadata.sections;
+    }
+    std::erase_if(sections, [](const Section& section) {
+        return !section.isValid() || section.startPercent == section.endPercent;
+    });
+    std::sort(sections.begin(), sections.end(), [](const Section& a, const Section& b) {
+        if (a.startPercent != b.startPercent) return a.startPercent < b.startPercent;
+        return a.endPercent < b.endPercent;
+    });
+
+    std::vector<FloatingListItem> sectionItems;
+    for (size_t i = 0; i < sections.size(); ++i) {
+        sectionItems.push_back(FloatingListItem{
+            .id = static_cast<int>(i),
+            .text = sections[i].name
+        });
+    }
+
+    auto sectionButtonSpr = ButtonSprite::create(
+        sections.empty() ? "No Sections" : sections.front().name.c_str()
+    );
+    sectionButtonSpr->setScale(std::min(.45f, (width - 10) / sectionButtonSpr->getContentWidth()));
+    sectionSelectorBtn = CCMenuItemSpriteExtra::create(
+        sectionButtonSpr,
+        this,
+        menu_selector(GraphCell::onSectionSelectHelper)
+    );
+    sectionSelectorBtn->setEnabled(!sections.empty());
+    sectionContainer->addChild(sectionSelectorBtn);
+
+    sectionsFloatList = FloatingList::create({width, 100});
+    sectionsFloatList->setAnchorPoint({.5f, 0});
+    sectionsFloatList->addItems(sectionItems);
+    sectionsFloatList->setCallback([&](const int& id) {
+        if (id < 0 || id >= static_cast<int>(sections.size())) return;
+        selectedSectionIndex = static_cast<size_t>(id);
+        sendNewSection();
+        sectionsFloatList->close();
+    });
+    sectionContainer->addChild(sectionsFloatList);
+
+    sectionContainer->setContentSize({width, sectionSelectorBtn->getScaledContentHeight() + sectionSelectorLabel->getScaledContentHeight() + 5});
+    sectionSelectorLabel->setPosition({
+        sectionContainer->getContentWidth() / 2,
+        sectionContainer->getContentHeight()
+    });
+    sectionSelectorBtn->setPosition({
+        sectionContainer->getContentWidth() / 2,
+        sectionSelectorBtn->getScaledContentHeight() / 2
+    });
+    sectionsFloatList->setPosition(
+        sectionSelectorBtn->getPosition() +
+        ccp(0, sectionSelectorBtn->getScaledContentHeight() / 2 + 5)
+    );
+
+    updateSectionSelector();
+
     runContainer = CCMenu::create();
     runContainer->setVisible(false);
     extrasContainer->addChild(runContainer);
@@ -435,9 +502,34 @@ void GraphCell::setRunOptionsVisible(bool visible) {
     bg->setContentSize((this->getContentSize() + ccp(0, 2.5f)) / bg->getScale());
 }
 
+void GraphCell::setSectionOptionsVisible(bool visible) {
+    int sizeScaler = 0;
+
+    if (visible && !sectionContainer->isVisible()) {
+        sectionContainer->setVisible(true);
+        sizeScaler = 1;
+    }
+    else if (!visible && sectionContainer->isVisible()) {
+        sectionContainer->setVisible(false);
+        sizeScaler = -1;
+    }
+
+    extrasContainer->updateLayout();
+
+    if (sizeScaler != 0)
+        this->setContentHeight(
+            this->getContentHeight() +
+            sectionContainer->getScaledContentHeight() * sizeScaler
+        );
+
+    everythingParent->setPositionY(this->getContentHeight() - everythingParent->getScaledContentHeight());
+    bg->setContentSize((this->getContentSize() + ccp(0, 2.5f)) / bg->getScale());
+}
+
 void GraphCell::checkForOptVisibilityChange() {
     bool makeSessionVisible = true;
     bool makeRunVisible = true;
+    bool makeSectionVisible = false;
 
     if (graphInfo.coverage == DTGraphCoverage::GeneralCover) {
         makeSessionVisible = false;
@@ -449,9 +541,15 @@ void GraphCell::checkForOptVisibilityChange() {
     else if (graphInfo.coverage == DTGraphCoverage::SessionCover) {
         makeRunVisible = false;
     }
+    else if (graphInfo.coverage == DTGraphCoverage::SectionCover) {
+        makeSessionVisible = false;
+        makeRunVisible = false;
+        makeSectionVisible = !sections.empty();
+    }
 
     setSessionOptionsVisible(makeSessionVisible);
     setRunOptionsVisible(makeRunVisible);
+    setSectionOptionsVisible(makeSectionVisible);
 }
 
 void GraphCell::sendNewSession(int index) {
@@ -468,11 +566,33 @@ void GraphCell::resendSession() {
     sendNewSession(sessionSelector->getCurrentCount());
 }
 
+void GraphCell::sendNewSection() {
+    if (graphInfo.coverage != DTGraphCoverage::SectionCover || sections.empty() || !onNewSection) return;
+
+    if (selectedSectionIndex >= sections.size()) return;
+
+    updateSectionSelector();
+    onNewSection(this, sections[selectedSectionIndex]);
+}
+
+void GraphCell::updateSectionSelector() {
+    if (sections.empty() || selectedSectionIndex >= sections.size()) return;
+
+    auto buttonSpr = ButtonSprite::create(sections[selectedSectionIndex].name.c_str());
+    buttonSpr->setScale(std::min(.45f, (sectionContainer->getContentWidth() - 10) / buttonSpr->getContentWidth()));
+    sectionSelectorBtn->setSprite(buttonSpr);
+}
+
+void GraphCell::resendSection() {
+    sendNewSection();
+}
+
 void GraphCell::setEnabled(bool value) {
     //CCMenu::setEnabled(value);
 
     runInput->setEnabled(value);
     sessionSelector->setEnabled(value);
+    sectionSelectorBtn->setEnabled(value && !sections.empty());
 }
 
 void GraphCell::onRunSelectHelper(CCObject*) {
@@ -481,5 +601,14 @@ void GraphCell::onRunSelectHelper(CCObject*) {
     }
     else {
         runsFloatList->open();
+    }
+}
+
+void GraphCell::onSectionSelectHelper(CCObject*) {
+    if (sectionsFloatList->isOpened()) {
+        sectionsFloatList->close();
+    }
+    else {
+        sectionsFloatList->open();
     }
 }

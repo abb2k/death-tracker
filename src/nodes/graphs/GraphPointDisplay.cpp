@@ -38,17 +38,25 @@ bool GraphPointDisplay::init() {
 }
 
 void GraphPointDisplay::setContent(std::string run, float ratePercent, DTGraphType type, ccColor3B graphInner, ccColor3B graphOuter) {
-    auto runInfo = StatsManager::splitRunKey(run).unwrapOr(Run{std::nullopt, -1});
+    auto setFittedText = [this](CCLabelBMFont* label, const std::string& text, float baseScale) {
+        label->setString(text.c_str());
+        label->setScale(baseScale);
+        const float maxWidth = this->getContentWidth() - 8;
+        if (label->getScaledContentWidth() > maxWidth) {
+            label->setScale(baseScale * maxWidth / label->getScaledContentWidth());
+        }
+    };
 
     std::string runSprFormatted;
-    if (runInfo.start == std::nullopt && runInfo.end == -1)
-        runSprFormatted = "Error";
-    else if (runInfo.start == std::nullopt)
-        runSprFormatted = fmt::format("{}%", runInfo.end);
+    auto runInfo = StatsManager::splitRunKey(run);
+    if (runInfo.isErr())
+        runSprFormatted = run;
+    else if (runInfo.unwrap().start == std::nullopt)
+        runSprFormatted = fmt::format("{}%", runInfo.unwrap().end);
     else
-        runSprFormatted = fmt::format("{}%-{}%", runInfo.start, runInfo.end);
+        runSprFormatted = fmt::format("{}%-{}%", runInfo.unwrap().start.value(), runInfo.unwrap().end);
 
-    percentLabel->setString(runSprFormatted.c_str());
+    setFittedText(percentLabel, runSprFormatted, .4f);
     percentLabel->setColor(graphOuter);
 
     std::string rateType;
@@ -67,6 +75,6 @@ void GraphPointDisplay::setContent(std::string run, float ratePercent, DTGraphTy
         break;
     }
 
-    rateLabel->setString(fmt::format("{}: {:.4f}%", rateType, ratePercent).c_str());
+    setFittedText(rateLabel, fmt::format("{}: {:.4f}%", rateType, ratePercent), .25f);
     rateLabel->setColor(graphInner);
 }

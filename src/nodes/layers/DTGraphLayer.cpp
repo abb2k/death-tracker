@@ -695,6 +695,7 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
 
         graphNode->setInfo(cell->getinfo());
         cell->resendSession();
+        cell->resendSection();
 
         saveAllGraphs();
     };
@@ -747,6 +748,11 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
         graphNode->updateDeaths();
     };
 
+    graphCell->onNewSection = [&](GraphCell* cell, const Section& section) {
+        auto graphNode = graph->getGraphNode(cell->getinfo().name);
+        graphNode->setSectionToShow(section);
+    };
+
     if (graphCell->getinfo().isEnabled && !holdingShift) {
         for (const auto& cell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren())) {
             if (cell == graphCell) continue;
@@ -758,6 +764,7 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
 
     graph->addGraph(info);
     graphCell->resendSession();
+    graphCell->resendSection();
     graphCell->setEnabled(true);
     graphCell->setAnchorPoint({0,0});
     

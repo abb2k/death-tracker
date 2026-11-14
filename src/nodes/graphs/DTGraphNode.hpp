@@ -23,12 +23,15 @@ class DTGraphNode : public CCNode {
         std::optional<DTGraphInfo> getInfo() const{
             return info;
         };
+        std::optional<std::pair<float, float>> getCoverageRange();
 
         std::optional<Session> sessionToShow = std::nullopt;
+        std::optional<Section> sectionToShow = std::nullopt;
 
         int runPercent = 0;
 
         void updateDeaths();
+        void setSectionToShow(const Section& section);
 
         GraphPointDelegate* delegate;
 
@@ -42,6 +45,7 @@ class DTGraphNode : public CCNode {
 
         void getGeneralDeaths();
         void getGeneralRuns();
+        void getSectionDeaths();
         void getSessionDeaths();
         void getSessionRuns();
 

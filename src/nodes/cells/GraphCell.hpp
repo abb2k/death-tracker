@@ -29,6 +29,7 @@ class GraphCell : public CCNode {
         
         geode::Function<void(GraphCell* cell, std::optional<Session>)> onNewSession = NULL;
         geode::Function<void(GraphCell* cell, int)> onNewRun = NULL;
+        geode::Function<void(GraphCell* cell, Section)> onNewSection = NULL;
 
         std::string oldName;
 
@@ -51,6 +52,7 @@ class GraphCell : public CCNode {
         void deleteMe();
         
         void resendSession();
+        void resendSection();
         
         CCNode* everythingParent;
         CCMenu* mainMenu;
@@ -80,17 +82,27 @@ class GraphCell : public CCNode {
 
         void setSessionOptionsVisible(bool visible);
         void setRunOptionsVisible(bool visible);
+        void setSectionOptionsVisible(bool visible);
 
         CCNode* sessionContainer;
+        CCMenu* sectionContainer;
         CCMenu* runContainer;
         
         
 
         CCNode* extrasContainer;
+        CCLabelBMFont* sectionSelectorLabel;
+        CCMenuItemSpriteExtra* sectionSelectorBtn;
+        FloatingList* sectionsFloatList;
+        std::vector<Section> sections;
+        size_t selectedSectionIndex = 0;
 
         void sendNewSession(int index);
+        void sendNewSection();
+        void updateSectionSelector();
 
         FloatingList* runsFloatList;
 
         void onRunSelectHelper(CCObject*);
+        void onSectionSelectHelper(CCObject*);
 };

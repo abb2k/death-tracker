@@ -116,6 +116,17 @@ void GraphHolder::refreshBackground(const ccColor4B& newFillColor, float newOutl
 
         graphContainer = CCNode::create();
         mask->addChild(graphContainer);
+
+        coverageShadeNode = CCDrawNode::create();
+        coverageShadeNode->setID("coverage-shade");
+        coverageShadeNode->setZOrder(-2);
+        graphContainer->addChild(coverageShadeNode);
+
+        coverageLineNode = CCDrawNode::create();
+        coverageLineNode->setID("coverage-boundaries");
+        coverageLineNode->setZOrder(-1);
+        coverageLineNode->m_bUseArea = false;
+        graphContainer->addChild(coverageLineNode);
     }
 
     fillNode->drawPolygon(MaskShape, 4, ccc4FFromccc4B(newFillColor), newOutlineThickness, ccc4FFromccc4B(newOutlineColor));
@@ -248,6 +259,75 @@ void GraphHolder::updateLabels() {
     }
 }
 
+void GraphHolder::refreshCoverageIndicators(const CCSize& graphSize) {
+    std::optional<std::pair<float, float>> newBounds;
+
+    for (const auto& [_, graph] : allGraphs) {
+        auto range = graph->getCoverageRange();
+        if (!range.has_value()) continue;
+
+        if (!newBounds.has_value()) {
+            newBounds = range;
+        }
+        else {
+            newBounds->first = std::min(newBounds->first, range->first);
+            newBounds->second = std::max(newBounds->second, range->second);
+        }
+    }
+
+    if (newBounds == coverageBounds &&
+        graphSize.width == coverageGraphSize.width &&
+        graphSize.height == coverageGraphSize.height) return;
+
+    coverageBounds = newBounds;
+    coverageGraphSize = graphSize;
+    coverageShadeNode->clear();
+    coverageLineNode->clear();
+
+    if (!newBounds.has_value() ||
+        (newBounds->first <= 0 && newBounds->second >= 100)) return;
+
+    float startX = graphSize.width * newBounds->first / 100;
+    float endX = graphSize.width * newBounds->second / 100;
+    ccColor4F shadeColor = ccc4FFromccc4B({0, 0, 0, 65});
+    ccColor4F clearColor = ccc4f(0, 0, 0, 0);
+
+    if (startX > 0) {
+        CCPoint leftShade[4] = {
+            ccp(0, 0),
+            ccp(startX, 0),
+            ccp(startX, graphSize.height),
+            ccp(0, graphSize.height)
+        };
+        coverageShadeNode->drawPolygon(leftShade, 4, shadeColor, 0, clearColor);
+    }
+
+    if (endX < graphSize.width) {
+        CCPoint rightShade[4] = {
+            ccp(endX, 0),
+            ccp(graphSize.width, 0),
+            ccp(graphSize.width, graphSize.height),
+            ccp(endX, graphSize.height)
+        };
+        coverageShadeNode->drawPolygon(rightShade, 4, shadeColor, 0, clearColor);
+    }
+
+    ccColor4F lineColor = ccc4FFromccc4B({220, 220, 220, 190});
+    auto drawDottedLine = [&](float x) {
+        for (float y = 0; y < graphSize.height; y += 6) {
+            coverageLineNode->drawSegment(
+                ccp(x, y),
+                ccp(x, std::min(y + 3, graphSize.height)),
+                .75f,
+                lineColor
+            );
+        }
+    };
+
+    if (startX > 0 && startX < graphSize.width) drawDottedLine(startX);
+    if (endX > 0 && endX < graphSize.width) drawDottedLine(endX);
+}
+
 void GraphHolder::setSmallLinesColor(const ccColor4B& newColor) {
     smallLineColor = newColor;
     for (auto line : smallLines) {
@@ -299,6 +379,10 @@ void GraphHolder::update(float dt) {
     LabelsVerticalContainer->setPositionY(posInSpaceV.y + inGraphOffset / 2);
     boldGridNode->setPosition({posInSpaceH.x - labelMaskOffset / 2 + inGraphOffset / 2, posInSpaceV.y - labelMaskOffset / 2 + inGraphOffset / 2});
     graphContainer->setPosition({posInSpaceH.x - labelMaskOffset / 2 + inGraphOffset / 2, posInSpaceV.y - labelMaskOffset / 2 + inGraphOffset / 2});
+
+    auto graphLowerCorner = this->convertToNodeSpace(scrollLayer->content->convertToWorldSpace({0, 0}));
+    auto graphHigherCorner = this->convertToNodeSpace(scrollLayer->content->convertToWorldSpace(scrollLayer->content->getContentSize()));
+    GraphHolder::refreshCoverageIndicators(graphHigherCorner - graphLowerCorner - inGraphOffset);
 }
 
 void GraphHolder::addGraph(const DTGraphInfo& graph) {

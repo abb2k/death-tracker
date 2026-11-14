@@ -45,6 +45,7 @@ class GraphHolder : public CCNode {
         bool init(const CCSize& scaling);
 
         void refreshBackground(const ccColor4B& newFillColor, float newOutlineThickness, const ccColor4B& newOutlineColor);
+        void refreshCoverageIndicators(const CCSize& graphSize);
 
         void refreshGrid();
 
@@ -68,6 +69,8 @@ class GraphHolder : public CCNode {
 
         CCDrawNode* fillNode = nullptr;
         CCDrawNode* outlineNode = nullptr;
+        CCDrawNode* coverageShadeNode = nullptr;
+        CCDrawNode* coverageLineNode = nullptr;
         CCClippingNode* mask = nullptr;
 
         std::set<CCSprite*> smallLines{};
@@ -85,6 +88,8 @@ class GraphHolder : public CCNode {
         CCNode* graphContainer;
 
         float prevZoom;
+        std::optional<std::pair<float, float>> coverageBounds = std::nullopt;
+        CCSize coverageGraphSize = {0, 0};
 
         float labelMaskOffset = 8.5f;
 

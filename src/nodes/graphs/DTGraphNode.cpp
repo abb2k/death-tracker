@@ -43,6 +43,9 @@ void DTGraphNode::setInfo(const DTGraphInfo& info) {
         case DTGraphCoverage::GeneralRunsCover :
             getGeneralRuns();
             break;
+        case DTGraphCoverage::SectionCover :
+            getSectionDeaths();
+            break;
         case DTGraphCoverage::SessionCover :
             getSessionDeaths();
             break;
@@ -72,6 +75,9 @@ void DTGraphNode::updateDeaths() {
     case DTGraphCoverage::GeneralRunsCover :
         getGeneralRuns();
         break;
+    case DTGraphCoverage::SectionCover :
+        getSectionDeaths();
+        break;
     case DTGraphCoverage::SessionCover :
         getSessionDeaths();
         break;
@@ -84,6 +90,29 @@ void DTGraphNode::updateDeaths() {
     }
 }
 
+void DTGraphNode::setSectionToShow(const Section& section) {
+    sectionToShow = section;
+    updateGraphContent();
+}
+
+std::optional<std::pair<float, float>> DTGraphNode::getCoverageRange() {
+    if (!info.has_value() || !isVisible()) return std::nullopt;
+
+    if (info->coverage == DTGraphCoverage::GeneralRunsCover || info->coverage == DTGraphCoverage::SessionRunsCover)
+        return std::pair<float, float>{static_cast<float>(runPercent), 100};
+
+    if (info->coverage != DTGraphCoverage::SectionCover)
+        return std::pair<float, float>{0, 100};
+    
+    if (!sectionToShow.has_value() || !sectionToShow->isValid() || sectionToShow->startPercent == sectionToShow->endPercent)
+        return std::nullopt;
+    
+    return std::pair<float, float>{
+        static_cast<float>(sectionToShow->startPercent),
+        static_cast<float>(sectionToShow->endPercent)
+    };
+}
+
 void DTGraphNode::updateGraphContent() {
     if (!this->info.has_value()) return;
     
@@ -94,21 +123,29 @@ void DTGraphNode::updateGraphContent() {
         return;
     }
 
-    float RunStartPercent = 0;
-    bool hasRunStart = false;
-    for (const auto& death : deaths) {
-        auto runStartRes = StatsManager::splitRunKey(death.first);
-        if (runStartRes.isErr()) continue;
-        auto start = runStartRes.unwrap().start;
-        if (start != std::nullopt) {
-            if (!hasRunStart || start < RunStartPercent) {
-                RunStartPercent = start.value();
-                hasRunStart = true;
+    const bool isRunCoverage = info.value().coverage == DTGraphCoverage::GeneralRunsCover || info.value().coverage == DTGraphCoverage::SessionRunsCover;
+
+    float RunStartPercent = isRunCoverage ? runPercent : 0;
+    bool hasRunStart = isRunCoverage;
+
+    if (!isRunCoverage) {
+        for (const auto& death : deaths) {
+            auto runStartRes = StatsManager::splitRunKey(death.first);
+            if (runStartRes.isErr()) continue;
+            auto start = runStartRes.unwrap().start;
+            if (start != std::nullopt) {
+                if (!hasRunStart || start < RunStartPercent) {
+                    RunStartPercent = start.value();
+                    hasRunStart = true;
+                }
             }
         }
     }
 
     points.clear();
+
+    std::vector<std::vector<CCPoint>> graphLines;
+    std::vector<std::pair<CCPoint, std::string>> sectionGraphPoints;
 
     struct Sorterrator {
         bool operator()(const Run& a, const Run& b) const {
@@ -120,17 +157,91 @@ void DTGraphNode::updateGraphContent() {
 
     std::map<Run, int, Sorterrator> sortedDeaths{};
 
-    for (const auto& death : deaths) {
-        auto runRes = StatsManager::splitRunKey(death.first);
-        if (runRes.isErr()) continue;
-
-        if (runRes.unwrap().start != std::nullopt) {
-            if (runRes.unwrap().start.value() == runPercent)
-                sortedDeaths[runRes.unwrap()] += death.second;
+    if (info.value().coverage == DTGraphCoverage::SectionCover) {
+        auto dtLayer = DTLayer::get();
+        if (dtLayer == nullptr || dtLayer->m_MyLevelStats.isErr()) {
+            if (lineNode != nullptr) lineNode->clear();
+            pointHolder->removeAllChildrenWithCleanup(true);
+            return;
         }
-        else
-            sortedDeaths[runRes.unwrap()] += death.second;
+
+        auto sections = dtLayer->m_MyLevelStats.unwrap().metadata.sections;
+        std::sort(sections.begin(), sections.end(), [](const Section& a, const Section& b) {
+            if (a.startPercent != b.startPercent) return a.startPercent < b.startPercent;
+            return a.endPercent < b.endPercent;
+        });
+
+        for (const auto& section : sections) {
+            if (!section.isValid() || section.startPercent == section.endPercent) continue;
+            if (!sectionToShow.has_value() || section.startPercent != sectionToShow->startPercent || section.endPercent != sectionToShow->endPercent || section.name != sectionToShow->name) continue;
+
+            std::map<double, int> deathsByPercent;
+            for (const auto& death : deaths) {
+                auto runRes = StatsManager::splitRunKey(death.first);
+                if (runRes.isErr()) continue;
+
+                const double percent = runRes.unwrap().end;
+                deathsByPercent[percent] += death.second;
+            }
+
+            int totalDeaths = 0;
+            for (const auto& [percent, count] : deathsByPercent) {
+                if (percent >= section.startPercent && percent <= 100)
+                    totalDeaths += count;
+            }
+            if (totalDeaths <= 0) continue;
+
+            std::vector<CCPoint> linePoints;
+
+            auto addSectionPoint = [&](double percent, float rate) {
+                auto position = ccp(percent * scaling.width, rate * scaling.height);
+                linePoints.push_back(position);
+                sectionGraphPoints.emplace_back(
+                    position,
+                    fmt::format("{} {}%", section.name, static_cast<int>(percent))
+                );
+            };
+
+            auto deathsAtOrAbove = [&](double percent) {
+                int count = 0;
+                for (auto it = deathsByPercent.lower_bound(percent); it != deathsByPercent.end(); ++it)
+                    count += it->second;
+                return count;
+            };
+            auto deathsAbove = [&](double percent) {
+                int count = 0;
+                for (auto it = deathsByPercent.upper_bound(percent); it != deathsByPercent.end(); ++it)
+                    count += it->second;
+                return count;
+            };
+            auto rateAt = [&](double percent) {
+                const int count = info.value().type == DTGraphType::Passrate
+                    ? deathsAbove(percent)
+                    : deathsAtOrAbove(percent);
+                return count / static_cast<float>(totalDeaths) * 100;
+            };
+
+            addSectionPoint(section.startPercent, rateAt(section.startPercent));
+
+            for (const auto& [percent, _] : deathsByPercent) {
+                if (percent <= section.startPercent || percent >= section.endPercent) continue;
+                addSectionPoint(percent, rateAt(percent));
+            }
+
+            addSectionPoint(section.endPercent, rateAt(section.endPercent));
+
+            graphLines.push_back(std::move(linePoints));
+        }
     }
+    else {
+        for (const auto& death : deaths) {
+            auto runRes = StatsManager::splitRunKey(death.first);
+            if (runRes.isErr()) continue;
+
+            const auto& run = runRes.unwrap();
+            if (run.start.value_or(0) != runPercent || run.end < runPercent) continue;
+            sortedDeaths[run] += death.second;
+        }
 
     if (info.value().type == DTGraphType::Passrate) {
         int bestRun = 0;
@@ -202,12 +313,14 @@ void DTGraphNode::updateGraphContent() {
 
         if (points.size()) {
             int added = 0;
-            if (points[0].x != 0) {
+            if (isRunCoverage) {
+                points.insert(points.begin(), ccp(runPercent * scaling.width, 100 * scaling.height));
+                added++;
+            }
+            else if (points[0].x != 0) {
                 points.insert(points.begin(), ccp(0, 100 * scaling.height));
                 added++;
                 if (!firstPercentPoint) {
-
-
                         if (!secondPercentPoint && firstAfterSecondPointIndex != -1) {
                         points.insert(std::next(points.begin(), firstAfterSecondPointIndex + 1), ccp((firstAfterSecondPoint - 1) * scaling.width, 100 * scaling.height));
                         added++;
@@ -217,7 +330,9 @@ void DTGraphNode::updateGraphContent() {
 
             if (endPointIndex.has_value()) {
                 points[endPointIndex.value() + added].y = 100 * scaling.height;
-                if (endPointIndex.value() - 1 != 0)
+                if (isRunCoverage
+                    ? endPointIndex.value() + added > 1
+                    : endPointIndex.value() - 1 != 0)
                     points.erase(std::next(points.begin(), endPointIndex.value() + added - 1 ));
             }
             else {
@@ -260,6 +375,9 @@ void DTGraphNode::updateGraphContent() {
         
     }
 
+        graphLines.push_back(points);
+    }
+
     if (lineNode != nullptr) lineNode->clear();
     else {
         lineNode = CCDrawNode::create();
@@ -277,15 +395,9 @@ void DTGraphNode::updateGraphContent() {
 
     bool isFirst = false;
     CCPoint prevPoint;
-    for (const CCPoint& linePoint : points)
-    {
+    auto addGraphPoint = [&](const CCPoint& linePoint, const std::string& pointText) {
         if (linePoint.x >= 0 && linePoint.x <= 100 * scaling.width && linePoint.y >= 0 && linePoint.y <= 100 * scaling.height)
         {
-            int percent = linePoint.x / scaling.width;
-            auto pointText = fmt::format("{}", percent);
-            if (RunStartPercent != 0)
-                pointText = fmt::format("{}-{}", RunStartPercent, percent);
-
             auto GP = GraphPoint::create(pointText, linePoint.y / scaling.height, info.value().pointColor);
             GP->relatedGraph = this;
             GP->setDelegate(delegate);
@@ -293,21 +405,34 @@ void DTGraphNode::updateGraphContent() {
             GP->setScale(info.value().pointScale);
             pointHolder->addChild(GP);
         }
+    };
 
-        if (!isFirst) {
-            prevPoint = linePoint;
-            isFirst = true;
-            continue;
+    if (info.value().coverage == DTGraphCoverage::SectionCover) {
+        for (const auto& [position, label] : sectionGraphPoints) {
+            addGraphPoint(position, label);
         }
-
-        segmentList.push_back(prevPoint);
-        segmentList.push_back(linePoint);
-
-        prevPoint = linePoint;
+    }
+    else {
+        for (const CCPoint& linePoint : points) {
+            int percent = linePoint.x / scaling.width;
+            auto pointText = fmt::format("{}", percent);
+            if (RunStartPercent != 0)
+                pointText = fmt::format("{}-{}", RunStartPercent, percent);
+            addGraphPoint(linePoint, pointText);
+        }
     }
 
-    lineNode->drawLines(&segmentList[0], segmentList.size(), info.value().thickness + info.value().outlineThickness, ccc4FFromccc4B(info.value().outlineColor));
-    lineNode->drawLines(&segmentList[0], segmentList.size(), info.value().thickness, ccc4FFromccc4B(info.value().color));
+    for (const auto& linePoints : graphLines) {
+        std::vector<CCPoint> segmentList;
+        for (size_t i = 1; i < linePoints.size(); ++i) {
+            segmentList.push_back(linePoints[i - 1]);
+            segmentList.push_back(linePoints[i]);
+        }
+
+        if (segmentList.empty()) continue;
+        lineNode->drawLines(segmentList.data(), segmentList.size(), info.value().thickness + info.value().outlineThickness, ccc4FFromccc4B(info.value().outlineColor));
+        lineNode->drawLines(segmentList.data(), segmentList.size(), info.value().thickness, ccc4FFromccc4B(info.value().color));
+    }
 }
 
 void DTGraphNode::getGeneralDeaths() {
@@ -320,6 +445,17 @@ void DTGraphNode::getGeneralDeaths() {
 void DTGraphNode::getGeneralRuns() {
     getDeathsAsync(
         [](GeneralData const& data) { return data.runs.toLegacyDeaths(); },
+        false
+    );
+}
+
+void DTGraphNode::getSectionDeaths() {
+    getDeathsAsync(
+        [](GeneralData const& data) {
+            auto allDeaths = data.deaths.toLegacyDeaths();
+            StatsManager::mergeMapsAdd(allDeaths, data.runs.toLegacyDeaths());
+            return allDeaths;
+        },
         false
     );
 }
