@@ -254,8 +254,24 @@ bool DTLayer::init(GJGameLevel* const& level) {
     groupsHolder = CCMenu::create();
     groupsHolder->setContentSize(ccp(45, 0));
     groupsBtn->setPosition(groupsHolder->getContentSize() / 2);
-    bottomRightMenu->addChild(groupsHolder);
+    sessionSelector->addChild(groupsHolder);
+    groupsHolder->setPosition({sessionSelector->getContentWidth() / 2, -4});
+    groupsHolder->setScale(.85f);
+    groupsHolder->ignoreAnchorPointForPosition(false);
     groupsHolder->addChild(groupsBtn);
+
+    auto labelsBtnSprBG = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
+    labelsBtnSpr = CCSprite::createWithSpriteFrameName("labelsBtn.png"_spr);
+    labelsBtnSpr->setPosition(labelsBtnSprBG->getContentSize() / 2);
+    labelsBtnSprBG->addChild(labelsBtnSpr);
+    labelsBtnSprBG->setScale(.75f);
+    auto labelsBtn = CCMenuItemSpriteExtra::create(
+        labelsBtnSprBG,
+        this,
+        menu_selector(DTLayer::onLabels)
+    );
+    labelsBtn->setPosition(scrollLayer->getPosition() + scrollLayer->getContentSize());
+    bottomRightMenu->addChild(labelsBtn);
 
     auto editLayoutBtnSprBG = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
     editLayoutBtnSpr = CCSprite::createWithSpriteFrameName("layout_button.png"_spr);
@@ -932,6 +948,21 @@ void DTLayer::populateSpecialStrings() {
     runsKey->setUpdateFunction(BIND_UPDATE_FUNC(DTLayer::onRUNSKey));
     addSpecialString(runsKey);
 
+    auto cheatedGeneralKey = std::make_shared<SpecialKey>("cheatedGeneral", "Adds all your cheated runs from 0% (shared with linked levels)");
+    cheatedGeneralKey->refreshWith(runsKey->getKey());
+    cheatedGeneralKey->setUpdateFunction(BIND_UPDATE_FUNC(DTLayer::onCheatedGeneralKey));
+    addSpecialString(cheatedGeneralKey);
+
+    auto cheatedRunsKey = std::make_shared<SpecialKey>("cheatedRuns", "Adds all your cheated runs (shared with linked levels)");
+    cheatedRunsKey->refreshWith(runsKey->getKey());
+    cheatedRunsKey->setUpdateFunction(BIND_UPDATE_FUNC(DTLayer::onCheatedRunsKey));
+    addSpecialString(cheatedRunsKey);
+
+    auto cheatedAttemptsKey = std::make_shared<SpecialKey>("cheatedAttempts", "Adds your cheated attempt count (shared with linked levels)");
+    cheatedAttemptsKey->refreshWith(runsKey->getKey());
+    cheatedAttemptsKey->setUpdateFunction(BIND_UPDATE_FUNC(DTLayer::onCheatedAttemptsKey));
+    addSpecialString(cheatedAttemptsKey);
+
     auto dtattKey = std::make_shared<SpecialKey>("dtatt", "Adds your death tracker attempt count (shared with linked levels)");
     dtattKey->refreshWith({
         runsKey->getKey(),
@@ -1246,9 +1277,11 @@ void DTLayer::UpdateSharedStats() {
 }
 
 void DTLayer::onSettings(CCObject*) {
-    LabelEditLayer::create()->show();
+    geode::openSettingsPopup(Mod::get());
+}
 
-    // geode::openSettingsPopup(Mod::get());
+void DTLayer::onLabels(CCObject*) {
+    LabelEditLayer::create()->show();
 }
 
 void DTLayer::keyBackClicked() {
@@ -1334,7 +1367,8 @@ void DTLayer::UpdateDeathRelatedStrings() {
 
     for (const auto& [_, key] : specialStrings)
     {
-        if (key->getKey() == "general" || key->getKey() == "s0" || key->getKey() == "runs" || key->getKey() == "sruns")
+        if (key->getKey() == "general" || key->getKey() == "s0" || key->getKey() == "runs" || key->getKey() == "sruns"
+            || key->getKey() == "cheatedGeneral" || key->getKey() == "cheatedRuns" || key->getKey() == "cheatedAttempts")
             key->updateContent();
     }
 }
@@ -1706,7 +1740,7 @@ bool DTLayer::createDecimalDeathsString(const ComplexDeathMap& deaths, const Run
     std::vector<std::pair<std::string, uint64_t>> deathVec;
 
     std::unordered_map<std::string, uint64_t> mergedDeaths;
-    for (const auto& [run, death] : deaths.records) {
+    for (const auto& [run, death] : deaths.filterCheatedRuns().records) {
         Run runSplit{
             run.second.has_value()
                 ? std::optional<double>(ComplexPercent{floorToDecimalDepth(*run.second)}.asPercent())
@@ -3258,6 +3292,66 @@ UpdateFuture DTLayer::onRUNSKey(std::map<std::string, std::any> payload) {
     co_return Ok(out);
 }
 
+UpdateFuture DTLayer::onCheatedGeneralKey(std::map<std::string, std::any> payload) {
+    GEODE_CO_UNWRAP_INTO(auto cheatedFrom0Runs, co_await getTFor<Deaths>([](GeneralData const& data) {
+        auto cheatedRuns = data.runs.filterOnlyCheatedRuns().toLegacyDeaths(true);
+        Deaths from0Runs;
+        for (const auto& [key, count] : cheatedRuns) {
+            auto run = StatsManager::splitRunKey(key);
+            if (run.isErr() || run.unwrap().start != 0)
+                continue;
+            from0Runs[std::to_string(run.unwrap().end)] = count;
+        }
+        return from0Runs;
+    },
+    [](auto const& a, auto const& b) {
+        auto map = a;
+        StatsManager::mergeMapsAdd(map, b);
+        return map;
+    }, false));
+
+    bool ignoreExtraSettings = false;
+    if (payload.contains("ignoreExtraSettings")) {
+        if (auto ignoreExtraSettingsTemp = std::any_cast<bool>(&payload["ignoreExtraSettings"]))
+            ignoreExtraSettings = *ignoreExtraSettingsTemp;
+    }
+
+    std::string out;
+    if (!createDeathsString(cheatedFrom0Runs, Save::getFrom0Customazations(), out, std::nullopt, Save::getNewBestCustomizations(), ignoreExtraSettings, false))
+        co_return Err("Failed to create cheated from0 runs string");
+
+    co_return Ok(out);
+}
+
+UpdateFuture DTLayer::onCheatedRunsKey(std::map<std::string, std::any> payload) {
+    GEODE_CO_UNWRAP_INTO(auto cheatedRuns, co_await getTFor<Deaths>([](GeneralData const& data) {
+        return data.runs.filterOnlyCheatedRuns().toLegacyDeaths(true);
+    },
+    [](auto const& a, auto const& b) {
+        auto map = a;
+        StatsManager::mergeMapsAdd(map, b);
+        return map;
+    }, false));
+
+    bool ignoreExtraSettings = false;
+    if (payload.contains("ignoreExtraSettings")) {
+        if (auto ignoreExtraSettingsTemp = std::any_cast<bool>(&payload["ignoreExtraSettings"]))
+            ignoreExtraSettings = *ignoreExtraSettingsTemp;
+    }
+
+    std::string out;
+    if (!createDeathsString(cheatedRuns, Save::getRunsCustomazations(), out, std::nullopt, CustomizationData{.color = to4B({255, 255, 255})}, ignoreExtraSettings, false))
+        co_return Err("Failed to create cheated runs string");
+
+    co_return Ok(out);
+}
+
+UpdateFuture DTLayer::onCheatedAttemptsKey(std::map<std::string, std::any> payload) {
+    co_return co_await getAttemptsFor([](GeneralData const& data, auto deathsFunc) {
+        return deathsFunc(data.runs.filterOnlyCheatedRuns().toLegacyDeaths(true));
+    }, false);
+}
+
 UpdateFuture DTLayer::onS0Key(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto sessioNDeaths, co_await getTFor<std::pair<Deaths, NewBests>>([](GeneralData const& data) {
         return std::make_pair(data.deaths.toLegacyDeaths(), data.newBests);
@@ -4183,7 +4277,7 @@ UpdateFuture DTLayer::onDynamicDecimalKey(std::map<std::string, std::any> payloa
 
 UpdateFuture DTLayer::onRecentDeathsKey(std::map<std::string, std::any> payload) {
     GEODE_CO_UNWRAP_INTO(auto deaths, co_await getTFor<ComplexDeathMap>([](GeneralData const& data) {
-        auto runs = data.runs;
+        auto runs = data.runs.filterCheatedRuns();
         StatsManager::mergeMapsAdd(runs, data.deaths);
         return runs;
     },

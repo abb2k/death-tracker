@@ -181,7 +181,8 @@ Result<ComplexDeathSummary> ComplexDeathMap::getComplexDeath(double percent, uin
     summary.queriedPercent.units = lower;
     summary.decimalDepth = decimalDepth;
 
-    for (auto it = records.lower_bound({lower, std::nullopt}); it != records.end() && it->first.first < upper; ++it) {
+    auto eligibleRuns = filterCheatedRuns();
+    for (auto it = eligibleRuns.records.lower_bound({lower, std::nullopt}); it != eligibleRuns.records.end() && it->first.first < upper; ++it) {
 
         summary.records.push_back(it->second);
         if (std::numeric_limits<uint64_t>::max() - summary.deaths < it->second.deaths)
@@ -263,7 +264,7 @@ bool ComplexDeathMap::contains(double endPercent, std::optional<double> startPer
 
 uint64_t ComplexDeathMap::totalDeaths() const {
     uint64_t total = 0;
-    for (const auto& [key, death] : records) {
+    for (const auto& [key, death] : filterCheatedRuns().records) {
         if (std::numeric_limits<uint64_t>::max() - total < death.deaths)
             return std::numeric_limits<uint64_t>::max();
         total += death.deaths;
@@ -271,10 +272,11 @@ uint64_t ComplexDeathMap::totalDeaths() const {
     return total;
 }
 
-Deaths ComplexDeathMap::toLegacyDeaths() const {
+Deaths ComplexDeathMap::toLegacyDeaths(bool includeCheated) const {
     Deaths result;
+    auto eligibleRuns = includeCheated ? *this : filterCheatedRuns();
     
-    for (const auto& [key, death] : records) {
+    for (const auto& [key, death] : eligibleRuns.records) {
         const auto end = static_cast<int64_t>(std::floor(static_cast<double>(death.runEndPercent.units) / ComplexPercent::unitsPerPercent));
 
         auto legacyKey = std::to_string(end);
@@ -328,6 +330,49 @@ ComplexDeathMap ComplexDeathMap::filterOccurrences(const std::vector<SessionTime
         matching.deaths = matching.occurrences.size();
         if (matching.deaths != 0)
             filtered.records.emplace(key, std::move(matching));
+    }
+
+    return filtered;
+}
+
+ComplexDeathMap ComplexDeathMap::filterCheatedRuns() const {
+    ComplexDeathMap filtered;
+
+    for (const auto& [key, death] : records) {
+        ComplexDeath eligible = death;
+        eligible.occurrences.clear();
+
+        auto untrackedDeaths = death.deaths > death.occurrences.size()
+            ? death.deaths - death.occurrences.size()
+            : 0;
+        for (const auto& occurrence : death.occurrences) {
+            if (!occurrence.cheated)
+                eligible.occurrences.push_back(occurrence);
+        }
+
+        eligible.deaths = untrackedDeaths + eligible.occurrences.size();
+        if (eligible.deaths != 0)
+            filtered.records.emplace(key, std::move(eligible));
+    }
+
+    return filtered;
+}
+
+ComplexDeathMap ComplexDeathMap::filterOnlyCheatedRuns() const {
+    ComplexDeathMap filtered;
+
+    for (const auto& [key, death] : records) {
+        ComplexDeath cheated = death;
+        cheated.occurrences.clear();
+
+        for (const auto& occurrence : death.occurrences) {
+            if (occurrence.cheated)
+                cheated.occurrences.push_back(occurrence);
+        }
+
+        cheated.deaths = cheated.occurrences.size();
+        if (cheated.deaths != 0)
+            filtered.records.emplace(key, std::move(cheated));
     }
 
     return filtered;
@@ -425,6 +470,9 @@ Result<ComplexDeathOccurrence> matjson::Serialize<ComplexDeathOccurrence>::fromJ
     if (value.contains("runEndTimestamp")) {
         GEODE_UNWRAP_INTO(occurrence.runEndTimestamp, value["runEndTimestamp"].as<time_t>());
     }
+    if (value.contains("cheated")) {
+        GEODE_UNWRAP_INTO(occurrence.cheated, value["cheated"].asBool());
+    }
     return Ok(occurrence);
 }
 
@@ -434,6 +482,7 @@ matjson::Value matjson::Serialize<ComplexDeathOccurrence>::toJson(const ComplexD
         json["runStartTimestamp"] = value.runStartTimestamp.value();
     if (value.runEndTimestamp.has_value())
         json["runEndTimestamp"] = value.runEndTimestamp.value();
+    json["cheated"] = value.cheated;
     return json;
 }
 

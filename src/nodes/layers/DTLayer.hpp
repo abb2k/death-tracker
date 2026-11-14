@@ -206,6 +206,7 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
         void graphBtnClicked(CCObject*);
 
         void onSettings(CCObject*);
+        void onLabels(CCObject*);
 
         //better info time calc :)
         uint64_t timeInMs();
@@ -222,6 +223,7 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         CCMenuItemSpriteExtra* addColumnButton;
         CCSprite* editLayoutBtnSpr;
+        CCSprite* labelsBtnSpr;
 
         CCMenu* bottomLeftMenu;
         CCMenu* bottomRightMenu;
@@ -241,6 +243,9 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
         UpdateFuture onLVLNKey(std::map<std::string, std::any> payload);
         UpdateFuture onGeneralKey(std::map<std::string, std::any> payload);
         UpdateFuture onRUNSKey(std::map<std::string, std::any> payload);
+        UpdateFuture onCheatedGeneralKey(std::map<std::string, std::any> payload);
+        UpdateFuture onCheatedRunsKey(std::map<std::string, std::any> payload);
+        UpdateFuture onCheatedAttemptsKey(std::map<std::string, std::any> payload);
         UpdateFuture onS0Key(std::map<std::string, std::any> payload);
         UpdateFuture onSRUNSKey(std::map<std::string, std::any> payload);
 

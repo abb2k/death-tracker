@@ -234,6 +234,7 @@ void DTPlayLayer::resetLevel() {
         m_fields->currentRun.start = m_fields->currentRun.end;
     m_fields->currentRun.startTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
     m_fields->currentRun.endTimestamp.reset();
+    m_fields->currentRun.cheated = false;
 
     m_fields->nolcip = false;
     m_fields->speedhack = false;
@@ -280,22 +281,16 @@ void DTPlayLayer::saveRun() {
     if (Settings::getSafeMode()) {
         return;
     }
-    if (!isLegal()) {
-        return;
-    }
+    m_fields->currentRun.cheated = !isLegal();
 
     m_fields->currentRun.endTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
 
     if (Settings::getQuickSaveEnabled()) {
-        if (m_fields->currentRun.start == 0 && !m_isPracticeMode) {
+        if (!m_fields->currentRun.cheated && m_fields->currentRun.start == 0 && !m_isPracticeMode) {
             StatsManager::logDeath(m_fields->currentRun.end);
         }
-        else if (!m_isPracticeMode && m_level->isPlatformer()) {
+        else if (!m_fields->currentRun.cheated && !m_isPracticeMode && m_level->isPlatformer()) {
             StatsManager::logDeath(m_fields->currentRun.end);
-        }
-
-        else if (m_level->isPlatformer() && m_isPracticeMode) {
-            StatsManager::logRun(m_fields->currentRun);
         }
         else {
             StatsManager::logRun(m_fields->currentRun);
@@ -306,17 +301,13 @@ void DTPlayLayer::saveRun() {
         refreshOverlayLabels();
     }
     else {
-        if (m_fields->currentRun.start == 0 && !m_isPracticeMode) {
+        if (!m_fields->currentRun.cheated && m_fields->currentRun.start == 0 && !m_isPracticeMode) {
             m_fields->fzeroToSave.push_back(m_fields->currentRun.end);
             m_fields->fzeroEndTimestamps.push_back(m_fields->currentRun.endTimestamp.value());
         }
-        else if (!m_isPracticeMode && m_level->isPlatformer()) {
+        else if (!m_fields->currentRun.cheated && !m_isPracticeMode && m_level->isPlatformer()) {
             m_fields->fzeroToSave.push_back(m_fields->currentRun.end);
             m_fields->fzeroEndTimestamps.push_back(m_fields->currentRun.endTimestamp.value());
-        }
-
-        else if (m_level->isPlatformer() && m_isPracticeMode) {
-            m_fields->runsToSave.push_back(m_fields->currentRun);
         }
         else {
             m_fields->runsToSave.push_back(m_fields->currentRun);
@@ -479,6 +470,7 @@ void DTPlayLayer::startGame() {
         m_fields->currentRun.start = 0.0;
     m_fields->currentRun.startTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
     m_fields->currentRun.endTimestamp.reset();
+    m_fields->currentRun.cheated = false;
 
     m_fields->didGameStartThisFrame = true;
 
@@ -718,6 +710,7 @@ Result<GeneralData> DTPlayLayer::getOverlayDeathsData(char scope) {
     for (const auto& run : m_fields->runsToSave) {
         ComplexDeathOccurrence occurrence;
         occurrence.runEndTimestamp = run.endTimestamp.value_or(StatsManager::getNowSeconds());
+        occurrence.cheated = run.cheated;
         (void)currentLevelData.runs.recordDeath(run.end, run.start, occurrence);
     }
 
@@ -749,6 +742,7 @@ Result<GeneralData> DTPlayLayer::getOverlayDeathsData(char scope) {
     for (const auto& run : m_fields->runsToSave) {
         ComplexDeathOccurrence occurrence;
         occurrence.runEndTimestamp = run.endTimestamp.value_or(StatsManager::getNowSeconds());
+        occurrence.cheated = run.cheated;
         (void)currentSessionData.runs.recordDeath(run.end, run.start, occurrence);
     }
 

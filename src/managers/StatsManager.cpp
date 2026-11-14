@@ -695,6 +695,7 @@ void StatsManager::logRun(const Run& run, bool instantSave) {
         occurrence.runStartTimestamp = recordedAt;
     }
     occurrence.runEndTimestamp = run.endTimestamp.value_or(recordedAt);
+    occurrence.cheated = run.cheated;
 
     auto session = StatsManager::getCurrentSession();
     if (session != nullptr) {

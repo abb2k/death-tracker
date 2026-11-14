@@ -39,6 +39,7 @@ struct Run_s{
     double end = 0;
     std::optional<long long> startTimestamp;
     std::optional<long long> endTimestamp;
+    bool cheated = false;
 
     Run_s(std::optional<double> _start, double _end) : start(_start), end(_end) {}
 
@@ -75,6 +76,7 @@ struct ComplexPercent {
 struct ComplexDeathOccurrence {
     std::optional<long long> runStartTimestamp;
     std::optional<long long> runEndTimestamp;
+    bool cheated = false;
 };
 
 struct SessionTimestampRange {
@@ -118,9 +120,11 @@ struct ComplexDeathMap {
     bool contains(double endPercent, std::optional<double> startPercent) const;
 
     uint64_t totalDeaths() const;
-    Deaths toLegacyDeaths() const;
+    Deaths toLegacyDeaths(bool includeCheated = false) const;
     Result<> merge(const ComplexDeathMap& other);
     ComplexDeathMap filterOccurrences(const std::vector<SessionTimestampRange>& ranges) const;
+    ComplexDeathMap filterCheatedRuns() const;
+    ComplexDeathMap filterOnlyCheatedRuns() const;
 
     operator Deaths() const {
         return toLegacyDeaths();

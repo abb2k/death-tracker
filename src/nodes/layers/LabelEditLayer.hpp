@@ -57,6 +57,9 @@ class LabelEditLayer : public Popup {
 
         CCClippingNode* m_previewArea;
         CCMenu* m_previewAreaMenu;
+        RichTextArea* m_currentPreviewLabel = nullptr;
+        bool m_isDraggingPreviewLabel = false;
+        CCPoint m_dragTouchLocalPoint;
 
         void onRichTextBtn(CCObject*);
 
@@ -80,6 +83,12 @@ class LabelEditLayer : public Popup {
         static Result<GeneralData> getDeathsData(char scope);
 
         CCMenuItemSpriteExtra* m_richTextBtn = nullptr;
+
+        virtual bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;
+
+        virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent) override;
+        virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent) override;
+        virtual void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent) override;
 
     public:
         static LabelEditLayer* create();

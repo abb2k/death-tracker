@@ -13,6 +13,8 @@
 
 #include <nodes/layers/LabelEditSpecialKeyEditorPopup.hpp>
 
+#include <cmath>
+
 LabelEditLayer* LabelEditLayer::create() {
     auto ret = new LabelEditLayer();
     if (ret->init()) {
@@ -536,6 +538,8 @@ bool LabelEditLayer::init() {
     labelTutorial->setPosition(m_size);
     m_buttonMenu->addChild(labelTutorial);
 
+    this->setTouchEnabled(true);
+
     return true;
 }
 
@@ -594,7 +598,25 @@ void LabelEditLayer::onCellDelete(OverlayLabelCell* cell) {
 void LabelEditLayer::onCellEdit(OverlayLabelCell* cell) {
     if (std::find(m_labels.begin(), m_labels.end(), cell) == m_labels.end()) return;
 
-    if (m_currentEdit && m_currentEdit != cell)
+    if (m_currentEdit == cell) {
+        m_currentEdit->setEditing(false);
+        m_currentEdit = nullptr;
+        m_updatingControls = true;
+        m_nameInput->setString("");
+        m_textInput->setString("");
+        m_freeModeToggle->toggle(false);
+        m_xSlider->setValue(0);
+        m_xSlider->disableSlider();
+        m_ySlider->setValue(0);
+        m_ySlider->disableSlider();
+        m_updatingControls = false;
+        m_disabledAnchorSlidersFG->setVisible(true);
+        setLabelEditEnabled(false);
+        RefreshPreviewLabels();
+        return;
+    }
+
+    if (m_currentEdit)
         m_currentEdit->setEditing(false);
 
     m_currentEdit = cell;
@@ -823,6 +845,7 @@ void LabelEditLayer::RefreshPreviewLabels() {
     }
 
     m_previewLabels.clear();
+    m_currentPreviewLabel = nullptr;
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
     auto previewSize = m_previewArea->getContentSize();
@@ -874,6 +897,7 @@ void LabelEditLayer::RefreshPreviewLabels() {
         previewLabel->setWidth(widest);
 
         if (selectedIndex && selectedIndex.value() == index) {
+            m_currentPreviewLabel = previewLabel;
             auto background = CCScale9Sprite::create("geode.loader/white-square.png");
             background->setColor({0, 255, 0});
             background->setOpacity(65);
@@ -1057,7 +1081,8 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
         std::vector<std::pair<Run, uint64_t>> bestRuns;
         std::map<int64_t, uint64_t> bestRunsByWholePercent;
         auto showDecimals = match[8].matched;
-        auto runData = startPercent ? data.runs.records : data.deaths.records;
+        auto filteredRuns = data.runs.filterCheatedRuns();
+        const auto& runData = startPercent ? filteredRuns.records : data.deaths.records;
         for (const auto& entry : runData) {
             auto& death = entry.second;
             bool matchesStart = startPercent ? death.runStartPercent.has_value() && death.runStartPercent->units == startPercent->units : !death.runStartPercent.has_value();
@@ -1254,4 +1279,89 @@ std::string LabelEditLayer::expandDeaths(const std::string& text, const std::fun
 
     expanded.append(textStart, expandedCurrentDeathCount.cend());
     return expanded;
+}
+
+bool LabelEditLayer::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) {
+    auto label = m_currentEdit ? m_currentEdit->getData() : OverlayLabel{};
+
+    if (m_currentEdit && label.freeMode && m_currentPreviewLabel) {
+        auto touchPosition = m_previewArea->convertToNodeSpace(pTouch->getLocation());
+
+        if (m_currentPreviewLabel->boundingBox().containsPoint(touchPosition)) {
+            m_isDraggingPreviewLabel = true;
+            m_dragTouchLocalPoint = m_currentPreviewLabel->convertToNodeSpace(pTouch->getLocation());
+            return true;
+        }
+    }
+
+    return Popup::ccTouchBegan(pTouch, pEvent);
+}
+
+void LabelEditLayer::ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent) {
+    if (!m_isDraggingPreviewLabel) {
+        Popup::ccTouchMoved(pTouch, pEvent);
+        return;
+    }
+
+    auto touchPosition = m_previewArea->convertToNodeSpace(pTouch->getLocation());
+    auto previewSize = m_previewArea->getContentSize();
+    auto settings = Save::getOverlayLabels();
+    auto label = m_currentEdit->getData();
+    auto labelSize = m_currentPreviewLabel->getContentSize() * ccp(
+        m_currentPreviewLabel->getScaleX(),
+        m_currentPreviewLabel->getScaleY()
+    );
+
+    auto dragAxis = [](float touch, float grabbedPoint, float labelSize, float previewSize, float offset, float scale, float previousPosition) {
+        auto desiredMin = touch - grabbedPoint * scale;
+        if (labelSize <= previewSize)
+            desiredMin = std::clamp(desiredMin, 0.f, previewSize - labelSize);
+        else
+            desiredMin = (previewSize - labelSize) / 2;
+
+        auto denominator = previewSize - 2 * offset - labelSize;
+        if (std::abs(denominator) < 0.001f)
+            return previousPosition;
+        
+        return (desiredMin - offset) / denominator;
+    };
+
+    label.posX = dragAxis(
+        touchPosition.x, m_dragTouchLocalPoint.x, labelSize.width,
+        previewSize.width, settings.offset.x, m_currentPreviewLabel->getScaleX(), label.posX
+    );
+    label.posY = dragAxis(
+        touchPosition.y, m_dragTouchLocalPoint.y, labelSize.height,
+        previewSize.height, settings.offset.y, m_currentPreviewLabel->getScaleY(), label.posY
+    );
+    m_currentEdit->setData(label);
+
+    m_updatingControls = true;
+    m_xSlider->setValue(label.posX);
+    m_ySlider->setValue(label.posY);
+    m_updatingControls = false;
+
+    auto anchor = ccp(label.posX, label.posY);
+    m_currentPreviewLabel->setAnchorPoint(anchor);
+    m_currentPreviewLabel->setPosition(previewSize * anchor + settings.offset * anchorDirection(anchor));
+}
+
+void LabelEditLayer::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent) {
+    if (!m_isDraggingPreviewLabel) {
+        Popup::ccTouchEnded(pTouch, pEvent);
+        return;
+    }
+
+    m_isDraggingPreviewLabel = false;
+    updateSavedLabels();
+}
+
+void LabelEditLayer::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent) {
+    if (!m_isDraggingPreviewLabel) {
+        Popup::ccTouchCancelled(pTouch, pEvent);
+        return;
+    }
+
+    m_isDraggingPreviewLabel = false;
+    updateSavedLabels();
 }
