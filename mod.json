@@ -188,6 +188,7 @@
             "name": "Enter new line",
             "description": "Enters a new line when editing a labels text",
             "category": "universal",
+			"allow-in-text-inputs": true,
             "migrate-from": "elohmrow.death_tracker/enter-new-line",
             "default": {
 				"win": ["Enter"],
@@ -201,6 +202,7 @@
             "name": "Enter new run percentage",
             "description": "Enters a new run percent when inputting for adding a new percent to your \"runs to track\"",
             "category": "universal",
+			"allow-in-text-inputs": true,
             "migrate-from": "elohmrow.death_tracker/enter-new-run-per",
             "default": {
 				"win": ["Enter"],
@@ -214,6 +216,7 @@
             "name": "Add deaths",
             "description": "Adds deaths while you input a percent to change deaths to your level",
             "category": "universal",
+			"allow-in-text-inputs": true,
             "migrate-from": "elohmrow.death_tracker/add-deaths",
             "default": {
 				"win": ["Enter"],
@@ -227,6 +230,7 @@
             "name": "Remove deaths",
             "description": "Removes deaths while you input a percent to change deaths to your level",
             "category": "universal",
+			"allow-in-text-inputs": true,
             "migrate-from": "elohmrow.death_tracker/remove-deaths",
             "default": {
 				"win": ["Shift+Enter"],
