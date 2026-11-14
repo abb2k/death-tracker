@@ -61,4 +61,8 @@ class DTGraphNode : public CCNode {
         std::vector<CCPoint> points{};
 
         async::TaskHolder<GetTFuture<Deaths>::Output> getDeathsListener;
+
+        bool isRunCoverage(DTGraphCoverage coverage);
+
+        bool isSectionCoverage(DTGraphCoverage coverage);
 };

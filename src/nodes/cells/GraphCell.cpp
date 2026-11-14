@@ -541,19 +541,27 @@ void GraphCell::checkForOptVisibilityChange() {
     else if (graphInfo.coverage == DTGraphCoverage::SessionCover) {
         makeRunVisible = false;
     }
-    else if (graphInfo.coverage == DTGraphCoverage::SectionCover) {
+    else if (graphInfo.coverage == DTGraphCoverage::SectionContentCover) {
         makeSessionVisible = false;
         makeRunVisible = false;
         makeSectionVisible = !sections.empty();
     }
-
+    else if (graphInfo.coverage == DTGraphCoverage::SectionGeneralCover) {
+        makeSessionVisible = false;
+        makeRunVisible = false;
+    }
+    else if (graphInfo.coverage == DTGraphCoverage::SectionSessionCover) {
+        makeRunVisible = false;
+    }
     setSessionOptionsVisible(makeSessionVisible);
     setRunOptionsVisible(makeRunVisible);
     setSectionOptionsVisible(makeSectionVisible);
 }
 
 void GraphCell::sendNewSession(int index) {
-    if (!(graphInfo.coverage == DTGraphCoverage::SessionCover || graphInfo.coverage == DTGraphCoverage::SessionRunsCover)) return;
+    if (!(graphInfo.coverage == DTGraphCoverage::SessionCover ||
+        graphInfo.coverage == DTGraphCoverage::SessionRunsCover ||
+        graphInfo.coverage == DTGraphCoverage::SectionSessionCover)) return;
 
     auto session = DTLayer::get()->loadSessionFromSave(index);
     std::optional<Session> sessionOpt = session.isOk() ? std::make_optional(session.unwrap()) : std::nullopt;
@@ -567,7 +575,7 @@ void GraphCell::resendSession() {
 }
 
 void GraphCell::sendNewSection() {
-    if (graphInfo.coverage != DTGraphCoverage::SectionCover || sections.empty() || !onNewSection) return;
+    if (graphInfo.coverage != DTGraphCoverage::SectionContentCover || sections.empty() || !onNewSection) return;
 
     if (selectedSectionIndex >= sections.size()) return;
 

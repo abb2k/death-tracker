@@ -1123,7 +1123,15 @@ matjson::Value matjson::Serialize<V2LevelStats>::toJson(const V2LevelStats& valu
 Result<DTGraphInfo> matjson::Serialize<DTGraphInfo>::fromJson(const matjson::Value& value) {
     DTGraphInfo info;
     GEODE_UNWRAP_INTO(auto coverageInt, value["coverage"].asInt());
-    info.coverage = static_cast<DTGraphCoverage>(coverageInt);
+    if (coverageInt == 7) {
+        info.coverage = DTGraphCoverage::GeneralRunsCover;
+    }
+    else if (coverageInt == 8) {
+        info.coverage = DTGraphCoverage::SessionRunsCover;
+    }
+    else {
+        info.coverage = static_cast<DTGraphCoverage>(coverageInt);
+    }
     GEODE_UNWRAP_INTO(auto typeInt, value["type"].asInt());
     info.type = static_cast<DTGraphType>(typeInt);
     GEODE_UNWRAP_INTO(info.thickness, value["thickness"].asDouble());

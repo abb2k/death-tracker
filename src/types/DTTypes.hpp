@@ -578,11 +578,13 @@ struct matjson::Serialize<V2LevelStats> {
 };
 
 enum DTGraphCoverage{
-    GeneralCover,
-    GeneralRunsCover,
-    SessionCover,
-    SessionRunsCover,
-    SectionCover
+    GeneralCover = 0,
+    GeneralRunsCover = 1,
+    SessionCover = 2,
+    SessionRunsCover = 3,
+    SectionContentCover = 4,
+    SectionGeneralCover = 5,
+    SectionSessionCover = 6
 };
 
 enum DTGraphType{

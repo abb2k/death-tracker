@@ -234,7 +234,9 @@ bool DTGraphLayer::init() {
         {DTGraphCoverage::GeneralRunsCover, "General Runs"},
         {DTGraphCoverage::SessionCover, "Session"},
         {DTGraphCoverage::SessionRunsCover, "Session Runs"},
-        {DTGraphCoverage::SectionCover, "Section"},
+        {DTGraphCoverage::SectionContentCover, "Section Content"},
+        {DTGraphCoverage::SectionGeneralCover, "Section General"},
+        {DTGraphCoverage::SectionSessionCover, "Section Session"},
     });
     coverageSwitcher->setScale(.75f);
     coverageSwitcher->setAnchorPoint({.5f, 1});
