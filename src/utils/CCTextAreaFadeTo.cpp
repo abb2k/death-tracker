@@ -1,4 +1,28 @@
 #include <utils/CCTextAreaFadeTo.hpp>
+#include <nodes/RichTextArea.hpp>
+
+namespace {
+bool getTextAreaColor(CCNode* target, ccColor4B& color) {
+    if (auto textArea = dynamic_cast<RichTextArea*>(target)) {
+        color = textArea->getColor();
+        return true;
+    }
+    if (auto textArea = dynamic_cast<SimpleTextArea*>(target)) {
+        color = textArea->getColor();
+        return true;
+    }
+    return false;
+}
+
+void setTextAreaColor(CCNode* target, const ccColor4B& color) {
+    if (auto textArea = dynamic_cast<RichTextArea*>(target)) {
+        textArea->setColor(color);
+    }
+    else if (auto textArea = dynamic_cast<SimpleTextArea*>(target)) {
+        textArea->setColor(color);
+    }
+}
+}
 
 CCTextAreaFadeTo* CCTextAreaFadeTo::create(float duration, GLubyte toOpacity)
 {
@@ -23,11 +47,9 @@ void CCTextAreaFadeTo::startWithTarget(CCNode* target)
 {
     CCActionInterval::startWithTarget(target);
 
-    auto textArea = dynamic_cast<SimpleTextArea*>(target);
-    if (!textArea) return;
-
-    auto c = textArea->getColor();
-    this->startOpacity = c.a;
+    ccColor4B color;
+    if (!getTextAreaColor(target, color)) return;
+    this->startOpacity = color.a;
     this->deltaOpacity = (int)endOpacity - (int)startOpacity;
 }
 
@@ -35,12 +57,11 @@ void CCTextAreaFadeTo::update(float time)
 {
     if (!m_pTarget) return;
 
-    auto textArea = dynamic_cast<SimpleTextArea*>(m_pTarget);
-    if (!textArea) return;
+    ccColor4B oldColor;
+    if (!getTextAreaColor(m_pTarget, oldColor)) return;
 
     const int a = (int)startOpacity + (int)(deltaOpacity * time);
 
-    auto old = textArea->getColor();
-    ccColor4B newColor = { old.r, old.g, old.b, (GLubyte)a };
-    textArea->setColor(newColor);
+    ccColor4B newColor = { oldColor.r, oldColor.g, oldColor.b, (GLubyte)a };
+    setTextAreaColor(m_pTarget, newColor);
 }

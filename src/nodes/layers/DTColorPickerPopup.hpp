@@ -7,6 +7,8 @@
 
 #include <types/DTTypes.hpp>
 
+#include <nodes/RichTextArea.hpp>
+
 using namespace geode::prelude;
 
 class DTColorPickerPopup : public geode::ColorPickPopup {

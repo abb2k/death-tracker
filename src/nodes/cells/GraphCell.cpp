@@ -17,6 +17,7 @@ GraphCell* GraphCell::create(float width, const DTGraphInfo& graphInfo) {
 bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
     if (!CCNode::init()) return false;
 
+    setID("graph-cell");
     this->setContentSize({width, 45});
 
     this->graphInfo = graphInfo;

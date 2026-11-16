@@ -5,6 +5,8 @@
 #include <regex>
 #include <nodes/SimpleToggler.hpp>
 
+#include <nodes/RichTextArea.hpp>
+
 using namespace geode::prelude;
 
 class LabelEditLayer : public Popup {
@@ -62,6 +64,8 @@ class LabelEditLayer : public Popup {
         CCPoint m_dragTouchLocalPoint;
 
         void onRichTextBtn(CCObject*);
+        bool m_doUpdateCursorPos = false;
+        std::optional<int> m_prevCursorPos = std::nullopt;
 
         void updateSavedLabels();
 
@@ -89,6 +93,8 @@ class LabelEditLayer : public Popup {
         virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent) override;
         virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent) override;
         virtual void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent) override;
+
+        void update(float dt) override;
 
     public:
         static LabelEditLayer* create();

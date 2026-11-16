@@ -110,11 +110,11 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     labelNameInputLabel->setID("name-input-label");
     labelSettingsNode->addChild(labelNameInputLabel);
 
-    labelTextInput = TextInput::createMultiline({(size.width - 10) / .75f, 40}, "label text");
+    labelTextInput = TextInput::createMultiline({(size.width - 10) / .75f, 60}, "label text");
     labelTextInput->setScale(.75f);
     labelTextInput->setCommonFilter(CommonFilter::Any);
     labelTextInput->setID("label-text-input");
-    labelTextInput->setPositionY(-60);
+    labelTextInput->setPositionY(-70);
     labelTextInput->setCallback([&](const std::string& newStr) {
         if (!editedLabel.has_value()) return;
 
@@ -146,43 +146,43 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
 
     labelColorBtnSprite = CCSprite::createWithSpriteFrameName("GJ_colorBtn_001.png");
     labelColorBtnSprite->setID("color-spr");
-    labelColorBtnSprite->setScale(.7f);
+    labelColorBtnSprite->setScale(.6f);
     auto labelColorBtn = CCMenuItemSpriteExtra::create(
         labelColorBtnSprite,
         this,
         menu_selector(LayoutOptionsLayer::onLabelColorBtnClicked)
     );
     labelColorBtn->setID("label-color-btn");
-    labelColorBtn->setPosition({-30, -110});
+    labelColorBtn->setPosition({-15, -120});
     labelSettingsNode->addChild(labelColorBtn);
 
-    auto labelColorBtnLabel = CCLabelBMFont::create("label", "bigFont.fnt");
+    auto labelColorBtnLabel = CCLabelBMFont::create("label:", "bigFont.fnt");
     labelColorBtnLabel->setScale(.4f);
-    labelColorBtnLabel->setPosition(labelColorBtn->getPosition() + ccp(0, labelColorBtn->getScaledContentHeight() / 2 + labelColorBtnLabel->getScaledContentHeight() / 2));
+    labelColorBtnLabel->setPosition(labelColorBtn->getPosition() + ccp(-labelColorBtn->getScaledContentWidth() / 2 - labelColorBtnLabel->getScaledContentWidth() / 2 - 2, 0));
     labelColorBtnLabel->setID("label-color-label");
     labelSettingsNode->addChild(labelColorBtnLabel);
 
     textColorBtnSprite = CCSprite::createWithSpriteFrameName("GJ_colorBtn_001.png");
     textColorBtnSprite->setID("color-spr");
-    textColorBtnSprite->setScale(.7f);
+    textColorBtnSprite->setScale(.6f);
     auto textColorBtn = CCMenuItemSpriteExtra::create(
         textColorBtnSprite,
         this,
         menu_selector(LayoutOptionsLayer::onTextColorBtnClicked)
     );
     textColorBtn->setID("text-color-btn");
-    textColorBtn->setPosition({30, -110});
+    textColorBtn->setPosition({55, -120});
     labelSettingsNode->addChild(textColorBtn);
 
-    auto textColorBtnLabel = CCLabelBMFont::create("text", "bigFont.fnt");
+    auto textColorBtnLabel = CCLabelBMFont::create("text:", "bigFont.fnt");
     textColorBtnLabel->setScale(.4f);
-    textColorBtnLabel->setPosition(textColorBtn->getPosition() + ccp(0, textColorBtn->getScaledContentHeight() / 2 + textColorBtnLabel->getScaledContentHeight() / 2));
+    textColorBtnLabel->setPosition(textColorBtn->getPosition() + ccp(-textColorBtn->getScaledContentWidth() / 2 - textColorBtnLabel->getScaledContentWidth() / 2 - 2, 0));
     textColorBtnLabel->setID("text-color-label");
     labelSettingsNode->addChild(textColorBtnLabel);
 
     auto colorLabel = CCLabelBMFont::create("color", "bigFont.fnt");
     colorLabel->setScale(.4f);
-    colorLabel->setPosition({0, -80});
+    colorLabel->setPosition({0, -100});
     colorLabel->setID("color-label");
     labelSettingsNode->addChild(colorLabel);
 
@@ -220,9 +220,10 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     labelSettingsNode->addChild(scaleSlider);
 
     alignmentMenu = CCMenu::create();
-    alignmentMenu->setPosition({0, -155});
+    alignmentMenu->setPosition({0, -160});
     alignmentMenu->setContentSize({133, 28});
     alignmentMenu->setID("alignment-menu");
+    alignmentMenu->setScale(.8f);
     labelSettingsNode->addChild(alignmentMenu);
     alignmentMenu->ignoreAnchorPointForPosition(false);
     alignmentMenu->setLayout(SimpleAxisLayout::create(Axis::Row)
@@ -413,11 +414,11 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     fontsScroll->setMouseEnabled(false);
 
 
-    labelTextSpecialKeysInput = TextInput::createMultiline({(size.width - 10) / .75f, 40} , "label text");
+    labelTextSpecialKeysInput = TextInput::createMultiline({(size.width - 10) / .75f, 80} , "label text");
     labelTextSpecialKeysInput->setScale(.75f);
     labelTextSpecialKeysInput->setCommonFilter(CommonFilter::Any);
     labelTextSpecialKeysInput->setID("label-text-input");
-    labelTextSpecialKeysInput->setPositionY(-22);
+    labelTextSpecialKeysInput->setPositionY(-42);
     labelTextSpecialKeysInput->setCallback([&](const std::string& newStr) {
         if (!editedLabel.has_value()) return;
 
@@ -433,7 +434,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     labelTextSpecialKeysInputLabel->setID("text-Label");
     specialKeysNode->addChild(labelTextSpecialKeysInputLabel);
 
-    specialKeysScroll = ScrollLayer::create(size - ccp(8, 60));
+    specialKeysScroll = ScrollLayer::create(size - ccp(8, 100));
     specialKeysScroll->setPosition({-size.width / 2, -size.height + 20});
     specialKeysScroll->m_contentLayer->setLayout(ColumnLayout::create()
         ->setGrowCrossAxis(true)
@@ -457,6 +458,10 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
         auto cell = SpecialKeyCell::create(keyObj, [&](auto str) {LayoutOptionsLayer::onSpecialKeyAdded(str);});
         specialKeysScroll->m_contentLayer->addChild(cell);
     }
+
+    auto keysScrollFixer = CCNode::create();
+    keysScrollFixer->setContentHeight(3.5f);
+    specialKeysScroll->m_contentLayer->addChild(keysScrollFixer);
 
     specialKeysScroll->m_contentLayer->updateLayout();
     specialKeysScroll->moveToTop();
@@ -925,10 +930,20 @@ void LayoutOptionsLayer::onSpecialKeysClicked(CCObject*) {
 void LayoutOptionsLayer::onSpecialKeyAdded(const std::string& str) {
     if (!editedLabel.has_value()) return;
 
+    std::optional<int> prevCursorPos = std::nullopt;
+
     auto toEditStr = std::string(labelTextSpecialKeysInput->getString());
     auto modifiedStr = fmt::format("{{{}}}", str);
-    toEditStr += modifiedStr;
+    if (!labelTextSpecialKeysInput->isFocused())
+        toEditStr += modifiedStr;
+    else {
+        auto cursorPos = labelTextSpecialKeysInput->getCursorPos();
+        prevCursorPos = cursorPos;
+        toEditStr.insert(cursorPos, modifiedStr);
+    }
     labelTextSpecialKeysInput->setString(toEditStr, true);
+    if (prevCursorPos.has_value())
+        labelTextSpecialKeysInput->setCursorPos(prevCursorPos.value() + modifiedStr.length());
     #if !defined(GEODE_IS_MOBILE)
     labelTextSpecialKeysInput->focus();
     #endif
@@ -974,10 +989,12 @@ void LayoutOptionsLayer::updateFontSelectFont() {
     fontSelectedIndicatorLabel->setAnchorPoint({0, .5f});
     fontSelectedIndicatorLabel->setPosition(ccp(-size.width / 2 + 5, -260));
     fontSelectedIndicatorLabel->getBGSprite()->setScaleY(.3f);
+    labelSettingsNode->addChild(fontSelectedIndicatorLabel);
+
     fontSelectedIndicatorLabel->setEnabled(false);
+    CCTouchDispatcher::get()->removeDelegate(fontSelectedIndicatorLabel);
     fontSelectedIndicatorLabel->getBGSprite()->setOpacity(90);
     fontSelectedIndicatorLabel->getBGSprite()->setContentHeight(fontSizeInput->getBGSprite()->getContentHeight() + 15);
-    labelSettingsNode->addChild(fontSelectedIndicatorLabel);
 }
 
 void LayoutOptionsLayer::onAddColumnToLeft(CCObject*) {

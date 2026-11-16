@@ -4,6 +4,17 @@
 #include <nodes/TutorialButton.hpp>
 #include <nodes/SwitcherButton.hpp>
 
+namespace {
+std::vector<GraphCell*> getGraphCells(CCNode* contentLayer) {
+    std::vector<GraphCell*> graphCells;
+    for (const auto& child : CCArrayExt<CCNode*>(contentLayer->getChildren())) {
+        if (child && child->getID() == "graph-cell")
+            graphCells.push_back(static_cast<GraphCell*>(child));
+    }
+    return graphCells;
+}
+}
+
 DTGraphLayer* DTGraphLayer::create() {
     auto ret = new DTGraphLayer();
     if (ret->init()) {
@@ -102,6 +113,11 @@ bool DTGraphLayer::init() {
     scrollBG->setZOrder(-1);
     graphsPage->addChild(scrollBG);
 
+    auto keysScrollFixer = CCNode::create();
+    keysScrollFixer->setContentHeight(3.5f);
+    keysScrollFixer->setZOrder(100000);
+    graphsScroll->m_contentLayer->addChild(keysScrollFixer);
+
     auto addGraphMenu = CCMenu::create();
     addGraphMenu->setPosition({0, 0});
     graphsPage->addChild(addGraphMenu);
@@ -146,8 +162,9 @@ bool DTGraphLayer::init() {
             ->joinHighlight(graphsScroll)
             ->appendDialogue("You can <cy>show/hide</c> graphs by clicking the <cp>circle</c> colored button right there", TutorialCharacterFace::TCFNormalTilted);
         CCNode* firstBtn = nullptr;
-        for (const auto& cell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+        for (const auto& cell : getGraphCells(graphsScroll->m_contentLayer))
         {
+            if (!cell) continue;
             if (firstBtn == nullptr)
                 firstBtn = cell->mainMenu->getChildByID("toggle-btn");
             tl->joinHighlight(cell->mainMenu->getChildByID("toggle-btn"));
@@ -158,8 +175,9 @@ bool DTGraphLayer::init() {
 #if !defined(GEODE_IS_MOBILE)
         tl->appendDialogue("Unless you hold <cy>SHIFT</c> while toggling to enable <cy>multiple graphs!</c>", TutorialCharacterFace::TCFHappy);
         int index = 0;
-        for (const auto& cell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+        for (const auto& cell : getGraphCells(graphsScroll->m_contentLayer))
         {
+            if (!cell) continue;
             tl->joinHighlight(cell->mainMenu->getChildByID("toggle-btn"), index * .3f);
             tl->joinTextToHighlight(std::to_string(index + 1), .5f, TutorialTextPlacement::TTLeft);
             index++;
@@ -169,32 +187,37 @@ bool DTGraphLayer::init() {
             ->joinHighlight(shiftSwitcher);
 #endif
         tl->appendDialogue("You can edit each graphs <cc>settings</c>", TutorialCharacterFace::TCFNormal);
-        for (const auto& cell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+        for (const auto& cell : getGraphCells(graphsScroll->m_contentLayer))
         {
+            if (!cell) continue;
             tl->joinHighlight(cell->mainMenu->getChildByID("settings-btn"));
         }
         tl->appendDialogue("And you can also change their <cg>layering order</c> using the <cf>arrows</c> on the right!", TutorialCharacterFace::TCFHappy);
-        for (const auto& cell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+        for (const auto& cell : getGraphCells(graphsScroll->m_contentLayer))
         {
+            if (!cell) continue;
             tl->joinHighlight(cell->mainMenu->getChildByID("up-arrow"));
             tl->joinHighlight(cell->mainMenu->getChildByID("down-arrow"));
         }
         tl->appendDialogue("You also have quick access to change the <cy>graphs type</c>, more on that in the graph settings page!", TutorialCharacterFace::TCFNormalTilted);
-        for (const auto& cell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+        for (const auto& cell : getGraphCells(graphsScroll->m_contentLayer))
         {
+            if (!cell) continue;
             tl->joinHighlight(cell->mainMenu->getChildByID("type-switcher"));
             tl->joinHighlight(cell->mainMenu->getChildByID("type-label"));
         }
         tl->appendDialogue("You can choose which <co>session</c> the session graphs show using their <co>session switcher</c>", TutorialCharacterFace::TCFNormal)
             ->joinTransform(TutorialBoxPlacement::TBPBottomRight, .75f);
-        for (const auto& cell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+        for (const auto& cell : getGraphCells(graphsScroll->m_contentLayer))
         {
+            if (!cell) continue;
             tl->joinHighlight(cell->sessionSelectorLabel);
             tl->joinHighlight(cell->sessionSelector);
         }
         tl->appendDialogue("And choose which <cf>run</c> the run graphs would display using the <cf>run input!</c>", TutorialCharacterFace::TCFHappy);
-        for (const auto& cell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+        for (const auto& cell : getGraphCells(graphsScroll->m_contentLayer))
         {
+            if (!cell) continue;
             tl->joinHighlight(cell->runLabel);
             tl->joinHighlight(cell->runInput);
             tl->joinHighlight(cell->runSelectHelperBtn);
@@ -592,8 +615,10 @@ void DTGraphLayer::addGraph() {
     int highestnewGraphNum = 0;
 
     int highestZ = -1;
-    for (const auto& cell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+    for (const auto& cell : getGraphCells(graphsScroll->m_contentLayer))
     {
+        if (!cell) continue;
+
         if (highestZ < cell->getZOrder()) highestZ = cell->getZOrder();
 
         auto splitName = StatsManager::splitStr(cell->getinfo().name, " ");
@@ -633,8 +658,9 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
             int highestZ = 0;
             GraphCell* existingCellWithZ = nullptr;
 
-            for (const auto& otherCell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+            for (const auto& otherCell : getGraphCells(graphsScroll->m_contentLayer))
             {
+                if (!otherCell) continue;
                 if (highestZ < otherCell->getZOrder()) highestZ = otherCell->getZOrder();
 
                 if (otherCell->getZOrder() == cell->getZOrder() + 1) existingCellWithZ = otherCell;
@@ -650,8 +676,9 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
 
             GraphCell* existingCellWithZ = nullptr;
 
-            for (const auto& otherCell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+            for (const auto& otherCell : getGraphCells(graphsScroll->m_contentLayer))
             {
+                if (!otherCell) continue;
                 if (otherCell->getZOrder() == cell->getZOrder() - 1) existingCellWithZ = otherCell;
             }
 
@@ -670,7 +697,8 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
         graph->getGraphNode(cell->getinfo().name)->setInfo(cell->getinfo());
 
         if (!holdingShift && cell->getinfo().isEnabled) {
-            for (const auto& graphCell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren())) {
+            for (const auto& graphCell : getGraphCells(graphsScroll->m_contentLayer)) {
+                if (!graphCell) continue;
                 if (graphCell == cell) continue;
                 graphCell->setEnabledInfo(false, true, false);
             }
@@ -705,8 +733,9 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
     graphCell->canChangeNameTo = [&](const std::string& to, GraphCell* cell) -> bool {
         GraphCell* cellWithName = nullptr;
 
-        for (const auto& child : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+        for (const auto& child : getGraphCells(graphsScroll->m_contentLayer))
         {
+            if (!child) continue;
             if (child->getinfo().name == to) {
                 cellWithName = child;
                 break;
@@ -720,8 +749,9 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
         graph->removeGraph(info.name);
 
         int indexZ = 0;
-        for (const auto& child : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+        for (const auto& child : getGraphCells(graphsScroll->m_contentLayer))
         {
+            if (!child) continue;
             if (child == deletingCell) continue;
 
             child->setOrderPos(indexZ);
@@ -756,7 +786,7 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
     };
 
     if (graphCell->getinfo().isEnabled && !holdingShift) {
-        for (const auto& cell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren())) {
+        for (const auto& cell : getGraphCells(graphsScroll->m_contentLayer)) {
             if (cell == graphCell) continue;
             cell->setEnabledInfo(false, true, false);
         }
@@ -776,7 +806,8 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
 }
 
 void DTGraphLayer::removeGraph(const std::string& graphName) {
-    for (const auto& cell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren())) {
+    for (const auto& cell : getGraphCells(graphsScroll->m_contentLayer)) {
+        if (!cell) continue;
         if (cell->getinfo().name == graphName) {
             cell->removeMeAndCleanup();
             graph->removeGraph(graphName);
@@ -829,7 +860,7 @@ void DTGraphLayer::openOptionsFor(GraphCell* cell) {
     graphsScroll->setMouseEnabled(false);
     // sessionSelector->setEnabled(false);
     // runSelectInput->setEnabled(false);
-    for (const auto& child : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+    for (const auto& child : getGraphCells(graphsScroll->m_contentLayer))
     {
         child->setEnabled(false);
     }
@@ -926,8 +957,9 @@ void DTGraphLayer::updateColor(cocos2d::ccColor4B const& color) {
 void DTGraphLayer::saveAllGraphs() {
     std::vector<DTGraphInfo> allInfos{};
 
-    for (const auto& graphCell : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+    for (const auto& graphCell : getGraphCells(graphsScroll->m_contentLayer))
     {
+        if (!graphCell) continue;
         allInfos.push_back(graphCell->getinfo());
     }
     
@@ -973,8 +1005,9 @@ void DTGraphLayer::closeOptionsTab() {
     graphsScrollbar->setTouchEnabled(true);
     // sessionSelector->setEnabled(true);
     // runSelectInput->setEnabled(true);
-    for (const auto& child : CCArrayExt<GraphCell*>(graphsScroll->m_contentLayer->getChildren()))
+    for (const auto& child : getGraphCells(graphsScroll->m_contentLayer))
     {
+        if (!child) continue;
         child->setEnabled(true);
     }
     
@@ -1002,6 +1035,7 @@ void DTGraphLayer::updateGRapgCellLayout() {
     std::set<CCNode*> invisible{};
     for (const auto& child : graphsScroll->m_contentLayer->getChildrenExt<CCNode*>())
     {
+        if (!child) continue;
         if (!child->isVisible()) {
             invisible.insert(child);
             child->setVisible(true);

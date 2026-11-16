@@ -18,6 +18,10 @@ void Dev::fadeTextInput(TextInput* const input, bool fadeIn, float time, bool ch
         time,
         fadeIn ? (input->isEnabled() ? 255 : 150) : 0
     ));
+    input->getPlaceholderLabel()->runAction(CCFadeTo::create(
+        time,
+        fadeIn ? 255 : 0
+    ));
 }
 
 void Dev::fadeSlider(Slider* const slider, bool fadeIn, float time, bool changeEnabled) {

@@ -6,6 +6,8 @@
 #include <types/DTTypes.hpp>
 #include <utils/SpecialKey.hpp>
 
+#include <nodes/RichTextArea.hpp>
+
 class LayoutColumn;
 class DecimalPopup;
 

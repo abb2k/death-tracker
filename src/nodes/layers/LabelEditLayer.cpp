@@ -13,8 +13,6 @@
 
 #include <nodes/layers/LabelEditSpecialKeyEditorPopup.hpp>
 
-#include <cmath>
-
 LabelEditLayer* LabelEditLayer::create() {
     auto ret = new LabelEditLayer();
     if (ret->init()) {
@@ -434,6 +432,15 @@ bool LabelEditLayer::init() {
         0
     ));
 
+    m_textInput->setFocusCallback([this](TextInput::FocusState focused) {
+        if (focused == TextInput::FocusState::Focused) {
+            m_prevCursorPos = m_textInput->getCursorPos();
+            m_doUpdateCursorPos = true;
+        } else {
+            m_doUpdateCursorPos = false;
+        }
+    });
+
     m_noLabelEditedOverlay = CCScale9Sprite::create("square02_small.png");
     m_noLabelEditedOverlay->setContentSize(m_editMenu->getContentSize());
     m_noLabelEditedOverlay->setAnchorPoint(m_editMenu->getAnchorPoint());
@@ -540,6 +547,8 @@ bool LabelEditLayer::init() {
 
     this->setTouchEnabled(true);
 
+    scheduleUpdate();
+
     return true;
 }
 
@@ -581,6 +590,8 @@ void LabelEditLayer::onCellDelete(OverlayLabelCell* cell) {
         m_updatingControls = false;
         m_disabledAnchorSlidersFG->setVisible(true);
         setLabelEditEnabled(false);
+        m_prevCursorPos = std::nullopt;
+        m_doUpdateCursorPos = false;
     }
 
     m_labels.erase(labelIt);
@@ -613,6 +624,8 @@ void LabelEditLayer::onCellEdit(OverlayLabelCell* cell) {
         m_disabledAnchorSlidersFG->setVisible(true);
         setLabelEditEnabled(false);
         RefreshPreviewLabels();
+        m_prevCursorPos = std::nullopt;
+        m_doUpdateCursorPos = false;
         return;
     }
 
@@ -816,8 +829,19 @@ void LabelEditLayer::onRichTextBtn(CCObject*) {
         if (!m_textInput || !m_currentEdit)
             return;
 
-        auto text = m_textInput->getString() + key;
+        std::string text;
+        if (m_prevCursorPos.has_value()) {
+            text = m_textInput->getString();
+            log::info("Inserting key at cursor position: {}", m_prevCursorPos.value());
+            log::info("Current text: {}", m_textInput->getString());
+            text.insert(m_prevCursorPos.value(), key);
+        } else {
+            text = m_textInput->getString() + key;
+        }
+
         m_textInput->setString(text);
+        if (m_prevCursorPos.has_value())
+            m_textInput->setCursorPos(m_prevCursorPos.value() + key.length());
         auto label = m_currentEdit->getData();
         label.text = text;
         m_currentEdit->setData(label);
@@ -1364,4 +1388,11 @@ void LabelEditLayer::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent) {
 
     m_isDraggingPreviewLabel = false;
     updateSavedLabels();
+}
+
+void LabelEditLayer::update(float dt) {
+    if (m_textInput && m_prevCursorPos.has_value() && m_doUpdateCursorPos) {
+        m_prevCursorPos = m_textInput->getCursorPos();
+        log::info("Previous cursor position: {}", m_prevCursorPos.value());
+    }
 }

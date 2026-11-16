@@ -850,7 +850,6 @@ void DTLayer::onEditLayout(CCObject*) {
     editLayoutBtnSpr->stopAllActions();
     editLayoutBtnSpr->runAction(CCFadeTo::create(.15f, 0));
 
-    groupsHolder->setEnabled(false);
     groupsList->close();
     
     colorChangeBG->stopActionByTag(2);
@@ -2903,8 +2902,6 @@ void DTLayer::exitLayoutEditing() {
     m_buttonMenu->runAction(CCFadeTo::create(.15f, 255));
     editLayoutBtnSpr->stopAllActions();
     editLayoutBtnSpr->runAction(CCFadeTo::create(.15f, 255));
-
-    groupsHolder->setEnabled(true);
 
     colorChangeBG->stopActionByTag(2);
     auto fa = CCFadeTo::create(.15f, 0);

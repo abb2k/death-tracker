@@ -1,6 +1,6 @@
 #include "AuthManager.hpp"
 
-#include <argon.hpp>
+#include <dankmeme.argon/argon.hpp>
 
 bool AuthManager::m_isDoner = false;
 bool AuthManager::m_lastSentDonberState = false;

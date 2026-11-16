@@ -1,10 +1,6 @@
 #include "DTProfilePage.hpp"
 
-#if __has_include(<alphalaneous.badgify/Badgify.hpp>)
 #include <alphalaneous.badgify/Badgify.hpp>
-#else
-#include <Badgify.hpp>
-#endif
 
 void DTProfilePage::loadPageFromUserInfo(GJUserScore* user) {
     ProfilePage::loadPageFromUserInfo(user);

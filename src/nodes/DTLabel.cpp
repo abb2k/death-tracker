@@ -18,6 +18,8 @@
 #include <nodes/DecimalPopup.hpp>
 #include <utils/Settings.hpp>
 
+#include <nodes/RichTextArea.hpp>
+
 float DTLabel::labelTitleHeight = 15;
 float DTLabel::moveThreshold = 5;
 float DTLabel::labelLerpSpeed = 10;
@@ -38,10 +40,10 @@ DTLabel* DTLabel::create(const DTLabelInfo& info) {
 }
 
 DTLabel::~DTLabel() {
-    if (DTLayer::get() != nullptr) {
-        DTLayer::get()->unsubscribeToOrganizationEvent(this);
-        DTLayer::get()->unsubscribeKeyListener(this);
-    }
+    if (DTLayer::get() == nullptr) return;
+
+    DTLayer::get()->unsubscribeToOrganizationEvent(this);
+    DTLayer::get()->unsubscribeKeyListener(this);
 }
 
 bool DTLabel::init(const DTLabelInfo& info) {
@@ -145,6 +147,8 @@ bool DTLabel::init(const DTLabelInfo& info) {
     labelTitleArea->registerRichTextKey(makeWaveKey([&](){ return donerRichTextEnabled; }));
     labelTitleArea->registerRichTextKey(makeGradientKey([&](){ return donerRichTextEnabled; }));
     labelTitleArea->registerRichTextKey(makeCPlusKey());
+
+    labelTitleArea->updateContent();
 
     this->addChild(labelTitleArea);
 
@@ -738,6 +742,7 @@ void DTLabel::setLabelName(const std::string& newName) {
     info.labelName = newName;
 
     labelTitleArea->setText(newName);
+    labelTitleArea->updateContent();
 }
 
 void DTLabel::setLabelColor(const ccColor4B& newColor) {
