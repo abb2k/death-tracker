@@ -110,7 +110,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     labelNameInputLabel->setID("name-input-label");
     labelSettingsNode->addChild(labelNameInputLabel);
 
-    labelTextInput = ScrollableTextInput::create((size.width - 10) / .75f, "label text");
+    labelTextInput = TextInput::createMultiline({(size.width - 10) / .75f, 40}, "label text");
     labelTextInput->setScale(.75f);
     labelTextInput->setCommonFilter(CommonFilter::Any);
     labelTextInput->setID("label-text-input");
@@ -332,28 +332,28 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     hideHeaderTogglerLabel->setAnchorPoint({1, .5f});
     labelSettingsNode->addChild(hideHeaderTogglerLabel);
 
-    this->addEventListener(
-        KeybindSettingPressedEvent(
-            Mod::get(),
-            "enter-new-line"
-        ),
-        [&](const Keybind& keybind, bool down, bool repeat, double) {
-            if (down && editedLabel.has_value()) {
-                ScrollableTextInput* toEdit = nullptr;
+    // this->addEventListener(
+    //     KeybindSettingPressedEvent(
+    //         Mod::get(),
+    //         "enter-new-line"
+    //     ),
+    //     [&](const Keybind& keybind, bool down, bool repeat, double) {
+    //         if (down && editedLabel.has_value()) {
+    //             TextInput* toEdit = nullptr;
 
-                if (labelTextInput->isSelected()) {
-                    toEdit = labelTextInput;
-                }
-                else if (labelTextSpecialKeysInput->isSelected()) toEdit = labelTextSpecialKeysInput;
+    //             if (labelTextInput->isFocused()) {
+    //                 toEdit = labelTextInput;
+    //             }
+    //             else if (labelTextSpecialKeysInput->isFocused()) toEdit = labelTextSpecialKeysInput;
                 
-                if (toEdit == nullptr) return;
+    //             if (toEdit == nullptr) return;
 
-                auto str = std::string(toEdit->getString());
-                str += "{nl}";
-                toEdit->setString(str, true);
-            }
-        }
-    );
+    //             auto str = std::string(toEdit->getString());
+    //             str += "{nl}";
+    //             toEdit->setString(str, true);
+    //         }
+    //     }
+    // );
 
     fontSelectionNode->setScaleY(0);
     labelSettingsNode->setScaleY(0);
@@ -413,7 +413,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     fontsScroll->setMouseEnabled(false);
 
 
-    labelTextSpecialKeysInput = ScrollableTextInput::create((size.width - 10) / .75f, "label text");
+    labelTextSpecialKeysInput = TextInput::createMultiline({(size.width - 10) / .75f, 40} , "label text");
     labelTextSpecialKeysInput->setScale(.75f);
     labelTextSpecialKeysInput->setCommonFilter(CommonFilter::Any);
     labelTextSpecialKeysInput->setID("label-text-input");
@@ -592,6 +592,27 @@ void LayoutOptionsLayer::setEditedNodeTo(DTLabel* label) {
 
     updateWrapModeBtnVisuals();
 
+    geode::Label::Alignment textAlignment;
+
+    switch (label->info.horizontalAlignment)
+    {
+    default:
+    case kCCTextAlignmentLeft:
+        textAlignment = geode::Label::Alignment::Left;
+        break;
+    
+    case kCCTextAlignmentCenter:
+        textAlignment = geode::Label::Alignment::Center;
+        break;
+
+    case kCCTextAlignmentRight:
+        textAlignment = geode::Label::Alignment::Right;
+        break;
+    }
+
+    labelTextInput->setAlignment(textAlignment);
+    labelTextSpecialKeysInput->setAlignment(textAlignment);
+
     if (onEnter != NULL)
         onEnter();
 }
@@ -690,6 +711,27 @@ void LayoutOptionsLayer::onAlignmentChanged(CCObject* sender) {
     menuItem->setEnabled(false);
 
     editedLabel.value()->setTextAlignment(alignment);
+
+    geode::Label::Alignment textAlignment;
+
+    switch (alignment)
+    {
+    default:
+    case kCCTextAlignmentLeft:
+        textAlignment = geode::Label::Alignment::Left;
+        break;
+    
+    case kCCTextAlignmentCenter:
+        textAlignment = geode::Label::Alignment::Center;
+        break;
+
+    case kCCTextAlignmentRight:
+        textAlignment = geode::Label::Alignment::Right;
+        break;
+    }
+
+    labelTextInput->setAlignment(textAlignment);
+    labelTextSpecialKeysInput->setAlignment(textAlignment);
 }
 
 void LayoutOptionsLayer::scaleSliderChanged(CCObject*) {
@@ -888,7 +930,7 @@ void LayoutOptionsLayer::onSpecialKeyAdded(const std::string& str) {
     toEditStr += modifiedStr;
     labelTextSpecialKeysInput->setString(toEditStr, true);
     #if !defined(GEODE_IS_MOBILE)
-    labelTextSpecialKeysInput->getTextInput()->focus();
+    labelTextSpecialKeysInput->focus();
     #endif
 }
 
@@ -929,10 +971,12 @@ void LayoutOptionsLayer::updateFontSelectFont() {
         "Font: \"{}\"", 
         editedLabel.value()->info.font.substr(0, editedLabel.value()->info.font.length() - 4)
     ));
-    fontSelectedIndicatorLabel->setEnabled(false);
     fontSelectedIndicatorLabel->setAnchorPoint({0, .5f});
     fontSelectedIndicatorLabel->setPosition(ccp(-size.width / 2 + 5, -260));
     fontSelectedIndicatorLabel->getBGSprite()->setScaleY(.3f);
+    fontSelectedIndicatorLabel->setEnabled(false);
+    fontSelectedIndicatorLabel->getBGSprite()->setOpacity(90);
+    fontSelectedIndicatorLabel->getBGSprite()->setContentHeight(fontSizeInput->getBGSprite()->getContentHeight() + 15);
     labelSettingsNode->addChild(fontSelectedIndicatorLabel);
 }
 

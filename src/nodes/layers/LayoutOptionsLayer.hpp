@@ -45,7 +45,7 @@ class LayoutOptionsLayer : public CCLayer, public SliderDelegate {
         uint8_t currentPage = 0;
 
         TextInput* labelNameInput;
-        ScrollableTextInput* labelTextInput;
+        TextInput* labelTextInput;
         TextInput* fontSizeInput;
         
         void onTextColorBtnClicked(CCObject*);
@@ -81,7 +81,7 @@ class LayoutOptionsLayer : public CCLayer, public SliderDelegate {
 
         void onSpecialKeysClicked(CCObject*);
 
-        ScrollableTextInput* labelTextSpecialKeysInput;
+        TextInput* labelTextSpecialKeysInput;
         ScrollLayer* specialKeysScroll;
 
         void onSpecialKeyAdded(const std::string& str);
