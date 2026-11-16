@@ -1,5 +1,5 @@
 {
-	"geode": "6.0.0-alpha.1",
+	"geode": "6.0.0-alpha.2",
 	"gd": {
         "android": "2.2091",
         "win": "2.2091",
@@ -241,11 +241,11 @@
 		}
 	},
 	"dependencies": {
-		"geode.node-ids": "v1.23.4",
-		"cvolton.level-id-api": "v2.0.1",
-		"alk.better-touch-prio": "v1.0.22",
+		"geode.node-ids": ">=v1.23.3",
+		"cvolton.level-id-api": ">=v2.0.1",
+		"alk.better-touch-prio": ">=v1.0.22",
 		"alphalaneous.badgify": {
-			"version": "v1.0.7",
+			"version": ">=v1.0.7",
 			"required": false
 		},
 		"dankmeme.argon": ">=2.0.0-alpha.1"

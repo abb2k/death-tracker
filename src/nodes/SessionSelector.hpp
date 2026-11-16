@@ -5,7 +5,7 @@
 using namespace geode::prelude;
 
 
-class SessionSelector : public CCMenu, public TextInputDelegate {
+class SessionSelector : public CCMenu {
     public:
         static SessionSelector* create(int count);
 
@@ -31,9 +31,9 @@ class SessionSelector : public CCMenu, public TextInputDelegate {
         void leftArrowClicked(CCObject*);
         void rightArrowClicked(CCObject*);
 
-        void textInputOpened(CCTextInputNode* input);
-        void textInputClosed(CCTextInputNode* input);
-        void textChanged(CCTextInputNode* input);
+        void textInputOpened();
+        void textInputClosed();
+        void textChanged(std::string const& str);
 
         geode::TextInput* inputNode;
         bool isInputOpened = false;

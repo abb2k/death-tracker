@@ -744,6 +744,13 @@ void DTColorPickerPopup::GradientColorPickerDelegate::colorValueChanged(cocos2d:
 }
 
 CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
+    auto configureInput = [this](TextInput* input, int inputTag) {
+        input->setTag(inputTag);
+        input->setCallback([this, input](std::string const&) {
+            textChanged(input);
+        });
+    };
+
     auto inputColumn = CCNode::create();
     inputColumn->setLayout(
         ColumnLayout::create()
@@ -785,7 +792,7 @@ CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
 
     auto gradientArInput = TextInput::create(50.f, "R");
     gradientArInput->setScale(.7f);
-    gradientArInput->setDelegate(this, tag);
+    configureInput(gradientArInput, tag);
     gradientArInput->setID("r-input");
     rColumn->addChild(gradientArInput);
 
@@ -820,7 +827,7 @@ CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
 
     auto gradientAgInput = TextInput::create(50.f, "G");
     gradientAgInput->setScale(.7f);
-    gradientAgInput->setDelegate(this, tag + 1);
+    configureInput(gradientAgInput, tag + 1);
     gradientAgInput->setID("g-input");
     gColumn->addChild(gradientAgInput);
 
@@ -855,7 +862,7 @@ CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
 
     auto gradientAbInput = TextInput::create(50.f, "B");
     gradientAbInput->setScale(.7f);
-    gradientAbInput->setDelegate(this, tag + 2);
+    configureInput(gradientAbInput, tag + 2);
     gradientAbInput->setID("b-input");
     bColumn->addChild(gradientAbInput);
 
@@ -890,7 +897,7 @@ CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
 
     auto gradientAhexInput = TextInput::create(165.f, "Hex");
     gradientAhexInput->setScale(.7f);
-    gradientAhexInput->setDelegate(this, tag + 3);
+    configureInput(gradientAhexInput, tag + 3);
     gradientAhexInput->setID("hex-input");
     hexColumn->addChild(gradientAhexInput);
 
@@ -967,7 +974,7 @@ CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
 
         auto opacityInput = TextInput::create(60.f, "Opacity");
         opacityInput->setScale(.7f);
-        opacityInput->setDelegate(this, tag + 4);
+        configureInput(opacityInput, tag + 4);
         opacityInput->setID("opacity-input");
         opacitySection->addChild(opacityInput);
 
@@ -992,12 +999,7 @@ CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
     return inputColumn;
 }
 
-void DTColorPickerPopup::textChanged(CCTextInputNode* input) {
-    if (input->getTag() >= 1 && input->getTag() <= 4) {
-        ColorPickPopup::textChanged(input);
-        return;
-    }
-
+void DTColorPickerPopup::textChanged(TextInput* input) {
     if (input->getString().size() && m_gradientInputs.count(input->getTag())) {
         auto& [textInput, colorPtr, colorElementPtr] = m_gradientInputs[input->getTag()];
 

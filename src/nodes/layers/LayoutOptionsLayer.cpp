@@ -340,25 +340,16 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
         [&](const Keybind& keybind, bool down, bool repeat, double) {
             if (down && editedLabel.has_value()) {
                 ScrollableTextInput* toEdit = nullptr;
-                bool doUpdateScrollableInput = false;
 
                 if (labelTextInput->isSelected()) {
                     toEdit = labelTextInput;
-                    doUpdateScrollableInput = true;
                 }
                 else if (labelTextSpecialKeysInput->isSelected()) toEdit = labelTextSpecialKeysInput;
                 
                 if (toEdit == nullptr) return;
 
                 auto str = std::string(toEdit->getString());
-                int pos = toEdit->getTextInput()->getInputNode()->m_textField->m_uCursorPos;
-
-                if (pos == -1) str += "{nl}";
-                else {
-                    str = str.insert(pos, "{nl}");
-                    toEdit->getTextInput()->getInputNode()->m_textField->m_uCursorPos += 4;
-                }
-
+                str += "{nl}";
                 toEdit->setString(str, true);
             }
         }
@@ -893,18 +884,8 @@ void LayoutOptionsLayer::onSpecialKeyAdded(const std::string& str) {
     if (!editedLabel.has_value()) return;
 
     auto toEditStr = std::string(labelTextSpecialKeysInput->getString());
-    int pos = labelTextSpecialKeysInput->getTextInput()->getInputNode()->m_textField->m_uCursorPos;
-
-    // log::info("is selected {}", labelTextSpecialKeysInput->getInputNode()->m_selected);
-
     auto modifiedStr = fmt::format("{{{}}}", str);
-
-    if (pos == -1) toEditStr += modifiedStr;
-    else {
-        toEditStr = toEditStr.insert(pos, modifiedStr);
-        labelTextSpecialKeysInput->getTextInput()->getInputNode()->m_textField->m_uCursorPos += modifiedStr.length();
-    }
-
+    toEditStr += modifiedStr;
     labelTextSpecialKeysInput->setString(toEditStr, true);
     #if !defined(GEODE_IS_MOBILE)
     labelTextSpecialKeysInput->getTextInput()->focus();
@@ -948,7 +929,7 @@ void LayoutOptionsLayer::updateFontSelectFont() {
         "Font: \"{}\"", 
         editedLabel.value()->info.font.substr(0, editedLabel.value()->info.font.length() - 4)
     ));
-    fontSelectedIndicatorLabel->getInputNode()->setTouchEnabled(false);
+    fontSelectedIndicatorLabel->setEnabled(false);
     fontSelectedIndicatorLabel->setAnchorPoint({0, .5f});
     fontSelectedIndicatorLabel->setPosition(ccp(-size.width / 2 + 5, -260));
     fontSelectedIndicatorLabel->getBGSprite()->setScaleY(.3f);

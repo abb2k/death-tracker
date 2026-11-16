@@ -528,8 +528,12 @@ void StatsManager::createFilesIfNeeded(const std::string& levelKey) {
     auto levelSaveFilePath = getSavesFolderPath() / levelKey;
 
     auto lvlSavesDirRes = geode::utils::file::createDirectory(levelSaveFilePath);
-    if (lvlSavesDirRes.isErr() && !lvlSavesDirRes.unwrapErr().starts_with("AlreadyExists"))
-        log::error("failed to create level folder: {}", lvlSavesDirRes.unwrapErr());
+    if (lvlSavesDirRes.isErr()) {
+        auto const& error = lvlSavesDirRes.unwrapErr();
+        if (error.value() != geode::utils::file::FileError::AspError || error.m_error.kind() != asp::fs::ErrorKind::AlreadyExists) {
+            log::error("failed to create level folder: {}", error);
+        }
+    }
 
     createFile((levelSaveFilePath / METADATA_FILE_NAME), LevelMetadata{});
     createFile((levelSaveFilePath / FROM0_FILE_NAME), GeneralData{});

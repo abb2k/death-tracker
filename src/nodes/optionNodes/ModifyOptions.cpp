@@ -1,7 +1,6 @@
 #include <nodes/optionNodes/ModifyOptions.hpp>
 #include <nodes/layers/DTLayer.hpp>
 #include <utils/Dev.hpp>
-#include <hooks/DTCCTextInputNode.hpp>
 
 ModifyOptions* ModifyOptions::create(const CCSize& size) {
     auto ret = new ModifyOptions();
@@ -236,8 +235,8 @@ bool ModifyOptions::setup() {
                 nullptr
             );
             seq->setTag(8);
-            addRunStartInput->getInputNode()->m_textLabel->stopActionByTag(8);
-            addRunStartInput->getInputNode()->m_textLabel->runAction(seq);
+            addRunStartInput->getContentLabel()->stopActionByTag(8);
+            addRunStartInput->getContentLabel()->runAction(seq);
             return;
         }
 
@@ -269,27 +268,16 @@ bool ModifyOptions::setup() {
     addRunEndInput->setCommonFilter(CommonFilter::Float);
     runsBG->addChild(addRunEndInput);
 
-    static_cast<DTCCTextInputNode*>(addRunStartInput->getInputNode())->setCallback([&](const std::string& newText) {
-        if (newText == "-" && addRunStartInput->getInputNode()->m_selected) {
-            addRunStartInput->defocus();
+    addRunStartInput->setCallback([&](auto newstr) {
+        if (newstr == "-" && addRunStartInput->isFocused()) {
+            addRunStartInput->unfocus();
             addRunEndInput->focus();
             addRunEndInput->setString("");
             addRunSeperator->setColor({ 0, 255, 0 });
             addRunSeperator->runAction(CCTintTo::create(.5f, 255, 255, 255));
+            return;
         }
-    });
 
-    static_cast<DTCCTextInputNode*>(addRunEndInput->getInputNode())->setCallback([&](const std::string& newText) {
-        if (newText == "-" && addRunEndInput->getInputNode()->m_selected) {
-            addRunEndInput->defocus();
-            addRunStartInput->focus();
-            addRunStartInput->setString("");
-            addRunSeperator->setColor({ 0, 255, 0 });
-            addRunSeperator->runAction(CCTintTo::create(.5f, 255, 255, 255));
-        }
-    });
-
-    addRunStartInput->setCallback([&](auto newstr) {
         auto numStartRes = geode::utils::numFromString<double>(newstr);
         if (numStartRes.isErr()) return;
         double numStart = numStartRes.unwrap();
@@ -304,6 +292,15 @@ bool ModifyOptions::setup() {
     });
 
     addRunEndInput->setCallback([&](auto newstr) {
+        if (newstr == "-" && addRunEndInput->isFocused()) {
+            addRunEndInput->unfocus();
+            addRunStartInput->focus();
+            addRunStartInput->setString("");
+            addRunSeperator->setColor({ 0, 255, 0 });
+            addRunSeperator->runAction(CCTintTo::create(.5f, 255, 255, 255));
+            return;
+        }
+
         auto numEndRes = geode::utils::numFromString<double>(newstr);
         if (numEndRes.isErr()) return;
         double numEnd = numEndRes.unwrap();
@@ -610,13 +607,13 @@ bool ModifyOptions::setup() {
         ),
         [&, f0PMAlignNode, runPMAlignNode](const Keybind& keybind, bool down, bool repeat, double) {
             if (down) {
-                if (addNewBestInput->getInputNode()->m_selected) {
+                if (addNewBestInput->isFocused()) {
                     addNB(nullptr);
                 }
-                else if (addRunStartInput->getInputNode()->m_selected || addRunEndInput->getInputNode()->m_selected) {
+                else if (addRunStartInput->isFocused() || addRunEndInput->isFocused()) {
                     (*plusMinusCallbacks[holdersOfPlusMinusBtns[runPMAlignNode].first])(true);
                 }
-                else if (addPercentInput->getInputNode()->m_selected) {
+                else if (addPercentInput->isFocused()) {
                     (*plusMinusCallbacks[holdersOfPlusMinusBtns[f0PMAlignNode].first])(true);
                 }
             }
@@ -629,13 +626,13 @@ bool ModifyOptions::setup() {
         ),
         [&, f0PMAlignNode, runPMAlignNode](const Keybind& keybind, bool down, bool repeat, double) {
             if (down) {
-                if (addNewBestInput->getInputNode()->m_selected) {
+                if (addNewBestInput->isFocused()) {
                     removeNB(nullptr);
                 }
-                else if (addRunStartInput->getInputNode()->m_selected || addRunEndInput->getInputNode()->m_selected) {
+                else if (addRunStartInput->isFocused() || addRunEndInput->isFocused()) {
                     (*plusMinusCallbacks[holdersOfPlusMinusBtns[runPMAlignNode].second])(false);
                 }
-                else if (addPercentInput->getInputNode()->m_selected) {
+                else if (addPercentInput->isFocused()) {
                     (*plusMinusCallbacks[holdersOfPlusMinusBtns[f0PMAlignNode].second])(false);
                 }
             }

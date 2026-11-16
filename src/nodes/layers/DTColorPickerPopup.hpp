@@ -116,7 +116,7 @@ class DTColorPickerPopup : public geode::ColorPickPopup {
         geode::Function<void(WaveData const& data)> m_waveChangedCallback;
         geode::Function<void(bool enabled)> m_waveEnabledChangedCallback;
 
-        void textChanged(CCTextInputNode* input) override;
+        void textChanged(TextInput* input);
         void updateGradientEnabledPosition();
         void updateWaveEnabledPosition();
 

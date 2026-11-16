@@ -25,7 +25,8 @@ bool CalculatorPopup::init() {
         m_size.width / 2,
         m_title->getPositionY() - m_title->getScaledContentHeight() / 2 - calcBG->getScaledContentHeight() / 2 - 5
     });
-    calcBG->getInputNode()->setTouchEnabled(false);
+    CCTouchDispatcher::get()->removeDelegate(calcBG);
+    CCMouseDispatcher::get()->removeDelegate(calcBG);
     m_mainLayer->addChild(calcBG);
 
     auto modeLabel = CCLabelBMFont::create("Mode:", "bigFont.fnt");

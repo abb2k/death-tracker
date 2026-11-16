@@ -21,7 +21,16 @@ bool SessionSelector::init(int count) {
 
     inputNode = geode::TextInput::create(120, "Session", "gjFont17.fnt");
     inputNode->setPosition(this->getContentSize() / 2);
-    inputNode->getInputNode()->setDelegate(this);
+    inputNode->setCallback([this](std::string const& str) {
+        this->textChanged(str);
+    });
+    inputNode->setFocusCallback([this](TextInput::FocusState focused) {
+        if (focused == TextInput::FocusState::Focused) {
+            this->textInputOpened();
+        } else {
+            this->textInputClosed();
+        }
+    });
     this->addChild(inputNode);
 
     auto leftArrowSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
@@ -98,17 +107,17 @@ int SessionSelector::getCurrentCount() {
     return currentCount;
 }
 
-void SessionSelector::textInputOpened(CCTextInputNode* input) {
+void SessionSelector::textInputOpened() {
     isInputOpened = true;
     setCurrentCount(currentCount, false);
 }
-void SessionSelector::textInputClosed(CCTextInputNode* input) {
+void SessionSelector::textInputClosed() {
     isInputOpened = false;
     setCurrentCount(currentCount, false);
 }
 
-void SessionSelector::textChanged(CCTextInputNode* input) {
-    auto numRes = geode::utils::numFromString<int>(input->getString());
+void SessionSelector::textChanged(std::string const& str) {
+    auto numRes = geode::utils::numFromString<int>(str);
 
     if (numRes.isErr()) return;
 

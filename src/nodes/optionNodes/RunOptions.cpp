@@ -364,7 +364,7 @@ bool RunOptions::setup() {
             "enter-new-run-per"
         ),
         [&](const Keybind& keybind, bool down, bool repeat, double) {
-            if (down && runAdditionInput->getInputNode()->m_selected) {
+            if (down && runAdditionInput->isFocused()) {
                 onAddNewRun(nullptr);
             }
         }
@@ -381,11 +381,11 @@ void RunOptions::onOpened() {
     float fadeTime = .2f;
     this->runAction(CCFadeIn::create(fadeTime));
 
-    runAdditionInput->getInputNode()->m_textLabel->setOpacity(0);
+    runAdditionInput->getContentLabel()->setOpacity(0);
     Dev::fadeTextInput(runAdditionInput, true, fadeTime);
-    RealEndPerInput->getInputNode()->m_textLabel->setOpacity(0);
+    RealEndPerInput->getContentLabel()->setOpacity(0);
     Dev::fadeTextInput(RealEndPerInput, true, fadeTime);
-    HidUpToInput->getInputNode()->m_textLabel->setOpacity(0);
+    HidUpToInput->getContentLabel()->setOpacity(0);
     Dev::fadeTextInput(HidUpToInput, true, fadeTime);
     Dev::fadeTextInput(sharedRunsToShowInput, true, fadeTime);
     Dev::fadeSlider(sharedHideScroll, true, fadeTime);
