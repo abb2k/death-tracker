@@ -21,4 +21,8 @@ public:
     int deltaR;
     int deltaG;
     int deltaB;
+    
+private:
+    bool getTextAreaColor(CCNode* target, ccColor4B& color);
+    void setTextAreaColor(CCNode* target, const ccColor4B& color);
 };

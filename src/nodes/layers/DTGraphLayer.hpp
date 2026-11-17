@@ -97,4 +97,6 @@ class DTGraphLayer : public Popup, public GraphPointDelegate, public FLAlertLaye
         bool holdingShift;
 
         void updateGRapgCellLayout();
+
+        std::vector<GraphCell*> getGraphCells(CCNode* contentLayer);
     };

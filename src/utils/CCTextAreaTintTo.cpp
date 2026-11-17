@@ -1,29 +1,6 @@
 #include <utils/CCTextAreaTintTo.hpp>
 #include <nodes/RichTextArea.hpp>
 
-namespace {
-bool getTextAreaColor(CCNode* target, ccColor4B& color) {
-    if (auto textArea = dynamic_cast<RichTextArea*>(target)) {
-        color = textArea->getColor();
-        return true;
-    }
-    if (auto textArea = dynamic_cast<SimpleTextArea*>(target)) {
-        color = textArea->getColor();
-        return true;
-    }
-    return false;
-}
-
-void setTextAreaColor(CCNode* target, const ccColor4B& color) {
-    if (auto textArea = dynamic_cast<RichTextArea*>(target)) {
-        textArea->setColor(color);
-    }
-    else if (auto textArea = dynamic_cast<SimpleTextArea*>(target)) {
-        textArea->setColor(color);
-    }
-}
-}
-
 CCTextAreaTintTo* CCTextAreaTintTo::create(float duration, const ccColor3B& toColor)
 {
     auto ret = new CCTextAreaTintTo();
@@ -68,4 +45,25 @@ void CCTextAreaTintTo::update(float time)
 
     ccColor4B newColor = { (GLubyte)r, (GLubyte)g, (GLubyte)b, oldColor.a };
     setTextAreaColor(m_pTarget, newColor);
+}
+
+bool CCTextAreaTintTo::getTextAreaColor(CCNode* target, ccColor4B& color) {
+    if (auto textArea = dynamic_cast<RichTextArea*>(target)) {
+        color = textArea->getColor();
+        return true;
+    }
+    if (auto textArea = dynamic_cast<SimpleTextArea*>(target)) {
+        color = textArea->getColor();
+        return true;
+    }
+    return false;
+}
+
+void CCTextAreaTintTo::setTextAreaColor(CCNode* target, const ccColor4B& color) {
+    if (auto textArea = dynamic_cast<RichTextArea*>(target)) {
+        textArea->setColor(color);
+    }
+    else if (auto textArea = dynamic_cast<SimpleTextArea*>(target)) {
+        textArea->setColor(color);
+    }
 }

@@ -421,7 +421,8 @@ bool DTLayer::init(GJGameLevel* const& level) {
             graphBtn,
             editLayoutBtn,
             settingsBtn,
-            calculatorBtn
+            calculatorBtn,
+            labelsBtn
         ](DTTutorialLayer* tutorialLayer) {
         tutorialLayer->appendDialogue("Welcome to the <cy>main death tracker page!</c>", TutorialCharacterFace::TCFHappy)
             ->appendDialogue("This is the <cy>main view</c> where you can view <cg>all your data!</c>", TutorialCharacterFace::TCFNormal)
@@ -471,10 +472,14 @@ bool DTLayer::init(GJGameLevel* const& level) {
             ->joinHighlight(groupsBtn)
             ->joinTextToHighlight("Session Groups", .3f, TutorialTextPlacement::TTTop)
 
+            ->appendDialogue("There are the <cf>overlay labels</c>, which allow you to dynamically display info while playing", TutorialCharacterFace::TCFNormal)
+            ->joinHighlight(labelsBtn)
+            ->joinTextToHighlight("Overlay Labels", .3f, TutorialTextPlacement::TTTop)
+            ->joinTransform(TutorialBoxPlacement::TBPRight, .75f)
+
             ->appendDialogue("You also have the option to <cy>edit how your data is layed out</c> using this button!", TutorialCharacterFace::TCFNormal)
             ->joinHighlight(editLayoutBtn)
             ->joinTextToHighlight("Layout Editor", .3f, TutorialTextPlacement::TTTop)
-            ->joinTransform(TutorialBoxPlacement::TBPRight, .75f)
 
             ->appendDialogue("And lastly you have quick access to the mod settings for death tracker right here!", TutorialCharacterFace::TCFNormalTilted)
             ->joinHighlight(settingsBtn)

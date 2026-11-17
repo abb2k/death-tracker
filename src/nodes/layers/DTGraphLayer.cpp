@@ -4,17 +4,6 @@
 #include <nodes/TutorialButton.hpp>
 #include <nodes/SwitcherButton.hpp>
 
-namespace {
-std::vector<GraphCell*> getGraphCells(CCNode* contentLayer) {
-    std::vector<GraphCell*> graphCells;
-    for (const auto& child : CCArrayExt<CCNode*>(contentLayer->getChildren())) {
-        if (child && child->getID() == "graph-cell")
-            graphCells.push_back(static_cast<GraphCell*>(child));
-    }
-    return graphCells;
-}
-}
-
 DTGraphLayer* DTGraphLayer::create() {
     auto ret = new DTGraphLayer();
     if (ret->init()) {
@@ -1049,4 +1038,13 @@ void DTGraphLayer::updateGRapgCellLayout() {
         child->setVisible(false);
     }
     
+}
+
+std::vector<GraphCell*> DTGraphLayer::getGraphCells(CCNode* contentLayer) {
+    std::vector<GraphCell*> graphCells;
+    for (const auto& child : CCArrayExt<CCNode*>(contentLayer->getChildren())) {
+        if (child && child->getID() == "graph-cell")
+            graphCells.push_back(static_cast<GraphCell*>(child));
+    }
+    return graphCells;
 }
