@@ -5,24 +5,10 @@
 #include <types/DTTypes.hpp>
 #include <nodes/SimpleToggler.hpp>
 
+#include <managers/LinkedLevelsCacheManager.hpp>
+
 
 using namespace geode::prelude;
-
-struct GetLevelsTaskProgress {
-    std::string message;
-    int current;
-    int max;
-
-    GetLevelsTaskProgress(std::string message_, int current_, int max_)
-        : message(std::move(message_)), current(current_), max(max_) {}
-};
-
-struct LinkData {
-    LevelMetadata metadata;
-    std::string levelKey;
-};
-
-using GetLevelsFuture = arc::Future<std::vector<LinkData>>;
 
 class LinkOptions : public OptionsNode {
     public:
@@ -32,12 +18,8 @@ class LinkOptions : public OptionsNode {
 
         void getAllLevelsData();
 
-        GetLevelsFuture getLevelsFuture();
-        void onGetLevels(GetLevelsFuture::Output out);
+        void onGetLevels(GetLevelsFuture::Output const& out);
         void onGetLevelsProgress(const GetLevelsTaskProgress& progress);
-
-        std::vector<LinkData> data{};
-        async::TaskHolder<GetLevelsFuture::Output> getallLevelsListener;
 
         unsigned int currentLinkedPage;
         unsigned int currentPlayedPage;
@@ -45,7 +27,7 @@ class LinkOptions : public OptionsNode {
         std::optional<unsigned int> maxLinkedPage;
         std::optional<unsigned int> maxPlayedPage;
 
-        void updateScrollsContent();
+        void updateScrollsContent(GetLevelsFuture::Output const& levels);
 
         ScrollLayer* linkedScroll;
         ScrollLayer* playedScroll;

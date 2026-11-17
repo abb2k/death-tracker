@@ -5,6 +5,8 @@ using namespace geode::prelude;
 #include "utils/Settings.hpp"
 #include <Geode/utils/web.hpp>
 
+#include <managers/LinkedLevelsCacheManager.hpp>
+
 $execute {
     (void)file::createDirectory(Mod::get()->getSaveDir() / "levels");
 
@@ -23,6 +25,9 @@ $execute {
         Save::setNewBestCustomizations(Save::getDefaultNewBestCustomizations());
         Save::setSessionBestCustomizations(Save::getDefaultSessionBestCustomizations());
     }
+
+    if (Settings::getPreloadLinked())
+        LinkedLevelsCacheManager::getLinkedLevels();
 };
 
 $on_mod(Loaded) {

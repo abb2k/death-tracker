@@ -146,7 +146,7 @@ bool LinkOptions::setup() {
     searchBar->setCallback([&](const auto& newStr) {
         searchStr = newStr;
 
-        updateScrollsContent();
+        getAllLevelsData();
     });
     this->addChild(searchBar);
 
@@ -160,7 +160,7 @@ bool LinkOptions::setup() {
         searchForID = toggled;
 
         if (searchStr != "")
-            updateScrollsContent();
+            getAllLevelsData();
     });
     this->addChild(idToggler);
 
@@ -329,17 +329,21 @@ void LinkOptions::onClosed() {
 }
 
 void LinkOptions::getAllLevelsData() {
-    if (getallLevelsListener.isPending() || data.size()) return;
-
     loadingLabel->setVisible(true);
     loadingShadow->setVisible(true);
     loadingCircle->m_sprite->setVisible(true);
 
-    getallLevelsListener.spawn(
-        "DT-get-all-levels-task",
-        getLevelsFuture(),
-        [&](GetLevelsFuture::Output val) {
-            this->onGetLevels(val);
+    geode::WeakRef<LinkOptions> weakSelf(this);
+    LinkedLevelsCacheManager::getLinkedLevels(
+        [weakSelf](const GetLevelsTaskProgress& progress) {
+            if (auto self = weakSelf.lock()) {
+                self->onGetLevelsProgress(progress);
+            }
+        },
+        [weakSelf](GetLevelsFuture::Output const& val) {
+            if (auto self = weakSelf.lock()) {
+                self->onGetLevels(val);
+            }
         }
     );
 }
@@ -352,56 +356,16 @@ void LinkOptions::onGetLevelsProgress(const GetLevelsTaskProgress& progress) {
     });
 }
 
-void LinkOptions::onGetLevels(GetLevelsFuture::Output out) {
-    data = std::move(out);
+void LinkOptions::onGetLevels(GetLevelsFuture::Output const& out) {
 
     loadingLabel->setVisible(false);
     loadingShadow->setVisible(false);
     loadingCircle->m_sprite->setVisible(false);
 
-    updateScrollsContent();
+    updateScrollsContent(out);
 }
 
-GetLevelsFuture LinkOptions::getLevelsFuture() {
-    auto progresObject = GetLevelsTaskProgress{"Getting list of played levels...", -1, -1};
-
-    onGetLevelsProgress(progresObject);
-
-    auto allLevels = StatsManager::allV3FileLevelKeys();
-    if (allLevels.empty()) co_return std::vector<LinkData>{};
-
-    progresObject.message = "Getting level data...";
-    progresObject.current = 0;
-    progresObject.max = static_cast<int>(allLevels.size());
-
-    onGetLevelsProgress(progresObject);
-
-    std::vector<LinkData> metadatas{};
-    metadatas.reserve(allLevels.size());
-
-    int i = 0;
-    for (const auto& levelKey : allLevels)
-    {
-        auto meta = StatsManager::getMetadata(levelKey);
-        if (meta.isOk()) {
-            LinkData ldata{};
-            ldata.metadata = meta.unwrap();
-            ldata.levelKey = levelKey;
-
-            metadatas.emplace_back(std::move(ldata));
-        }
-
-        co_await arc::yield();
-
-        i++;
-        progresObject.current = i;
-        onGetLevelsProgress(progresObject);
-    }
-    
-    co_return metadatas;
-}
-
-void LinkOptions::updateScrollsContent() {
+void LinkOptions::updateScrollsContent(GetLevelsFuture::Output const& levels) {
     if (DTLayer::get()->m_MyLevelStats.isErr()) return;
     struct LevelMetaNameCompare {
         bool operator()(const LinkData* a, const LinkData* b) const {
@@ -423,7 +387,7 @@ void LinkOptions::updateScrollsContent() {
         return str;
     };
 
-    for (const auto& meta : data)
+    for (const auto& meta : levels)
     {
         if (myStats.levelKey == meta.levelKey) continue;
 
@@ -586,7 +550,7 @@ void LinkOptions::onLinkCellClicked(const std::string& levelKey, bool isLeftAlig
         (void)StatsManager::setMetadata(myData.metadata, myData.levelKey);
     }
 
-    updateScrollsContent();
+    getAllLevelsData();
 }
 
 void LinkOptions::onSwitchedPage(CCObject* sender) {
@@ -608,7 +572,7 @@ void LinkOptions::onSwitchedPage(CCObject* sender) {
             currentPlayedPage = std::clamp(currentPlayedPage, static_cast<unsigned int>(0), maxPlayedPage.has_value() ? maxPlayedPage.value() - 1 : 0);
         }
 
-        updateScrollsContent();
+        getAllLevelsData();
     }
 }
 

@@ -86,3 +86,7 @@ bool Settings::is12HourClockFormat() {
 int Settings::getDecimalPrecision() {
     return utils::numFromString<int>(Mod::get()->getSettingValue<std::string>("decimal-precision")).unwrapOr(2);
 }
+
+bool Settings::getPreloadLinked() {
+    return Mod::get()->getSettingValue<bool>("preload-linked");
+}

@@ -84,6 +84,12 @@
 			"default": "2",
 			"one-of": ["1", "2", "3", "4", "5", "6"]
 		},
+		"preload-linked": {
+			"name": "Pre-load Linked Levels",
+			"description": "Pre-load all linked levels instead of when opening the linked menu for the first time.",
+			"type": "bool",
+			"default": true
+		},
 		"bakcups-title":{
 			"type": "title",
 			"name": "Backups"
