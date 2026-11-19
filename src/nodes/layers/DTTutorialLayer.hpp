@@ -100,7 +100,7 @@ class DTTutorialLayer : public CCLayer, public DialogDelegate {
 
         void update(float dt) override;
         std::map<CCScale9Sprite*, CCNode*> prevHighlights{};
-        std::map<CCScale9Sprite*, CCLabelBMFont*> textsForHighlights{};
+        std::map<CCScale9Sprite*, geode::Label*> textsForHighlights{};
 
         std::map<CCScale9Sprite*, CCNode*> touchAllowedNodes{};
 

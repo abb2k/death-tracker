@@ -60,17 +60,17 @@ bool BackupCell::init(float width, const std::string& levelKey, const long long 
     deleteBackupBtn->setPosition({revertBtn->getPositionX(), this->getContentHeight() / 3.0f - 1});
     this->addChild(deleteBackupBtn);
 
-    titleLabel = CCLabelBMFont::create("Loading data...", "bigFont.fnt");
+    titleLabel = geode::Label::create("Loading data...", "bigFont.fnt");
     titleLabel->setScale(.3f);
     titleLabel->setAnchorPoint({0, 1});
-    titleLabel->setWidth(width - folderIcon->getScaledContentWidth() - 10 - revertBtn->getContentWidth() / 2 - 5);
+    titleLabel->setLimitLabelWidth(width - folderIcon->getScaledContentWidth() - 10 - revertBtn->getContentWidth() / 2 - 5);
     titleLabel->setPosition({folderIcon->getScaledContentWidth() + 10, this->getContentHeight() / 1.5f + titleLabel->getScaledContentHeight() / 2});
     this->addChild(titleLabel);
 
-    descriptionLabel = CCLabelBMFont::create("...", "chatFont.fnt");
+    descriptionLabel = geode::Label::create("...", "chatFont.fnt");
     descriptionLabel->setScale(.4f);
     descriptionLabel->setAnchorPoint({0, .5f});
-    descriptionLabel->setWidth(width - folderIcon->getScaledContentWidth() - 10 - revertBtn->getContentWidth() / 2 - 5);
+    descriptionLabel->setLimitLabelWidth(width - folderIcon->getScaledContentWidth() - 10 - revertBtn->getContentWidth() / 2 - 5);
     descriptionLabel->setPosition({folderIcon->getScaledContentWidth() + 10, this->getContentHeight() / 3.0f});
     this->addChild(descriptionLabel);
 

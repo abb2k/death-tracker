@@ -21,13 +21,13 @@ class OverlayLabelCell : public CCMenu {
         CCMenuItemSprite* getDeleteButton() const { return m_deleteButton; }
         CCMenuItemSprite* getEditButton() const { return m_editButton; }
         
-        CCLabelBMFont* getEnableLabel() const { return m_enableLabel; }
+        geode::Label* getEnableLabel() const { return m_enableLabel; }
         SimpleToggler* getEnabledToggle() const { return m_enabledToggle; }
-        CCLabelBMFont* getLevelSpecificLabel() const { return m_levelSpecificLabel; }
+        geode::Label* getLevelSpecificLabel() const { return m_levelSpecificLabel; }
         SimpleToggler* getLevelSpecificToggle() const { return m_levelSpecificToggle; }
 
         TextInput* getOrderInput() const { return m_orderInput; }
-        CCLabelBMFont* getOrderLabel() const { return m_orderLabel; }
+        geode::Label* getOrderLabel() const { return m_orderLabel; }
         
 
     private:
@@ -36,12 +36,12 @@ class OverlayLabelCell : public CCMenu {
         OverlayLabel m_myLabelData;
         CCScale9Sprite* m_background = nullptr;
         SimpleTextArea* m_labelName = nullptr;
-        CCLabelBMFont* m_enableLabel = nullptr;
+        geode::Label* m_enableLabel = nullptr;
         SimpleToggler* m_enabledToggle = nullptr;
         SimpleToggler* m_levelSpecificToggle = nullptr;
-        CCLabelBMFont* m_levelSpecificLabel = nullptr;
+        geode::Label* m_levelSpecificLabel = nullptr;
         TextInput* m_orderInput = nullptr;
-        CCLabelBMFont* m_orderLabel = nullptr;
+        geode::Label* m_orderLabel = nullptr;
         CCMenuItemSprite* m_deleteButton = nullptr;
         CCMenuItemSprite* m_editButton = nullptr;
         bool m_updatingControls = false;

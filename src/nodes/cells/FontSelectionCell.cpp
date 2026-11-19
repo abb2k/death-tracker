@@ -25,7 +25,7 @@ bool FontSelectionCell::init(const std::string& font, geode::Function<void(FontS
     bg->setOpacity(150);
     this->addChild(bg);
 
-    auto fontText = CCLabelBMFont::create(font.substr(0, font.length() - 4).c_str(), font.c_str());
+    auto fontText = geode::Label::create(font.substr(0, font.length() - 4).c_str(), font.c_str());
     fontText->setPosition({this->getContentWidth() / 2, 40});
     fontText->setScale(.65f);
     this->addChild(fontText);

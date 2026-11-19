@@ -204,7 +204,7 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
         m_gradientEnabledToggle->setEnabled(false);
         m_gradientEnabledToggle->setOpacity(128);
     }
-    auto enabledText = CCLabelBMFont::create("enabled", "bigFont.fnt");
+    auto enabledText = geode::Label::create("enabled", "bigFont.fnt");
     enabledText->setScale(.45f);
 
     auto toggleWidth = m_gradientEnabledToggle->getScaledContentWidth();
@@ -454,7 +454,7 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
 
     durationColumn->setPosition({15, 5});
 
-    auto durationText = CCLabelBMFont::create("Duration", "goldFont.fnt");
+    auto durationText = geode::Label::create("Duration", "goldFont.fnt");
     durationText->setScale(.55f);
     durationText->setID("duration-text");
     durationColumn->addChild(durationText);
@@ -506,7 +506,7 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
 
     staggerColumn->setPosition(durationColumn->getPosition() + ccp(0, durationColumn->getScaledContentHeight() + 2));
 
-    auto staggerText = CCLabelBMFont::create("Stagger", "goldFont.fnt");
+    auto staggerText = geode::Label::create("Stagger", "goldFont.fnt");
     staggerText->setScale(.55f);
     staggerText->setID("stagger-text");
     staggerColumn->addChild(staggerText);
@@ -785,7 +785,7 @@ CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
     rColumn->setID("r-column");
     rgbRow->addChild(rColumn);
 
-    auto rText = CCLabelBMFont::create("R", "goldFont.fnt");
+    auto rText = geode::Label::create("R", "goldFont.fnt");
     rText->setScale(.55f);
     rText->setID("r-text");
     rColumn->addChild(rText);
@@ -820,7 +820,7 @@ CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
     gColumn->setID("g-column");
     rgbRow->addChild(gColumn);
 
-    auto gText = CCLabelBMFont::create("G", "goldFont.fnt");
+    auto gText = geode::Label::create("G", "goldFont.fnt");
     gText->setScale(.55f);
     gText->setID("g-text");
     gColumn->addChild(gText);
@@ -855,7 +855,7 @@ CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
     bColumn->setID("b-column");
     rgbRow->addChild(bColumn);
 
-    auto bText = CCLabelBMFont::create("B", "goldFont.fnt");
+    auto bText = geode::Label::create("B", "goldFont.fnt");
     bText->setScale(.55f);
     bText->setID("b-text");
     bColumn->addChild(bText);
@@ -890,7 +890,7 @@ CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
     hexColumn->setID("hex-column");
     inputColumn->addChild(hexColumn);
 
-    auto hexText = CCLabelBMFont::create("Hex", "goldFont.fnt");
+    auto hexText = geode::Label::create("Hex", "goldFont.fnt");
     hexText->setScale(.55f);
     hexText->setID("hex-text");
     hexColumn->addChild(hexText);
@@ -949,7 +949,7 @@ CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
         opacitySection->addChild(sliderColumn);
 
 
-        auto opacityText = CCLabelBMFont::create("Opacity", "goldFont.fnt");
+        auto opacityText = geode::Label::create("Opacity", "goldFont.fnt");
         opacityText->setScale(.55f);
         opacityText->setID("opacity-text");
         sliderColumn->addChild(opacityText);
@@ -1125,7 +1125,7 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
         m_waveEnabledToggle->setOpacity(128);
     }
 
-    auto enabledText = CCLabelBMFont::create("enabled", "bigFont.fnt");
+    auto enabledText = geode::Label::create("enabled", "bigFont.fnt");
     enabledText->setScale(.45f);
 
     auto toggleWidth = m_waveEnabledToggle->getScaledContentWidth();
@@ -1230,7 +1230,7 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
 
     timeColumn->setPosition({15, 5});
 
-    auto timeText = CCLabelBMFont::create("Time", "goldFont.fnt");
+    auto timeText = geode::Label::create("Time", "goldFont.fnt");
     timeText->setScale(.55f);
     timeText->setID("time-text");
     timeColumn->addChild(timeText);
@@ -1278,7 +1278,7 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
 
     distanceYColumn->setPosition({15, 5});
 
-    auto distanceYText = CCLabelBMFont::create("Distance Y", "goldFont.fnt");
+    auto distanceYText = geode::Label::create("Distance Y", "goldFont.fnt");
     distanceYText->setScale(.55f);
     distanceYText->setID("distance-y-text");
     distanceYColumn->addChild(distanceYText);
@@ -1326,7 +1326,7 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
 
     distanceXColumn->setPosition({15, 5});
 
-    auto distanceXText = CCLabelBMFont::create("Distance X", "goldFont.fnt");
+    auto distanceXText = geode::Label::create("Distance X", "goldFont.fnt");
     distanceXText->setScale(.55f);
     distanceXText->setID("distance-x-text");
     distanceXColumn->addChild(distanceXText);
@@ -1374,7 +1374,7 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
 
     offsetColumn->setPosition({15, 5});
 
-    auto offsetText = CCLabelBMFont::create("Offset", "goldFont.fnt");
+    auto offsetText = geode::Label::create("Offset", "goldFont.fnt");
     offsetText->setScale(.55f);
     offsetText->setID("offset-text");
     offsetColumn->addChild(offsetText);

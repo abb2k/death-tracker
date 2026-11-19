@@ -40,7 +40,7 @@ bool SectionOptions::setup() {
     scrollBG->setCascadeOpacityEnabled(false);
     this->addChild(scrollBG);
 
-    auto sectionsLabel = CCLabelBMFont::create("Sections", "bigFont.fnt");
+    auto sectionsLabel = geode::Label::create("Sections", "bigFont.fnt");
     sectionsLabel->setPosition(mainScroll->getPosition() + ccp(0, mainScroll->getContentSize().height / 2 + sectionsLabel->getScaledContentHeight() / 2 + 5));
     sectionsLabel->setScale(.75f);
     this->addChild(sectionsLabel);

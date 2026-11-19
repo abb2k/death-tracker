@@ -1111,7 +1111,7 @@ int StatsManager::getDifficulty(GJGameLevel* const& level) {
         return 0;
 }
 
-int StatsManager::getCursorPosition(CCLabelBMFont* const& text, CCLabelBMFont* const& cursor) {
+int StatsManager::getCursorPosition(geode::Label* const& text, geode::Label* const& cursor) {
     if (text->getString() == nullptr) return -1;
     if (text->getString()[0] == '\0') return -1;
 

@@ -19,7 +19,7 @@ bool DTGraphLayer::init() {
     if (!Popup::init(winSize.width - 120, winSize.height - 30, "square01_001.png", {0.f, 0.f, 94.f, 94.f}))
         return false;
 
-    noGraphLabel = CCLabelBMFont::create("No Graphs\nEnabled!", "bigFont.fnt");
+    noGraphLabel = geode::Label::create("No Graphs\nEnabled!", "bigFont.fnt");
     noGraphLabel->setZOrder(1);
     noGraphLabel->setVisible(false);
     noGraphLabel->setPosition({46, 3});
@@ -220,7 +220,7 @@ bool DTGraphLayer::init() {
     addGraphMenu->addChild(sideTutorial);
 
 
-    auto nameLabel = CCLabelBMFont::create("Name", "bigFont.fnt");
+    auto nameLabel = geode::Label::create("Name", "bigFont.fnt");
     nameLabel->setScale(.3f);
     graphOptionsPage->addChild(nameLabel);
 
@@ -235,7 +235,7 @@ bool DTGraphLayer::init() {
     });
     graphOptionsPage->addChild(nameInput);
 
-    auto coverageLabel = CCLabelBMFont::create("Coverage", "bigFont.fnt");
+    auto coverageLabel = geode::Label::create("Coverage", "bigFont.fnt");
     coverageLabel->setScale(.3f);
     coverageLabel->setAnchorPoint({.5f, 1});
     coverageLabel->setPositionY(nameInput->getPositionY() - nameInput->getScaledContentHeight() - 5);
@@ -260,7 +260,7 @@ bool DTGraphLayer::init() {
     });
     graphOptionsPage->addChild(coverageSwitcher);
 
-    auto typeLabel = CCLabelBMFont::create("Type", "bigFont.fnt");
+    auto typeLabel = geode::Label::create("Type", "bigFont.fnt");
     typeLabel->setScale(.3f);
     typeLabel->setAnchorPoint({.5f, 1});
     typeLabel->setPositionY(coverageSwitcher->getPositionY() - coverageSwitcher->getScaledContentHeight() - 5);
@@ -280,20 +280,20 @@ bool DTGraphLayer::init() {
     });
     graphOptionsPage->addChild(typeSwitcher);
 
-    auto thicknessLabel = CCLabelBMFont::create("Thickness", "bigFont.fnt");
+    auto thicknessLabel = geode::Label::create("Thickness", "bigFont.fnt");
     thicknessLabel->setScale(.3f);
     thicknessLabel->setAnchorPoint({.5f, 1});
     thicknessLabel->setPositionY(typeSwitcher->getPositionY() - typeSwitcher->getScaledContentHeight() - 5);
     graphOptionsPage->addChild(thicknessLabel);
 
-    auto thicknessBaseLabel = CCLabelBMFont::create("Base", "bigFont.fnt");
+    auto thicknessBaseLabel = geode::Label::create("Base", "bigFont.fnt");
     thicknessBaseLabel->setScale(.25f);
     thicknessBaseLabel->setAnchorPoint({1, 1});
     thicknessBaseLabel->setPositionY(thicknessLabel->getPositionY() - thicknessLabel->getScaledContentHeight());
     thicknessBaseLabel->setPositionX(-10);
     graphOptionsPage->addChild(thicknessBaseLabel);
 
-    auto thicknessOutlineLabel = CCLabelBMFont::create("Outline", "bigFont.fnt");
+    auto thicknessOutlineLabel = geode::Label::create("Outline", "bigFont.fnt");
     thicknessOutlineLabel->setScale(.25f);
     thicknessOutlineLabel->setAnchorPoint({0, 1});
     thicknessOutlineLabel->setPositionY(thicknessLabel->getPositionY() - thicknessLabel->getScaledContentHeight());
@@ -340,20 +340,20 @@ bool DTGraphLayer::init() {
     });
     graphOptionsPage->addChild(thicknessOutlineInput);
 
-    auto colorLabel = CCLabelBMFont::create("Color", "bigFont.fnt");
+    auto colorLabel = geode::Label::create("Color", "bigFont.fnt");
     colorLabel->setScale(.3f);
     colorLabel->setAnchorPoint({.5f, 1});
     colorLabel->setPositionY(thicknessOutlineInput->getPositionY() - thicknessOutlineInput->getScaledContentHeight() - 5);
     graphOptionsPage->addChild(colorLabel);
 
-    auto colorBaseLabel = CCLabelBMFont::create("Base", "bigFont.fnt");
+    auto colorBaseLabel = geode::Label::create("Base", "bigFont.fnt");
     colorBaseLabel->setScale(.25f);
     colorBaseLabel->setAnchorPoint({1, 1});
     colorBaseLabel->setPositionY(colorLabel->getPositionY() - colorLabel->getScaledContentHeight());
     colorBaseLabel->setPositionX(-10);
     graphOptionsPage->addChild(colorBaseLabel);
 
-    auto colorOutlineLabel = CCLabelBMFont::create("Outline", "bigFont.fnt");
+    auto colorOutlineLabel = geode::Label::create("Outline", "bigFont.fnt");
     colorOutlineLabel->setScale(.25f);
     colorOutlineLabel->setAnchorPoint({0, 1});
     colorOutlineLabel->setPositionY(colorLabel->getPositionY() - colorLabel->getScaledContentHeight());
@@ -386,20 +386,20 @@ bool DTGraphLayer::init() {
     colorOutlineBtn->setTag(2);
     graphOptionsPage->addChild(colorOutlineBtn);
 
-    auto pointLabel = CCLabelBMFont::create("Point", "bigFont.fnt");
+    auto pointLabel = geode::Label::create("Point", "bigFont.fnt");
     pointLabel->setScale(.3f);
     pointLabel->setAnchorPoint({.5f, 1});
     pointLabel->setPositionY(colorOutlineBtn->getPositionY() - colorOutlineBtn->getScaledContentHeight() / 2 - 5);
     graphOptionsPage->addChild(pointLabel);
 
-    auto pointColorLabel = CCLabelBMFont::create("Color", "bigFont.fnt");
+    auto pointColorLabel = geode::Label::create("Color", "bigFont.fnt");
     pointColorLabel->setScale(.25f);
     pointColorLabel->setAnchorPoint({1, 1});
     pointColorLabel->setPositionY(pointLabel->getPositionY() - pointLabel->getScaledContentHeight());
     pointColorLabel->setPositionX(-10);
     graphOptionsPage->addChild(pointColorLabel);
 
-    auto pointScaleLabel = CCLabelBMFont::create("Scale", "bigFont.fnt");
+    auto pointScaleLabel = geode::Label::create("Scale", "bigFont.fnt");
     pointScaleLabel->setScale(.25f);
     pointScaleLabel->setAnchorPoint({0, 1});
     pointScaleLabel->setPositionY(pointLabel->getPositionY() - pointLabel->getScaledContentHeight());

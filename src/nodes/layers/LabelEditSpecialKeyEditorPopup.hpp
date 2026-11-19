@@ -19,8 +19,8 @@ class LabelEditSpecialKeyEditorPopup : public Popup {
         CCMenuItemSpriteExtra* m_keyTypeButton = nullptr;
         CCMenuItemSpriteExtra* m_scopeButton = nullptr;
         CCMenuItemSpriteExtra* m_operatorButton = nullptr;
-        CCLabelBMFont* m_scopeLabel = nullptr;
-        CCLabelBMFont* m_operatorLabel = nullptr;
+        geode::Label* m_scopeLabel = nullptr;
+        geode::Label* m_operatorLabel = nullptr;
         FloatingList* m_keyTypeList = nullptr;
         FloatingList* m_scopeList = nullptr;
         FloatingList* m_operatorList = nullptr;

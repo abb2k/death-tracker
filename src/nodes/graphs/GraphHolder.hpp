@@ -75,7 +75,7 @@ class GraphHolder : public CCNode {
 
         std::set<CCSprite*> smallLines{};
         std::set<CCSprite*> boldLines{};
-        std::set<CCLabelBMFont*> labels{};
+        std::set<geode::Label*> labels{};
 
         CCNode* LabelsContainer = nullptr;
         CCNode* LabelsVerticalContainer = nullptr;

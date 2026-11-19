@@ -74,7 +74,8 @@ bool DTLevelSpecificSettingsLayer::init() {
 
 CCNode* DTLevelSpecificSettingsLayer::createPageBtn(const std::string& text, OptionsNode* page) {
 
-    auto spr = CCLabelBMFont::create(text.c_str(), "gjFont17.fnt", 50);
+    auto spr = geode::Label::create(text.c_str(), "gjFont17.fnt");
+    spr->setLimitLabelWidth(50);
     spr->setScale(.85f);
     auto button = CCMenuItemSpriteExtra::create(
         spr,
@@ -94,7 +95,7 @@ CCNode* DTLevelSpecificSettingsLayer::createPageBtn(const std::string& text, Opt
 }
 
 CCNode* DTLevelSpecificSettingsLayer::createSeperator() {
-    auto spr = CCLabelBMFont::create("|", "gjFont17.fnt");
+    auto spr = geode::Label::create("|", "gjFont17.fnt");
     return spr;
 }
 

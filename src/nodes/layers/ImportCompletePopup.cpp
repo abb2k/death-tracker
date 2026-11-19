@@ -45,7 +45,7 @@ bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _s
     generalViewBG->setOpacity(120);
     m_mainLayer->addChild(generalViewBG);
 
-    auto sessionLabel = CCLabelBMFont::create("Sessions      ", "bigFont.fnt");
+    auto sessionLabel = geode::Label::create("Sessions      ", "bigFont.fnt");
     sessionLabel->setScale(.35f);
     sessionLabel->setAnchorPoint({1, 1});
     sessionLabel->setPosition({
@@ -151,7 +151,7 @@ bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _s
     );
     btnMenu->addChild(DoAddGeneralToggler);
 
-    auto DoAddGeneralTogglerLabel = CCLabelBMFont::create("Add General", "bigFont.fnt");
+    auto DoAddGeneralTogglerLabel = geode::Label::create("Add General", "bigFont.fnt");
     DoAddGeneralTogglerLabel->setScale(.35f);
     DoAddGeneralTogglerLabel->setPosition(DoAddGeneralToggler->getPosition() + ccp(DoAddGeneralTogglerLabel->getScaledContentWidth() / 2 + DoAddGeneralToggler->getScaledContentWidth() / 2 + 5, 0));
     btnMenu->addChild(DoAddGeneralTogglerLabel);

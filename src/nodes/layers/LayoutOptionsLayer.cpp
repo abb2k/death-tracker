@@ -104,7 +104,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     labelNameInput->setPositionY(-22);
     labelSettingsNode->addChild(labelNameInput);
 
-    auto labelNameInputLabel = CCLabelBMFont::create("Label Name", "bigFont.fnt");
+    auto labelNameInputLabel = geode::Label::create("Label Name", "bigFont.fnt");
     labelNameInputLabel->setScale(.4f);
     labelNameInputLabel->setPosition(labelNameInput->getPosition() + ccp(0, labelNameInput->getScaledContentHeight() / 2 + labelNameInputLabel->getScaledContentHeight() / 2));
     labelNameInputLabel->setID("name-input-label");
@@ -124,7 +124,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     });
     labelSettingsNode->addChild(labelTextInput);
 
-    auto labelTextInputLabel = CCLabelBMFont::create("Text", "bigFont.fnt");
+    auto labelTextInputLabel = geode::Label::create("Text", "bigFont.fnt");
     labelTextInputLabel->setScale(.4f);
     labelTextInputLabel->setPosition(labelTextInput->getPosition() + ccp(0, labelTextInput->getScaledContentHeight() / 2 + labelTextInputLabel->getScaledContentHeight() / 2));
     labelTextInputLabel->setID("text-label");
@@ -156,7 +156,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     labelColorBtn->setPosition({-15, -120});
     labelSettingsNode->addChild(labelColorBtn);
 
-    auto labelColorBtnLabel = CCLabelBMFont::create("label:", "bigFont.fnt");
+    auto labelColorBtnLabel = geode::Label::create("label:", "bigFont.fnt");
     labelColorBtnLabel->setScale(.4f);
     labelColorBtnLabel->setPosition(labelColorBtn->getPosition() + ccp(-labelColorBtn->getScaledContentWidth() / 2 - labelColorBtnLabel->getScaledContentWidth() / 2 - 2, 0));
     labelColorBtnLabel->setID("label-color-label");
@@ -174,13 +174,13 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     textColorBtn->setPosition({55, -120});
     labelSettingsNode->addChild(textColorBtn);
 
-    auto textColorBtnLabel = CCLabelBMFont::create("text:", "bigFont.fnt");
+    auto textColorBtnLabel = geode::Label::create("text:", "bigFont.fnt");
     textColorBtnLabel->setScale(.4f);
     textColorBtnLabel->setPosition(textColorBtn->getPosition() + ccp(-textColorBtn->getScaledContentWidth() / 2 - textColorBtnLabel->getScaledContentWidth() / 2 - 2, 0));
     textColorBtnLabel->setID("text-color-label");
     labelSettingsNode->addChild(textColorBtnLabel);
 
-    auto colorLabel = CCLabelBMFont::create("color", "bigFont.fnt");
+    auto colorLabel = geode::Label::create("color", "bigFont.fnt");
     colorLabel->setScale(.4f);
     colorLabel->setPosition({0, -100});
     colorLabel->setID("color-label");
@@ -205,7 +205,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     fontSizeInput->setID("font-size-input");
     labelSettingsNode->addChild(fontSizeInput);
 
-    auto fontSizeInputLabel = CCLabelBMFont::create("Font Size", "bigFont.fnt");
+    auto fontSizeInputLabel = geode::Label::create("Font Size", "bigFont.fnt");
     fontSizeInputLabel->setScale(.35f);
     fontSizeInputLabel->setPosition(fontSizeInput->getPosition() + ccp(0, fontSizeInput->getScaledContentHeight() / 2 + fontSizeInputLabel->getScaledContentHeight() / 2));
     fontSizeInputLabel->setID("font-size-label");
@@ -233,7 +233,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
         ->setMainAxisAlignment(MainAxisAlignment::Center)
     );
 
-    auto alignmentLabel = CCLabelBMFont::create("Alignment", "bigFont.fnt");
+    auto alignmentLabel = geode::Label::create("Alignment", "bigFont.fnt");
     alignmentLabel->setID("alignment-label");
     alignmentLabel->setScale(.4f);
     alignmentLabel->setPosition(alignmentMenu->getPosition() + ccp(0, 5 + alignmentMenu->getScaledContentHeight() / 2 + alignmentLabel->getScaledContentHeight() / 2));
@@ -291,7 +291,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     wrappingModeBtn->setPositionX(32);
     wrappingModeBtn->addChild(wrapModeWord);
 
-    auto wrappingModeLabel = CCLabelBMFont::create("Wrapping", "bigFont.fnt");
+    auto wrappingModeLabel = geode::Label::create("Wrapping", "bigFont.fnt");
     wrappingModeLabel->setScale(.35f);
     wrappingModeLabel->setPosition({wrappingModeBtn->getPositionX(), fontSizeInputLabel->getPositionY()});
     wrappingModeLabel->setID("wrapping-label");
@@ -326,7 +326,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     });
     labelSettingsNode->addChild(hideHeaderToggler);
 
-    auto hideHeaderTogglerLabel = CCLabelBMFont::create("Hide Header", "bigFont.fnt");
+    auto hideHeaderTogglerLabel = geode::Label::create("Hide Header", "bigFont.fnt");
     hideHeaderTogglerLabel->setScale(.4f);
     hideHeaderTogglerLabel->setPosition(hideHeaderToggler->getPosition() + ccp(-hideHeaderToggler->getContentWidth() / 2 - 10, 0));
     hideHeaderTogglerLabel->setID("hide-header-label");
@@ -428,7 +428,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     });
     specialKeysNode->addChild(labelTextSpecialKeysInput);
 
-    auto labelTextSpecialKeysInputLabel = CCLabelBMFont::create("text", "bigFont.fnt");
+    auto labelTextSpecialKeysInputLabel = geode::Label::create("text", "bigFont.fnt");
     labelTextSpecialKeysInputLabel->setScale(.4f);
     labelTextSpecialKeysInputLabel->setPosition(labelTextSpecialKeysInput->getPosition() + ccp(0, labelTextSpecialKeysInput->getScaledContentHeight() / 2 + labelTextSpecialKeysInputLabel->getScaledContentHeight() / 2));
     labelTextSpecialKeysInputLabel->setID("text-Label");
@@ -489,7 +489,7 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     });
     columnSettingsNode->addChild(columnWidthInput);
 
-    auto columnWidthInputLabel = CCLabelBMFont::create("column width", "bigFont.fnt");
+    auto columnWidthInputLabel = geode::Label::create("column width", "bigFont.fnt");
     columnWidthInputLabel->setScale(.4f);
     columnWidthInputLabel->setPosition(columnWidthInput->getPosition() + ccp(0, columnWidthInput->getScaledContentHeight() / 2 + columnWidthInputLabel->getScaledContentHeight() / 2));
     columnWidthInputLabel->setID("width-Label");

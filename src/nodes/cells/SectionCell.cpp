@@ -79,7 +79,7 @@ bool SectionCell::init(float width, const Section& section) {
     endPercentInput->setID("end-per");
     this->addChild(endPercentInput);
 
-    auto runSeperator = CCLabelBMFont::create("-", "bigFont.fnt");
+    auto runSeperator = geode::Label::create("-", "bigFont.fnt");
     runSeperator->setPosition({endPercentInput->getPositionX() - endPercentInput->getScaledContentWidth() - 10, this->getContentHeight() / 2});
     runSeperator->setScale(.75f);
     this->addChild(runSeperator);

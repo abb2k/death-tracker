@@ -24,7 +24,7 @@ class LabelEditLayer : public Popup {
         Scrollbar* m_labelsScrollbar = nullptr;
         CCMenu* m_editMenu = nullptr;
         CCScale9Sprite* m_noLabelEditedOverlay = nullptr;
-        CCLabelBMFont* m_noLabelEditedText = nullptr;
+        geode::Label* m_noLabelEditedText = nullptr;
         SimpleToggler* m_freeModeToggle = nullptr;
         Slider* m_xSlider = nullptr;
         Slider* m_ySlider = nullptr;
@@ -41,7 +41,7 @@ class LabelEditLayer : public Popup {
         void updateNoLabelsText();
         void updateAnchorButtons();
 
-        CCLabelBMFont* m_noLabelsText;
+        geode::Label* m_noLabelsText;
 
         void onSliderX(CCObject*);
         void onSliderY(CCObject*);

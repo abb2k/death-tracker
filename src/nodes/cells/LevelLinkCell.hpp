@@ -29,9 +29,9 @@ class LevelLinkCell : public CCMenu {
 
         CCMenuItemSpriteExtra* arrowBtn;
         GJDifficultySprite* diffSpr;
-        CCLabelBMFont* title;
+        geode::Label* title;
         float titleWidth;
-        CCLabelBMFont* att;
+        geode::Label* att;
         float attWidth;
 
         bool enabledAndFade = true;

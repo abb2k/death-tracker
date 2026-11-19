@@ -41,8 +41,8 @@ class LinkOptions : public OptionsNode {
 
         void onSwitchedPage(CCObject* sender);
         void updatePageLabels();
-        CCLabelBMFont* playedScrollPageLabel;
-        CCLabelBMFont* linkedScrollPageLabel;
+        geode::Label* playedScrollPageLabel;
+        geode::Label* linkedScrollPageLabel;
 
         std::string searchStr;
         bool searchForID;
@@ -50,7 +50,7 @@ class LinkOptions : public OptionsNode {
 
         void update(float dt);
 
-        CCLabelBMFont* loadingLabel;
+        geode::Label* loadingLabel;
         LoadingCircle* loadingCircle;
         CCScale9Sprite* loadingShadow;
 

@@ -317,12 +317,12 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
 
         auto& textInfo = allSegments[segmentIndex].textForTargets[highlightTarget];
 
-        auto label = CCLabelBMFont::create(textInfo.text.c_str(), "bigFont.fnt");
+        auto label = geode::Label::create(textInfo.text.c_str(), "bigFont.fnt");
         label->setAlignment(textInfo.placement == TutorialTextPlacement::TTLeft ? 
-            CCTextAlignment::kCCTextAlignmentLeft :
+            geode::Label::Alignment::Left :
             (textInfo.placement == TutorialTextPlacement::TTRight ? 
-                CCTextAlignment::kCCTextAlignmentRight : 
-                CCTextAlignment::kCCTextAlignmentCenter
+                geode::Label::Alignment::Right : 
+                geode::Label::Alignment::Center
             ) 
         );
         auto anchotPoint = CCPoint{.5f, .5f};

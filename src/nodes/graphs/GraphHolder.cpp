@@ -166,7 +166,7 @@ void GraphHolder::refreshGrid() {
 }
 
 void GraphHolder::updateLabels() {
-    auto tempT = CCLabelBMFont::create("100", "chatFont.fnt");
+    auto tempT = geode::Label::create("100", "chatFont.fnt");
     tempT->setScale(0.4f);
     float XForPr = tempT->getScaledContentSize().width;
 
@@ -204,7 +204,7 @@ void GraphHolder::updateLabels() {
             labelPr->setColor({boldLineColor.r, boldLineColor.g, boldLineColor.b});
             labelPr->setOpacity(boldLineColor.a);
 
-            auto labelPrText = CCLabelBMFont::create(std::to_string(i).c_str(), "chatFont.fnt");
+            auto labelPrText = geode::Label::create(std::to_string(i).c_str(), "chatFont.fnt");
             labelPrText->setPositionX(i * devidedHSize.width);
             labelPrText->setScale(0.4f);
             labelPrText->setPositionY(-labelPr->getScaledContentSize().width - labelPrText->getScaledContentSize().height);
@@ -237,7 +237,7 @@ void GraphHolder::updateLabels() {
             labelPS->setColor({boldLineColor.r, boldLineColor.g, boldLineColor.b});
             labelPS->setOpacity(boldLineColor.a);
 
-            auto labelPSText = CCLabelBMFont::create(std::to_string(i).c_str(), "chatFont.fnt");
+            auto labelPSText = geode::Label::create(std::to_string(i).c_str(), "chatFont.fnt");
             labelPSText->setPositionY(i * devidedVSize.height);
             labelPSText->setScale(0.4f);
             labelPSText->setPositionX(-labelPS->getScaledContentSize().width - XForPr);

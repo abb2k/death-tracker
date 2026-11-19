@@ -26,9 +26,9 @@ bool SpecialKeyCell::init(std::shared_ptr<SpecialKey> key, geode::Function<void(
     bg->setOpacity(150);
     this->addChild(bg);
 
-    auto keyText = CCLabelBMFont::create(key->getKey().c_str(), "bigFont.fnt");
+    auto keyText = geode::Label::create(key->getKey().c_str(), "bigFont.fnt");
     keyText->setPosition({2, this->getContentHeight() / 2 + 3});
-    keyText->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
+    keyText->setAlignment(geode::Label::Alignment::Left);
     keyText->setAnchorPoint({0, .45f});
     float wantedScale = 41 / keyText->getContentWidth();
     keyText->setScale(.45f > wantedScale ? wantedScale : .45f);

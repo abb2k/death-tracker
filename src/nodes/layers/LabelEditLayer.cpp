@@ -136,7 +136,7 @@ bool LabelEditLayer::init() {
     m_mainLayer->addChild(settingsBG);
 
     auto addGlobalSettingRow = [&](const char* title, float y, TextInput*& input, Slider*& slider, auto sliderCallback) {
-        auto label = CCLabelBMFont::create(title, "bigFont.fnt");
+        auto label = geode::Label::create(title, "bigFont.fnt");
         label->setScale(.28f);
         label->setAnchorPoint({0, .5f});
         label->setPosition({5, y});
@@ -230,10 +230,10 @@ bool LabelEditLayer::init() {
         Save::setOverlayLabels(initialSettings);
     }
 
-    m_noLabelsText = CCLabelBMFont::create("No Labels\nCreated!", "bigFont.fnt");
+    m_noLabelsText = geode::Label::create("No Labels\nCreated!", "bigFont.fnt");
     m_noLabelsText->setScale(.5f);
     m_noLabelsText->setPosition(scrollBG->getPosition());
-    m_noLabelsText->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    m_noLabelsText->setAlignment(geode::Label::Alignment::Center);
     m_mainLayer->addChild(m_noLabelsText);
 
     auto sideMenu = CCMenu::create();
@@ -299,7 +299,7 @@ bool LabelEditLayer::init() {
     });
     m_editMenu->addChildAtPosition(m_freeModeToggle, Anchor::TopLeft, {m_editMenu->getContentWidth() / 4.5f, -m_freeModeToggle->getScaledContentHeight() / 2 - 5});
 
-    auto freeModeToggleLabel = CCLabelBMFont::create("Free Mode", "bigFont.fnt");
+    auto freeModeToggleLabel = geode::Label::create("Free Mode", "bigFont.fnt");
     freeModeToggleLabel->setPosition(m_freeModeToggle->getPosition() + ccp(
         m_freeModeToggle->getScaledContentWidth() / 2 + 5,
         0
@@ -316,7 +316,7 @@ bool LabelEditLayer::init() {
         -sliderHolder->getScaledContentHeight() / 2 - freeModeToggleLabel->getScaledContentHeight() - 10
     });
 
-    auto xLabel = CCLabelBMFont::create("X:", "bigFont.fnt");
+    auto xLabel = geode::Label::create("X:", "bigFont.fnt");
     xLabel->setScale(.5f);
     xLabel->setAnchorPoint({0, .5f});
     sliderHolder->addChildAtPosition(xLabel, Anchor::Left);
@@ -330,7 +330,7 @@ bool LabelEditLayer::init() {
     m_xSlider->setContentSize({0, 0});
     sliderHolder->addChild(m_xSlider);
 
-    auto yLabel = CCLabelBMFont::create("Y:", "bigFont.fnt");
+    auto yLabel = geode::Label::create("Y:", "bigFont.fnt");
     yLabel->setScale(.5f);
     yLabel->setAnchorPoint({0, .5f});
     sliderHolder->addChildAtPosition(yLabel, Anchor::Left, {xLabel->getScaledContentWidth() + 15 + m_xSlider->m_sliderBar->getContentWidth() / m_xSlider->getScale() + 15, 0});
@@ -361,7 +361,7 @@ bool LabelEditLayer::init() {
     m_xSlider->disableSlider();
     m_ySlider->disableSlider();
 
-    auto nameLabel = CCLabelBMFont::create("Name:", "bigFont.fnt");
+    auto nameLabel = geode::Label::create("Name:", "bigFont.fnt");
     nameLabel->setScale(.5f);
     m_editMenu->addChildAtPosition(nameLabel, Anchor::TopRight, {-m_editMenu->getContentWidth() / 6, -nameLabel->getScaledContentHeight() / 2 - 5});
 
@@ -382,7 +382,7 @@ bool LabelEditLayer::init() {
         -m_nameInput->getScaledContentHeight() / 2 - nameLabel->getScaledContentHeight() - 10
     });
 
-    auto textLabel = CCLabelBMFont::create("Text:", "bigFont.fnt");
+    auto textLabel = geode::Label::create("Text:", "bigFont.fnt");
     textLabel->setScale(.5f);
     textLabel->setAnchorPoint({0, .5f});
     m_editMenu->addChildAtPosition(textLabel, Anchor::BottomLeft, {10, 15});
@@ -449,7 +449,7 @@ bool LabelEditLayer::init() {
     m_noLabelEditedOverlay->setOpacity(180);
     m_mainLayer->addChild(m_noLabelEditedOverlay);
 
-    m_noLabelEditedText = CCLabelBMFont::create("No label edited", "bigFont.fnt");
+    m_noLabelEditedText = geode::Label::create("No label edited", "bigFont.fnt");
     m_noLabelEditedText->setScale(.6f);
     m_noLabelEditedText->setAnchorPoint({.5f, .5f});
     m_noLabelEditedText->setPosition({
@@ -780,7 +780,7 @@ CCMenuItemSpriteExtra* LabelEditLayer::createAnchorButton(Anchor anchor, std::st
     // @geode-ignore(unknown-resource)
     auto bg = CCScale9Sprite::create("geode.loader/white-square.png");
 
-    auto btnText = CCLabelBMFont::create(text.c_str(), "bigFont.fnt");
+    auto btnText = geode::Label::create(text.c_str(), "bigFont.fnt");
     btnText->setScale(.35f);
 
     auto invertedAnchor = invertAnchor(anchor);

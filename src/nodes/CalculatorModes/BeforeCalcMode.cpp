@@ -27,7 +27,7 @@ bool BeforeCalcMode::init(CCSize const& size, geode::Function<void(std::string c
     beforePercentInput->setAnchorPoint({.5f, 1});
     this->addChild(beforePercentInput);
 
-    auto beforePercentInputLabel = CCLabelBMFont::create("Before percent", "bigFont.fnt");
+    auto beforePercentInputLabel = geode::Label::create("Before percent", "bigFont.fnt");
     beforePercentInputLabel->setScale(.45f);
     beforePercentInput->setPositionY(beforePercentInput->getPositionY() - beforePercentInputLabel->getScaledContentHeight());
     beforePercentInputLabel->setPosition(beforePercentInput->getPosition() + ccp(1.5f, 0));

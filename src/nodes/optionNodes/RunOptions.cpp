@@ -16,8 +16,8 @@ RunOptions* RunOptions::create(const CCSize& size) {
 }
 
 bool RunOptions::setup() {
-    auto TARLabel = CCLabelBMFont::create("Show any run", "gjFont17.fnt");
-    TARLabel->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
+    auto TARLabel = geode::Label::create("Show any run", "gjFont17.fnt");
+    TARLabel->setAlignment(geode::Label::Alignment::Left);
     TARLabel->setAnchorPoint({.5f, .5f});
     TARLabel->setScale(.6f);
     TARLabel->setPosition({size.width / 4, size.height - TARLabel->getScaledContentHeight() / 2});
@@ -134,9 +134,9 @@ bool RunOptions::setup() {
     sharedHideScroll->m_delegate = this;
     this->addChild(sharedHideScroll);
 
-    auto sharedHideLabel = CCLabelBMFont::create("Shared Max To Hide", "gjFont17.fnt");
+    auto sharedHideLabel = geode::Label::create("Shared Max To Hide", "gjFont17.fnt");
     sharedHideLabel->setScale(.5f);
-    sharedHideLabel->setWidth(size.width / 2 - sharedHideScroll->getContentWidth() - 10);
+    sharedHideLabel->setLimitLabelWidth(size.width / 2 - sharedHideScroll->getContentWidth() - 10);
     sharedHideLabel->setPosition(sharedHideScroll->getPosition() + ccp(0, sharedHideScroll->m_sliderBar->getScaledContentHeight() / 2 + 5));
     sharedHideLabel->setAnchorPoint({.5f, 0});
     this->addChild(sharedHideLabel);
@@ -198,9 +198,9 @@ bool RunOptions::setup() {
     });
     this->addChild(HidUpToInput);
 
-    auto HideUpToLabel = CCLabelBMFont::create("Hide Up To", "gjFont17.fnt");
+    auto HideUpToLabel = geode::Label::create("Hide Up To", "gjFont17.fnt");
     HideUpToLabel->setScale(.65f);
-    HideUpToLabel->setWidth(size.width / 2 - HidUpToInput->getContentWidth() - rightOffset);
+    HideUpToLabel->setLimitLabelWidth(size.width / 2 - HidUpToInput->getContentWidth() - rightOffset);
     HideUpToLabel->setPosition(HidUpToInput->getPosition() - ccp(HidUpToInput->getContentWidth() / 2 + rightOffset, 0));
     HideUpToLabel->setAnchorPoint({1, .5f});
     this->addChild(HideUpToLabel);
@@ -230,9 +230,9 @@ bool RunOptions::setup() {
     });
     this->addChild(RealEndPerInput);
 
-    auto RealEndPerLabel = CCLabelBMFont::create("Real End %", "gjFont17.fnt");
+    auto RealEndPerLabel = geode::Label::create("Real End %", "gjFont17.fnt");
     RealEndPerLabel->setScale(.65f);
-    RealEndPerLabel->setWidth(size.width / 2 - RealEndPerInput->getContentWidth() - rightOffset);
+    RealEndPerLabel->setLimitLabelWidth(size.width / 2 - RealEndPerInput->getContentWidth() - rightOffset);
     RealEndPerLabel->setPosition(RealEndPerInput->getPosition() - ccp(RealEndPerInput->getContentWidth() / 2 + rightOffset, 0));
     RealEndPerLabel->setAnchorPoint({1, .5f});
     this->addChild(RealEndPerLabel);
@@ -252,9 +252,9 @@ bool RunOptions::setup() {
     ResetAsDeathToggler->setPosition({size.width - ResetAsDeathToggler->getContentWidth() / 2 - rightOffset, size.height / 8 * 2});
     this->addChild(ResetAsDeathToggler);
 
-    auto ResetAsDeathLabel = CCLabelBMFont::create("Reset as Death", "gjFont17.fnt");
+    auto ResetAsDeathLabel = geode::Label::create("Reset as Death", "gjFont17.fnt");
     ResetAsDeathLabel->setScale(.65f);
-    ResetAsDeathLabel->setWidth(size.width / 2 - ResetAsDeathToggler->getContentWidth() - rightOffset);
+    ResetAsDeathLabel->setLimitLabelWidth(size.width / 2 - ResetAsDeathToggler->getContentWidth() - rightOffset);
     ResetAsDeathLabel->setPosition(ResetAsDeathToggler->getPosition() - ccp(ResetAsDeathToggler->getContentWidth() / 2 + rightOffset, 0));
     ResetAsDeathLabel->setAnchorPoint({1, .5f});
     this->addChild(ResetAsDeathLabel);

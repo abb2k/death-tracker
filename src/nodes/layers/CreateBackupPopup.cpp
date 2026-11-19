@@ -18,7 +18,7 @@ bool CreateBackupPopup::init() {
         return false;
     setTitle("Create Backup");
 
-    auto saveGeneralLabel = CCLabelBMFont::create("Save General Progress:", "bigFont.fnt");
+    auto saveGeneralLabel = geode::Label::create("Save General Progress:", "bigFont.fnt");
     saveGeneralLabel->setScale(.4f);
     saveGeneralLabel->setPosition({5, m_size.height - saveGeneralLabel->getScaledContentHeight() / 2 - 30});
     saveGeneralLabel->setAnchorPoint({0, 1});
@@ -38,7 +38,7 @@ bool CreateBackupPopup::init() {
     });
     btnMenu->addChild(saveGeneralToggler);
 
-    auto saveSessionLabel = CCLabelBMFont::create("Sessions Amount:", "bigFont.fnt");
+    auto saveSessionLabel = geode::Label::create("Sessions Amount:", "bigFont.fnt");
     saveSessionLabel->setScale(.4f);
     saveSessionLabel->setPosition({5, saveGeneralLabel->getPositionY() - saveGeneralLabel->getScaledContentHeight() - 20});
     saveSessionLabel->setAnchorPoint({0, 1});

@@ -68,12 +68,12 @@ bool LinkOptions::setup() {
     noneLinkedFoundText->setWrappingMode(WrappingMode::SPACE_WRAP);
     this->addChild(noneLinkedFoundText);
 
-    linkedScrollPageLabel = CCLabelBMFont::create("0/0", "bigFont.fnt");
+    linkedScrollPageLabel = geode::Label::create("0/0", "bigFont.fnt");
     linkedScrollPageLabel->setScale(.55f);
     linkedScrollPageLabel->setPosition(linkedScroll->getPosition() + ccp(linkedScroll->getContentWidth() / 2, linkedScroll->getContentHeight() + linkedScrollPageLabel->getScaledContentHeight() / 2 + 5));
     this->addChild(linkedScrollPageLabel);
 
-    auto linkedScrollLabel = CCLabelBMFont::create("Linked", "bigFont.fnt");
+    auto linkedScrollLabel = geode::Label::create("Linked", "bigFont.fnt");
     linkedScrollLabel->setScale(.55f);
     linkedScrollLabel->setPosition(linkedScrollPageLabel->getPosition() + ccp(0, linkedScrollPageLabel->getScaledContentHeight() / 2 + linkedScrollLabel->getScaledContentHeight() / 2 + 5));
     this->addChild(linkedScrollLabel);
@@ -105,12 +105,12 @@ bool LinkOptions::setup() {
     linkPageBackward->setPosition(linkedScrollPageLabel->getPosition() - ccp(arrowOffset, 0));
     this->addChild(linkPageBackward);
 
-    playedScrollPageLabel = CCLabelBMFont::create("0/0", "bigFont.fnt");
+    playedScrollPageLabel = geode::Label::create("0/0", "bigFont.fnt");
     playedScrollPageLabel->setScale(.55f);
     playedScrollPageLabel->setPosition(playedScroll->getPosition() + ccp(playedScroll->getContentWidth() / 2, playedScroll->getContentHeight() + playedScrollPageLabel->getScaledContentHeight() / 2 + 5));
     this->addChild(playedScrollPageLabel);
 
-    auto playedScrollLabel = CCLabelBMFont::create("Played", "bigFont.fnt");
+    auto playedScrollLabel = geode::Label::create("Played", "bigFont.fnt");
     playedScrollLabel->setScale(.55f);
     playedScrollLabel->setPosition(playedScrollPageLabel->getPosition() + ccp(0, playedScrollPageLabel->getScaledContentHeight() / 2 + playedScrollLabel->getScaledContentHeight() / 2 + 5));
     this->addChild(playedScrollLabel);
@@ -164,7 +164,7 @@ bool LinkOptions::setup() {
     });
     this->addChild(idToggler);
 
-    auto idTogglerLabel = CCLabelBMFont::create("ID", "bigFont.fnt");
+    auto idTogglerLabel = geode::Label::create("ID", "bigFont.fnt");
     idTogglerLabel->setScale(.5f);
     idTogglerLabel->setPosition(idToggler->getPosition() + ccp(idToggler->getScaledContentWidth() / 2 + idTogglerLabel->getScaledContentWidth() / 2 + 5, 0));
     this->addChild(idTogglerLabel);
@@ -187,10 +187,10 @@ bool LinkOptions::setup() {
     loadingCircle->setPosition(linkedScroll->getPosition() + linkedScroll->getContentSize() + ccp(5, -linkedScroll->getContentHeight() / 4));
     loadingCircle->show();
 
-    loadingLabel = CCLabelBMFont::create("Loading levels...", "bigFont.fnt");
+    loadingLabel = geode::Label::create("Loading levels...", "bigFont.fnt");
     loadingLabel->setScale(.75f);
     loadingLabel->setPosition(loadingCircle->getPosition() - ccp(0, loadingCircle->m_sprite->getScaledContentHeight() / 2 + loadingLabel->getScaledContentHeight() / 2 + 5));
-    loadingLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    loadingLabel->setAlignment(geode::Label::Alignment::Center);
     parentLayer->addChild(loadingLabel);
 
     auto linkInfo = TutorialButton::create(.75f, "link-overall", [
@@ -349,7 +349,7 @@ void LinkOptions::getAllLevelsData() {
 }
 
 void LinkOptions::onGetLevelsProgress(const GetLevelsTaskProgress& progress) {
-    geode::queueInMainThread([WeakRef = geode::WeakRef<CCLabelBMFont>(loadingLabel), progress]() {
+    geode::queueInMainThread([WeakRef = geode::WeakRef<geode::Label>(loadingLabel), progress]() {
         if (auto self = WeakRef.lock()) {
             self->setString(fmt::format("{}\n{}/{}", progress.message, progress.current, progress.max).c_str());
         }

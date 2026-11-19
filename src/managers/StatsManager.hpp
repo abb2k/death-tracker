@@ -144,7 +144,7 @@ public:
     static std::vector<std::string> splitStr(const std::string& str, const std::string& delim);
     
     //gets the index in which the CCLabelBMFonts cursor is located on the string
-    static int getCursorPosition(CCLabelBMFont* const& text, CCLabelBMFont* const& cursor);
+    static int getCursorPosition(geode::Label* const& text, geode::Label* const& cursor);
 
     //get if a key is in an index of a string
     //@param s the string to look for the key in

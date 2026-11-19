@@ -43,8 +43,8 @@ class BackupCell : public CCMenu {
 
         std::optional<BackupLevelData> backupData = std::nullopt;
 
-        CCLabelBMFont* titleLabel;
-        CCLabelBMFont* descriptionLabel;
+        geode::Label* titleLabel;
+        geode::Label* descriptionLabel;
 
         void onRevert(CCObject* sender);
         void onDelete(CCObject* sender);

@@ -40,17 +40,17 @@ bool LevelLinkCell::init(float width, const std::string& levelKey, const LevelMe
     diffSpr->setCascadeOpacityEnabled(true);
     this->addChild(diffSpr);
 
-    title = CCLabelBMFont::create(data.levelName.c_str(), "bigFont.fnt");
+    title = geode::Label::create(data.levelName.c_str(), "bigFont.fnt");
     title->setScale(.4f);
     titleWidth = width - diffSpr->getScaledContentWidth() - arrowBtn->getContentWidth() - 20;
-    title->setWidth(titleWidth);
+    title->setLimitLabelWidth(titleWidth);
     title->setCascadeOpacityEnabled(true);
     this->addChild(title);
 
-    att = CCLabelBMFont::create(fmt::format("{} attempts | levelID: {}", data.attempts, levelKey).c_str(), "chatFont.fnt");
+    att = geode::Label::create(fmt::format("{} attempts | levelID: {}", data.attempts, levelKey).c_str(), "chatFont.fnt");
     att->setScale(.5f);
     attWidth = width - diffSpr->getScaledContentWidth() - arrowBtn->getContentWidth() - 20;
-    att->setWidth(attWidth);
+    att->setLimitLabelWidth(attWidth);
     att->setCascadeOpacityEnabled(true);
     this->addChild(att);
 
@@ -65,10 +65,10 @@ void LevelLinkCell::setAlignment(bool left) {
     if (left) {
         diffSpr->setPosition({diffSpr->getScaledContentWidth() / 2 + 5, this->getContentHeight() / 2});
         title->setPosition({this->getContentWidth() / 2 - titleWidth / 2, this->getContentHeight() / 1.6f});
-        title->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
+        title->setAlignment(geode::Label::Alignment::Left);
         title->setAnchorPoint({0, 0.5f});
         att->setPosition({this->getContentWidth() / 2 - attWidth / 2, this->getContentHeight() / 3.5f});
-        att->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
+        att->setAlignment(geode::Label::Alignment::Left);
         att->setAnchorPoint({0, 0.5f});
         arrowBtn->setPosition({this->getContentWidth() - arrowBtn->getScaledContentWidth() / 2 - 5, this->getContentHeight() / 2});
         arrowBtn->setRotation(180);
@@ -76,10 +76,10 @@ void LevelLinkCell::setAlignment(bool left) {
     else {
         arrowBtn->setPosition({arrowBtn->getScaledContentWidth() / 2 + 5, this->getContentHeight() / 2});
         title->setPosition({this->getContentWidth() / 2 + titleWidth / 2, this->getContentHeight() / 1.6f});
-        title->setAlignment(CCTextAlignment::kCCTextAlignmentRight);
+        title->setAlignment(geode::Label::Alignment::Right);
         title->setAnchorPoint({1, 0.5f});
         att->setPosition({this->getContentWidth() / 2 + attWidth / 2, this->getContentHeight() / 3.5f});
-        att->setAlignment(CCTextAlignment::kCCTextAlignmentRight);
+        att->setAlignment(geode::Label::Alignment::Right);
         att->setAnchorPoint({1, 0.5f});
         diffSpr->setPosition({this->getContentWidth() - diffSpr->getScaledContentWidth() / 2 - 5, this->getContentHeight() / 2});
         arrowBtn->setRotation(0);

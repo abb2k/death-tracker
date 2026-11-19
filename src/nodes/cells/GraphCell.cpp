@@ -151,7 +151,7 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
     typeSwitcher->setValue(graphInfo.type, false);
     mainMenu->addChild(typeSwitcher);
     
-    auto typeSwitcherLabel = CCLabelBMFont::create("Type:", "bigFont.fnt");
+    auto typeSwitcherLabel = geode::Label::create("Type:", "bigFont.fnt");
     typeSwitcherLabel->setScale(.25f);
     typeSwitcherLabel->setPosition(typeSwitcher->getPosition() + ccp(
         0,
@@ -177,7 +177,7 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
     sessionContainer->setVisible(false);
     extrasContainer->addChild(sessionContainer);
     
-    sessionSelectorLabel = CCLabelBMFont::create("Session", "bigFont.fnt");
+    sessionSelectorLabel = geode::Label::create("Session", "bigFont.fnt");
     sessionSelectorLabel->setScale(.4f);
     sessionSelectorLabel->setAnchorPoint({.5f, 1});
     sessionContainer->addChild(sessionSelectorLabel);
@@ -205,7 +205,7 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
     sectionContainer->setVisible(false);
     extrasContainer->addChild(sectionContainer);
 
-    sectionSelectorLabel = CCLabelBMFont::create("Section:", "bigFont.fnt");
+    sectionSelectorLabel = geode::Label::create("Section:", "bigFont.fnt");
     sectionSelectorLabel->setScale(.4f);
     sectionSelectorLabel->setAnchorPoint({.5f, 1});
     sectionContainer->addChild(sectionSelectorLabel);
@@ -272,7 +272,7 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
     runContainer->setVisible(false);
     extrasContainer->addChild(runContainer);
     
-    runLabel = CCLabelBMFont::create("Run Start %", "bigFont.fnt");
+    runLabel = geode::Label::create("Run Start %", "bigFont.fnt");
     runLabel->setScale(.3f);
     runLabel->setAnchorPoint({.5f, 1});
     runContainer->addChild(runLabel);

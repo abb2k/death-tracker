@@ -60,8 +60,12 @@ class Save {
         static bool getLevelWasPTTransferred(std::string const& lvlKey);
         static void setLevelWasPTTransferred(std::string const& lvlKey);
 
+        static bool getDidInitLayout();
+        static void setDidInitLayout(const bool& b);
+
         static DTLayoutV3 getDefaultLayout();
         static CustomizationData getDefaultNewBestCustomizations();
         static CustomizationData getDefaultSessionBestCustomizations();
         static std::vector<DTGraphInfo> getDefaultGraphs();
+        static OverlayLabelSettings getDefaultOverlayLabels();
 };

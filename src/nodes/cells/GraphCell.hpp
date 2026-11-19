@@ -56,9 +56,9 @@ class GraphCell : public CCNode {
         
         CCNode* everythingParent;
         CCMenu* mainMenu;
-        CCLabelBMFont* sessionSelectorLabel;
+        geode::Label* sessionSelectorLabel;
         SessionSelector* sessionSelector;
-        CCLabelBMFont* runLabel;
+        geode::Label* runLabel;
         TextInput* runInput;
         CCMenuItemSpriteExtra* runSelectHelperBtn;
     private:
@@ -91,7 +91,7 @@ class GraphCell : public CCNode {
         
 
         CCNode* extrasContainer;
-        CCLabelBMFont* sectionSelectorLabel;
+        geode::Label* sectionSelectorLabel;
         CCMenuItemSpriteExtra* sectionSelectorBtn;
         FloatingList* sectionsFloatList;
         std::vector<Section> sections;

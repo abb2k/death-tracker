@@ -23,7 +23,7 @@ class SwitcherButton : public CCMenuItemSpriteExtra {
         std::vector<std::string> options;
         int currentOption = 0;
 
-        CCLabelBMFont* textLabel;
+        geode::Label* textLabel;
         CCScale9Sprite* mySpr;
 
         geode::Function<void(int)> onOptionChanged = NULL;

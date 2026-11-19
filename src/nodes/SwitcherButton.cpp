@@ -35,7 +35,7 @@ bool SwitcherButton::init(CCSize size, CCScale9Sprite* bgSpr, const std::vector<
 
     if (!CCMenuItemSpriteExtra::init(mySpr, nullptr, this, menu_selector(SwitcherButton::onClicked))) return false;
 
-    textLabel = CCLabelBMFont::create("", "goldFont.fnt");
+    textLabel = geode::Label::create("", "goldFont.fnt");
     textLabel->setPosition(mySpr->getContentSize() / 2 + ccp(0, 1.5f));
     textLabel->setCascadeOpacityEnabled(true);
     mySpr->addChild(textLabel);

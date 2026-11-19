@@ -29,7 +29,7 @@ bool CalculatorPopup::init() {
     CCMouseDispatcher::get()->removeDelegate(calcBG);
     m_mainLayer->addChild(calcBG);
 
-    auto modeLabel = CCLabelBMFont::create("Mode:", "bigFont.fnt");
+    auto modeLabel = geode::Label::create("Mode:", "bigFont.fnt");
     modeLabel->setScale(.5f);
     modeLabel->setPosition({
         m_size.width / 2,

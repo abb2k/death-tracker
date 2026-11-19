@@ -34,12 +34,12 @@ class ModifyOptions : public OptionsNode {
         CCScale9Sprite* f0BG;
         CCScale9Sprite* nbBG;
 
-        CCLabelBMFont* runLabel;
-        CCLabelBMFont* addRunSeperator;
-        CCLabelBMFont* runAmountLabel;
-        CCLabelBMFont* NBLabel;
-        CCLabelBMFont* f0AmountLabel;
-        CCLabelBMFont* f0Label;
+        geode::Label* runLabel;
+        geode::Label* addRunSeperator;
+        geode::Label* runAmountLabel;
+        geode::Label* NBLabel;
+        geode::Label* f0AmountLabel;
+        geode::Label* f0Label;
 
         TextInput* addNewBestInput;
         TextInput* addPercentInput;

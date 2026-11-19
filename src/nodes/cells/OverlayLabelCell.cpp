@@ -51,7 +51,7 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
         if (m_onChanged != NULL) m_onChanged(this);
     });
 
-    m_enableLabel = CCLabelBMFont::create("Enabled", "bigFont.fnt");
+    m_enableLabel = geode::Label::create("Enabled", "bigFont.fnt");
     m_enableLabel->setScale(.35f);
     m_enableLabel->setAnchorPoint({0, .5f});
     m_enableLabel->setPosition({m_enabledToggle->getPositionX() + m_enabledToggle->getScaledContentWidth() / 2 + 3, 10});
@@ -74,13 +74,13 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
         if (m_onChanged != NULL) m_onChanged(this);
     });
 
-    m_levelSpecificLabel = CCLabelBMFont::create("Level\nSpecific", "bigFont.fnt");
+    m_levelSpecificLabel = geode::Label::create("Level\nSpecific", "bigFont.fnt");
     m_levelSpecificLabel->setScale(.35f);
     m_levelSpecificLabel->setAnchorPoint({0, .5f});
     m_levelSpecificLabel->setPosition({m_levelSpecificToggle->getPositionX() + m_levelSpecificToggle->getScaledContentWidth() / 2 + 3, 18 + m_enabledToggle->getContentHeight()});
     settingsMenu->addChild(m_levelSpecificLabel);
 
-    m_orderLabel = CCLabelBMFont::create("Order:", "bigFont.fnt");
+    m_orderLabel = geode::Label::create("Order:", "bigFont.fnt");
     m_orderLabel->setScale(.35f);
     m_orderLabel->setAnchorPoint({0, .5f});
     m_orderLabel->setPosition({5, this->getContentHeight() / 2 + 9});

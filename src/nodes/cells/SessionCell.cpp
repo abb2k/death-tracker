@@ -36,7 +36,7 @@ bool SessionCell::init(float width, Session const& session) {
 
     std::string dateStr = DateFormatter::timeFormat(tm);
 
-    auto dateLabel = CCLabelBMFont::create(dateStr.c_str(), "bigFont.fnt");
+    auto dateLabel = geode::Label::create(dateStr.c_str(), "bigFont.fnt");
     dateLabel->setPosition({5, this->getContentHeight() - 7.5f});
     dateLabel->setAnchorPoint({0, 1});
     dateLabel->setScale(.2f);
@@ -45,7 +45,7 @@ bool SessionCell::init(float width, Session const& session) {
     auto deathCount = session.data.deaths.totalDeaths();
     auto runCount = session.data.runs.totalDeaths();
 
-    auto infoLabel = CCLabelBMFont::create(
+    auto infoLabel = geode::Label::create(
         fmt::format("deaths: {} | runs: {} | playtime: {}", deathCount, runCount, StatsManager::workingTime(session.data.playtimeGeneral.playtimeF0 + session.data.playtimeGeneral.playtimeRuns)).c_str(),
         "chatFont.fnt"
     );

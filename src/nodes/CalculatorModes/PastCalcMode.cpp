@@ -27,7 +27,7 @@ bool PastCalcMode::init(CCSize const& size, geode::Function<void(std::string con
     passPercentInput->setAnchorPoint({.5f, 1});
     this->addChild(passPercentInput);
 
-    auto passPercentInputLabel = CCLabelBMFont::create("Passed percent", "bigFont.fnt");
+    auto passPercentInputLabel = geode::Label::create("Passed percent", "bigFont.fnt");
     passPercentInputLabel->setScale(.45f);
     passPercentInput->setPositionY(passPercentInput->getPositionY() - passPercentInputLabel->getScaledContentHeight());
     passPercentInputLabel->setPosition(passPercentInput->getPosition() + ccp(1.5f, 0));

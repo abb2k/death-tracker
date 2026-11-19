@@ -30,7 +30,7 @@ class OptionSwitcher : public CCMenu {
         void setValue(E e, bool runCallback = false);
 
     private:
-        std::vector<CCLabelBMFont*> labels{};
+        std::vector<geode::Label*> labels{};
         std::vector<E> values{};
 
         void onLabelClicked(CCObject* sender);
@@ -72,7 +72,7 @@ bool OptionSwitcher<E>::init(float width, const std::vector<NamedEnumValue<E>>& 
 
     int index = 0;
     for (const NamedEnumValue<E>& opt : options) {
-        auto label = CCLabelBMFont::create(opt.name.c_str(), "bigFont.fnt");
+        auto label = geode::Label::create(opt.name.c_str(), "bigFont.fnt");
         if (label->getContentWidth() > width)
             label->setScale(width / label->getContentWidth());
         label->setPosition(labelsHolder->getContentSize() / 2);

@@ -350,7 +350,7 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         void resetLayoutTo(DTLayoutPreset const& preset);
 
-        static CCLabelBMFont* verText;
+        static geode::Label* verText;
         static CCParticleSystemQuad* verStarsParticle;
         static CCParticleSystemQuad* verSmokeParticle;
 

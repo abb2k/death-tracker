@@ -107,8 +107,8 @@ bool ModifyOptions::setup() {
     ));
     this->addChild(runF0Toggler);
 
-    auto currentRunModeLabel = CCLabelBMFont::create("From 0", "bigFont.fnt");
-    currentRunModeLabel->setAlignment(CCTextAlignment::kCCTextAlignmentRight);
+    auto currentRunModeLabel = geode::Label::create("From 0", "bigFont.fnt");
+    currentRunModeLabel->setAlignment(geode::Label::Alignment::Right);
     currentRunModeLabel->setAnchorPoint({1, .5f});
     currentRunModeLabel->setPosition(runF0Toggler->getPosition() + ccp(
         -5 - runF0Toggler->getScaledContentWidth() / 2,
@@ -205,7 +205,7 @@ bool ModifyOptions::setup() {
     runAmountInput->setCommonFilter(CommonFilter::Uint);
     runsBG->addChild(runAmountInput);
 
-    runAmountLabel = CCLabelBMFont::create("Amount", "bigFont.fnt");
+    runAmountLabel = geode::Label::create("Amount", "bigFont.fnt");
     runAmountLabel->setScale(.5f);
     runAmountLabel->setAnchorPoint({0.5f, 1});
     runAmountLabel->setPosition(runAmountInput->getPosition() + ccp(
@@ -250,7 +250,7 @@ bool ModifyOptions::setup() {
         else DTLayer::get()->specialStrings["sruns"]->updateContent();
     }, .9f);
 
-    addRunSeperator = CCLabelBMFont::create("-", "bigFont.fnt");
+    addRunSeperator = geode::Label::create("-", "bigFont.fnt");
     addRunSeperator->setPosition(runPMAlignNode->getPosition() + ccp(
         0,
         runPMAlignNode->getScaledContentHeight() / 2 + addRunSeperator->getScaledContentHeight() / 2
@@ -314,7 +314,7 @@ bool ModifyOptions::setup() {
         currentEndRunToAdd = numEnd;
     });
 
-    runLabel = CCLabelBMFont::create("Runs", "bigFont.fnt");
+    runLabel = geode::Label::create("Runs", "bigFont.fnt");
     runLabel->setScale(.5f);
     runLabel->setAnchorPoint({0, 1});
     runLabel->setPosition({
@@ -355,7 +355,7 @@ bool ModifyOptions::setup() {
     f0AmountInput->setCommonFilter(CommonFilter::Uint);
     f0BG->addChild(f0AmountInput);
 
-    f0AmountLabel = CCLabelBMFont::create("Amount", "bigFont.fnt");
+    f0AmountLabel = geode::Label::create("Amount", "bigFont.fnt");
     f0AmountLabel->setScale(.5f);
     f0AmountLabel->setAnchorPoint({0.5f, 1});
     f0AmountLabel->setPosition(f0AmountInput->getPosition() + ccp(
@@ -408,7 +408,7 @@ bool ModifyOptions::setup() {
     addPercentInput->setCommonFilter(CommonFilter::Float);
     f0BG->addChild(addPercentInput);
 
-    f0Label = CCLabelBMFont::create("From 0", "bigFont.fnt");
+    f0Label = geode::Label::create("From 0", "bigFont.fnt");
     f0Label->setScale(.5f);
     f0Label->setAnchorPoint({0, 1});
     f0Label->setPosition({
@@ -493,7 +493,7 @@ bool ModifyOptions::setup() {
     addNewBestInput->setCommonFilter(CommonFilter::Float);
     this->addChild(addNewBestInput);
 
-    NBLabel = CCLabelBMFont::create("New Bests", "bigFont.fnt");
+    NBLabel = geode::Label::create("New Bests", "bigFont.fnt");
     NBLabel->setScale(.4f);
     NBLabel->setAnchorPoint({0, 1});
     NBLabel->setPosition({

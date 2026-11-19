@@ -40,11 +40,11 @@ bool LabelEditSpecialKeyEditorPopup::init(geode::Function<void(const std::string
     m_operatorButton = makeSelector(">=", .65f, menu_selector(LabelEditSpecialKeyEditorPopup::onOperatorClick));
     m_operatorButton->setPosition({m_size.width * 2 / 3, 78});
 
-    m_scopeLabel = CCLabelBMFont::create("Coverage", "bigFont.fnt");
+    m_scopeLabel = geode::Label::create("Coverage", "bigFont.fnt");
     m_scopeLabel->setScale(.5f);
     m_mainLayer->addChild(m_scopeLabel);
 
-    m_operatorLabel = CCLabelBMFont::create("Scope", "bigFont.fnt");
+    m_operatorLabel = geode::Label::create("Scope", "bigFont.fnt");
     m_operatorLabel->setScale(.5f);
     m_mainLayer->addChild(m_operatorLabel);
 
@@ -250,7 +250,7 @@ void LabelEditSpecialKeyEditorPopup::updateControls() {
     auto setListPosition = [](FloatingList* list, CCMenuItemSpriteExtra* button) {
         list->setPosition(button->getPosition() - ccp(0, button->getScaledContentHeight() / 2));
     };
-    auto setLabelPosition = [](CCLabelBMFont* label, CCMenuItemSpriteExtra* button) {
+    auto setLabelPosition = [](geode::Label* label, CCMenuItemSpriteExtra* button) {
         label->setPosition(button->getPosition() + ccp(
             0,
             button->getScaledContentHeight() / 2 + label->getScaledContentHeight() / 2 + 2

@@ -31,7 +31,7 @@ class DTGraphLayer : public Popup, public GraphPointDelegate, public FLAlertLaye
     private:
         //graph stuff
 
-        CCLabelBMFont* noGraphLabel;
+        geode::Label* noGraphLabel;
 
         //change the displayed point
         void OnPointSelected(GraphPoint* point) override;

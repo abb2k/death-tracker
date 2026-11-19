@@ -22,13 +22,13 @@ bool GraphPointDisplay::init() {
     bg->setContentSize((this->getContentSize() - ccp(0, 2.5f)) / bg->getScale());
     this->addChild(bg);
 
-    percentLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    percentLabel = geode::Label::create("", "bigFont.fnt");
     percentLabel->setScale(.4f);
     percentLabel->setPosition({this->getContentWidth() / 2, this->getContentHeight() - 6.5f});
     percentLabel->setAnchorPoint({.5f, 1});
     this->addChild(percentLabel);
     
-    rateLabel = CCLabelBMFont::create("", "bigFont.fnt");
+    rateLabel = geode::Label::create("", "bigFont.fnt");
     rateLabel->setScale(.25f);
     rateLabel->setPosition({this->getContentWidth() / 2, 6});
     rateLabel->setAnchorPoint({.5f, 0});
@@ -38,7 +38,7 @@ bool GraphPointDisplay::init() {
 }
 
 void GraphPointDisplay::setContent(std::string run, float ratePercent, DTGraphType type, ccColor3B graphInner, ccColor3B graphOuter) {
-    auto setFittedText = [this](CCLabelBMFont* label, const std::string& text, float baseScale) {
+    auto setFittedText = [this](geode::Label* label, const std::string& text, float baseScale) {
         label->setString(text.c_str());
         label->setScale(baseScale);
         const float maxWidth = this->getContentWidth() - 8;

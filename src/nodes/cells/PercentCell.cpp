@@ -36,10 +36,10 @@ bool PercentCell::init(float width, int percent, int maxToHide, CCNode* sideButt
     button->setID("btn");
     this->addChild(button);
 
-    auto label = CCLabelBMFont::create(fmt::format("{}%", percent).c_str(), "gjFont17.fnt");
-    label->setWidth(width - button->getContentWidth() / 2);
+    auto label = geode::Label::create(fmt::format("{}%", percent).c_str(), "gjFont17.fnt");
+    label->setLimitLabelWidth(width - button->getContentWidth() / 2);
     label->setScale(.6f);
-    label->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
+    label->setAlignment(geode::Label::Alignment::Left);
     label->setAnchorPoint({0, .5f});
     label->setPosition({5, this->getContentHeight() / 2});
     label->setID("percent-label");
@@ -58,11 +58,11 @@ bool PercentCell::init(float width, int percent, int maxToHide, CCNode* sideButt
     MTHScroll->setID("mth-slider");
     this->addChild(MTHScroll);
 
-    auto MTHLabel = CCLabelBMFont::create("Max to\nHide:", "bigFont.fnt");
+    auto MTHLabel = geode::Label::create("Max to\nHide:", "bigFont.fnt");
     MTHLabel->setPosition({width / 2, this->getContentHeight() - 2});
     MTHLabel->setAnchorPoint({1, 1});
     MTHLabel->setScale(.3f);
-    MTHLabel->setAlignment(CCTextAlignment::kCCTextAlignmentRight);
+    MTHLabel->setAlignment(geode::Label::Alignment::Right);
     MTHLabel->setID("mth-label");
     this->addChild(MTHLabel);
 

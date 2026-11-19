@@ -24,7 +24,7 @@
 #include <nodes/layers/DTColorPickerPopup.hpp>
 
 float DTLayer::transitionTime = .35f;
-CCLabelBMFont* DTLayer::verText = nullptr;
+geode::Label* DTLayer::verText = nullptr;
 CCParticleSystemQuad* DTLayer::verStarsParticle = nullptr;
 CCParticleSystemQuad* DTLayer::verSmokeParticle = nullptr;
 
@@ -98,7 +98,7 @@ bool DTLayer::init(GJGameLevel* const& level) {
         verContainer->setPosition({5, 5});
         verContainer->setScale(.5f);
 
-        verText = CCLabelBMFont::create(Mod::get()->getVersion().toVString(true).c_str(), "gjFont17.fnt");
+        verText = geode::Label::create(Mod::get()->getVersion().toVString(true), "gjFont17.fnt");
         verText->setAnchorPoint({0, 0});
         verText->setOpacity(0);
         verContainer->addChild(verText);
@@ -686,7 +686,7 @@ bool DTLayer::init(GJGameLevel* const& level) {
     });
     colorMenu->addChild(newBestColorBtn);
 
-    auto newBestColorBtnLabel = CCLabelBMFont::create("New Best Color", "bigFont.fnt");
+    auto newBestColorBtnLabel = geode::Label::create("New Best Color", "bigFont.fnt");
     newBestColorBtnLabel->setScale(.3f);
     newBestColorBtnLabel->setAnchorPoint({.5f, 0});
     newBestColorBtnLabel->setCascadeOpacityEnabled(true);
@@ -711,10 +711,10 @@ bool DTLayer::init(GJGameLevel* const& level) {
     });
     colorMenu->addChild(sessionBestColorBtn);
 
-    auto sessionBestColorBtnLabel = CCLabelBMFont::create("Session Best\nColor", "bigFont.fnt");
+    auto sessionBestColorBtnLabel = geode::Label::create("Session Best\nColor", "bigFont.fnt");
     sessionBestColorBtnLabel->setScale(.3f);
     sessionBestColorBtnLabel->setAnchorPoint({.5f, 0});
-    sessionBestColorBtnLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    sessionBestColorBtnLabel->setAlignment(geode::Label::Alignment::Center);
     sessionBestColorBtnLabel->setCascadeOpacityEnabled(true);
     sessionBestColorBtnLabel->setPosition(sessionBestColorBtn->getPosition() + ccp(
         0,

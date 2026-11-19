@@ -18,6 +18,6 @@ class GraphPointDisplay : public CCNode {
     
     private:
 
-        CCLabelBMFont* percentLabel;
-        CCLabelBMFont* rateLabel;
+        geode::Label* percentLabel;
+        geode::Label* rateLabel;
 };

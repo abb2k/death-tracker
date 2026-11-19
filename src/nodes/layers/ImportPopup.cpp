@@ -77,7 +77,7 @@ bool ImportPopup::init() {
     auto fromDTBtnC1 = m_mainLayer->convertToNodeSpace(fromDTBtn->convertToWorldSpace({0, 0}));
     auto fromDTBtnC2 = m_mainLayer->convertToNodeSpace(fromDTBtn->convertToWorldSpace(fromDTBtn->getContentSize()));
 
-    auto fromDTLabel = CCLabelBMFont::create("From DT File", "bigFont.fnt");
+    auto fromDTLabel = geode::Label::create("From DT File", "bigFont.fnt");
     fromDTLabel->setScale(.5f);
     fromDTLabel->setPosition((fromDTBtnC1 + fromDTBtnC2) / 2 + ccp(0, fromDTBtnC2.y - fromDTBtnC1.y) / 2);
     fromDTLabel->setAnchorPoint({.5f, 0});
@@ -86,13 +86,13 @@ bool ImportPopup::init() {
     auto fromTextBtnC1 = m_mainLayer->convertToNodeSpace(fromTextBtn->convertToWorldSpace({0, 0}));
     auto fromTextBtnC2 = m_mainLayer->convertToNodeSpace(fromTextBtn->convertToWorldSpace(fromTextBtn->getContentSize()));
 
-    auto fromTextLabel = CCLabelBMFont::create("From Text", "bigFont.fnt");
+    auto fromTextLabel = geode::Label::create("From Text", "bigFont.fnt");
     fromTextLabel->setScale(.5f);
     fromTextLabel->setPosition((fromTextBtnC1 + fromTextBtnC2) / 2 + ccp(0, fromTextBtnC2.y - fromTextBtnC1.y) / 2);
     fromTextLabel->setAnchorPoint({.5f, 0});
     m_mainLayer->addChild(fromTextLabel);
 
-    auto fromTextCSLabel = CCLabelBMFont::create("(coming soon)", "bigFont.fnt");
+    auto fromTextCSLabel = geode::Label::create("(coming soon)", "bigFont.fnt");
     fromTextCSLabel->setScale(.25f);
     fromTextCSLabel->setPosition((fromTextBtnC1 + fromTextBtnC2) / 2 - ccp(0, fromTextBtnC2.y - fromTextBtnC1.y) / 2);
     fromTextCSLabel->setAnchorPoint({.5f, 1});

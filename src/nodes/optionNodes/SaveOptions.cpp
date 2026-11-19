@@ -39,9 +39,9 @@ bool SaveOptions::setup() {
     deleteBtn->setPosition({deleteBtn->getContentWidth() / 2 + 5, deleteBtn->getContentHeight() / 2 + 5});
     this->addChild(deleteBtn);
 
-    auto deleteBtnLabel = CCLabelBMFont::create("Delete Save", "bigFont.fnt");
+    auto deleteBtnLabel = geode::Label::create("Delete Save", "bigFont.fnt");
     deleteBtnLabel->setScale(.45f);
-    deleteBtnLabel->setWidth(size.width / 2 - deleteBtn->getContentWidth());
+    deleteBtnLabel->setLimitLabelWidth(size.width / 2 - deleteBtn->getContentWidth());
     deleteBtnLabel->setAnchorPoint({0, .5f});
     deleteBtnLabel->setPosition(deleteBtn->getPosition() + ccp(deleteBtn->getContentWidth() / 2 + 5, 0));
     this->addChild(deleteBtnLabel);
@@ -55,9 +55,9 @@ bool SaveOptions::setup() {
     openSaveBtn->setPosition(deleteBtn->getPosition() + ccp(0, deleteBtn->getScaledContentHeight()));
     this->addChild(openSaveBtn);
 
-    auto openSaveBtnLabel = CCLabelBMFont::create("Open save directory", "bigFont.fnt");
+    auto openSaveBtnLabel = geode::Label::create("Open save directory", "bigFont.fnt");
     openSaveBtnLabel->setScale(.45f);
-    openSaveBtnLabel->setWidth(size.width / 2 - openSaveBtn->getContentWidth());
+    openSaveBtnLabel->setLimitLabelWidth(size.width / 2 - openSaveBtn->getContentWidth());
     openSaveBtnLabel->setAnchorPoint({0, .5f});
     openSaveBtnLabel->setPosition(openSaveBtn->getPosition() + ccp(openSaveBtn->getContentWidth() / 2 + 5, 0));
     this->addChild(openSaveBtnLabel);
@@ -72,9 +72,9 @@ bool SaveOptions::setup() {
     backupBtn->setPosition({size.width / 2 + backupBtn->getContentWidth() / 2, size.height - backupBtn->getContentHeight() / 2});
     this->addChild(backupBtn);
 
-    auto backupBtnLabel = CCLabelBMFont::create("Create Backup", "bigFont.fnt");
+    auto backupBtnLabel = geode::Label::create("Create Backup", "bigFont.fnt");
     backupBtnLabel->setScale(.6f);
-    backupBtnLabel->setWidth(size.width / 2 - backupBtn->getContentWidth());
+    backupBtnLabel->setLimitLabelWidth(size.width / 2 - backupBtn->getContentWidth());
     backupBtnLabel->setAnchorPoint({0, .5f});
     backupBtnLabel->setPosition(backupBtn->getPosition() + ccp(backupBtn->getContentWidth() / 2 + 5, 0));
     this->addChild(backupBtnLabel);
@@ -95,17 +95,17 @@ bool SaveOptions::setup() {
     autoBackupToggler->setPosition(backupBtn->getPosition() - ccp(0, backupBtn->getContentWidth() / 2 + autoBackupToggler->getContentWidth() / 2 + 5));
     this->addChild(autoBackupToggler);
 
-    auto autoBackupsLabel = CCLabelBMFont::create("Auto Backups", "bigFont.fnt");
+    auto autoBackupsLabel = geode::Label::create("Auto Backups", "bigFont.fnt");
     autoBackupsLabel->setScale(.6f);
-    autoBackupsLabel->setWidth(size.width / 2 - autoBackupToggler->getContentWidth());
+    autoBackupsLabel->setLimitLabelWidth(size.width / 2 - autoBackupToggler->getContentWidth());
     autoBackupsLabel->setAnchorPoint({0, .5f});
     autoBackupsLabel->setPosition(autoBackupToggler->getPosition() + ccp(autoBackupToggler->getContentWidth() / 2 + 5, 0));
     this->addChild(autoBackupsLabel);
 
-    auto backupsScrollLabel = CCLabelBMFont::create("Backups", "bigFont.fnt");
+    auto backupsScrollLabel = geode::Label::create("Backups", "bigFont.fnt");
     backupsScrollLabel->setScale(.6f);
-    backupsScrollLabel->setWidth(size.width / 2);
-    backupsScrollLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    backupsScrollLabel->setLimitLabelWidth(size.width / 2);
+    backupsScrollLabel->setAlignment(geode::Label::Alignment::Center);
     backupsScrollLabel->setPosition({autoBackupsLabel->getPositionX() + autoBackupsLabel->getScaledContentWidth() / 2, autoBackupsLabel->getPositionY() - autoBackupsLabel->getContentHeight() / 2 - backupsScrollLabel->getContentHeight() / 2 - 5});
     this->addChild(backupsScrollLabel);
 
@@ -138,9 +138,9 @@ bool SaveOptions::setup() {
     exportBtn->setPosition({exportBtn->getContentWidth() / 2 + 5, size.height - exportBtn->getContentHeight() / 2});
     this->addChild(exportBtn);
 
-    auto exportBtnLabel = CCLabelBMFont::create("Export Save", "bigFont.fnt");
+    auto exportBtnLabel = geode::Label::create("Export Save", "bigFont.fnt");
     exportBtnLabel->setScale(.6f);
-    exportBtnLabel->setWidth(size.width / 2 - exportBtn->getContentWidth());
+    exportBtnLabel->setLimitLabelWidth(size.width / 2 - exportBtn->getContentWidth());
     exportBtnLabel->setAnchorPoint({0, .5f});
     exportBtnLabel->setPosition(exportBtn->getPosition() + ccp(exportBtn->getContentWidth() / 2 + 5, 0));
     this->addChild(exportBtnLabel);
@@ -161,9 +161,9 @@ bool SaveOptions::setup() {
     importBtn->setPosition(exportBtn->getPosition() - ccp(0, exportBtn->getContentHeight() / 2 + importBtn->getContentHeight() / 2 + 5));
     this->addChild(importBtn);
 
-    auto importBtnLabel = CCLabelBMFont::create("Import Save", "bigFont.fnt");
+    auto importBtnLabel = geode::Label::create("Import Save", "bigFont.fnt");
     importBtnLabel->setScale(.6f);
-    importBtnLabel->setWidth(size.width / 2 - importBtn->getContentWidth());
+    importBtnLabel->setLimitLabelWidth(size.width / 2 - importBtn->getContentWidth());
     importBtnLabel->setAnchorPoint({0, .5f});
     importBtnLabel->setPosition(importBtn->getPosition() + ccp(importBtn->getContentWidth() / 2 + 5, 0));
     this->addChild(importBtnLabel);

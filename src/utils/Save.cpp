@@ -140,6 +140,13 @@ void Save::setLevelWasPTTransferred(std::string const& lvlKey) {
     Mod::get()->setSavedValue("PTTransferData", PTTransferData);
 }
 
+bool Save::getDidInitLayout() {
+    return Mod::get()->getSavedValue<bool>("didInitLayout");
+}
+void Save::setDidInitLayout(const bool& b) {
+    Mod::get()->setSavedValue("didInitLayout", b);
+}
+
 DTLayoutV3 Save::getDefaultLayout() {
     return DTLayoutV3{
         .columns = std::vector<DTColumnInfo>{
@@ -506,6 +513,24 @@ std::vector<DTGraphInfo> Save::getDefaultGraphs() {
             .outlineColor = {18, 162, 53, 255},
             .pointColor = {15, 105, 41, 255},
             .name = "general from0"
+        }
+    };
+}
+
+OverlayLabelSettings Save::getDefaultOverlayLabels() {
+    return OverlayLabelSettings {
+        .labels = {
+            OverlayLabel{
+                .labelName = "latest death",
+                .text = "Latest Death: {(g)cd}",
+                .enabled = false
+            },
+            OverlayLabel{
+                .labelName = "best runs",
+                .text = "Best Runs Today: {(d)3b}",
+                .order = 1,
+                .enabled = false
+            }
         }
     };
 }

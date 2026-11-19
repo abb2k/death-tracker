@@ -1,11 +1,13 @@
 #include <Geode/Geode.hpp>
-using namespace geode::prelude;
-#include "utils/Save.hpp"
-#include "managers/StatsManager.hpp"
-#include "utils/Settings.hpp"
+
+#include <utils/Save.hpp>
+#include <managers/StatsManager.hpp>
+#include <utils/Settings.hpp>
 #include <Geode/utils/web.hpp>
 
 #include <managers/LinkedLevelsCacheManager.hpp>
+
+using namespace geode::prelude;
 
 $execute {
     (void)file::createDirectory(Mod::get()->getSaveDir() / "levels");
@@ -17,13 +19,20 @@ $execute {
 
     // StatsManager::logGameOpening();
 
-    if (Save::getLayout().isEmpty()) {
+    if (!Save::getLayout().isEmpty())
+        Save::setDidInitLayout(true);
+
+    if (!Save::getDidInitLayout()) {
         Save::setLayout(Save::getDefaultLayout());
 
         Save::setGraphs(Save::getDefaultGraphs());
 
         Save::setNewBestCustomizations(Save::getDefaultNewBestCustomizations());
         Save::setSessionBestCustomizations(Save::getDefaultSessionBestCustomizations());
+
+        Save::setOverlayLabels(Save::getDefaultOverlayLabels());
+
+        Save::setDidInitLayout(true);
     }
 
     if (Settings::getPreloadLinked())
@@ -36,7 +45,7 @@ $on_mod(Loaded) {
 
     for (int i = 0; i < allFonts.size(); i++)
     {
-        auto label = CCLabelBMFont::create("abcdefghijclmnopqrstuvwxyz{}-", allFonts[i].c_str());
+        auto label = geode::Label::create("abcdefghijclmnopqrstuvwxyz{}-", allFonts[i].c_str());
         CCScene::get()->addChild(label);
         label->removeMeAndCleanup();
     }
