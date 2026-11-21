@@ -1,5 +1,24 @@
 # Changelog
 
+## v3.1.0
+- added decimal percentages support + more death data such as timestamps for deaths and such
+- added "Overlay Labels" to display information of your deaths in-level!! :D
+- "reset as death" is now turned ON by default!
+- added donor cosmetic features like the gradient and wave/shake text effects!
+- fixed RichTextArea to support many new things such as the default GD color tags
+- the \<color\> key now supports opacity
+- added section related graphs
+- improved session grouping accuracy
+- now when having "quick save" turned off, it will save your game on pause AND on level exit to reduce lost attempts
+- added the "runatt" special key to show your death tracker attempts from each start percent of a run
+- added the "recentDeaths" special key to display your top 10 most recent deaths!
+- added a way to insert a column to the layout between existing columns instead of only at the end
+- cheat detection now flags runs as cheatec instead of outright deleting ur runs
+- added the "cheatedGeneral" "cheatedRuns" and "cheatedAttempts" to display your cheat flagged runs
+- improved link menu loading time
+
+- fixed lots of bugs
+
 ## v3.0.9
 - fixed a bug where the first run after opening a level when not playing from 0 will not track for no reason
 - fixed deleting save data while inside of a level causing data corruption

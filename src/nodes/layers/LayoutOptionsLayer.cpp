@@ -333,29 +333,6 @@ bool LayoutOptionsLayer::init(const CCSize& size) {
     hideHeaderTogglerLabel->setAnchorPoint({1, .5f});
     labelSettingsNode->addChild(hideHeaderTogglerLabel);
 
-    // this->addEventListener(
-    //     KeybindSettingPressedEvent(
-    //         Mod::get(),
-    //         "enter-new-line"
-    //     ),
-    //     [&](const Keybind& keybind, bool down, bool repeat, double) {
-    //         if (down && editedLabel.has_value()) {
-    //             TextInput* toEdit = nullptr;
-
-    //             if (labelTextInput->isFocused()) {
-    //                 toEdit = labelTextInput;
-    //             }
-    //             else if (labelTextSpecialKeysInput->isFocused()) toEdit = labelTextSpecialKeysInput;
-                
-    //             if (toEdit == nullptr) return;
-
-    //             auto str = std::string(toEdit->getString());
-    //             str += "{nl}";
-    //             toEdit->setString(str, true);
-    //         }
-    //     }
-    // );
-
     fontSelectionNode->setScaleY(0);
     labelSettingsNode->setScaleY(0);
     columnSettingsNode->setScaleY(0);

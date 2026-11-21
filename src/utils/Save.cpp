@@ -400,6 +400,20 @@ DTLayoutV3 Save::getDefaultLayout() {
                 .isExpanded = true,
                 .wrapping = static_cast<WrappingMode>(3)
             },
+            DTLabelInfo{
+                .minPlacementRange = 0,
+                .maxPlacementRange = 0,
+                .layer = 4,
+                .labelName = "Run Attempts",
+                .text = "{runatt}",
+                .font = "chatFont.fnt",
+                .horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .labelColor = {170, 170, 170, 255},
+                .textColor = {255, 255, 255, 255},
+                .scale = 0.6499999761581421f,
+                .isExpanded = true,
+                .wrapping = static_cast<WrappingMode>(2)
+            },
         }
     };
 }

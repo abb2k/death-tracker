@@ -1,5 +1,5 @@
 {
-	"geode": "6.0.0-alpha.2",
+	"geode": "6.0.0-beta.1",
 	"gd": {
         "android": "2.2091",
         "win": "2.2091",
@@ -8,7 +8,7 @@
     },
 	"id": "elohmrow.death_tracker",
 	"name": "Death Tracker",
-	"version": "v3.0.10",
+	"version": "v3.1.0",
 	"developer": "abb2k",
 	"description": "Tracks your deaths at every percentage",
 	"links": {
@@ -188,20 +188,6 @@
 			"name": "Claim Donation",
 			"description": "This is used to claim donations in the death tracker",
 			"type": "custom:claim-dono-setting-type-dt"
-		},
-		"enter-new-line":{
-			"type": "keybind",
-            "name": "Enter new line",
-            "description": "Enters a new line when editing a labels text",
-            "category": "universal",
-			"allow-in-text-inputs": true,
-            "migrate-from": "elohmrow.death_tracker/enter-new-line",
-            "default": {
-				"win": ["Enter"],
-				"mac": ["Enter"],
-				"ios": ["Enter"],
-				"android": ["Enter"]
-			}
 		},
 		"enter-new-run-per":{
 			"type": "keybind",

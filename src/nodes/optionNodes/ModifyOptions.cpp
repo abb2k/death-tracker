@@ -268,13 +268,14 @@ bool ModifyOptions::setup() {
     addRunEndInput->setCommonFilter(CommonFilter::Float);
     runsBG->addChild(addRunEndInput);
 
-    addRunStartInput->setCallback([&](auto newstr) {
-        if (newstr == "-" && addRunStartInput->isFocused()) {
+    addRunStartInput->setCallback([&](std::string const& newstr) {
+        if (newstr.contains("-") && addRunStartInput->isFocused()) {
             addRunStartInput->unfocus();
             addRunEndInput->focus();
             addRunEndInput->setString("");
             addRunSeperator->setColor({ 0, 255, 0 });
             addRunSeperator->runAction(CCTintTo::create(.5f, 255, 255, 255));
+            addRunStartInput->setString(newstr.substr(0, newstr.find("-")));
             return;
         }
 
@@ -292,12 +293,13 @@ bool ModifyOptions::setup() {
     });
 
     addRunEndInput->setCallback([&](auto newstr) {
-        if (newstr == "-" && addRunEndInput->isFocused()) {
+        if (newstr.contains("-") && addRunEndInput->isFocused()) {
             addRunEndInput->unfocus();
             addRunStartInput->focus();
             addRunStartInput->setString("");
             addRunSeperator->setColor({ 0, 255, 0 });
             addRunSeperator->runAction(CCTintTo::create(.5f, 255, 255, 255));
+            addRunEndInput->setString(newstr.substr(0, newstr.find("-")));
             return;
         }
 
@@ -609,14 +611,18 @@ bool ModifyOptions::setup() {
             if (down) {
                 if (addNewBestInput->isFocused()) {
                     addNB(nullptr);
+                    return ListenerResult::Stop;
                 }
                 else if (addRunStartInput->isFocused() || addRunEndInput->isFocused()) {
                     (*plusMinusCallbacks[holdersOfPlusMinusBtns[runPMAlignNode].first])(true);
+                    return ListenerResult::Stop;
                 }
                 else if (addPercentInput->isFocused()) {
                     (*plusMinusCallbacks[holdersOfPlusMinusBtns[f0PMAlignNode].first])(true);
+                    return ListenerResult::Stop;
                 }
             }
+            return ListenerResult::Propagate;
         }
     );
     this->addEventListener(
@@ -628,14 +634,18 @@ bool ModifyOptions::setup() {
             if (down) {
                 if (addNewBestInput->isFocused()) {
                     removeNB(nullptr);
+                    return ListenerResult::Stop;
                 }
                 else if (addRunStartInput->isFocused() || addRunEndInput->isFocused()) {
                     (*plusMinusCallbacks[holdersOfPlusMinusBtns[runPMAlignNode].second])(false);
+                    return ListenerResult::Stop;
                 }
                 else if (addPercentInput->isFocused()) {
                     (*plusMinusCallbacks[holdersOfPlusMinusBtns[f0PMAlignNode].second])(false);
+                    return ListenerResult::Stop;
                 }
             }
+            return ListenerResult::Propagate;
         }
     );
 

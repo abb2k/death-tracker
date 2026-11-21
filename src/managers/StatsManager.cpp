@@ -783,8 +783,7 @@ Result<std::string> StatsManager::getLevelKey(GJGameLevel* const& level) {
 
     if (level->m_levelType == GJLevelType::Editor) {
         auto idRes = EditorIDs::getID(level);
-        if (idRes.isErr()) return Err("Failed to get editor ID!");
-        levelId += std::to_string(idRes.unwrap());
+        levelId += std::to_string(idRes);
     }
     else {
         levelId += std::to_string(level->m_levelID.value());
