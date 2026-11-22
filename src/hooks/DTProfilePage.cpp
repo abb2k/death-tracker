@@ -1,6 +1,6 @@
 #include "DTProfilePage.hpp"
 
-#include <alphalaneous.badgify/Badgify.hpp>
+// #include <alphalaneous.badgify/Badgify.hpp>
 
 void DTProfilePage::loadPageFromUserInfo(GJUserScore* user) {
     ProfilePage::loadPageFromUserInfo(user);
@@ -114,19 +114,19 @@ void DTProfilePage::onBadgeClicked(CCObject* sender){
 //     });
 // }
 
-$on_mod(Loaded) {
-    alpha::badgify::registerBadge(
-        "doner-badge"_spr,
-        "Death Tracker Donator",
-        "<cg>This user</c> has <cs>donated</c> to the development of\n<cc>Death Tracker</c>! :D",
-        [] (const alpha::badgify::Badge& badge) {
-            CCSprite* theBadgeSprite = CCSprite::createWithSpriteFrameName("doner-badge.png"_spr);
+// $on_mod(Loaded) {
+//     alpha::badgify::registerBadge(
+//         "doner-badge"_spr,
+//         "Death Tracker Donator",
+//         "<cg>This user</c> has <cs>donated</c> to the development of\n<cc>Death Tracker</c>! :D",
+//         [] (const alpha::badgify::Badge& badge) {
+//             CCSprite* theBadgeSprite = CCSprite::createWithSpriteFrameName("doner-badge.png"_spr);
 
-            DTProfilePage::checkUserDonorBadge(badge.user.data()->m_accountID, [badge, spr = geode::Ref(theBadgeSprite)](bool isDonor) mutable {
-                if (isDonor) {
-                    alpha::badgify::showBadge(badge, spr);
-                }
-            });
-        }
-    );
-};
+//             DTProfilePage::checkUserDonorBadge(badge.user.data()->m_accountID, [badge, spr = geode::Ref(theBadgeSprite)](bool isDonor) mutable {
+//                 if (isDonor) {
+//                     alpha::badgify::showBadge(badge, spr);
+//                 }
+//             });
+//         }
+//     );
+// };
