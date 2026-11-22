@@ -7,22 +7,30 @@
 
 #include <managers/LinkedLevelsCacheManager.hpp>
 
+#include <atomic>
+#include <memory>
 
 using namespace geode::prelude;
 
 class LinkOptions : public OptionsNode {
     public:
         static LinkOptions* create(const CCSize& size);
+        ~LinkOptions() override;
     private:
-        virtual bool setup();
+        virtual bool setup() override;
 
         void getAllLevelsData();
 
         void onGetLevels(GetLevelsFuture::Output const& out);
         void onGetLevelsProgress(const GetLevelsTaskProgress& progress);
 
-        unsigned int currentLinkedPage;
-        unsigned int currentPlayedPage;
+        std::shared_ptr<std::atomic<LinkOptions*>> callbackOwner = std::make_shared<std::atomic<LinkOptions*>>(nullptr);
+        std::vector<LinkData> cachedLevels;
+        bool levelsLoaded = false;
+        bool levelsLoading = false;
+
+        unsigned int currentLinkedPage = 0;
+        unsigned int currentPlayedPage = 0;
 
         std::optional<unsigned int> maxLinkedPage;
         std::optional<unsigned int> maxPlayedPage;
@@ -45,16 +53,16 @@ class LinkOptions : public OptionsNode {
         geode::Label* linkedScrollPageLabel;
 
         std::string searchStr;
-        bool searchForID;
+        bool searchForID = false;
         TextInput* searchBar;
 
-        void update(float dt);
+        void update(float dt) override;
 
         geode::Label* loadingLabel;
         LoadingCircle* loadingCircle;
         CCScale9Sprite* loadingShadow;
 
     public:
-        virtual void onOpened();
-        virtual void onClosed();
+        virtual void onOpened() override;
+        virtual void onClosed() override;
 };

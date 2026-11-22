@@ -13,7 +13,7 @@ class RunOptions : public OptionsNode, public SliderDelegate {
         static RunOptions* create(const CCSize& size);
 
     private:
-        virtual bool setup();
+        virtual bool setup() override;
 
         void onAddNewRun(CCObject*);
         bool addNewRun(int percent);
@@ -33,12 +33,12 @@ class RunOptions : public OptionsNode, public SliderDelegate {
         void onSharedHideScroll(CCObject*);
 
         Slider* sharedHideScroll;
-        void sliderEnded(Slider* slider);
+        void sliderEnded(Slider* slider) override;
         TextInput* sharedRunsToShowInput;
 
         Scrollbar* runsScrollBar;
 
     public:
-        virtual void onOpened();
-        virtual void onClosed();
+        virtual void onOpened() override;
+        virtual void onClosed() override;
 };

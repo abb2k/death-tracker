@@ -41,16 +41,14 @@ bool LevelLinkCell::init(float width, const std::string& levelKey, const LevelMe
     this->addChild(diffSpr);
 
     title = geode::Label::create(data.levelName.c_str(), "bigFont.fnt");
-    title->setScale(.4f);
     titleWidth = width - diffSpr->getScaledContentWidth() - arrowBtn->getContentWidth() - 20;
-    title->setLimitLabelWidth(titleWidth);
+    title->setLimitLabelWidth(titleWidth, .4f);
     title->setCascadeOpacityEnabled(true);
     this->addChild(title);
 
     att = geode::Label::create(fmt::format("{} attempts | levelID: {}", data.attempts, levelKey).c_str(), "chatFont.fnt");
-    att->setScale(.5f);
     attWidth = width - diffSpr->getScaledContentWidth() - arrowBtn->getContentWidth() - 20;
-    att->setLimitLabelWidth(attWidth);
+    att->setLimitLabelWidth(attWidth, .5f);
     att->setCascadeOpacityEnabled(true);
     this->addChild(att);
 

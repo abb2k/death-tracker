@@ -19,7 +19,12 @@ LinkOptions* LinkOptions::create(const CCSize& size) {
     return ret;
 }
 
+LinkOptions::~LinkOptions() {
+    callbackOwner->store(nullptr, std::memory_order_release);
+}
+
 bool LinkOptions::setup() {
+    callbackOwner->store(this, std::memory_order_release);
 
     linkedScroll = ScrollLayer::create({size.width / 2 - 5, size.height - 70});
     auto linkedScrollBG = CCScale9Sprite::create("square02_small.png");
@@ -146,7 +151,7 @@ bool LinkOptions::setup() {
     searchBar->setCallback([&](const auto& newStr) {
         searchStr = newStr;
 
-        getAllLevelsData();
+        if (levelsLoaded) updateScrollsContent(cachedLevels);
     });
     this->addChild(searchBar);
 
@@ -159,8 +164,8 @@ bool LinkOptions::setup() {
     idToggler->setCallback([&](bool toggled) {
         searchForID = toggled;
 
-        if (searchStr != "")
-            getAllLevelsData();
+        if (levelsLoaded && !searchStr.empty())
+            updateScrollsContent(cachedLevels);
     });
     this->addChild(idToggler);
 
@@ -296,7 +301,8 @@ void LinkOptions::onOpened() {
 
     Dev::fadeTextInput(searchBar, true, fadeTime);
 
-    getAllLevelsData();
+    if (!levelsLoaded && !levelsLoading)
+        getAllLevelsData();
 }
 void LinkOptions::onClosed() {
     float fadeTime = .2f;
@@ -329,40 +335,44 @@ void LinkOptions::onClosed() {
 }
 
 void LinkOptions::getAllLevelsData() {
+    levelsLoading = true;
     loadingLabel->setVisible(true);
     loadingShadow->setVisible(true);
     loadingCircle->m_sprite->setVisible(true);
 
-    geode::WeakRef<LinkOptions> weakSelf(this);
+    auto callbackOwner = this->callbackOwner;
     LinkedLevelsCacheManager::getLinkedLevels(
-        [weakSelf](const GetLevelsTaskProgress& progress) {
-            if (auto self = weakSelf.lock()) {
-                self->onGetLevelsProgress(progress);
-            }
+        [callbackOwner](const GetLevelsTaskProgress& progress) {
+            auto progressCopy = progress;
+            geode::queueInMainThread([callbackOwner, progress = std::move(progressCopy)]() {
+                if (auto* self = callbackOwner->load(std::memory_order_acquire))
+                    self->onGetLevelsProgress(progress);
+            });
         },
-        [weakSelf](GetLevelsFuture::Output const& val) {
-            if (auto self = weakSelf.lock()) {
-                self->onGetLevels(val);
-            }
+        [callbackOwner](GetLevelsFuture::Output const& val) {
+            auto levels = val;
+            geode::queueInMainThread([callbackOwner, levels = std::move(levels)]() {
+                if (auto* self = callbackOwner->load(std::memory_order_acquire))
+                    self->onGetLevels(levels);
+            });
         }
     );
 }
 
 void LinkOptions::onGetLevelsProgress(const GetLevelsTaskProgress& progress) {
-    geode::queueInMainThread([WeakRef = geode::WeakRef<geode::Label>(loadingLabel), progress]() {
-        if (auto self = WeakRef.lock()) {
-            self->setString(fmt::format("{}\n{}/{}", progress.message, progress.current, progress.max).c_str());
-        }
-    });
+    loadingLabel->setString(fmt::format("{}\n{}/{}", progress.message, progress.current, progress.max).c_str());
 }
 
 void LinkOptions::onGetLevels(GetLevelsFuture::Output const& out) {
+    levelsLoading = false;
+    levelsLoaded = true;
+    cachedLevels = out;
 
     loadingLabel->setVisible(false);
     loadingShadow->setVisible(false);
     loadingCircle->m_sprite->setVisible(false);
 
-    updateScrollsContent(out);
+    updateScrollsContent(cachedLevels);
 }
 
 void LinkOptions::updateScrollsContent(GetLevelsFuture::Output const& levels) {
@@ -413,6 +423,8 @@ void LinkOptions::updateScrollsContent(GetLevelsFuture::Output const& levels) {
 
     maxLinkedPage = !linkedLevels.size() ? std::nullopt : std::make_optional(static_cast<unsigned int>(static_cast<float>(linkedLevels.size()) / LinkOptions::PER_PAGE_COUNT + 0.99f));
     maxPlayedPage = !playedLevels.size() ? std::nullopt : std::make_optional(static_cast<unsigned int>(static_cast<float>(playedLevels.size()) / LinkOptions::PER_PAGE_COUNT + 0.99f));
+    currentLinkedPage = maxLinkedPage.has_value() ? std::min(currentLinkedPage, maxLinkedPage.value() - 1) : 0;
+    currentPlayedPage = maxPlayedPage.has_value() ? std::min(currentPlayedPage, maxPlayedPage.value() - 1) : 0;
 
     nonePlayedFoundText->setVisible(!playedLevels.size());
     noneLinkedFoundText->setVisible(!linkedLevels.size());
@@ -550,7 +562,7 @@ void LinkOptions::onLinkCellClicked(const std::string& levelKey, bool isLeftAlig
         (void)StatsManager::setMetadata(myData.metadata, myData.levelKey);
     }
 
-    getAllLevelsData();
+    if (levelsLoaded) updateScrollsContent(cachedLevels);
 }
 
 void LinkOptions::onSwitchedPage(CCObject* sender) {
@@ -572,7 +584,7 @@ void LinkOptions::onSwitchedPage(CCObject* sender) {
             currentPlayedPage = std::clamp(currentPlayedPage, static_cast<unsigned int>(0), maxPlayedPage.has_value() ? maxPlayedPage.value() - 1 : 0);
         }
 
-        getAllLevelsData();
+        if (levelsLoaded) updateScrollsContent(cachedLevels);
     }
 }
 

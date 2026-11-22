@@ -16,11 +16,11 @@ class ModifyOptions : public OptionsNode {
     public:
         static ModifyOptions* create(const CCSize& size);
     private:
-        virtual bool setup();
+        virtual bool setup() override;
 
         DTLabel* myLabel;
 
-        void update(float dt);
+        void update(float dt) override;
         ScrollLayer* previewScroll;
         void updatePreviewName(bool categotyIsSession, bool f0State);
 
@@ -71,6 +71,6 @@ class ModifyOptions : public OptionsNode {
         void removeInvalidRuns(CCObject*);
 
     public:
-        virtual void onOpened();
-        virtual void onClosed();
+        virtual void onOpened() override;
+        virtual void onClosed() override;
 };

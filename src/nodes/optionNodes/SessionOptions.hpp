@@ -10,8 +10,8 @@ class SessionOptions : public OptionsNode {
     public:
         static SessionOptions* create(const CCSize& size);
     private:
-        virtual bool setup();
+        virtual bool setup() override;
     public:
-        virtual void onOpened();
-        virtual void onClosed();
+        virtual void onOpened() override;
+        virtual void onClosed() override;
 };

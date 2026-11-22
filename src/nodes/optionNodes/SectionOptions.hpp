@@ -11,7 +11,7 @@ class SectionOptions : public OptionsNode {
     public:
         static SectionOptions* create(const CCSize& size);
     private:
-        virtual bool setup();
+        virtual bool setup() override;
 
         void saveSections();
         ScrollLayer* mainScroll;
@@ -24,6 +24,6 @@ class SectionOptions : public OptionsNode {
         void onAddSection(CCObject* sender);
         void addSection(const Section& section);
     public:
-        virtual void onOpened();
-        virtual void onClosed();
+        virtual void onOpened() override;
+        virtual void onClosed() override;
 };

@@ -75,7 +75,6 @@ bool DTLevelSpecificSettingsLayer::init() {
 CCNode* DTLevelSpecificSettingsLayer::createPageBtn(const std::string& text, OptionsNode* page) {
 
     auto spr = geode::Label::create(text.c_str(), "gjFont17.fnt");
-    spr->setLimitLabelWidth(50);
     spr->setScale(.85f);
     auto button = CCMenuItemSpriteExtra::create(
         spr,

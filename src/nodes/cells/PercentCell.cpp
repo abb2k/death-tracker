@@ -37,8 +37,7 @@ bool PercentCell::init(float width, int percent, int maxToHide, CCNode* sideButt
     this->addChild(button);
 
     auto label = geode::Label::create(fmt::format("{}%", percent).c_str(), "gjFont17.fnt");
-    label->setLimitLabelWidth(width - button->getContentWidth() / 2);
-    label->setScale(.6f);
+    label->setLimitLabelWidth(width - button->getContentWidth() / 2, .6f);
     label->setAlignment(geode::Label::Alignment::Left);
     label->setAnchorPoint({0, .5f});
     label->setPosition({5, this->getContentHeight() / 2});

@@ -135,8 +135,7 @@ bool RunOptions::setup() {
     this->addChild(sharedHideScroll);
 
     auto sharedHideLabel = geode::Label::create("Shared Max To Hide", "gjFont17.fnt");
-    sharedHideLabel->setScale(.5f);
-    sharedHideLabel->setLimitLabelWidth(size.width / 2 - sharedHideScroll->getContentWidth() - 10);
+    sharedHideLabel->setLimitLabelWidth(size.width / 2 - sharedHideScroll->getContentWidth() - 10, .5f);
     sharedHideLabel->setPosition(sharedHideScroll->getPosition() + ccp(0, sharedHideScroll->m_sliderBar->getScaledContentHeight() / 2 + 5));
     sharedHideLabel->setAnchorPoint({.5f, 0});
     this->addChild(sharedHideLabel);
@@ -199,8 +198,7 @@ bool RunOptions::setup() {
     this->addChild(HidUpToInput);
 
     auto HideUpToLabel = geode::Label::create("Hide Up To", "gjFont17.fnt");
-    HideUpToLabel->setScale(.65f);
-    HideUpToLabel->setLimitLabelWidth(size.width / 2 - HidUpToInput->getContentWidth() - rightOffset);
+    HideUpToLabel->setLimitLabelWidth(size.width / 2 - HidUpToInput->getContentWidth() - rightOffset, .65f);
     HideUpToLabel->setPosition(HidUpToInput->getPosition() - ccp(HidUpToInput->getContentWidth() / 2 + rightOffset, 0));
     HideUpToLabel->setAnchorPoint({1, .5f});
     this->addChild(HideUpToLabel);
@@ -231,8 +229,7 @@ bool RunOptions::setup() {
     this->addChild(RealEndPerInput);
 
     auto RealEndPerLabel = geode::Label::create("Real End %", "gjFont17.fnt");
-    RealEndPerLabel->setScale(.65f);
-    RealEndPerLabel->setLimitLabelWidth(size.width / 2 - RealEndPerInput->getContentWidth() - rightOffset);
+    RealEndPerLabel->setLimitLabelWidth(size.width / 2 - RealEndPerInput->getContentWidth() - rightOffset, .65f);
     RealEndPerLabel->setPosition(RealEndPerInput->getPosition() - ccp(RealEndPerInput->getContentWidth() / 2 + rightOffset, 0));
     RealEndPerLabel->setAnchorPoint({1, .5f});
     this->addChild(RealEndPerLabel);
@@ -253,8 +250,7 @@ bool RunOptions::setup() {
     this->addChild(ResetAsDeathToggler);
 
     auto ResetAsDeathLabel = geode::Label::create("Reset as Death", "gjFont17.fnt");
-    ResetAsDeathLabel->setScale(.65f);
-    ResetAsDeathLabel->setLimitLabelWidth(size.width / 2 - ResetAsDeathToggler->getContentWidth() - rightOffset);
+    ResetAsDeathLabel->setLimitLabelWidth(size.width / 2 - ResetAsDeathToggler->getContentWidth() - rightOffset, .65f);
     ResetAsDeathLabel->setPosition(ResetAsDeathToggler->getPosition() - ccp(ResetAsDeathToggler->getContentWidth() / 2 + rightOffset, 0));
     ResetAsDeathLabel->setAnchorPoint({1, .5f});
     this->addChild(ResetAsDeathLabel);
