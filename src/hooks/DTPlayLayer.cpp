@@ -23,10 +23,6 @@ void DTPlayLayer::updateSessionLastPlayed() {
 
 /* hooks
 ========== */
-void DTPlayLayer::onModify(auto& self) {
-    (void)self.setHookPriority("PlayLayer::levelComplete", -9999);
-    (void)self.setHookPriorityPre("PlayLayer::destroyPlayer", Priority::First);
-}
 
 bool DTPlayLayer::init(GJGameLevel* level, bool p1) {
     if (!PlayLayer::init(level, p1)) return false;
