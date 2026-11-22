@@ -217,16 +217,16 @@ void LabelEditSpecialKeyEditorPopup::updateControls() {
 
     m_secondValue->setCommonFilter(m_keyType == 1 ? CommonFilter::Float : CommonFilter::Uint);
 
-    auto keyTypeSprite = ButtonSprite::create(m_keyTypeList->getItemForID(m_keyType).value_or({}).text.c_str());
+    auto keyTypeSprite = ButtonSprite::create(m_keyTypeList->getItemForID(m_keyType).value_or(FloatingListItem{}).text.c_str());
     keyTypeSprite->setScale(.55f);
     m_keyTypeButton->setSprite(keyTypeSprite);
 
-    auto scopeSprite = ButtonSprite::create(m_scopeList->getItemForID(m_scope).value_or({}).text.c_str());
+    auto scopeSprite = ButtonSprite::create(m_scopeList->getItemForID(m_scope).value_or(FloatingListItem{}).text.c_str());
     scopeSprite->setScale(.5f);
     m_scopeButton->setSprite(scopeSprite);
 
     auto operatorText = m_keyType == 0
-        ? m_operatorList->getItemForID(m_operator).value_or({}).text
+        ? m_operatorList->getItemForID(m_operator).value_or(FloatingListItem{}).text
         : m_decimals ? "On" : "Off";
     auto operatorSprite = ButtonSprite::create(operatorText.c_str());
     operatorSprite->setScale(.55f);
