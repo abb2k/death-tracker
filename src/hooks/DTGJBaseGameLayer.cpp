@@ -1,7 +1,8 @@
 #if !defined(GEODE_IS_MACOS)
 
-#include "../hooks/DTGJBaseGameLayer.hpp"
-#include "../hooks/DTPlayLayer.hpp"
+#include "DTGJBaseGameLayer.hpp"
+
+#include <hooks/DTPlayLayer.hpp>
 
 void DTGJBaseGameLayer::checkpointActivated(CheckpointGameObject* checkpt) {
     GJBaseGameLayer::checkpointActivated(checkpt);

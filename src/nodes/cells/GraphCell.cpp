@@ -1,7 +1,7 @@
 #include <nodes/cells/GraphCell.hpp>
 
 #include <managers/StatsManager.hpp>
-#include <nodes/layers/DTLayer.hpp>
+#include <nodes/DTLayer.hpp>
 
 GraphCell* GraphCell::create(float width, const DTGraphInfo& graphInfo) {
     auto ret = new GraphCell();

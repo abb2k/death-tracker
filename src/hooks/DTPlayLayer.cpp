@@ -1,8 +1,8 @@
 #include "../hooks/DTPlayLayer.hpp"
-#include <nodes/layers/LabelEditLayer.hpp>
+#include <nodes/overlayLabels/LabelEditLayer.hpp>
 #include <managers/AuthManager.hpp>
 
-#include <nodes/layers/LabelEditLayer.hpp>
+#include <nodes/overlayLabels/LabelEditLayer.hpp>
 
 using namespace geode::prelude;
 

@@ -2,10 +2,10 @@
 
 #include <Geode/Geode.hpp>
 #include <types/DTTypes.hpp>
-#include <nodes/SimpleToggler.hpp>
-#include <nodes/OptionSwitcher.hpp>
-#include <nodes/SessionSelector.hpp>
-#include <nodes/FloatingList.hpp>
+#include <nodes/general/SimpleToggler.hpp>
+#include <nodes/general/OptionSwitcher.hpp>
+#include <nodes/general/SessionSelector.hpp>
+#include <nodes/general/FloatingList.hpp>
 
 using namespace geode::prelude;
 

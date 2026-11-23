@@ -2,7 +2,7 @@
 
 #include <Geode/Geode.hpp>
 #include <nodes/optionNodes/OptionsNode.hpp>
-#include <nodes/SimpleToggler.hpp>
+#include <nodes/general/SimpleToggler.hpp>
 #include <nodes/cells/PercentCell.hpp>
 
 using namespace geode::prelude;

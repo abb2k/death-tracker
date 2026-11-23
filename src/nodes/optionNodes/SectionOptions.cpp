@@ -1,5 +1,5 @@
 #include <nodes/optionNodes/SectionOptions.hpp>
-#include <nodes/layers/DTLayer.hpp>
+#include <nodes/DTLayer.hpp>
 #include <nodes/cells/SectionCell.hpp>
 
 SectionOptions* SectionOptions::create(const CCSize& size) {

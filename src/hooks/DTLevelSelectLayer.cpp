@@ -1,6 +1,6 @@
 #include <hooks/DTLevelSelectLayer.hpp>
 
-#include <nodes/layers/DTLayer.hpp>
+#include <nodes/DTLayer.hpp>
 #include <utils/Settings.hpp>
 
 bool DTLevelSelectLayer::init(int page) {

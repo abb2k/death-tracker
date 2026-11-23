@@ -2,7 +2,7 @@
 
 #include <Geode/Geode.hpp>
 #include <types/DTTypes.hpp>
-#include <nodes/SimpleToggler.hpp>
+#include <nodes/general/SimpleToggler.hpp>
 
 using namespace geode::prelude;
 

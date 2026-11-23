@@ -1,9 +1,9 @@
 #include <nodes/optionNodes/SaveOptions.hpp>
-#include <nodes/layers/DTLayer.hpp>
-#include <nodes/layers/DTLevelSpecificSettingsLayer.hpp>
+#include <nodes/DTLayer.hpp>
+#include <nodes/popups/DTLevelSpecificSettingsLayer.hpp>
 #include <utils/Dev.hpp>
-#include <nodes/layers/CreateBackupPopup.hpp>
-#include <nodes/layers/ImportPopup.hpp>
+#include <nodes/popups/CreateBackupPopup.hpp>
+#include <nodes/popups/ImportPopup.hpp>
 
 #include <asp/fs.hpp>
 

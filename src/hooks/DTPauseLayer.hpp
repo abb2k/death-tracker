@@ -1,7 +1,8 @@
 #include <Geode/modify/PauseLayer.hpp>
-#include "../nodes/layers/DTLayer.hpp"
-#include "../utils/Settings.hpp"
-#include "../hooks/DTPlayLayer.hpp"
+
+#include <nodes/DTLayer.hpp>
+#include <utils/Settings.hpp>
+#include <hooks/DTPlayLayer.hpp>
 
 using namespace geode::prelude;
 

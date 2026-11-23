@@ -1,6 +1,6 @@
 #include <hooks/DTEndLevelLayer.hpp>
 
-#include <nodes/layers/DTLayer.hpp>
+#include <nodes/DTLayer.hpp>
 #include <utils/Settings.hpp>
 
 void DTEndLevelLayer::customSetup() {

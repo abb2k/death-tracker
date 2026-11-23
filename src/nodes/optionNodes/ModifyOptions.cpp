@@ -1,5 +1,5 @@
 #include <nodes/optionNodes/ModifyOptions.hpp>
-#include <nodes/layers/DTLayer.hpp>
+#include <nodes/DTLayer.hpp>
 #include <utils/Dev.hpp>
 
 ModifyOptions* ModifyOptions::create(const CCSize& size) {

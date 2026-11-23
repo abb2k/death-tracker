@@ -2,7 +2,7 @@
 #include <utils/Settings.hpp>
 #include <utils/Dev.hpp>
 #include <cvolton.level-id-api/EditorIDs.hpp>
-#include <nodes/layers/DTLayer.hpp>
+#include <nodes/DTLayer.hpp>
 #include <regex>
 #include <asp/fs/fs.hpp>
 #include <asp/fs/File.hpp>

@@ -2,7 +2,7 @@
 #include <managers/StatsManager.hpp>
 #include <utils/Save.hpp>
 #include <utils/Settings.hpp>
-#include <nodes/DTLabel.hpp>
+#include <nodes/layout/usage/DTLabel.hpp>
 
 using namespace geode::prelude;
 

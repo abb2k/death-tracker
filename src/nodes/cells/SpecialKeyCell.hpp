@@ -4,7 +4,7 @@
 
 using namespace geode::prelude;
 
-#include <utils/SpecialKey.hpp>
+#include <nodes/layout/usage/SpecialKey.hpp>
 
 class SpecialKeyCell : public CCMenu {
     public:

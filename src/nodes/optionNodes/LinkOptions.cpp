@@ -1,9 +1,9 @@
 #include <nodes/optionNodes/LinkOptions.hpp>
 #include <managers/StatsManager.hpp>
-#include <nodes/layers/DTLayer.hpp>
+#include <nodes/DTLayer.hpp>
 #include <nodes/cells/LevelLinkCell.hpp>
 #include <utils/Dev.hpp>
-#include <utils/CCTextAreaFadeTo.hpp>
+#include <actions/CCTextAreaFadeTo.hpp>
 #include <arc/task/Yield.hpp>
 
 const int LinkOptions::PER_PAGE_COUNT = 10;

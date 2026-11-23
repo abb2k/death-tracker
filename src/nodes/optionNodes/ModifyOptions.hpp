@@ -2,12 +2,12 @@
 
 #include <Geode/Geode.hpp>
 #include <nodes/optionNodes/OptionsNode.hpp>
-#include <nodes/SimpleToggler.hpp>
-#include <nodes/DTLabel.hpp>
-#include <nodes/SessionSelector.hpp>
-#include <nodes/SwitcherButton.hpp>
+#include <nodes/general/SimpleToggler.hpp>
+#include <nodes/layout/usage/DTLabel.hpp>
+#include <nodes/general/SessionSelector.hpp>
+#include <nodes/general/SwitcherButton.hpp>
 
-#include <nodes/DecimalPopup.hpp>
+#include <nodes/layout/usage/DecimalPopup.hpp>
 
 using namespace geode::prelude;
 

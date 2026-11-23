@@ -1,8 +1,8 @@
 #include <nodes/optionNodes/RunOptions.hpp>
 
-#include <nodes/layers/DTLayer.hpp>
+#include <nodes/DTLayer.hpp>
 #include <utils/Dev.hpp>
-#include <nodes/TutorialButton.hpp>
+#include <nodes/Tutorial/TutorialButton.hpp>
 
 RunOptions* RunOptions::create(const CCSize& size) {
     auto ret = new RunOptions();

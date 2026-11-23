@@ -1,6 +1,6 @@
 #include <nodes/cells/OverlayLabelCell.hpp>
 
-#include <nodes/layers/DTLayer.hpp>
+#include <nodes/DTLayer.hpp>
 
 OverlayLabelCell* OverlayLabelCell::create(float width, OverlayLabel const& label) {
     auto ret = new OverlayLabelCell();

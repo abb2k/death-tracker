@@ -1,6 +1,6 @@
 #include <hooks/DTLevelInfoLayer.hpp>
 
-#include <nodes/layers/DTLayer.hpp>
+#include <nodes/DTLayer.hpp>
 #include <utils/Settings.hpp>
 
 bool DTLevelInfoLayer::init(GJGameLevel* p0, bool p1) {

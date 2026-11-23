@@ -3,7 +3,7 @@
 #include <Geode/Geode.hpp>
 #include <types/DTTypes.hpp>
 #include <nodes/graphs/DTGraphNode.hpp>
-#include <nodes/layers/AdvancedScrollLayer.hpp>
+#include <nodes/general/AdvancedScrollLayer.hpp>
 #include <nodes/graphs/GraphPoint.hpp>
 
 class GraphHolder : public CCNode {

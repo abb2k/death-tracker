@@ -1,6 +1,6 @@
 #include <hooks/DTEditLevelLayer.hpp>
 
-#include <nodes/layers/DTLayer.hpp>
+#include <nodes/DTLayer.hpp>
 #include <utils/Settings.hpp>
 
 bool DTEditLevelLayer::init(GJGameLevel* level) {

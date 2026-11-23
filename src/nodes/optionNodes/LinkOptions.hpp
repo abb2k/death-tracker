@@ -3,7 +3,7 @@
 #include <Geode/Geode.hpp>
 #include <nodes/optionNodes/OptionsNode.hpp>
 #include <types/DTTypes.hpp>
-#include <nodes/SimpleToggler.hpp>
+#include <nodes/general/SimpleToggler.hpp>
 
 #include <managers/LinkedLevelsCacheManager.hpp>
 

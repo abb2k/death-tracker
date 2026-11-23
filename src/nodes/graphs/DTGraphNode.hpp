@@ -4,8 +4,8 @@
 #include <managers/StatsManager.hpp>
 #include <nodes/graphs/GraphPoint.hpp>
 #include <types/DTTypes.hpp>
-#include <nodes/SessionSelector.hpp>
-#include <nodes/layers/DTLayer.hpp>
+#include <nodes/general/SessionSelector.hpp>
+#include <nodes/DTLayer.hpp>
 
 using namespace geode::prelude;
 
