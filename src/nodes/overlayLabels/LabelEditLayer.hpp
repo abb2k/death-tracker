@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
-#include <nodes/cells/OverlayLabelCell.hpp>
+#include <nodes/overlayLabels/OverlayLabelCell.hpp>
 #include <regex>
 #include <nodes/general/SimpleToggler.hpp>
 

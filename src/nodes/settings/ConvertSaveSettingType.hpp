@@ -3,7 +3,7 @@
 
 #include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
-#include <nodes/popups/FileConversionLayer.hpp>
+#include <nodes/general/popup/FileConversionLayer.hpp>
 
 using namespace geode::prelude;
 

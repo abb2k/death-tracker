@@ -1,6 +1,6 @@
 #include "LayoutOptionsLayer.hpp"
 #include <nodes/DTLayer.hpp>
-#include <nodes/cells/SpecialKeyCell.hpp>
+#include <nodes/layout/layoutEditing/SpecialKeyCell.hpp>
 
 /*
 settings needed:

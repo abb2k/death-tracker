@@ -1,7 +1,7 @@
 #include <nodes/DTLayer.hpp>
 
 #include <nodes/graphs/DTGraphLayer.hpp>
-#include <nodes/popups/DTLevelSpecificSettingsLayer.hpp>
+#include <nodes/options/DTLevelSpecificSettingsLayer.hpp>
 #include <nodes/calculator/CalculatorPopup.hpp>
 
 #include <nodes/overlayLabels/LabelEditLayer.hpp>
@@ -16,8 +16,8 @@
 
 #include <utils/DateFormatter.hpp>
 #include <utils/Settings.hpp>
-#include <nodes/popups/ChangelogPopup.hpp>
-#include <nodes/general/TextInputPopup.hpp>
+#include <nodes/general/popup/ChangelogPopup.hpp>
+#include <nodes/general/popup/TextInputPopup.hpp>
 
 #include <managers/AuthManager.hpp>
 

@@ -4,7 +4,7 @@
 #include <nodes/DTLayer.hpp>
 #include <nodes/graphs/GraphPoint.hpp>
 #include <nodes/graphs/GraphHolder.hpp>
-#include <nodes/cells/GraphCell.hpp>
+#include <nodes/graphs/GraphCell.hpp>
 #include <nodes/general/OptionSwitcher.hpp>
 #include <nodes/graphs/GraphPointDisplay.hpp>
 #include <nodes/general/FloatingList.hpp>
