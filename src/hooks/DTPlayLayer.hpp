@@ -84,9 +84,9 @@ public:
 
     void startGame();
 
-    void playEndAnimationToPos(cocos2d::CCPoint position);
+    void playEndAnimationToPos(CCPoint position);
 
-    void playPlatformerEndAnimationToPos(cocos2d::CCPoint position, bool instant);
+    void playPlatformerEndAnimationToPos(CCPoint position, bool instant);
 
     void postUpdate(float dt);
 

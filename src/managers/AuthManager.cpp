@@ -40,7 +40,7 @@ void AuthManager::authForDoner(bool forceCheck) {
     );
 }
 
-void AuthManager::checkDoner(std::string const& token, int accountId) {
+void AuthManager::checkDoner(std::string_view token, int accountId) {
     auto req = web::WebRequest();
     req.bodyString(fmt::format("{{ \"authToken\": \"{}\" }}", token));
 

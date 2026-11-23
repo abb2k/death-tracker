@@ -15,19 +15,19 @@ CCResizeWidthTo* CCResizeWidthTo::create(float duration, float endWidth) {
 bool CCResizeWidthTo::initWithDuration(float duration, float endWidth) {
     if (!CCActionInterval::initWithDuration(std::move(duration))) return false;
     
-    this->endWidth = std::move(endWidth);
+    this->m_endWidth = std::move(endWidth);
     return true;
 }
 
 void CCResizeWidthTo::startWithTarget(CCNode* target) {
     CCActionInterval::startWithTarget(target);
 
-    startWidth = target->getContentWidth();
-    deltaWidth = endWidth - startWidth;
+    m_startWidth = target->getContentWidth();
+    m_deltaWidth = m_endWidth - m_startWidth;
 }
 
 void CCResizeWidthTo::update(float time) {
     if (!m_pTarget) return;
 
-    m_pTarget->setContentWidth(startWidth + deltaWidth * time);
+    m_pTarget->setContentWidth(m_startWidth + m_deltaWidth * time);
 }

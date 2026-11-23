@@ -16,7 +16,7 @@ private:
     bool getTextAreaColor(CCNode* target, ccColor4B& color);
     void setTextAreaColor(CCNode* target, const ccColor4B& color);
 
-    GLubyte startOpacity;
-    GLubyte endOpacity;
-    int deltaOpacity;
+    GLubyte m_startOpacity;
+    GLubyte m_endOpacity;
+    int m_deltaOpacity;
 };

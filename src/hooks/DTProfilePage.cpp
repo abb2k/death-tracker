@@ -58,7 +58,7 @@ void DTProfilePage::checkUserDonorBadge(int userAccID, Function<void(bool)> call
     );
 }
 
-void DTProfilePage::createBadge(const std::string& ID, const std::string& name, const std::string& description, const int& orderPrio){
+void DTProfilePage::createBadge(std::string_view ID, std::string_view name, std::string_view description, const int& orderPrio){
     auto username_menu = typeinfo_cast<CCMenu*>(m_mainLayer->getChildByIDRecursive("username-menu"));
     auto yourBadge = CCSprite::createWithSpriteFrameName(fmt::format("{}.png"_spr, ID).c_str());
     yourBadge->setScale(.85f);
@@ -83,7 +83,7 @@ void DTProfilePage::onBadgeClicked(CCObject* sender){
 }
 
 
-// void DTProfilePage::isUserInBadge(const std::string& badgeID, const int& accountID, const Badge& badge) {
+// void DTProfilePage::isUserInBadge(std::string_view badgeID, const int& accountID, const Badge& badge) {
 //     bool found = false;
 //     data::getPlayersData().listen([&found, badgeID, accountID, badge] (Result<std::vector<PlayerData>>* playersData) {
 //         auto playerData = playersData->unwrapOrDefault();

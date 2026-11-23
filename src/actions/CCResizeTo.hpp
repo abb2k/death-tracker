@@ -4,9 +4,9 @@ using namespace geode::prelude;
 
 class CCResizeTo : public CCActionInterval {
 public:
-    static CCResizeTo* create(float duration, const CCSize& endSize);
+    static CCResizeTo* create(float duration, CCSize endSize);
 
-    bool initWithDuration(float duration, const CCSize& endSize);
+    bool initWithDuration(float duration, CCSize endSize);
 
     virtual void startWithTarget(CCNode* target) override;
 
@@ -14,7 +14,7 @@ private:
 
     void update(float time) override;
 
-    CCSize startSize;
-    CCSize endSize;
-    CCSize deltaSize;
+    CCSize m_startSize;
+    CCSize m_endSize;
+    CCSize m_deltaSize;
 };

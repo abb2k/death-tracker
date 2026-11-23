@@ -13,7 +13,7 @@ private:
 
     void update(float time) override;
 
-    float startHeight;
-    float endHeight;
-    float deltaHeight;
+    float m_startHeight;
+    float m_endHeight;
+    float m_deltaHeight;
 };

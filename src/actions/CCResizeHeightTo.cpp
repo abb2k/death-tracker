@@ -1,9 +1,9 @@
 #include "CCResizeHeightTo.hpp"
 
-CCResizeHeightTo* CCResizeHeightTo::create(float duration, float endHeight) {
+CCResizeHeightTo* CCResizeHeightTo::create(float duration, float m_endHeight) {
     auto ret = new CCResizeHeightTo();
-    
-    if (ret && ret->initWithDuration(std::move(duration), std::move(endHeight))) {
+
+    if (ret && ret->initWithDuration(std::move(duration), std::move(m_endHeight))) {
         ret->autorelease();
         return ret;
     }
@@ -12,22 +12,22 @@ CCResizeHeightTo* CCResizeHeightTo::create(float duration, float endHeight) {
     return nullptr;
 }
 
-bool CCResizeHeightTo::initWithDuration(float duration, float endHeight) {
+bool CCResizeHeightTo::initWithDuration(float duration, float m_endHeight) {
     if (!CCActionInterval::initWithDuration(std::move(duration))) return false;
     
-    this->endHeight = std::move(endHeight);
+    this->m_endHeight = std::move(m_endHeight);
     return true;
 }
 
 void CCResizeHeightTo::startWithTarget(CCNode* target) {
     CCActionInterval::startWithTarget(target);
 
-    startHeight = target->getContentHeight();
-    deltaHeight = endHeight - startHeight;
+    m_startHeight = target->getContentHeight();
+    m_deltaHeight = m_endHeight - m_startHeight;
 }
 
 void CCResizeHeightTo::update(float time) {
     if (!m_pTarget) return;
 
-    m_pTarget->setContentHeight(startHeight + deltaHeight * time);
+    m_pTarget->setContentHeight(m_startHeight + m_deltaHeight * time);
 }

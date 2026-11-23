@@ -16,7 +16,7 @@ CCTextAreaTintTo* CCTextAreaTintTo::create(float duration, ccColor3B toColor) {
 bool CCTextAreaTintTo::initWithDuration(float duration, ccColor3B toColor) {
     if (!CCActionInterval::initWithDuration(std::move(duration))) return false;
 
-    this->endColor = std::move(toColor);
+    this->m_endColor = std::move(toColor);
     return true;
 }
 
@@ -25,10 +25,10 @@ void CCTextAreaTintTo::startWithTarget(CCNode* target) {
 
     ccColor4B color;
     if (!getTextAreaColor(target, color)) return;
-    this->startColor = { color.r, color.g, color.b };
-    this->deltaR = (int)endColor.r - (int)startColor.r;
-    this->deltaG = (int)endColor.g - (int)startColor.g;
-    this->deltaB = (int)endColor.b - (int)startColor.b;
+    this->m_startColor = { color.r, color.g, color.b };
+    this->m_deltaR = (int)m_endColor.r - (int)m_startColor.r;
+    this->m_deltaG = (int)m_endColor.g - (int)m_startColor.g;
+    this->m_deltaB = (int)m_endColor.b - (int)m_startColor.b;
 }
 
 void CCTextAreaTintTo::update(float time) {
@@ -37,9 +37,9 @@ void CCTextAreaTintTo::update(float time) {
     ccColor4B oldColor;
     if (!getTextAreaColor(m_pTarget, oldColor)) return;
 
-    const int r = (int)startColor.r + (int)(deltaR * time);
-    const int g = (int)startColor.g + (int)(deltaG * time);
-    const int b = (int)startColor.b + (int)(deltaB * time);
+    const int r = (int)m_startColor.r + (int)(m_deltaR * time);
+    const int g = (int)m_startColor.g + (int)(m_deltaG * time);
+    const int b = (int)m_startColor.b + (int)(m_deltaB * time);
 
     ccColor4B newColor = {
         static_cast<GLubyte>(r),

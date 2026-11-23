@@ -87,13 +87,17 @@ bool DTLabel::init(const DTLabelInfo& info) {
     setLabelText(info.text);
     labelTextContainer->addChild(labelText);
     
-    labelText->registerRichTextKey(RichTextKeys::makeWaveKey([&](){ return donerRichTextEnabled; }));
+    labelText->registerRichTextKey(RichTextKeys::makeWaveKey([this](){ return donerRichTextEnabled; }));
     
-    labelText->registerRichTextKey(RichTextKeys::makeGradientKey([&](){ return donerRichTextEnabled; }));
+    labelText->registerRichTextKey(RichTextKeys::makeGradientKey([this](){ return donerRichTextEnabled; }));
     
     labelText->registerRichTextKey(RichTextKeys::makeCPlusKey());
 
-    labelText->registerRichTextKey(makeRunMoreKey());
+    labelText->registerRichTextKey(RichTextKeys::makeRunMoreKey(
+        [this]() { return this->info.font; },
+        [this]() { return runMoreButtonsVisible; },
+        [this](CCMenuItemSpriteExtra* sender) { onRunMoreClicked(sender); }
+    ));
 
     auto textHeight = 0.0f;
     if (!info.isExpanded) textHeight = 0;
@@ -908,80 +912,6 @@ void DTLabel::fadeTitleColorTo(ccColor4B newColor, float time) {
 
 float DTLabel::getSpecificTitleHeight() {
     return !info.hideHeader || isEditable ? labelTitleHeight : 2.5f;
-}
-
-std::shared_ptr<RichTextKey<RunButtonParams>> DTLabel::makeRunMoreKey() {
-    return std::make_shared<RichTextKey<RunButtonParams>>(
-        "runMoreBtn",
-        [](std::string value) -> Result<RunButtonParams> {
-            if (value.empty()) return Err("Run more empty");
-
-            auto splitStr = utils::string::split(value, ",");
-
-            if (splitStr.size() != 2 && splitStr.size() != 4)
-                return Err("Run more format invalid");
-
-            GEODE_UNWRAP_INTO(auto run, StatsManager::splitRunKey(splitStr[0]));
-            bool isSess = (splitStr[1] == "true");
-
-            std::optional<long long> occurrenceTimestamp;
-            size_t occurrenceIndex = 0;
-            if (splitStr.size() == 4) {
-                GEODE_UNWRAP_INTO(occurrenceTimestamp, utils::numFromString<long long>(splitStr[2]));
-                GEODE_UNWRAP_INTO(occurrenceIndex, utils::numFromString<size_t>(splitStr[3]));
-            }
-
-            return Ok(std::make_tuple(run, isSess, occurrenceTimestamp, occurrenceIndex));
-        },
-        [&](RunButtonParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
-            auto line = static_cast<CCLabelBMFont*>(sprite->getParent());
-            auto menuParent = line->getParent();
-            auto buttonPosition = menuParent->convertToNodeSpace(line->convertToWorldSpace(sprite->getPosition()));
-
-            auto btnSpr = CCScale9Sprite::create("square02_small.png");
-            btnSpr->setOpacity(100);
-
-            auto btnLabel = geode::Label::create("...", info.font);
-            btnLabel->setColor(line->getColor());
-            btnLabel->setOpacity(line->getOpacity());
-            btnLabel->setLineSpacing(btnLabel->getLineHeight() / 2);
-            btnLabel->setExtraKerning(1);
-
-            auto characterSize = sprite->getContentSize();
-            auto buttonSize = std::min(characterSize.width, characterSize.height) * .85f;
-            auto sourceSize = btnSpr->getContentSize();
-            auto sliceSize = std::max(buttonSize, std::max(sourceSize.width, sourceSize.height));
-            btnSpr->setContentSize({sliceSize, sliceSize});
-            btnSpr->setScale(buttonSize / sliceSize);
-            btnSpr->setCascadeOpacityEnabled(true);
-            btnLabel->setScale(.6f / btnSpr->getScale());
-            btnLabel->setCascadeOpacityEnabled(true);
-            btnSpr->addChild(btnLabel);
-            btnLabel->setPosition(btnSpr->getContentSize() / 2);
-
-            btnSpr->setScale(btnSpr->getScale() * line->getScale());
-
-            auto moreBtn = CCMenuItemSpriteExtra::create(
-                btnSpr,
-                this,
-                menu_selector(DTLabel::onRunMoreClicked)
-            );
-            moreBtn->setEnabled(runMoreButtonsVisible);
-            if (!runMoreButtonsVisible)
-                btnSpr->setOpacity(0);
-            btnSpr->setPosition(moreBtn->getContentSize() / 2);
-            moreBtn->setPosition(buttonPosition);
-            auto buttonID = StatsManager::createRunKey(std::get<0>(value)).unwrap();
-            if (std::get<2>(value)) {
-                buttonID += fmt::format(",{},{}", *std::get<2>(value), std::get<3>(value));
-            }
-            moreBtn->setID(buttonID);
-            moreBtn->setTag(std::get<1>(value) ? 1 : 0);
-
-            menuParent->addChild(moreBtn);
-            sprite->setOpacity(0);
-        }
-    );
 }
 
 void DTLabel::onRunMoreClicked(CCObject* sender) {

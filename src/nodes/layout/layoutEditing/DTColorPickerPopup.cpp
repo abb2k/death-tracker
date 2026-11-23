@@ -2,7 +2,7 @@
 #include <actions/CCGradientAction.hpp>
 
 #include <managers/AuthManager.hpp>
-#include <nodes/layout/usage/DTLabel.hpp>
+#include <utils/RichTextKeys.hpp>
 
 DTColorPickerPopup* DTColorPickerPopup::create(CustomizationData const& data, bool isRGBA) {
     auto ret = new DTColorPickerPopup();
@@ -240,7 +240,7 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
     m_donorLabel->setID("donor-label");
     m_donorLabel->setPosition(m_gradientDisabledFG->getPosition());
     bool isGradient = true;
-    m_donorLabel->registerRichTextKey(DTLabel::makeGradientKey([](){ return true; }));
+    m_donorLabel->registerRichTextKey(RichTextKeys::makeGradientKey([](){ return true; }));
     m_donorLabel->setZOrder(10);
     m_donorLabel->updateContent();
     m_donorLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
@@ -1159,7 +1159,7 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
         "<wave>Donor Feature</wave>", "bigFont.fnt"
     );
     m_waveDonorLabel->setID("wave-donor-label");
-    m_waveDonorLabel->registerRichTextKey(DTLabel::makeWaveKey([] { return true; }));
+    m_waveDonorLabel->registerRichTextKey(RichTextKeys::makeWaveKey([] { return true; }));
     m_waveDonorLabel->setText(m_waveDonorLabel->getRawText());
     m_waveDonorLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
     m_waveDonorLabel->setPosition(m_waveDisabledFG->getPosition());
@@ -1168,8 +1168,8 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
 
     m_wavePreview = RichTextArea::create("", "bigFont.fnt", .75f);
     m_wavePreview->setID("wave-preview");
-    m_wavePreview->registerRichTextKey(DTLabel::makeWaveKey([] { return true; }));
-    m_wavePreview->registerRichTextKey(DTLabel::makeGradientKey([] { return true; }));
+    m_wavePreview->registerRichTextKey(RichTextKeys::makeWaveKey([] { return true; }));
+    m_wavePreview->registerRichTextKey(RichTextKeys::makeGradientKey([] { return true; }));
     m_wavePreview->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
     m_wavePage->addChildAtPosition(m_wavePreview, Anchor::Bottom, {0, 25});
 

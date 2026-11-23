@@ -3,7 +3,7 @@
 
 CCTextAreaFadeTo* CCTextAreaFadeTo::create(float duration, GLubyte toOpacity) {
     auto ret = new CCTextAreaFadeTo();
-    
+
     if (ret && ret->initWithDuration(std::move(duration), std::move(toOpacity))) {
         ret->autorelease();
         return ret;
@@ -16,7 +16,7 @@ CCTextAreaFadeTo* CCTextAreaFadeTo::create(float duration, GLubyte toOpacity) {
 bool CCTextAreaFadeTo::initWithDuration(float duration, GLubyte toOpacity) {
     if (!CCActionInterval::initWithDuration(std::move(duration))) return false;
 
-    this->endOpacity = std::move(toOpacity);
+    this->m_endOpacity = std::move(toOpacity);
     return true;
 }
 
@@ -25,8 +25,8 @@ void CCTextAreaFadeTo::startWithTarget(CCNode* target) {
 
     ccColor4B color;
     if (!getTextAreaColor(target, color)) return;
-    this->startOpacity = color.a;
-    this->deltaOpacity = (int)endOpacity - (int)startOpacity;
+    this->m_startOpacity = color.a;
+    this->m_deltaOpacity = (int)m_endOpacity - (int)m_startOpacity;
 }
 
 void CCTextAreaFadeTo::update(float time) {
@@ -35,7 +35,7 @@ void CCTextAreaFadeTo::update(float time) {
     ccColor4B oldColor;
     if (!getTextAreaColor(m_pTarget, oldColor)) return;
 
-    const int a = (int)startOpacity + (int)(deltaOpacity * time);
+    const int a = (int)m_startOpacity + (int)(m_deltaOpacity * time);
 
     ccColor4B newColor = { oldColor.r, oldColor.g, oldColor.b, (GLubyte)a };
     setTextAreaColor(m_pTarget, newColor);

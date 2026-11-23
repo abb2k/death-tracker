@@ -1,10 +1,6 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 #include <types/DTTypes.hpp>
-
-#include <functional>
 
 using namespace geode::prelude;
 
@@ -25,12 +21,15 @@ struct LinkData {
 using GetLevelsFuture = arc::Future<std::vector<LinkData>>;
 
 class LinkedLevelsCacheManager {
-    public:
-        static void getLinkedLevels(Function<void(const GetLevelsTaskProgress& progress)> progressCallback = [](auto){}, Function<void(GetLevelsFuture::Output const&)> completionCallback = [](auto){});
-    private:
-        static GetLevelsFuture getLevelsFuture(Function<void(const GetLevelsTaskProgress& progress)> progressCallback);
+public:
+    static void getLinkedLevels(
+        Function<void(const GetLevelsTaskProgress& progress)> progressCallback = [](auto){},
+        Function<void(GetLevelsFuture::Output const&)> completionCallback = [](auto){}
+    );
+private:
+    static GetLevelsFuture getLevelsFuture(Function<void(const GetLevelsTaskProgress& progress)> progressCallback);
 
-        static std::vector<LinkData> data;
+    static std::vector<LinkData> m_data;
 
-        static arc::TaskHandle<void> getLevelsTask;
+    static arc::TaskHandle<void> m_getLevelsTask;
 };

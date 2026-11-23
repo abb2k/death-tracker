@@ -13,8 +13,6 @@ class DecimalPopup;
 
 using namespace geode::prelude;
 
-using RunButtonParams = std::tuple<Run, bool, std::optional<long long>, size_t>;
-
 class DTLabel : public CCMenu {
     public:
         static DTLabel* create(const DTLabelInfo& info);
@@ -156,7 +154,6 @@ class DTLabel : public CCMenu {
 
         float getSpecificTitleHeight();
 
-        std::shared_ptr<RichTextKey<RunButtonParams>> makeRunMoreKey();
         bool runMoreButtonsVisible = true;
 
         void onRunMoreClicked(CCObject* sender);

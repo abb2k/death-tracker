@@ -3,10 +3,9 @@
 #include <managers/StatsManager.hpp>
 #include <nodes/overlayLabels/LabelEditLayer.hpp>
 #include <managers/AuthManager.hpp>
-#include <nodes/overlayLabels/LabelEditLayer.hpp>
 #include <utils/Save.hpp>
 #include <utils/Settings.hpp>
-#include <nodes/layout/usage/DTLabel.hpp>
+#include <utils/RichTextKeys.hpp>
 
 bool DTPlayLayer::disableCompletedLevelTracking() {
     return Settings::isCompletedLevelTrackingDisabled()
@@ -247,7 +246,7 @@ void DTPlayLayer::destroyPlayer(PlayerObject* player, GameObject* p1) {
 
     if (!m_fields->disabledCheat)
         m_fields->disabledCheat = p1;
-    if (!m_fields->nolcip && m_fields->disabledCheat != static_cast<cocos2d::CCObject*>(p1) && !player->m_isDead && !m_levelEndAnimationStarted) {
+    if (!m_fields->nolcip && m_fields->disabledCheat != static_cast<CCObject*>(p1) && !player->m_isDead && !m_levelEndAnimationStarted) {
         log::warn("Noclip Detected!");
         m_fields->nolcip = true;
     }
@@ -472,7 +471,7 @@ void DTPlayLayer::startGame() {
     startupPlaytime();
 }
 
-void DTPlayLayer::playEndAnimationToPos(cocos2d::CCPoint position) {
+void DTPlayLayer::playEndAnimationToPos(CCPoint position) {
     PlayLayer::playEndAnimationToPos(position);
 
     cutoutPlaytime();
@@ -480,7 +479,7 @@ void DTPlayLayer::playEndAnimationToPos(cocos2d::CCPoint position) {
     m_fields->levelBeaten = true;
 }
 
-void DTPlayLayer::playPlatformerEndAnimationToPos(cocos2d::CCPoint position, bool instant) {
+void DTPlayLayer::playPlatformerEndAnimationToPos(CCPoint position, bool instant) {
     PlayLayer::playPlatformerEndAnimationToPos(position, instant);
 
     cutoutPlaytime();
@@ -785,9 +784,9 @@ void DTPlayLayer::refreshOverlayLabels() {
         m_fields->overlayLabels.push_back(overlayLabel);
 
         auto isDoner = []() { return AuthManager::isDoner(); };
-        overlayLabel->registerRichTextKey(DTLabel::makeGradientKey(isDoner));
-        overlayLabel->registerRichTextKey(DTLabel::makeWaveKey(isDoner));
-        overlayLabel->registerRichTextKey(DTLabel::makeCPlusKey());
+        overlayLabel->registerRichTextKey(RichTextKeys::makeGradientKey(isDoner));
+        overlayLabel->registerRichTextKey(RichTextKeys::makeWaveKey(isDoner));
+        overlayLabel->registerRichTextKey(RichTextKeys::makeCPlusKey());
 
         float widest = 0;
         for (const auto& line : overlayLabel->getLines()) {

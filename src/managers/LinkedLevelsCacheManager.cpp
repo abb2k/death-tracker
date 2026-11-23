@@ -2,25 +2,29 @@
 
 #include <managers/StatsManager.hpp>
 
-std::vector<LinkData> LinkedLevelsCacheManager::data{};
+std::vector<LinkData> LinkedLevelsCacheManager::m_data{};
 
-arc::TaskHandle<void> LinkedLevelsCacheManager::getLevelsTask{};
+arc::TaskHandle<void> LinkedLevelsCacheManager::m_getLevelsTask{};
 
-void LinkedLevelsCacheManager::getLinkedLevels(Function<void(const GetLevelsTaskProgress& progress)> progressCallback, Function<void(GetLevelsFuture::Output const&)> completionCallback) {
+void LinkedLevelsCacheManager::getLinkedLevels(
+    Function<void(const GetLevelsTaskProgress& progress)> progressCallback,
+    Function<void(GetLevelsFuture::Output const&)> completionCallback
+) {
+    m_getLevelsTask.detach();
 
-    getLevelsTask.detach();
-
-    getLevelsTask = async::spawn(
+    m_getLevelsTask = async::spawn(
         getLevelsFuture(std::move(progressCallback)),
         [completionCallback = std::move(completionCallback)](GetLevelsFuture::Output out) mutable {
-            data = std::move(out);
+            m_data = std::move(out);
 
-            completionCallback(data);
+            completionCallback(m_data);
         }
     );
 }
 
-GetLevelsFuture LinkedLevelsCacheManager::getLevelsFuture(Function<void(const GetLevelsTaskProgress& progress)> progressCallback) {
+GetLevelsFuture LinkedLevelsCacheManager::getLevelsFuture(
+    Function<void(const GetLevelsTaskProgress& progress)> progressCallback
+) {
     auto progresObject = GetLevelsTaskProgress{"Getting list of played levels...", -1, -1};
 
     progressCallback(progresObject);

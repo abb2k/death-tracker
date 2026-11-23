@@ -8,15 +8,15 @@ public:
 
     virtual void startWithTarget(CCNode* target) override;
 
-    float getStartWidth() const { return startWidth; }
-    float getEndWidth() const { return endWidth; }
+    float getStartWidth() const { return m_startWidth; }
+    float getEndWidth() const { return m_endWidth; }
 
 private:
     bool initWithDuration(float duration, float endWidth);
 
     void update(float time) override;
 
-    float startWidth;
-    float endWidth;
-    float deltaWidth;
+    float m_startWidth;
+    float m_endWidth;
+    float m_deltaWidth;
 };

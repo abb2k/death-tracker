@@ -5,7 +5,7 @@
 #include <utils/Save.hpp>
 #include <utils/Settings.hpp>
 
-#include <nodes/layout/usage/DTLabel.hpp>
+#include <utils/RichTextKeys.hpp>
 #include <nodes/DTLayer.hpp>
 #include <nodes/Tutorial/TutorialButton.hpp>
 
@@ -907,9 +907,9 @@ void LabelEditLayer::RefreshPreviewLabels() {
 
         auto isDoner = [](){ return AuthManager::isDoner(); };
 
-        previewLabel->registerRichTextKey(DTLabel::makeGradientKey(isDoner));
-        previewLabel->registerRichTextKey(DTLabel::makeWaveKey(isDoner));
-        previewLabel->registerRichTextKey(DTLabel::makeCPlusKey());
+        previewLabel->registerRichTextKey(RichTextKeys::makeGradientKey(isDoner));
+        previewLabel->registerRichTextKey(RichTextKeys::makeWaveKey(isDoner));
+        previewLabel->registerRichTextKey(RichTextKeys::makeCPlusKey());
 
         float widest = 0;
 

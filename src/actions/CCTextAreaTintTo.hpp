@@ -16,9 +16,9 @@ private:
     bool getTextAreaColor(CCNode* target, ccColor4B& color);
     void setTextAreaColor(CCNode* target, const ccColor4B& color);
 
-    ccColor3B startColor;
-    ccColor3B endColor;
-    int deltaR;
-    int deltaG;
-    int deltaB;
+    ccColor3B m_startColor;
+    ccColor3B m_endColor;
+    int m_deltaR;
+    int m_deltaG;
+    int m_deltaB;
 };

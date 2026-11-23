@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
 class OnDonerStateChangedEvent : public Event<OnDonerStateChangedEvent, bool(bool state)> {
@@ -10,17 +8,17 @@ public:
 };
 
 class AuthManager {
-    public:
-        static void authForDoner(bool forceCheck = false);
+public:
+    static void authForDoner(bool forceCheck = false);
 
-        static bool isDoner();
-    private:
-        static void checkDoner(std::string const& token, int accountId);
+    static bool isDoner();
+private:
+    static void checkDoner(std::string_view token, int accountId);
 
-        static void sendDonerChangedEvent();
+    static void sendDonerChangedEvent();
 
-        static bool m_isDoner;
-        static bool m_lastSentDonberState;
+    static bool m_isDoner;
+    static bool m_lastSentDonberState;
 
-        static std::optional<int> m_lastValidatedAccountId;
+    static std::optional<int> m_lastValidatedAccountId;
 };
