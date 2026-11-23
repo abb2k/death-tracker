@@ -1,9 +1,6 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
 #include <types/DTTypes.hpp>
-
-using namespace geode::prelude;
 
 class Save {
     public:

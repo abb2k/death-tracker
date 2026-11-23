@@ -1,4 +1,6 @@
-#include <utils/Settings.hpp>
+#include "Settings.hpp"
+
+using namespace geode::prelude;
 
 int64_t Settings::getMaxSessionLength() {
     auto sessionMethod = Mod::get()->getSettingValue<std::string>("session-method");

@@ -1,13 +1,9 @@
-#include <managers/StatsManager.hpp>
+#include "StatsManager.hpp"
 #include <utils/Settings.hpp>
 #include <utils/Dev.hpp>
 #include <cvolton.level-id-api/EditorIDs.hpp>
 #include <nodes/DTLayer.hpp>
-#include <regex>
-#include <asp/fs/fs.hpp>
-#include <asp/fs/File.hpp>
-
-using namespace geode::prelude;
+#include <asp/fs.hpp>
 
 std::vector<std::string> StatsManager::splitStr(const std::string& str, const std::string& delim) {
     if (delim.empty()) return {};

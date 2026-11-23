@@ -1,12 +1,11 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
 #include <matjson/stl_serialize.hpp>
 
 using namespace geode::prelude;
 
-typedef std::map<std::string, int> Deaths;
-typedef std::set<double> NewBests;
+using Deaths = std::map<std::string, int>;
+using NewBests = std::set<double>;
 
 class SaveDeletionEvent : public Event<SaveDeletionEvent, bool()> {
 public:

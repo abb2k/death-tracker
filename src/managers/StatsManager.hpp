@@ -21,8 +21,8 @@ private:
 
     static const std::string METADATA_FILE_NAME;
     static const std::string FROM0_FILE_NAME;
-    static const std::string SESSIONS_DIR_NAME; 
-    static const std::string BACKUPS_DIR_NAME; 
+    static const std::string SESSIONS_DIR_NAME;
+    static const std::string BACKUPS_DIR_NAME;
 
     static arc::TaskHandle<void> backupHandler;
 
