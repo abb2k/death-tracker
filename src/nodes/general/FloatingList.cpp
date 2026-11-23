@@ -226,7 +226,7 @@ void FloatingList::setItemEnabled(bool isEnabled) {
     }
 }
 
-void FloatingList::setCallback(geode::Function<void(const int& id)> callback) {
+void FloatingList::setCallback(Function<void(const int& id)> callback) {
     onItemClicked = std::move(callback);
 }
 

@@ -3,12 +3,15 @@
 using namespace geode::prelude;
 
 class $modify(DTEndLevelLayer, EndLevelLayer) {
-    struct Fields{
+public:
+    struct Fields {
         CCMenuItemSpriteExtra* skullBtn = nullptr;
     };
     
     void customSetup();
 
+    void onHideLayer(CCObject* sender);
+
+private:
     void openDTLayer(CCObject*);
-    void onHideLayer(cocos2d::CCObject* sender);
 };

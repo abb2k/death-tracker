@@ -12,7 +12,7 @@ class SwitcherButton : public CCMenuItemSpriteExtra {
         static SwitcherButton* create(CCSize size, const std::string& spr, const std::vector<std::string>& options);
         static SwitcherButton* createWithSpriteFrameName(CCSize size, const std::string& spr, const std::vector<std::string>& options);
 
-        void setOptionChangedCallback(geode::Function<void(int)> callback);
+        void setOptionChangedCallback(Function<void(int)> callback);
 
         int getCurrentOptionIndex() const{
             return currentOption;
@@ -26,7 +26,7 @@ class SwitcherButton : public CCMenuItemSpriteExtra {
         geode::Label* textLabel;
         CCScale9Sprite* mySpr;
 
-        geode::Function<void(int)> onOptionChanged = NULL;
+        Function<void(int)> onOptionChanged = NULL;
 
         void onClicked(CCObject*);
 

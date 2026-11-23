@@ -24,10 +24,10 @@ class DTColorPickerPopup : public geode::ColorPickPopup {
             Wave
         };
 
-        void setGradientChangedCallback(geode::Function<void(GradientData const& data)> callback);
-        void setGradientEnabledChangedCallback(geode::Function<void(bool enabled)> callback);
-        void setWaveChangedCallback(geode::Function<void(WaveData const& data)> callback);
-        void setWaveEnabledChangedCallback(geode::Function<void(bool enabled)> callback);
+        void setGradientChangedCallback(Function<void(GradientData const& data)> callback);
+        void setGradientEnabledChangedCallback(Function<void(bool enabled)> callback);
+        void setWaveChangedCallback(Function<void(WaveData const& data)> callback);
+        void setWaveEnabledChangedCallback(Function<void(bool enabled)> callback);
 
     protected:
         class GradientColorPickerDelegate : public ColorPickerDelegate {
@@ -115,8 +115,8 @@ class DTColorPickerPopup : public geode::ColorPickPopup {
         std::map<int, TextInput*> m_waveInputs;
         std::map<int, Slider*> m_waveSliders;
 
-        geode::Function<void(WaveData const& data)> m_waveChangedCallback;
-        geode::Function<void(bool enabled)> m_waveEnabledChangedCallback;
+        Function<void(WaveData const& data)> m_waveChangedCallback;
+        Function<void(bool enabled)> m_waveEnabledChangedCallback;
 
         void textChanged(TextInput* input);
         void updateGradientEnabledPosition();
@@ -134,8 +134,8 @@ class DTColorPickerPopup : public geode::ColorPickPopup {
         const int TAG_GRADIENT_B_COLOR_HEX_INPUT = TAG_GRADIENT_B_COLOR_R_INPUT + 3;
         const int TAG_GRADIENT_B_COLOR_A_INPUT = TAG_GRADIENT_B_COLOR_R_INPUT + 4;
 
-        geode::Function<void(GradientData const& data)> m_gradientChangedCallback;
-        geode::Function<void(bool enabled)> m_gradientEnabledChangedCallback;
+        Function<void(GradientData const& data)> m_gradientChangedCallback;
+        Function<void(bool enabled)> m_gradientEnabledChangedCallback;
 
         void onGradientPageOpen(CCNode* page);
 

@@ -195,14 +195,14 @@ void OverlayLabelCell::onEdit(CCObject*){
         m_onEdit(this);
 }
 
-void OverlayLabelCell::onDeleteCallback(geode::Function<void(OverlayLabelCell*)> onDelete){
+void OverlayLabelCell::onDeleteCallback(Function<void(OverlayLabelCell*)> onDelete){
     m_onDelete = std::move(onDelete);
 }
 
-void OverlayLabelCell::onEditCallback(geode::Function<void(OverlayLabelCell*)> onEdit){
+void OverlayLabelCell::onEditCallback(Function<void(OverlayLabelCell*)> onEdit){
     m_onEdit = std::move(onEdit);
 }
 
-void OverlayLabelCell::onChangedCallback(geode::Function<void(OverlayLabelCell*)> onChanged){
+void OverlayLabelCell::onChangedCallback(Function<void(OverlayLabelCell*)> onChanged){
     m_onChanged = std::move(onChanged);
 }

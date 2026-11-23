@@ -10,7 +10,7 @@ class $modify(DTProfilePage, ProfilePage) {
     };        
 
     public:
-        static void checkUserDonorBadge(int userAccID, geode::Function<void(bool)> callback);
+        static void checkUserDonorBadge(int userAccID, Function<void(bool)> callback);
     
         void loadPageFromUserInfo(GJUserScore* a2);
 

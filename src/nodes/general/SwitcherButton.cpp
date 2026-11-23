@@ -65,6 +65,6 @@ void SwitcherButton::setTextForCurrentOption() {
     textLabel->setScale(calculatedSize.x > calculatedSize.y ? calculatedSize.y : calculatedSize.x);
 }
 
-void SwitcherButton::setOptionChangedCallback(geode::Function<void(int)> callback) {
+void SwitcherButton::setOptionChangedCallback(Function<void(int)> callback) {
     onOptionChanged = std::move(callback);
 }

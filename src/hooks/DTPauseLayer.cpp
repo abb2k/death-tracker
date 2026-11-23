@@ -33,7 +33,8 @@ void DTPauseLayer::customSetup() {
 
 void DTPauseLayer::onDTMiniMenuOpened(CCObject*) {
     auto level = StatsManager::getCurrentLevel();
-    if (level == nullptr) {
+    
+    if (!level) {
         Notification::create("Error! No level data found!", NotificationIcon::Error)->show();
         return;
     }
@@ -48,13 +49,13 @@ void DTPauseLayer::onNormalMode(cocos2d::CCObject* sender) {
     PauseLayer::onNormalMode(sender);
 
     auto playLayer = GameManager::get()->getPlayLayer();
-    if (playLayer) {
-        auto* dtPlayLayer = static_cast<DTPlayLayer*>(playLayer);
-        dtPlayLayer->m_fields->currentRun.start = 0.0;
-        dtPlayLayer->m_fields->currentRun.end = 0.0;
-        dtPlayLayer->m_fields->currentRun.startTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
-        dtPlayLayer->m_fields->currentRun.endTimestamp.reset();
-    }
+    if (!playLayer) return;
+
+    auto* dtPlayLayer = static_cast<DTPlayLayer*>(playLayer);
+    dtPlayLayer->m_fields->currentRun.start = 0.0;
+    dtPlayLayer->m_fields->currentRun.end = 0.0;
+    dtPlayLayer->m_fields->currentRun.startTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
+    dtPlayLayer->m_fields->currentRun.endTimestamp.reset();
 }
 
 #endif

@@ -4,7 +4,7 @@
 
 #include <nodes/general/SwitcherButton.hpp>
 
-PastCalcMode* PastCalcMode::create(CCSize const& size, geode::Function<void(std::string const&)>&& onVariablesChanged, geode::Function<void(std::string const&)>&& onCalculate) {
+PastCalcMode* PastCalcMode::create(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate) {
     auto ret = new PastCalcMode();
     if (ret && ret->init(size, std::move(onVariablesChanged), std::move(onCalculate))) {
         ret->autorelease();
@@ -15,7 +15,7 @@ PastCalcMode* PastCalcMode::create(CCSize const& size, geode::Function<void(std:
     return ret;
 }
 
-bool PastCalcMode::init(CCSize const& size, geode::Function<void(std::string const&)>&& onVariablesChanged, geode::Function<void(std::string const&)>&& onCalculate) {
+bool PastCalcMode::init(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate) {
     if (!CalculatorMode::init(size, std::move(onVariablesChanged), std::move(onCalculate))) return false;
 
     passPercentInput = TextInput::create(size.width / 1.2f, "pass%");

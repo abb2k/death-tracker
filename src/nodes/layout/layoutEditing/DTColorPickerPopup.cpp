@@ -1046,11 +1046,11 @@ void DTColorPickerPopup::textChanged(TextInput* input) {
     this->updateState(input);
 }
 
-void DTColorPickerPopup::setGradientChangedCallback(geode::Function<void(GradientData const& data)> callback) {
+void DTColorPickerPopup::setGradientChangedCallback(Function<void(GradientData const& data)> callback) {
     m_gradientChangedCallback = std::move(callback);
 }
 
-void DTColorPickerPopup::setGradientEnabledChangedCallback(geode::Function<void(bool enabled)> callback) {
+void DTColorPickerPopup::setGradientEnabledChangedCallback(Function<void(bool enabled)> callback) {
     m_gradientEnabledChangedCallback = std::move(callback);
 }
 
@@ -1532,11 +1532,11 @@ void DTColorPickerPopup::onWavePageOpen(CCNode* page) {
     m_waveDonorLabel->setVisible(!isDoner);
 }
 
-void DTColorPickerPopup::setWaveChangedCallback(geode::Function<void(WaveData const& data)> callback) {
+void DTColorPickerPopup::setWaveChangedCallback(Function<void(WaveData const& data)> callback) {
     m_waveChangedCallback = std::move(callback);
 }
 
-void DTColorPickerPopup::setWaveEnabledChangedCallback(geode::Function<void(bool enabled)> callback) {
+void DTColorPickerPopup::setWaveEnabledChangedCallback(Function<void(bool enabled)> callback) {
     m_waveEnabledChangedCallback = std::move(callback);
 }
 

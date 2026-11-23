@@ -6,8 +6,6 @@
 #include <actions/CCResizeWidthTo.hpp>
 #include <actions/CCTextAreaTintTo.hpp>
 #include <actions/CCTextAreaFadeTo.hpp>
-#include <actions/CCWaveAction.hpp>
-#include <actions/CCGradientAction.hpp>
 
 #include <regex>
 #include <typeinfo>
@@ -18,7 +16,7 @@
 #include <nodes/layout/usage/DecimalPopup.hpp>
 #include <utils/Settings.hpp>
 
-#include <nodes/general/RichTextArea.hpp>
+#include <utils/RichTextKeys.hpp>
 
 float DTLabel::labelTitleHeight = 15;
 float DTLabel::moveThreshold = 5;
@@ -89,13 +87,11 @@ bool DTLabel::init(const DTLabelInfo& info) {
     setLabelText(info.text);
     labelTextContainer->addChild(labelText);
     
-    labelText->registerRichTextKey(makeWaveKey([&](){ return donerRichTextEnabled; }));
+    labelText->registerRichTextKey(RichTextKeys::makeWaveKey([&](){ return donerRichTextEnabled; }));
     
-    labelText->registerRichTextKey(makeGradientKey([&](){ return donerRichTextEnabled; }));
+    labelText->registerRichTextKey(RichTextKeys::makeGradientKey([&](){ return donerRichTextEnabled; }));
     
-    labelText->registerRichTextKey(makeCPlusKey());
-
-    // labelText->registerRichTextKey(makeRunButtonKey());
+    labelText->registerRichTextKey(RichTextKeys::makeCPlusKey());
 
     labelText->registerRichTextKey(makeRunMoreKey());
 
@@ -144,9 +140,9 @@ bool DTLabel::init(const DTLabelInfo& info) {
     labelTitleArea->setMaxLines(1);
     labelTitleArea->setVisible(!info.hideHeader);
     
-    labelTitleArea->registerRichTextKey(makeWaveKey([&](){ return donerRichTextEnabled; }));
-    labelTitleArea->registerRichTextKey(makeGradientKey([&](){ return donerRichTextEnabled; }));
-    labelTitleArea->registerRichTextKey(makeCPlusKey());
+    labelTitleArea->registerRichTextKey(RichTextKeys::makeWaveKey([&](){ return donerRichTextEnabled; }));
+    labelTitleArea->registerRichTextKey(RichTextKeys::makeGradientKey([&](){ return donerRichTextEnabled; }));
+    labelTitleArea->registerRichTextKey(RichTextKeys::makeCPlusKey());
 
     labelTitleArea->updateContent();
 
@@ -913,178 +909,6 @@ void DTLabel::fadeTitleColorTo(ccColor4B newColor, float time) {
 float DTLabel::getSpecificTitleHeight() {
     return !info.hideHeader || isEditable ? labelTitleHeight : 2.5f;
 }
-
-std::shared_ptr<RichTextKey<WaveKeyParams>> DTLabel::makeWaveKey(geode::Function<bool()> donerRichTextEnabled) {
-    return std::make_shared<RichTextKey<WaveKeyParams>>(
-        "wave",
-        [](std::string value) -> Result<WaveKeyParams> {
-            float speed = 1;
-            float distanceY = 5;
-            float distanceX = 0;
-            float offsetPerIndex = .3f;
-
-            auto splitStr = utils::string::split(value, ",");
-            if (splitStr.size() >= 1) {
-                auto speedRes = geode::utils::numFromString<float>(splitStr[0]);
-                if (speedRes.isOk()) speed = speedRes.unwrap();
-            }
-            if (splitStr.size() >= 2) {
-                auto distanceYRes = geode::utils::numFromString<float>(splitStr[1]);
-                if (distanceYRes.isOk()) distanceY = distanceYRes.unwrap();
-            }
-            if (splitStr.size() >= 3) {
-                auto distanceXRes = geode::utils::numFromString<float>(splitStr[2]);
-                if (distanceXRes.isOk()) distanceX = distanceXRes.unwrap();
-            }
-            if (splitStr.size() >= 4) {
-                auto offsetPerIndexRes = geode::utils::numFromString<float>(splitStr[3]);
-                if (offsetPerIndexRes.isOk()) offsetPerIndex = offsetPerIndexRes.unwrap();
-            }
-
-            return Ok(std::make_tuple(speed, distanceY, distanceX, offsetPerIndex));
-        },
-        [donerRichTextEnabled = std::move(donerRichTextEnabled)](WaveKeyParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) mutable {
-            if (!donerRichTextEnabled()) return;
-
-            sprite->runAction(
-                CCRepeatForever::create(
-                    CCWaveAction::create(
-                        std::get<0>(value),
-                        std::get<2>(value),
-                        std::get<1>(value),
-                        std::get<3>(value) * localIndex
-                    )
-                )
-            );
-        }
-    );
-}
-std::shared_ptr<RichTextKey<GradientKeyParams>> DTLabel::makeGradientKey(geode::Function<bool()> donerRichTextEnabled) {
-    return std::make_shared<RichTextKey<GradientKeyParams>>(
-        "gradient",
-        [](std::string value) -> Result<GradientKeyParams> {
-            ccColor4B colorA = {255, 255, 255, 255};
-            ccColor4B colorB = {255, 255, 255, 255};
-            float transitionDuration = 1.0f;
-            float stagger = 0.2f;
-
-            auto splitStr = utils::string::split(value, ",");
-            if (splitStr.size() >= 1) {
-                auto res = geode::cocos::cc4bFromHexString(splitStr[0]);
-                if (res.isOk()) colorA = res.unwrap();
-            }
-            if (splitStr.size() >= 2) {
-                auto res = geode::cocos::cc4bFromHexString(splitStr[1]);
-                if (res.isOk()) colorB = res.unwrap();
-            }
-            if (splitStr.size() >= 3) {
-                auto res = geode::utils::numFromString<float>(splitStr[2]);
-                if (res.isOk() && std::isfinite(res.unwrap())) {
-                    transitionDuration = std::clamp(res.unwrap(), 0.05f, 30.0f);
-                }
-            }
-            if (splitStr.size() >= 4) {
-                auto res = geode::utils::numFromString<float>(splitStr[3]);
-                if (res.isOk() && std::isfinite(res.unwrap())) {
-                    stagger = std::clamp(res.unwrap(), 0.0f, 2.0f);
-                }
-            }
-
-            return Ok(std::make_tuple(colorA, colorB, transitionDuration, stagger));
-        },
-        [donerRichTextEnabled = std::move(donerRichTextEnabled)](GradientKeyParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int) mutable {
-            if (!donerRichTextEnabled()) return;
-
-            auto colorA = std::get<0>(value);
-            auto colorB = std::get<1>(value);
-            auto transitionDuration = std::get<2>(value);
-            auto stagger = std::get<3>(value);
-
-            if (sprite->getActionByTag(12) != nullptr) return;
-
-            auto animation = CCRepeatForever::create(CCGradientAction::create(
-                transitionDuration,
-                colorA,
-                colorB,
-                -stagger * localIndex
-            ));
-            animation->setTag(12);
-
-            sprite->runAction(animation);
-        }
-    );
-}
-std::shared_ptr<RichTextKey<CPlusKeyParams>> DTLabel::makeCPlusKey() {
-    return std::make_shared<RichTextKey<CPlusKeyParams>>(
-        "cplus",
-        [](std::string value) -> Result<CPlusKeyParams> {
-            GEODE_UNWRAP_INTO(auto num, utils::numFromString<int>(value));
-
-            return Ok(num);
-        },
-        [](CPlusKeyParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
-            if (auto gradient = typeinfo_cast<CCGradientAction*>(sprite->getActionByTag(12))) {
-                gradient->addColorOffset(value);
-                return;
-            }
-
-            auto colorAdded = sprite->getColor();
-            if (colorAdded == ccWHITE) colorAdded = static_cast<CCLabelBMFont*>(sprite->getParent())->getColor();
-
-            auto r = static_cast<std::int64_t>(colorAdded.r) + value;
-            auto g = static_cast<std::int64_t>(colorAdded.g) + value;
-            auto b = static_cast<std::int64_t>(colorAdded.b) + value;
-
-            r = std::clamp<std::int64_t>(r, 0, 255);
-            g = std::clamp<std::int64_t>(g, 0, 255);
-            b = std::clamp<std::int64_t>(b, 0, 255);
-
-            auto newColor = ccColor3B{static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
-
-            sprite->setColor(newColor);
-        }
-    );
-}
-
-
-//clickable text key im commenting cz it annoying yarg
-// std::shared_ptr<RichTextKey<RunButtonParams>> DTLabel::makeRunButtonKey() {
-//     return std::make_shared<RichTextKey<RunButtonParams>>(
-//         "runBtn",
-//         [](std::string value) -> Result<RunButtonParams> {
-//             if (value.empty()) return Err("Run empty");
-
-//             GEODE_UNWRAP_INTO(auto run, StatsManager::splitRunKey(value));
-
-//             return Ok(run);
-//         },
-//         [&](RunButtonParams const& value, int keyState, bool hoverClickOn, cocos2d::CCFontSprite* specificSpriteClicked, std::set<cocos2d::CCFontSprite*> const& wordClicked) {
-//             this->onRunButtonClick(value, keyState, hoverClickOn, specificSpriteClicked, wordClicked);
-//         }
-//     );
-// }
-
-// void DTLabel::onRunButtonClick(RunButtonParams const& value, int keyState, bool hoverClickOn, cocos2d::CCFontSprite* specificSpriteClicked, std::set<cocos2d::CCFontSprite*> const& wordClicked) {
-//     auto scaleWord = [&](float scale) {
-//         for (const auto& fontSpr : wordClicked) {
-//             fontSpr->stopActionByTag(13);
-
-//             auto scaleAction = CCEaseExponentialOut::create(CCScaleTo::create(0.25f, scale));
-//             scaleAction->setTag(13);
-//             fontSpr->runAction(scaleAction);
-//         }
-//     };
-
-//     if (!hoverToggle && hoverClickOn && (keyState == 2 || keyState == 1)) {
-//         hoverToggle = true;
-//         scaleWord(1.1f);
-//     }
-//     else if (hoverToggle && !hoverClickOn && (keyState == 3 || keyState == 2) || hoverToggle && keyState == 3) {
-//         hoverToggle = false;
-//         scaleWord(1.0f);
-//     }
-
-// }
 
 std::shared_ptr<RichTextKey<RunButtonParams>> DTLabel::makeRunMoreKey() {
     return std::make_shared<RichTextKey<RunButtonParams>>(

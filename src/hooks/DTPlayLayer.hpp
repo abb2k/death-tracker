@@ -1,12 +1,12 @@
+#pragma once
+
 #include <Geode/modify/PlayLayer.hpp>
-#include <managers/StatsManager.hpp>
-#include <utils/Save.hpp>
-#include <utils/Settings.hpp>
-#include <nodes/layout/usage/DTLabel.hpp>
+#include <types/DTTypes.hpp>
 
 using namespace geode::prelude;
 
 class $modify(DTPlayLayer, PlayLayer) {
+public:
     struct Fields {
         Session* prevSession = nullptr;
         bool isSessionExpired = false;
@@ -44,7 +44,7 @@ class $modify(DTPlayLayer, PlayLayer) {
         bool didGameStartThisFrame;
 
         ListenerHandle saveDeleteHandle;
-        std::vector<RichTextArea*> overlayLabels;
+        std::vector<CCNode*> overlayLabels;
         ListenerHandle overlayLabelsChangedListener;
         CCNode* overlayLabelsParent = nullptr;
         std::string overlayLevelKey;
@@ -56,29 +56,13 @@ class $modify(DTPlayLayer, PlayLayer) {
         bool overlayDataLoaded = false;
     };
 
-    void refreshOverlayLabels();
-    void preloadOverlayData();
-    void updateOverlaySessionData();
-    Result<GeneralData> getOverlayDeathsData(char scope);
 
-    bool disableCompletedLevelTracking();
-
-    void updateSessionLastPlayed();
-
-    /* hooks
-    ========== */
     static void onModify(auto& self) {
         (void)self.setHookPriority("PlayLayer::levelComplete", -9999);
         (void)self.setHookPriorityPre("PlayLayer::destroyPlayer", Priority::First);
     }
 
     bool init(GJGameLevel* level, bool p1);
-
-    void cutoutPlaytime();
-
-    void discardPlaytime();
-
-    void startupPlaytime();
 
     void resetLevel();
 
@@ -88,19 +72,13 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     void removeAllCheckpoints();
 
-    #if defined(GEODE_IS_MACOS)
-
+#if defined(GEODE_IS_MACOS)
     void checkpointActivated(CheckpointGameObject* checkpt);
-    
-    #endif
+#endif
 
     void pauseGame(bool unfocused);
 
     void resume();
-
-    float getActualProgress();
-
-    void saveRun();
 
     void onExit();
 
@@ -110,15 +88,29 @@ class $modify(DTPlayLayer, PlayLayer) {
 
     void playPlatformerEndAnimationToPos(cocos2d::CCPoint position, bool instant);
 
-    bool isLegal();
-
     void postUpdate(float dt);
-
-    void checkDelta(float delta);
 
     void updateTimeWarp(float timeWarp);
 
+private:
+    void refreshOverlayLabels();
+    void preloadOverlayData();
+    void updateOverlaySessionData();
+    Result<GeneralData> getOverlayDeathsData(char scope);
+
+    bool disableCompletedLevelTracking();
+    void updateSessionLastPlayed();
+
+    void cutoutPlaytime();
+    void discardPlaytime();
+    void startupPlaytime();
     void savePlaytime();
+
+    float getActualProgress();
+    void saveRun();
+
+    bool isLegal();
+    void checkDelta(float delta);
 
     ComplexDeathMap filterByEndTimestamp(const ComplexDeathMap& source, long long earliestTimestamp, long long latestTimestamp);
 };

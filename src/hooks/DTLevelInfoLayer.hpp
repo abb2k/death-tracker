@@ -3,6 +3,7 @@
 using namespace geode::prelude;
 
 class $modify(DTLevelInfoLayer, LevelInfoLayer) {
+public:
     struct Fields {
         CCMenuItemSpriteExtra* btn = nullptr;
         CCPoint originalDiffPos;
@@ -12,6 +13,7 @@ class $modify(DTLevelInfoLayer, LevelInfoLayer) {
     
     bool init(GJGameLevel* p0, bool p1);
 
+private:
     void checkIfPlayVisible(float delta);
 
     void openDTLayer(CCObject*);

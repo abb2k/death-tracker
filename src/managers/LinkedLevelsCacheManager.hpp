@@ -26,9 +26,9 @@ using GetLevelsFuture = arc::Future<std::vector<LinkData>>;
 
 class LinkedLevelsCacheManager {
     public:
-        static void getLinkedLevels(geode::Function<void(const GetLevelsTaskProgress& progress)> progressCallback = [](auto){}, geode::Function<void(GetLevelsFuture::Output const&)> completionCallback = [](auto){});
+        static void getLinkedLevels(Function<void(const GetLevelsTaskProgress& progress)> progressCallback = [](auto){}, Function<void(GetLevelsFuture::Output const&)> completionCallback = [](auto){});
     private:
-        static GetLevelsFuture getLevelsFuture(geode::Function<void(const GetLevelsTaskProgress& progress)> progressCallback);
+        static GetLevelsFuture getLevelsFuture(Function<void(const GetLevelsTaskProgress& progress)> progressCallback);
 
         static std::vector<LinkData> data;
 

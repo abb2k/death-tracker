@@ -24,10 +24,10 @@ class ModifyOptions : public OptionsNode {
         ScrollLayer* previewScroll;
         void updatePreviewName(bool categotyIsSession, bool f0State);
 
-        void addPlusMinusBtns(CCNode* around, bool flip, geode::Function<void(bool isPlus)> callback, float scale);
+        void addPlusMinusBtns(CCNode* around, bool flip, Function<void(bool isPlus)> callback, float scale);
         void onPlusMinusBtn(CCObject* sender);
         std::map<CCNode*, std::pair<CCMenuItemSpriteExtra*, CCMenuItemSpriteExtra*>> holdersOfPlusMinusBtns{};
-        std::map<CCMenuItemSpriteExtra*, std::shared_ptr<geode::Function<void(bool isPlus)>>> plusMinusCallbacks{};
+        std::map<CCMenuItemSpriteExtra*, std::shared_ptr<Function<void(bool isPlus)>>> plusMinusCallbacks{};
         CCScale9Sprite* previewBG;
         CCScale9Sprite* selectionBG;
         CCScale9Sprite* runsBG;

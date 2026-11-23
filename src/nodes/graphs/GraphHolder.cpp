@@ -429,7 +429,7 @@ void GraphHolder::changeGraphName(const std::string& oldName, const std::string&
     allGraphs.insert({newName, saveTemp});
 }
 
-void GraphHolder::setToAllGraphs(geode::Function<void(DTGraphNode*)> graphSetFunction) {
+void GraphHolder::setToAllGraphs(Function<void(DTGraphNode*)> graphSetFunction) {
     for (const auto& [name, graph] : allGraphs) {
         graphSetFunction(graph);
     }

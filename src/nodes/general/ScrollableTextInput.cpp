@@ -34,7 +34,7 @@ void ScrollableTextInput::setCommonFilter(CommonFilter filter) {
     textInput->setCommonFilter(filter);
 }
 
-void ScrollableTextInput::setCallback(geode::Function<void(std::string const&)> onInput) {
+void ScrollableTextInput::setCallback(Function<void(std::string const&)> onInput) {
     this->onInput = std::move(onInput);
 }
 

@@ -28,7 +28,7 @@ class FloatingList : public CCNode, public CCTouchDelegate {
         void open();
         void close();
 
-        void setCallback(geode::Function<void(const int& id)> callback);
+        void setCallback(Function<void(const int& id)> callback);
 
         void setOpenDirection(bool openUpwards);
 
@@ -45,7 +45,7 @@ class FloatingList : public CCNode, public CCTouchDelegate {
     private:
         bool init(CCSize const& size, bool startOpen);
 
-        geode::Function<void(const int& id)> onItemClicked;
+        Function<void(const int& id)> onItemClicked;
 
         void itemClicked(CCObject* sender);
         void sideBtnClicked(CCObject* sender);

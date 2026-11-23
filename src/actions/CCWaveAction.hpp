@@ -1,21 +1,20 @@
 #pragma once
 
-#include <cocos2d.h>
+using namespace geode::prelude;
 
-class CCWaveAction : public cocos2d::CCActionInterval
-{
+class CCWaveAction : public CCActionInterval {
 public:
     static CCWaveAction* create(float period, float distX, float distY, float phase);
 
-    bool init(float period, float distX, float distY, float phase);
+    void startWithTarget(CCNode* target) override;
 
-    void startWithTarget(cocos2d::CCNode* target) override;
+    CCActionInterval* reverse() override;
+
+private:
+    bool init(float period, float distX, float distY, float phase);
 
     void update(float t) override;
 
-    cocos2d::CCActionInterval* reverse() override;
-
-private:
     float m_distX;
     float m_distY;
     float m_phase;

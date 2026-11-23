@@ -17,19 +17,19 @@ class GraphCell : public CCNode {
             return graphInfo;
         };
 
-        geode::Function<void(GraphCell* cell, bool up)> onArrowCallback = NULL;
-        geode::Function<void(GraphCell* cell)> onOptionsCallback = NULL;
-        geode::Function<void(GraphCell* cell)> onEnabledChanged = NULL;
-        geode::Function<void(GraphCell* cell)> onInfoChangedCallback = NULL;
+        Function<void(GraphCell* cell, bool up)> onArrowCallback = NULL;
+        Function<void(GraphCell* cell)> onOptionsCallback = NULL;
+        Function<void(GraphCell* cell)> onEnabledChanged = NULL;
+        Function<void(GraphCell* cell)> onInfoChangedCallback = NULL;
 
-        geode::Function<bool(const std::string&, GraphCell*)> canChangeNameTo;
+        Function<bool(const std::string&, GraphCell*)> canChangeNameTo;
 
-        geode::Function<void(DTGraphInfo, GraphCell*)> beforeDeletion;
-        geode::Function<void(DTGraphInfo)> onDeleted;
+        Function<void(DTGraphInfo, GraphCell*)> beforeDeletion;
+        Function<void(DTGraphInfo)> onDeleted;
         
-        geode::Function<void(GraphCell* cell, std::optional<Session>)> onNewSession = NULL;
-        geode::Function<void(GraphCell* cell, int)> onNewRun = NULL;
-        geode::Function<void(GraphCell* cell, Section)> onNewSection = NULL;
+        Function<void(GraphCell* cell, std::optional<Session>)> onNewSession = NULL;
+        Function<void(GraphCell* cell, int)> onNewRun = NULL;
+        Function<void(GraphCell* cell, Section)> onNewSection = NULL;
 
         std::string oldName;
 

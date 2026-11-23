@@ -525,7 +525,7 @@ void DTGraphNode::onDeathsUpdated(GetTFuture<Deaths>::Output deaths) {
     updateGraphContent();
 }
 
-void DTGraphNode::getDeathsAsync(geode::Function<Deaths(GeneralData const&)>&& dataGetter, bool session) {
+void DTGraphNode::getDeathsAsync(Function<Deaths(GeneralData const&)>&& dataGetter, bool session) {
     getDeathsListener.cancel();
     getDeathsListener.spawn(fmt::format("DT-get-deaths-session:{}-task", session), DTLayer::get()->getTFor<Deaths>(
         std::move(dataGetter),

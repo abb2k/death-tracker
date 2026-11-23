@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
 class CCResizeTo : public CCActionInterval {
@@ -10,10 +8,12 @@ public:
 
     bool initWithDuration(float duration, const CCSize& endSize);
 
-    virtual void startWithTarget(CCNode* target);
+    virtual void startWithTarget(CCNode* target) override;
 
-    virtual void update(float time);
-    
+private:
+
+    void update(float time) override;
+
     CCSize startSize;
     CCSize endSize;
     CCSize deltaSize;

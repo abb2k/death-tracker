@@ -16,8 +16,8 @@ class TouchSender : public CCMenu {
     public:
         static TouchSender* create(int prio, bool swallowTouches);
 
-        geode::Function<bool(cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> beginCheck = NULL;
-        geode::Function<void(TouchSenderState, cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> onTouch = NULL;
+        Function<bool(cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> beginCheck = NULL;
+        Function<void(TouchSenderState, cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> onTouch = NULL;
 
     private:
         bool init(int prio, bool swallowTouches);

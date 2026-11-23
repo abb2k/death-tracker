@@ -1,5 +1,16 @@
 #include "DTDialogLayer.hpp"
 
+DialogLayer* DTDialogLayer::createWithTaggedSprites(CCArray* objects, int bg, std::vector<std::tuple<std::string, int, float>> icons) {
+    objects->insertObject(DialogObject::create("", "", 0, 1, true, {0,0,0}), 0);
+    
+    auto ret = DialogLayer::createWithObjects(objects, bg);
+    static_cast<DTDialogLayer*>(ret)->m_fields->doCallCreationCallback = true;
+    static_cast<DTDialogLayer*>(ret)->useTaggedSprites(std::move(icons));
+    ret->displayNextObject();
+
+    return ret;
+}
+
 void DTDialogLayer::displayDialogObject(DialogObject* dialogue) {
     DialogLayer::displayDialogObject(dialogue);
 
@@ -11,12 +22,11 @@ void DTDialogLayer::displayDialogObject(DialogObject* dialogue) {
 
     for (const auto& existingIcons : m_fields->icons)
     {
-        // log::info("{} | {}", dialogue->getTag(), std::get<1>(existingIcons));
-        if (std::get<1>(existingIcons) == dialogue->getTag()) {
-            dtDialogSpr = std::get<0>(existingIcons);
-            dtDialogSprinfo = existingIcons;
-            break;
-        }
+        if (std::get<1>(existingIcons) != dialogue->getTag()) continue;
+
+        dtDialogSpr = std::get<0>(existingIcons);
+        dtDialogSprinfo = existingIcons;
+        break;
     }
 
     if (dtDialogSpr != "" && m_characterSprite != nullptr) {
@@ -26,12 +36,15 @@ void DTDialogLayer::displayDialogObject(DialogObject* dialogue) {
         if (icon != nullptr) icon->removeMeAndCleanup();
 
         auto newIcon = CCSprite::createWithSpriteFrameName(dtDialogSpr.c_str());
+
         if (newIcon == nullptr) newIcon = CCSprite::create(dtDialogSpr.c_str());
         if (newIcon == nullptr) return;
+
         newIcon->setID("dt_portrait"_spr);
         newIcon->setPosition(m_characterSprite->getPosition());
         newIcon->setZOrder(4);
         newIcon->setScale(std::get<2>(dtDialogSprinfo));
+        
         m_mainLayer->addChild(newIcon);
     }
     else {
@@ -40,25 +53,15 @@ void DTDialogLayer::displayDialogObject(DialogObject* dialogue) {
     }
 }
 
-void DTDialogLayer::useTaggedSprites(const std::vector<std::tuple<std::string, int, float>>& icons) {
-    m_fields->icons = icons;
+void DTDialogLayer::useTaggedSprites(std::vector<std::tuple<std::string, int, float>> icons) {
+    m_fields->icons = std::move(icons);
 }
 
-DialogLayer* DTDialogLayer::createWithTaggedSprites(CCArray* objects, int bg, const std::vector<std::tuple<std::string, int, float>>& icons) {
-    objects->insertObject(DialogObject::create("", "", 0, 1, true, {0,0,0}), 0);
-    auto ret = DialogLayer::createWithObjects(objects, bg);
-    static_cast<DTDialogLayer*>(ret)->m_fields->doCallCreationCallback = true;
-    static_cast<DTDialogLayer*>(ret)->useTaggedSprites(icons);
-    ret->displayNextObject();
-
-    return ret;
-}
-
-void DTDialogLayer::setProgressCallback(geode::Function<void(DialogObject*)> callback) {
+void DTDialogLayer::setProgressCallback(Function<void(DialogObject*)> callback) {
     m_fields->callback = std::move(callback);
 }
 
-bool DTDialogLayer::init(DialogObject* object, cocos2d::CCArray* objects, int background) {
+bool DTDialogLayer::init(DialogObject* object, CCArray* objects, int background) {
     if (object != nullptr) {
         m_fields->firstDialogue = object;
     }

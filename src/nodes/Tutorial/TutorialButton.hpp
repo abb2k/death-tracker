@@ -7,14 +7,14 @@ using namespace geode::prelude;
 
 class TutorialButton : public CCMenuItemSpriteExtra {
     protected:
-        bool init(float size, const std::string& id, geode::Function<void(DTTutorialLayer*)> initilizeTutorial);
+        bool init(float size, const std::string& id, Function<void(DTTutorialLayer*)> initilizeTutorial);
         
     public:
-        static TutorialButton* create(float size, const std::string& id, geode::Function<void(DTTutorialLayer*)> initilizeTutorial);
+        static TutorialButton* create(float size, const std::string& id, Function<void(DTTutorialLayer*)> initilizeTutorial);
 
     private:
 
-        geode::Function<void(DTTutorialLayer*)> initilizeTutorial = NULL;
+        Function<void(DTTutorialLayer*)> initilizeTutorial = NULL;
 
         void onClicked(CCObject*);
 

@@ -19,7 +19,7 @@ void DTProfilePage::loadPageFromUserInfo(GJUserScore* user) {
     });
 }
 
-void DTProfilePage::checkUserDonorBadge(int userAccID, geode::Function<void(bool)> callback) {
+void DTProfilePage::checkUserDonorBadge(int userAccID, Function<void(bool)> callback) {
     auto req = web::WebRequest();
     req.param("accountID", userAccID);
 

@@ -9,7 +9,7 @@ class SessionSelector : public CCMenu {
     public:
         static SessionSelector* create(int count);
 
-        void setCallback(geode::Function<void(int)> callback);
+        void setCallback(Function<void(int)> callback);
 
         void setMaximumCount(int count, bool runCallback = false);
         void setCurrentCount(int count, bool ignoreIfUnchanged = true, bool runCallback = false);
@@ -38,7 +38,7 @@ class SessionSelector : public CCMenu {
         geode::TextInput* inputNode;
         bool isInputOpened = false;
 
-        geode::Function<void(int)> callback{};
+        Function<void(int)> callback{};
 
         int maxCount = 0;
         int currentCount = 0;

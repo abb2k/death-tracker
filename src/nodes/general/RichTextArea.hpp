@@ -68,10 +68,10 @@ public:
 template <class T>
 class RichTextKey final : public RichTextKeyBase {
 public:
-    using ValidationCheck = geode::Function<Result<T>(std::string const& value)>;
-    using ApplyToSprite = geode::Function<void(T const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex)>;
-    using StringAddition = geode::Function<std::string(T const& value)>;
-    using ButtonFunctionallity = geode::Function<void(
+    using ValidationCheck = Function<Result<T>(std::string const& value)>;
+    using ApplyToSprite = Function<void(T const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex)>;
+    using StringAddition = Function<std::string(T const& value)>;
+    using ButtonFunctionallity = Function<void(
             T const& value,
             int keyState,
             bool hoverClickOn,

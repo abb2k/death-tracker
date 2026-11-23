@@ -36,7 +36,7 @@ bool SimpleToggler::init(CCNode* offSprite, CCNode* onSprite, float scale, bool 
     return true;
 }
 
-void SimpleToggler::setCallback(geode::Function<void(bool)> callback) {
+void SimpleToggler::setCallback(Function<void(bool)> callback) {
     this->callback = std::move(callback);
 }
 

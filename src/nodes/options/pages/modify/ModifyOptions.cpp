@@ -780,7 +780,7 @@ void ModifyOptions::updatePreviewName(bool categotyIsSession, bool f0State) {
     myLabel->setLabelText(fmt::format("{{{}}}", text));
 }
 
-void ModifyOptions::addPlusMinusBtns(CCNode* around, bool flip, geode::Function<void(bool isPlus)> callback, float scale) {
+void ModifyOptions::addPlusMinusBtns(CCNode* around, bool flip, Function<void(bool isPlus)> callback, float scale) {
     auto plusBtnSpr = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
     plusBtnSpr->setScale(scale);
     auto plusBtn = CCMenuItemSpriteExtra::create(
@@ -813,7 +813,7 @@ void ModifyOptions::addPlusMinusBtns(CCNode* around, bool flip, geode::Function<
         ccp((flip ? 1 : -1) * (std::abs(c2.x - c1.x) * around->getAnchorPoint().x + minusBtn->getContentWidth() / 2 + 5), 0)
     );
 
-    auto sharedCb = std::make_shared<geode::Function<void(bool)>>(std::move(callback));
+    auto sharedCb = std::make_shared<Function<void(bool)>>(std::move(callback));
 
     plusMinusCallbacks.emplace(plusBtn, sharedCb);
     plusMinusCallbacks.emplace(minusBtn, sharedCb);

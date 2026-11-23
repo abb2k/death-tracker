@@ -11,12 +11,12 @@ class CreateBackupPopup : public Popup {
     public:
         static CreateBackupPopup* create();
 
-        void setCallback(geode::Function<void(bool, std::optional<int>)> callback) {
+        void setCallback(Function<void(bool, std::optional<int>)> callback) {
             this->callback = std::move(callback);
         }
 
     private:
-        geode::Function<void(bool, std::optional<int>)> callback = NULL;
+        Function<void(bool, std::optional<int>)> callback = NULL;
 
         std::optional<int> sessions = -1;
         bool general = true;

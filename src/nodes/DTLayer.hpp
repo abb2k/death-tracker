@@ -82,7 +82,7 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         DTLabel* createNewLabel(DTLabelInfo info = DTLabelInfo{});
 
-        void subscribeToOrganizationEvent(CCNode* target, geode::Function<void(float)> callback);
+        void subscribeToOrganizationEvent(CCNode* target, Function<void(float)> callback);
         void unsubscribeToOrganizationEvent(CCNode* target);
 
         void fixUpColumnPositions();
@@ -115,7 +115,7 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         Result<Session, UpdateFutureError> loadSessionFromSave(std::optional<int> sessionIndex = std::nullopt);
 
-        void foreachLinkedLevel(geode::Function<void(LevelData&)> onLevelVisit);
+        void foreachLinkedLevel(Function<void(LevelData&)> onLevelVisit);
 
         bool createDeathsString(const Deaths& deaths, const LevelMetadata& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false, bool isSession = false);
         bool createDecimalDeathsString(const ComplexDeathMap& deaths, const Run& selectedRun, const LevelMetadata& meta, const stringCustomazations& custom, std::string& out, std::optional<NewBests> const newBests = std::nullopt, const CustomizationData& newBestCustomizations = { .color = {255, 255, 255, 255} }, bool ignoreExtraSettings = false, uint8_t decimalDepth = 0);
@@ -123,7 +123,7 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
         void CleanGetStats();
 
         template<class T>
-        GetTFuture<T> getTFor(geode::Function<T(GeneralData const&)> dataGetter, geode::Function<T(T const&, T const&)> combineFunc, bool session, bool localOnly = false) {
+        GetTFuture<T> getTFor(Function<T(GeneralData const&)> dataGetter, Function<T(T const&, T const&)> combineFunc, bool session, bool localOnly = false) {
             if (!session) {
                 if (m_MyLevelStats.isErr()) co_return Err("Failed to calculate playtime");
                 auto myStats = m_MyLevelStats.unwrap();
@@ -217,7 +217,7 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         void addColumnBtnClicked(CCObject*);
 
-        std::map<CCNode*, geode::Function<void(float)>> onOrganizationCompleteEvent{};
+        std::map<CCNode*, Function<void(float)>> onOrganizationCompleteEvent{};
 
         void setLayoutBy(const DTLayoutV3& layout);
 
@@ -308,8 +308,8 @@ class DTLayer : public Popup, public FLAlertLayerProtocol {
 
         UpdateFuture onRecentDeathsKey(std::map<std::string, std::any> payload);
 
-        UpdateFuture getPlaytimeFor(geode::Function<uint64_t(GeneralData const&)>&& dataGetter, bool session);
-        UpdateFuture getAttemptsFor(geode::Function<unsigned long long(GeneralData const&, geode::FunctionRef<unsigned long long(const Deaths&)> const&)>&& dataGetter, bool session);
+        UpdateFuture getPlaytimeFor(Function<uint64_t(GeneralData const&)>&& dataGetter, bool session);
+        UpdateFuture getAttemptsFor(Function<unsigned long long(GeneralData const&, geode::FunctionRef<unsigned long long(const Deaths&)> const&)>&& dataGetter, bool session);
 
         std::optional<float> cachedLevelLength;
 

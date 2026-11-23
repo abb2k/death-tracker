@@ -10,11 +10,10 @@ class $modify(DTPauseLayer, PauseLayer) {
 
     void customSetup();
 
-    void onDTMiniMenuOpened(CCObject*);
-
-    #if defined(GEODE_IS_MACOS)
-
+#if defined(GEODE_IS_MACOS)
     void onNormalMode(cocos2d::CCObject* sender);
+#endif
 
-    #endif
+private:
+    void onDTMiniMenuOpened(CCObject*);
 };

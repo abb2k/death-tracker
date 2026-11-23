@@ -32,7 +32,7 @@ class FileConversionLayer : public geode::Popup {
         void lookupComplete(LookupFuture::Output event);
         async::TaskHolder<LookupFuture::Output> lookupListener;
 
-        ConversionFuture conversionFuture(std::vector<std::string> allLevels, geode::Function<void(ConversionProgress)> progress);
+        ConversionFuture conversionFuture(std::vector<std::string> allLevels, Function<void(ConversionProgress)> progress);
         void conversionComplete(ConversionFuture::Output event);
         async::TaskHolder<ConversionFuture::Output> conversionListener;
         

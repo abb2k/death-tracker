@@ -95,7 +95,7 @@ void FileConversionLayer::setTitle(const std::string& text) {
     geode::Popup::setTitle(text, "goldFont.fnt", .8f, 15);
 }
 
-ConversionFuture FileConversionLayer::conversionFuture(std::vector<std::string> allLevels, geode::Function<void(ConversionProgress)> progress) {
+ConversionFuture FileConversionLayer::conversionFuture(std::vector<std::string> allLevels, Function<void(ConversionProgress)> progress) {
     int filesWentOverAmount = 0;
     int successfulConversionAmount = 0;
     std::vector<std::string> failedConversions{};

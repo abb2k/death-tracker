@@ -1,4 +1,4 @@
-#include <hooks/DTLevelSelectLayer.hpp>
+#include "DTLevelSelectLayer.hpp"
 
 #include <nodes/DTLayer.hpp>
 #include <utils/Settings.hpp>
@@ -75,7 +75,7 @@ void DTLevelSelectLayer::onPrev(CCObject* sender) {
 std::optional<GJGameLevel*> DTLevelSelectLayer::getLevelForCurrentPage() {
     int realPage;
 
-    if (m_scrollLayer->m_page < 0){
+    if (m_scrollLayer->m_page < 0) {
         int N = m_scrollLayer->m_dynamicObjects->count();
         int x = std::abs(m_scrollLayer->m_page);
 
@@ -84,17 +84,16 @@ std::optional<GJGameLevel*> DTLevelSelectLayer::getLevelForCurrentPage() {
 
         if (realPage == m_scrollLayer->m_dynamicObjects->count()) realPage = 0;
     }
-    else{
+    else {
         realPage = m_scrollLayer->m_page % m_scrollLayer->m_dynamicObjects->count();
     }
 
     auto level = m_scrollLayer->m_dynamicObjects->objectAtIndex(realPage);
 
-    if (level == nullptr){
+    if (level == nullptr)
         return std::nullopt;
-    }
 
-    if (auto lvl = typeinfo_cast<GJGameLevel*>(level)){
+    if (auto lvl = typeinfo_cast<GJGameLevel*>(level)) {
         auto lvlReal = LevelTools::getLevel(lvl->m_levelID.value(), true);
 
         if (lvl->m_levelID.value() < 0 || lvl->m_levelName.empty()) return std::nullopt;

@@ -1,4 +1,4 @@
-#include <hooks/DTLevelInfoLayer.hpp>
+#include "DTLevelInfoLayer.hpp"
 
 #include <nodes/DTLayer.hpp>
 #include <utils/Settings.hpp>
@@ -8,9 +8,8 @@ bool DTLevelInfoLayer::init(GJGameLevel* p0, bool p1) {
 
     auto robDTMenu = getChildByID("death-tracker-menu");
 
-    if (robDTMenu) {
+    if (robDTMenu)
         robDTMenu->setVisible(false);
-    }
 
     auto s = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
     auto s2 = CCSprite::createWithSpriteFrameName("miniSkull_001.png");
@@ -43,11 +42,11 @@ bool DTLevelInfoLayer::init(GJGameLevel* p0, bool p1) {
 }
 
 void DTLevelInfoLayer::checkIfPlayVisible(float delta) {
-    if (this->m_playBtnMenu->isVisible()) {
-        m_fields->btn->setVisible(true);
-        
-        unschedule(schedule_selector(DTLevelInfoLayer::checkIfPlayVisible));
-    }
+    if (!this->m_playBtnMenu->isVisible()) return;
+
+    m_fields->btn->setVisible(true);
+    
+    unschedule(schedule_selector(DTLevelInfoLayer::checkIfPlayVisible));
 }
 
 void DTLevelInfoLayer::openDTLayer(CCObject*) {

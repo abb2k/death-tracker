@@ -40,10 +40,10 @@ class SpecialKey : public CCObject, public std::enable_shared_from_this<SpecialK
         std::string description;
         bool showInAddList;
 
-        std::optional<geode::Function<UpdateFuture(std::map<std::string, std::any>)>> updateFunction = std::nullopt;
+        std::optional<Function<UpdateFuture(std::map<std::string, std::any>)>> updateFunction = std::nullopt;
 
-        geode::Function<void(const std::shared_ptr<SpecialKey>&)> updateCompletedCallback = nullptr;
-        geode::Function<void(const std::shared_ptr<SpecialKey>&)> updateStartedCallback = nullptr;
+        Function<void(const std::shared_ptr<SpecialKey>&)> updateCompletedCallback = nullptr;
+        Function<void(const std::shared_ptr<SpecialKey>&)> updateStartedCallback = nullptr;
 
         async::TaskHolder<UpdateFuture::Output> updateListener;
 
@@ -63,7 +63,7 @@ class SpecialKey : public CCObject, public std::enable_shared_from_this<SpecialK
 
         bool compareToKey(const std::string& otherKey);
 
-        void setUpdateFunction(geode::Function<UpdateFuture(std::map<std::string, std::any>)> task);
+        void setUpdateFunction(Function<UpdateFuture(std::map<std::string, std::any>)> task);
 
         void updateContent();
         UpdateFuture getUpdatedContentAsync(std::map<std::string, std::any> payload);
@@ -81,8 +81,8 @@ class SpecialKey : public CCObject, public std::enable_shared_from_this<SpecialK
             return this->showInAddList;
         }
 
-        void setUpdateCompletedCallback(geode::Function<void(const std::shared_ptr<SpecialKey>&)> callback);
-        void setUpdateStartedCallback(geode::Function<void(const std::shared_ptr<SpecialKey>&)> callback);
+        void setUpdateCompletedCallback(Function<void(const std::shared_ptr<SpecialKey>&)> callback);
+        void setUpdateStartedCallback(Function<void(const std::shared_ptr<SpecialKey>&)> callback);
 
         void cancel();
 

@@ -1,4 +1,4 @@
-#include <hooks/DTEndLevelLayer.hpp>
+#include "DTEndLevelLayer.hpp"
 
 #include <nodes/DTLayer.hpp>
 #include <utils/Settings.hpp>
@@ -44,7 +44,7 @@ void DTEndLevelLayer::openDTLayer(CCObject*) {
     dtLayer->show();
 }
 
-void DTEndLevelLayer::onHideLayer(cocos2d::CCObject* sender) {
+void DTEndLevelLayer::onHideLayer(CCObject* sender) {
     EndLevelLayer::onHideLayer(sender);
 
     if (m_fields->skullBtn == nullptr) return;

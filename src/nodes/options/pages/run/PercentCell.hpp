@@ -7,9 +7,9 @@ using namespace geode::prelude;
 
 class PercentCell : public CCMenu, public SliderDelegate {
     protected:
-        bool init(float width, int Percent, int maxToHide, CCNode* sideButtonSprite, geode::Function<void(PercentCell*)> callback);
+        bool init(float width, int Percent, int maxToHide, CCNode* sideButtonSprite, Function<void(PercentCell*)> callback);
     public:
-        static PercentCell* create(float width, int Percent, int maxToHide, CCNode* sideButtonSprite, geode::Function<void(PercentCell*)> callback = NULL);
+        static PercentCell* create(float width, int Percent, int maxToHide, CCNode* sideButtonSprite, Function<void(PercentCell*)> callback = NULL);
         
         int getPercent() const {
             return percent;
@@ -27,7 +27,7 @@ class PercentCell : public CCMenu, public SliderDelegate {
         }
 
         CCScale9Sprite* BGSprite;
-        geode::Function<void(PercentCell*)> onMaxToHideChanged = NULL;
+        Function<void(PercentCell*)> onMaxToHideChanged = NULL;
 
         void hide();
         void hideInstant();
@@ -45,5 +45,5 @@ class PercentCell : public CCMenu, public SliderDelegate {
 
         int percent;
         int maxToHide;
-        geode::Function<void(PercentCell*)> callback;
+        Function<void(PercentCell*)> callback;
 };

@@ -1,10 +1,12 @@
-#include "../hooks/DTPlayLayer.hpp"
+#include "DTPlayLayer.hpp"
+
+#include <managers/StatsManager.hpp>
 #include <nodes/overlayLabels/LabelEditLayer.hpp>
 #include <managers/AuthManager.hpp>
-
 #include <nodes/overlayLabels/LabelEditLayer.hpp>
-
-using namespace geode::prelude;
+#include <utils/Save.hpp>
+#include <utils/Settings.hpp>
+#include <nodes/layout/usage/DTLabel.hpp>
 
 bool DTPlayLayer::disableCompletedLevelTracking() {
     return Settings::isCompletedLevelTrackingDisabled()
@@ -20,9 +22,6 @@ void DTPlayLayer::updateSessionLastPlayed() {
     if (session == m_fields->prevSession && m_fields->isSessionExpired) return;
     StatsManager::updateCurrentSessionLastPlayed();
 }
-
-/* hooks
-========== */
 
 bool DTPlayLayer::init(GJGameLevel* level, bool p1) {
     if (!PlayLayer::init(level, p1)) return false;

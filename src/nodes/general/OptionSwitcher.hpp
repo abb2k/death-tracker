@@ -24,7 +24,7 @@ class OptionSwitcher : public CCMenu {
 
         E getSelectedOption();
 
-        void setCallback(geode::Function<void(E)> callback);
+        void setCallback(Function<void(E)> callback);
 
         void setValue(int index, bool runCallback = false);
         void setValue(E e, bool runCallback = false);
@@ -37,7 +37,7 @@ class OptionSwitcher : public CCMenu {
 
         int currentOption = 0;
 
-        geode::Function<void(E)> callback = nullptr;
+        Function<void(E)> callback = nullptr;
 };
 
 
@@ -120,7 +120,7 @@ void OptionSwitcher<E>::onLabelClicked(CCObject* sender) {
 }
 
 template<typename E>
-void OptionSwitcher<E>::setCallback(geode::Function<void(E)> cb) {
+void OptionSwitcher<E>::setCallback(Function<void(E)> cb) {
     this->callback = std::move(cb);
 }
 

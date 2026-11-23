@@ -6,7 +6,7 @@ std::vector<LinkData> LinkedLevelsCacheManager::data{};
 
 arc::TaskHandle<void> LinkedLevelsCacheManager::getLevelsTask{};
 
-void LinkedLevelsCacheManager::getLinkedLevels(geode::Function<void(const GetLevelsTaskProgress& progress)> progressCallback, geode::Function<void(GetLevelsFuture::Output const&)> completionCallback) {
+void LinkedLevelsCacheManager::getLinkedLevels(Function<void(const GetLevelsTaskProgress& progress)> progressCallback, Function<void(GetLevelsFuture::Output const&)> completionCallback) {
 
     getLevelsTask.detach();
 
@@ -20,7 +20,7 @@ void LinkedLevelsCacheManager::getLinkedLevels(geode::Function<void(const GetLev
     );
 }
 
-GetLevelsFuture LinkedLevelsCacheManager::getLevelsFuture(geode::Function<void(const GetLevelsTaskProgress& progress)> progressCallback) {
+GetLevelsFuture LinkedLevelsCacheManager::getLevelsFuture(Function<void(const GetLevelsTaskProgress& progress)> progressCallback) {
     auto progresObject = GetLevelsTaskProgress{"Getting list of played levels...", -1, -1};
 
     progressCallback(progresObject);

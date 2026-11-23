@@ -2232,7 +2232,7 @@ void DTLayer::organizeLayout() {
                     auto currentResizeActionEase = static_cast<CCEaseInOut*>(taggedResizeAction);
                     auto currentResizeAction = static_cast<CCResizeWidthTo*>(currentResizeActionEase->getInnerAction());
 
-                    if (currentResizeAction->endWidth != newWidth) {
+                    if (currentResizeAction->getEndWidth() != newWidth) {
                         label->stopActionByTag(RESIZE_TAG);
                     }
                     else doCreateNewResizeAction = false;
@@ -2647,7 +2647,7 @@ DTLabel* DTLayer::createNewLabel(DTLabelInfo info) {
 }
 
 
-void DTLayer::subscribeToOrganizationEvent(CCNode* target, geode::Function<void(float)> callback) {
+void DTLayer::subscribeToOrganizationEvent(CCNode* target, Function<void(float)> callback) {
     if (onOrganizationCompleteEvent.contains(target)) return;
 
     onOrganizationCompleteEvent.insert({target, std::move(callback)});
@@ -3781,7 +3781,7 @@ UpdateFuture DTLayer::onSessionBestRunsKey(std::map<std::string, std::any> paylo
     co_return Ok(out);
 }
 
-void DTLayer::foreachLinkedLevel(geode::Function<void(LevelData&)> onLevelVisit) {
+void DTLayer::foreachLinkedLevel(Function<void(LevelData&)> onLevelVisit) {
     if (m_MyLevelStats.isErr()) return;
     auto& myStats = m_MyLevelStats.unwrap();
 
@@ -4402,7 +4402,7 @@ UpdateFuture DTLayer::onRecentDeathsKey(std::map<std::string, std::any> payload)
     co_return Ok(out);
 }
 
-UpdateFuture DTLayer::getPlaytimeFor(geode::Function<uint64_t(GeneralData const&)>&& dataGetter, bool session) {
+UpdateFuture DTLayer::getPlaytimeFor(Function<uint64_t(GeneralData const&)>&& dataGetter, bool session) {
     auto gotten = co_await getTFor<uint64_t>(std::move(dataGetter), [](uint64_t const& a, uint64_t const& b) {
         return a + b;
     }, session);
@@ -4411,7 +4411,7 @@ UpdateFuture DTLayer::getPlaytimeFor(geode::Function<uint64_t(GeneralData const&
     co_return Ok(StatsManager::workingTime(gotten.unwrap()));
 }
 
-UpdateFuture DTLayer::getAttemptsFor(geode::Function<unsigned long long(GeneralData const&, geode::FunctionRef<unsigned long long(const Deaths&)> const&)>&& dataGetter, bool session) {
+UpdateFuture DTLayer::getAttemptsFor(Function<unsigned long long(GeneralData const&, geode::FunctionRef<unsigned long long(const Deaths&)> const&)>&& dataGetter, bool session) {
     auto deaths = [](const Deaths& d) -> unsigned long long {
         unsigned long long attempts = 0;
 

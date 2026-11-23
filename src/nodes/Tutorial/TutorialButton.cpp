@@ -1,7 +1,7 @@
 #include "TutorialButton.hpp"
 #include <utils/Save.hpp>
 
-TutorialButton* TutorialButton::create(float size, const std::string& id, geode::Function<void(DTTutorialLayer*)> initilizeTutorial) {
+TutorialButton* TutorialButton::create(float size, const std::string& id, Function<void(DTTutorialLayer*)> initilizeTutorial) {
     auto ret = new TutorialButton();
     if (ret && ret->init(size, id, std::move(initilizeTutorial))) {
         ret->autorelease();
@@ -12,7 +12,7 @@ TutorialButton* TutorialButton::create(float size, const std::string& id, geode:
     return ret;
 }
 
-bool TutorialButton::init(float size, const std::string& id, geode::Function<void(DTTutorialLayer*)> initilizeTutorial) {
+bool TutorialButton::init(float size, const std::string& id, Function<void(DTTutorialLayer*)> initilizeTutorial) {
     this->size = size;
 
     spr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");

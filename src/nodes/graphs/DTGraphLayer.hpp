@@ -77,7 +77,7 @@ class DTGraphLayer : public Popup, public GraphPointDelegate, public FLAlertLaye
 
         void updateColor(cocos2d::ccColor4B const& color);
 
-        std::optional<geode::Function<void(const ccColor4B&)>> callbacksForColorPopups = std::nullopt;
+        std::optional<Function<void(const ccColor4B&)>> callbacksForColorPopups = std::nullopt;
 
         void saveAllGraphs();
 

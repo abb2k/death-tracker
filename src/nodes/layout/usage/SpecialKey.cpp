@@ -10,7 +10,7 @@ bool SpecialKey::compareToKey(const std::string& otherKey) {
     return this->key == otherKey;
 }
 
-void SpecialKey::setUpdateFunction(geode::Function<UpdateFuture(std::map<std::string, std::any>)> task) {
+void SpecialKey::setUpdateFunction(Function<UpdateFuture(std::map<std::string, std::any>)> task) {
     this->updateFunction = std::move(task);
 }
 
@@ -47,11 +47,11 @@ UpdateFuture SpecialKey::updateFutureRunner(std::map<std::string, std::any> payl
     co_return value;
 }
 
-void SpecialKey::setUpdateCompletedCallback(geode::Function<void(const std::shared_ptr<SpecialKey>&)> callback) {
+void SpecialKey::setUpdateCompletedCallback(Function<void(const std::shared_ptr<SpecialKey>&)> callback) {
     this->updateCompletedCallback = std::move(callback);
 }
 
-void SpecialKey::setUpdateStartedCallback(geode::Function<void(const std::shared_ptr<SpecialKey>&)> callback) {
+void SpecialKey::setUpdateStartedCallback(Function<void(const std::shared_ptr<SpecialKey>&)> callback) {
     this->updateStartedCallback = std::move(callback);
 }
 

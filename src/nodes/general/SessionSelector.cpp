@@ -70,7 +70,7 @@ void SessionSelector::rightArrowClicked(CCObject*) {
     setCurrentCount(currentCount + 1, true, true);
 }
 
-void SessionSelector::setCallback(geode::Function<void(int)> callback) {
+void SessionSelector::setCallback(Function<void(int)> callback) {
     this->callback = std::move(callback);
 }
 

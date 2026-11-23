@@ -1,6 +1,6 @@
 #include "TextInputPopup.hpp"
 
-TextInputPopup* TextInputPopup::create(const std::string& title, const std::string& placeholder, const std::string& bottomBtnText, const std::string& presetValue, geode::Function<void(const std::string&)> callback) {
+TextInputPopup* TextInputPopup::create(const std::string& title, const std::string& placeholder, const std::string& bottomBtnText, const std::string& presetValue, Function<void(const std::string&)> callback) {
     auto ret = new TextInputPopup();
     if (ret->init(title, placeholder, bottomBtnText, presetValue, std::move(callback))) {
         ret->autorelease();
@@ -11,7 +11,7 @@ TextInputPopup* TextInputPopup::create(const std::string& title, const std::stri
 }
 
 // a little help from better edit on this one :)
-bool TextInputPopup::init(const std::string& title, const std::string& placeholder, const std::string& bottomBtnText, const std::string& presetValue, geode::Function<void(const std::string&)> callback) {
+bool TextInputPopup::init(const std::string& title, const std::string& placeholder, const std::string& bottomBtnText, const std::string& presetValue, Function<void(const std::string&)> callback) {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
     // @geode-ignore(unknown-resource)
     if (!Popup::init(240, 110, "geode.loader/GE_square01.png"))

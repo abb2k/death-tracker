@@ -49,7 +49,7 @@ class DTGraphNode : public CCNode {
         void getSessionDeaths();
         void getSessionRuns();
 
-        void getDeathsAsync(geode::Function<Deaths(GeneralData const&)>&& dataGetter, bool session);
+        void getDeathsAsync(Function<Deaths(GeneralData const&)>&& dataGetter, bool session);
 
         std::optional<DTGraphInfo> info = std::nullopt;
         Deaths deaths{};

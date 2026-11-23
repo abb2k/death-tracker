@@ -1,11 +1,11 @@
 #include "DTColorSelectPopup.hpp"
 
-void DTColorSelectPopup::setCallback(const SEL_CallFunc& _callback, CCObject* const& _target) {
-    m_fields->callback = _callback;
+void DTColorSelectPopup::setCallback(SEL_CallFunc _callback, CCObject* _target) {
+    m_fields->callback = std::move(_callback);
     m_fields->target = _target;
 }
 
-void DTColorSelectPopup::colorValueChanged(cocos2d::ccColor3B newColor) {
+void DTColorSelectPopup::colorValueChanged(ccColor3B newColor) {
     ColorSelectPopup::colorValueChanged(newColor);
 
     if (m_fields->target)

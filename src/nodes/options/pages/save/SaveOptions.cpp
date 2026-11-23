@@ -290,7 +290,7 @@ void SaveOptions::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     choiceAlertsMap.erase(layer);
 }
 
-void SaveOptions::createChoiceAlert(const std::string& title, const std::string& desc, const std::string& btn1, const std::string& btn2, geode::Function<void(bool)> callback) {
+void SaveOptions::createChoiceAlert(const std::string& title, const std::string& desc, const std::string& btn1, const std::string& btn2, Function<void(bool)> callback) {
     auto alert = FLAlertLayer::create(this, title.c_str(), desc, btn1.c_str(), btn2.c_str());
     alert->show();
     choiceAlertsMap.insert({alert, std::move(callback)});

@@ -17,8 +17,8 @@ class BackupCell : public CCMenu {
     public:
         static BackupCell* create(float width, const std::string& levelKey, const long long backupTime);
 
-        geode::Function<void(BackupCell*)> onRevertCallback = NULL;
-        geode::Function<void(BackupCell*)> onDeleteCallback = NULL;
+        Function<void(BackupCell*)> onRevertCallback = NULL;
+        Function<void(BackupCell*)> onDeleteCallback = NULL;
 
         std::string getLevelKey() const {
             return levelKey;

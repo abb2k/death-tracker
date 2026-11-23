@@ -8,15 +8,15 @@ using namespace geode::prelude;
 
 class SpecialKeyCell : public CCMenu {
     public:
-        static SpecialKeyCell* create(std::shared_ptr<SpecialKey> key, geode::Function<void(const std::string&)> onSelected);
+        static SpecialKeyCell* create(std::shared_ptr<SpecialKey> key, Function<void(const std::string&)> onSelected);
 
 
     private:
-        bool init(std::shared_ptr<SpecialKey> key, geode::Function<void(const std::string&)> onSelected);
+        bool init(std::shared_ptr<SpecialKey> key, Function<void(const std::string&)> onSelected);
 
         std::shared_ptr<SpecialKey> key;
 
-        geode::Function<void(const std::string&)> onSelected = NULL;
+        Function<void(const std::string&)> onSelected = NULL;
 
         void onAddClicked(CCObject*);
 };

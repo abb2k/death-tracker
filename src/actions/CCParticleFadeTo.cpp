@@ -3,7 +3,7 @@
 CCParticleFadeTo* CCParticleFadeTo::create(float duration, GLubyte toOpacity) {
     auto action = new CCParticleFadeTo();
 
-    if (action && action->initWithDuration(duration, toOpacity)) {
+    if (action && action->initWithDuration(std::move(duration), std::move(toOpacity))) {
         action->autorelease();
         return action;
     }
@@ -14,9 +14,9 @@ CCParticleFadeTo* CCParticleFadeTo::create(float duration, GLubyte toOpacity) {
 }
 
 bool CCParticleFadeTo::initWithDuration(float duration, GLubyte toOpacity) {
-    if (!CCActionInterval::initWithDuration(duration)) return false;
+    if (!CCActionInterval::initWithDuration(std::move(duration))) return false;
 
-    m_endOpacity = toOpacity;
+    m_endOpacity = std::move(toOpacity);
     
     return true;
 }

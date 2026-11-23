@@ -13,9 +13,6 @@ class DecimalPopup;
 
 using namespace geode::prelude;
 
-using WaveKeyParams = std::tuple<float, float, float, float>;
-using GradientKeyParams = std::tuple<ccColor4B, ccColor4B, float, float>;
-using CPlusKeyParams = int;
 using RunButtonParams = std::tuple<Run, bool, std::optional<long long>, size_t>;
 
 class DTLabel : public CCMenu {
@@ -90,10 +87,6 @@ class DTLabel : public CCMenu {
 
         ~DTLabel();
 
-        static std::shared_ptr<RichTextKey<WaveKeyParams>> makeWaveKey(geode::Function<bool()> donerRichTextEnabled);
-        static std::shared_ptr<RichTextKey<GradientKeyParams>> makeGradientKey(geode::Function<bool()> donerRichTextEnabled);
-        static std::shared_ptr<RichTextKey<CPlusKeyParams>> makeCPlusKey();
-
         void updateInfoWithColumnData();
 
         void attachedDecimalPopup(DecimalPopup* popup);
@@ -162,11 +155,6 @@ class DTLabel : public CCMenu {
         float doubleClickTimer = .2f;
 
         float getSpecificTitleHeight();
-
-        // std::shared_ptr<RichTextKey<RunButtonParams>> makeRunButtonKey();
-        // void onRunButtonClick(RunButtonParams const& value, int keyState, bool hoverClickOn, cocos2d::CCFontSprite* specificSpriteClicked, std::set<cocos2d::CCFontSprite*> const& wordClicked);
-        
-        // bool hoverToggle = false;
 
         std::shared_ptr<RichTextKey<RunButtonParams>> makeRunMoreKey();
         bool runMoreButtonsVisible = true;

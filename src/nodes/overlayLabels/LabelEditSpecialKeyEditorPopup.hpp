@@ -7,7 +7,7 @@ using namespace geode::prelude;
 
 class LabelEditSpecialKeyEditorPopup : public Popup {
     protected:
-        bool init(geode::Function<void(const std::string&)> callback);
+        bool init(Function<void(const std::string&)> callback);
 
         void onKeyTypeClick(CCObject*);
         void onScopeClick(CCObject*);
@@ -15,7 +15,7 @@ class LabelEditSpecialKeyEditorPopup : public Popup {
         void updateControls();
         void onCreateKey(CCObject*);
 
-        geode::Function<void(const std::string&)> m_callback;
+        Function<void(const std::string&)> m_callback;
         CCMenuItemSpriteExtra* m_keyTypeButton = nullptr;
         CCMenuItemSpriteExtra* m_scopeButton = nullptr;
         CCMenuItemSpriteExtra* m_operatorButton = nullptr;
@@ -33,5 +33,5 @@ class LabelEditSpecialKeyEditorPopup : public Popup {
         bool m_decimals = false;
 
     public:
-        static LabelEditSpecialKeyEditorPopup* create(geode::Function<void(const std::string&)> callback);
+        static LabelEditSpecialKeyEditorPopup* create(Function<void(const std::string&)> callback);
 };

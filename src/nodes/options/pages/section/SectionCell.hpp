@@ -9,8 +9,8 @@ class SectionCell : public CCMenu {
     public:
         static SectionCell* create(float width, const Section& section);
 
-        geode::Function<void()> onChanged;
-        geode::Function<void()> onDeleted;
+        Function<void()> onChanged;
+        Function<void()> onDeleted;
 
         Section getSection() const { 
             return section; 

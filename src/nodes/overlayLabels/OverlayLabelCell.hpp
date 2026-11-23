@@ -10,9 +10,9 @@ class OverlayLabelCell : public CCMenu {
     public:
         static OverlayLabelCell* create(float width, OverlayLabel const& label);
 
-        void onDeleteCallback(geode::Function<void(OverlayLabelCell*)> onDelete);
-        void onEditCallback(geode::Function<void(OverlayLabelCell*)> onEdit);
-        void onChangedCallback(geode::Function<void(OverlayLabelCell*)> onChanged);
+        void onDeleteCallback(Function<void(OverlayLabelCell*)> onDelete);
+        void onEditCallback(Function<void(OverlayLabelCell*)> onEdit);
+        void onChangedCallback(Function<void(OverlayLabelCell*)> onChanged);
 
         OverlayLabel const& getData() const { return m_myLabelData; }
         void setData(OverlayLabel const& label);
@@ -53,7 +53,7 @@ class OverlayLabelCell : public CCMenu {
         void onDelete(CCObject*);
         void onEdit(CCObject*);
 
-        geode::Function<void(OverlayLabelCell*)> m_onDelete = NULL;
-        geode::Function<void(OverlayLabelCell*)> m_onEdit = NULL;
-        geode::Function<void(OverlayLabelCell*)> m_onChanged = NULL;
+        Function<void(OverlayLabelCell*)> m_onDelete = NULL;
+        Function<void(OverlayLabelCell*)> m_onEdit = NULL;
+        Function<void(OverlayLabelCell*)> m_onChanged = NULL;
 };

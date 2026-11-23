@@ -11,7 +11,7 @@ class LevelLinkCell : public CCMenu {
 
         void setAlignment(bool left);
 
-        void setCallback(geode::Function<void(const std::string& levelKey, bool isLeftAligned)> callback);
+        void setCallback(Function<void(const std::string& levelKey, bool isLeftAligned)> callback);
 
         void setEnabledAndFade(bool b);
         bool isEnabledAndFade() const { return enabledAndFade; }
@@ -21,7 +21,7 @@ class LevelLinkCell : public CCMenu {
 
         std::string levelKey;
 
-        geode::Function<void(const std::string& levelKey, bool isLeftAligned)> callback = NULL;
+        Function<void(const std::string& levelKey, bool isLeftAligned)> callback = NULL;
 
         bool isAlignedLeft;
 

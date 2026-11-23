@@ -1,6 +1,6 @@
 #include <nodes/calculator/CalculatorMode.hpp>
 
-CalculatorMode* CalculatorMode::create(CCSize const& size, geode::Function<void(std::string const&)>&& onVariablesChanged, geode::Function<void(std::string const&)>&& onCalculate) {
+CalculatorMode* CalculatorMode::create(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate) {
     auto ret = new CalculatorMode();
     if (ret && ret->init(size, std::move(onVariablesChanged), std::move(onCalculate))) {
         ret->autorelease();
@@ -11,7 +11,7 @@ CalculatorMode* CalculatorMode::create(CCSize const& size, geode::Function<void(
     return ret;
 }
 
-bool CalculatorMode::init(CCSize const& size, geode::Function<void(std::string const&)>&& onVariablesChanged, geode::Function<void(std::string const&)>&& onCalculate) {
+bool CalculatorMode::init(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate) {
     if (!CCNode::init()) return false;
 
     this->onVariablesChanged = std::move(onVariablesChanged);

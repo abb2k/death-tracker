@@ -9,7 +9,7 @@ class SimpleToggler : public CCMenuItemToggler {
         static SimpleToggler* create(CCNode* offSprite, CCNode* onSprite, float scale = 1, bool startState = false);
         static SimpleToggler* createWithDefaults(float scale = 1, bool startState = false);
 
-        void setCallback(geode::Function<void(bool)> callback);
+        void setCallback(Function<void(bool)> callback);
 
         void setOpacity(GLubyte opacity) override;
     private:
@@ -17,7 +17,7 @@ class SimpleToggler : public CCMenuItemToggler {
 
         void onToggled(CCObject* sender);
 
-        geode::Function<void(bool)> callback = NULL;
+        Function<void(bool)> callback = NULL;
         CCNode* offSprite;
         CCNode* onSprite;
 };

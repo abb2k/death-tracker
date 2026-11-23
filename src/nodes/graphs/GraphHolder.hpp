@@ -23,7 +23,7 @@ class GraphHolder : public CCNode {
         void removeGraph(const std::string& graphName);
         void changeGraphName(const std::string& oldName, const std::string& newName);
 
-        void setToAllGraphs(geode::Function<void(DTGraphNode*)> graphSetFunction);
+        void setToAllGraphs(Function<void(DTGraphNode*)> graphSetFunction);
 
         void sendUpdateToGraphOfType(DTGraphCoverage coverage);
 

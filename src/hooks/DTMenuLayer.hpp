@@ -1,9 +1,9 @@
 #include <Geode/modify/MenuLayer.hpp>
 
-using namespace geode::prelude;
-
 class $modify(DTMenuLayer, MenuLayer) {
+public:
     bool init();
 
+private:
     arc::Future<> awaitOpening();
 };

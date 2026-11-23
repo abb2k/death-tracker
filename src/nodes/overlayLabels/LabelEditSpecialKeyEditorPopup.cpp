@@ -1,7 +1,7 @@
 #include "LabelEditSpecialKeyEditorPopup.hpp"
 #include <nodes/Tutorial/TutorialButton.hpp>
 
-LabelEditSpecialKeyEditorPopup* LabelEditSpecialKeyEditorPopup::create(geode::Function<void(const std::string&)> callback) {
+LabelEditSpecialKeyEditorPopup* LabelEditSpecialKeyEditorPopup::create(Function<void(const std::string&)> callback) {
     auto ret = new LabelEditSpecialKeyEditorPopup();
     if (ret->init(std::move(callback))) {
         ret->autorelease();
@@ -11,7 +11,7 @@ LabelEditSpecialKeyEditorPopup* LabelEditSpecialKeyEditorPopup::create(geode::Fu
     return nullptr;
 }
 
-bool LabelEditSpecialKeyEditorPopup::init(geode::Function<void(const std::string&)> callback) {
+bool LabelEditSpecialKeyEditorPopup::init(Function<void(const std::string&)> callback) {
     // @geode-ignore(unknown-resource)
     if (!Popup::init(250, 170, "geode.loader/GE_square01.png"))
         return false;

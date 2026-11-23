@@ -7,14 +7,14 @@ using namespace geode::prelude;
 
 class PastCalcMode : public CalculatorMode {
     protected:
-        bool init(CCSize const& size, geode::Function<void(std::string const&)>&& onVariablesChanged, geode::Function<void(std::string const&)>&& onCalculate);
+        bool init(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate);
 
         TextInput* passPercentInput;
 
         bool isGeneral = true;
 
     public:
-        static PastCalcMode* create(CCSize const& size, geode::Function<void(std::string const&)>&& onVariablesChanged, geode::Function<void(std::string const&)>&& onCalculate);
+        static PastCalcMode* create(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate);
         
         std::string getName() const override;
         std::string getDescription() const override;

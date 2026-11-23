@@ -12,7 +12,7 @@ class ScrollableTextInput : public CCNode {
         static ScrollableTextInput* create(float width, const std::string& placeholder, const std::string& font = "bigFont.fnt");
 
         void setCommonFilter(CommonFilter filter);
-        void setCallback(geode::Function<void(std::string const&)> onInput);
+        void setCallback(Function<void(std::string const&)> onInput);
         void setString(std::string const& str, bool triggerCallback = false);
         std::string getString() const { return textInput->getString(); }
         bool isSelected() const { return textInput->isFocused(); }
@@ -24,5 +24,5 @@ class ScrollableTextInput : public CCNode {
         TextInput* textInput = nullptr;
         CommonFilter filter = CommonFilter::Any;
 
-        geode::Function<void(std::string const&)> onInput = NULL;
+        Function<void(std::string const&)> onInput = NULL;
 };

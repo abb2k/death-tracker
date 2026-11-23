@@ -1,7 +1,7 @@
 #include "PercentCell.hpp"
 #include <utils/Dev.hpp>
 
-PercentCell* PercentCell::create(float width, int Percent, int maxToHide, CCNode* sideButtonSprite, geode::Function<void(PercentCell*)> callback) {
+PercentCell* PercentCell::create(float width, int Percent, int maxToHide, CCNode* sideButtonSprite, Function<void(PercentCell*)> callback) {
     auto ret = new PercentCell();
     if (ret && ret->init(width, Percent, maxToHide, sideButtonSprite, std::move(callback))) {
         ret->autorelease();
@@ -12,7 +12,7 @@ PercentCell* PercentCell::create(float width, int Percent, int maxToHide, CCNode
     return ret;
 }
 
-bool PercentCell::init(float width, int percent, int maxToHide, CCNode* sideButtonSprite, geode::Function<void(PercentCell*)> callback) {
+bool PercentCell::init(float width, int percent, int maxToHide, CCNode* sideButtonSprite, Function<void(PercentCell*)> callback) {
     if (!CCMenu::init()) return false;
 
     this->maxToHide = maxToHide;

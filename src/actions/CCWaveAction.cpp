@@ -1,10 +1,9 @@
 #include "CCWaveAction.hpp"
 
-CCWaveAction* CCWaveAction::create(float period, float distX, float distY, float phase)
-{
+CCWaveAction* CCWaveAction::create(float period, float distX, float distY, float phase) {
     auto ret = new CCWaveAction();
-    if (ret && ret->init(period, distX, distY, phase))
-    {
+
+    if (ret && ret->init(std::move(period), std::move(distX), std::move(distY), std::move(phase))) {
         ret->autorelease();
         return ret;
     }
@@ -13,23 +12,21 @@ CCWaveAction* CCWaveAction::create(float period, float distX, float distY, float
     return nullptr;
 }
 
-bool CCWaveAction::init(float period, float distX, float distY, float phase)
-{
-    if (!cocos2d::CCActionInterval::initWithDuration(period))
+bool CCWaveAction::init(float period, float distX, float distY, float phase) {
+    if (!cocos2d::CCActionInterval::initWithDuration(std::move(period)))
         return false;
 
-    m_distX = distX;
-    m_distY = distY;
-    m_phase = phase;
+    m_distX = std::move(distX);
+    m_distY = std::move(distY);
+    m_phase = std::move(phase);
     m_baseX = NAN;
     m_baseY = NAN;
 
     return true;
 }
 
-void CCWaveAction::startWithTarget(cocos2d::CCNode* target)
-{
-    cocos2d::CCActionInterval::startWithTarget(target);
+void CCWaveAction::startWithTarget(CCNode* target) {
+    CCActionInterval::startWithTarget(target);
 
     if (!std::isnan(m_baseX)) return;
 
@@ -37,8 +34,7 @@ void CCWaveAction::startWithTarget(cocos2d::CCNode* target)
     m_baseY = target->getPositionY();
 }
 
-void CCWaveAction::update(float t)
-{
+void CCWaveAction::update(float t) {
     float angle = (t * 2.f * M_PI) + m_phase;
 
     float x = m_baseX + cosf(angle) * m_distX;
@@ -47,7 +43,6 @@ void CCWaveAction::update(float t)
     m_pTarget->setPosition(x, y);
 }
 
-cocos2d::CCActionInterval* CCWaveAction::reverse()
-{
+CCActionInterval* CCWaveAction::reverse() {
     return CCWaveAction::create(m_fDuration, m_distX, m_distY, -m_phase);
 }

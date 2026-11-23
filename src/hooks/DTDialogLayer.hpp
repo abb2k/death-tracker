@@ -1,27 +1,29 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
+#include <Geode/modify/DialogLayer.hpp>
 
 using namespace geode::prelude;
 
-#include <Geode/modify/DialogLayer.hpp>
-
 class $modify(DTDialogLayer, DialogLayer) {
-    void useTaggedSprites(const std::vector<std::tuple<std::string, int, float>>& icons);
-
-    void displayDialogObject(DialogObject* dialogue);
-
-    static DialogLayer* createWithTaggedSprites(CCArray* objects, int bg, const std::vector<std::tuple<std::string, int, float>>& icons);
-
-    void setProgressCallback(geode::Function<void(DialogObject*)> callback);
-
-    bool init(DialogObject* object, cocos2d::CCArray* objects, int background);
-    void addToMainScene();
-
-    struct Fields{
+public:
+    struct Fields {
         std::vector<std::tuple<std::string, int, float>> icons;
-        geode::Function<void(DialogObject*)> callback = NULL;
+        Function<void(DialogObject*)> callback = NULL;
         DialogObject* firstDialogue = nullptr;
         bool doCallCreationCallback = false;
     };
+
+    static DialogLayer* createWithTaggedSprites(CCArray* objects, int bg, std::vector<std::tuple<std::string, int, float>> icons);
+
+    void setProgressCallback(Function<void(DialogObject*)> callback);
+
+
+    bool init(DialogObject* object, CCArray* objects, int background);
+    
+    void addToMainScene();
+    
+    void displayDialogObject(DialogObject* dialogue);
+
+private:
+    void useTaggedSprites(std::vector<std::tuple<std::string, int, float>> icons);
 };

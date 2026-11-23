@@ -95,7 +95,7 @@ DTTutorialLayer* DTTutorialLayer::joinTextToHighlight(const std::string& text, f
     return insertJoinTextToHighlight(allSegments.size() - 1, text, size, alignment);
 }
 
-DTTutorialLayer* DTTutorialLayer::joinCallback(geode::Function<void()> callback, bool beforeDialogue) {
+DTTutorialLayer* DTTutorialLayer::joinCallback(Function<void()> callback, bool beforeDialogue) {
     if (!allSegments.size()) return this;
 
     if (beforeDialogue)

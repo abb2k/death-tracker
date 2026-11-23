@@ -2,7 +2,8 @@
 
 CCGradientAction* CCGradientAction::create(float transitionDuration, ccColor3B colorA, ccColor3B colorB, float phaseOffset) {
     auto action = new CCGradientAction();
-    if (action && action->init(transitionDuration, colorA, colorB, phaseOffset)) {
+    
+    if (action && action->init(std::move(transitionDuration), std::move(colorA), std::move(colorB), std::move(phaseOffset))) {
         action->autorelease();
         return action;
     }
@@ -13,7 +14,7 @@ CCGradientAction* CCGradientAction::create(float transitionDuration, ccColor3B c
 
 CCGradientAction* CCGradientAction::create(float transitionDuration, ccColor4B colorA, ccColor4B colorB, float phaseOffset) {
     auto action = new CCGradientAction();
-    if (action && action->init(transitionDuration, colorA, colorB, phaseOffset)) {
+    if (action && action->init(std::move(transitionDuration), std::move(colorA), std::move(colorB), std::move(phaseOffset))) {
         action->autorelease();
         return action;
     }
@@ -25,11 +26,11 @@ CCGradientAction* CCGradientAction::create(float transitionDuration, ccColor4B c
 bool CCGradientAction::init(float transitionDuration, ccColor3B colorA, ccColor3B colorB, float phaseOffset) {
     if (!CCActionInterval::initWithDuration(transitionDuration * 2.0f)) return false;
 
-    m_transitionDuration = transitionDuration;
-    m_cycleDuration = transitionDuration * 2.0f;
-    m_colorA = {colorA.r, colorA.g, colorA.b, 255};
-    m_colorB = {colorB.r, colorB.g, colorB.b, 255};
-    m_phaseOffset = phaseOffset;
+    m_transitionDuration = std::move(transitionDuration);
+    m_cycleDuration = m_transitionDuration * 2.0f;
+    m_colorA = to4B(std::move(colorA));
+    m_colorB = to4B(std::move(colorB));
+    m_phaseOffset = std::move(phaseOffset);
     m_animateOpacity = false;
     return true;
 }
@@ -37,11 +38,11 @@ bool CCGradientAction::init(float transitionDuration, ccColor3B colorA, ccColor3
 bool CCGradientAction::init(float transitionDuration, ccColor4B colorA, ccColor4B colorB, float phaseOffset) {
     if (!CCActionInterval::initWithDuration(transitionDuration * 2.0f)) return false;
 
-    m_transitionDuration = transitionDuration;
-    m_cycleDuration = transitionDuration * 2.0f;
-    m_colorA = colorA;
-    m_colorB = colorB;
-    m_phaseOffset = phaseOffset;
+    m_transitionDuration = std::move(transitionDuration);
+    m_cycleDuration = m_transitionDuration * 2.0f;
+    m_colorA = std::move(colorA);
+    m_colorB = std::move(colorB);
+    m_phaseOffset = std::move(phaseOffset);
     m_animateOpacity = true;
     return true;
 }
