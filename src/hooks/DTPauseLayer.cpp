@@ -1,5 +1,12 @@
 #include "DTPauseLayer.hpp"
 
+#include <nodes/DTLayer.hpp>
+#include <utils/Settings.hpp>
+
+#if defined(GEODE_IS_MACOS)
+#include <hooks/DTPlayLayer.hpp>
+#endif
+
 void DTPauseLayer::customSetup() {
     PauseLayer::customSetup();
 

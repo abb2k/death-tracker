@@ -1,15 +1,17 @@
-#include <nodes/graphs/GraphPointDisplay.hpp>
+#include "GraphPointDisplay.hpp"
+
 #include <managers/StatsManager.hpp>
 
 GraphPointDisplay* GraphPointDisplay::create() {
     auto ret = new GraphPointDisplay();
+
     if (ret && ret->init()) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+
+    delete ret;
+    return nullptr;
 }
 
 bool GraphPointDisplay::init() {
@@ -22,17 +24,17 @@ bool GraphPointDisplay::init() {
     bg->setContentSize((this->getContentSize() - ccp(0, 2.5f)) / bg->getScale());
     this->addChild(bg);
 
-    percentLabel = geode::Label::create("", "bigFont.fnt");
-    percentLabel->setScale(.4f);
-    percentLabel->setPosition({this->getContentWidth() / 2, this->getContentHeight() - 6.5f});
-    percentLabel->setAnchorPoint({.5f, 1});
-    this->addChild(percentLabel);
+    m_percentLabel = geode::Label::create("", "bigFont.fnt");
+    m_percentLabel->setScale(.4f);
+    m_percentLabel->setPosition({this->getContentWidth() / 2, this->getContentHeight() - 6.5f});
+    m_percentLabel->setAnchorPoint({.5f, 1});
+    this->addChild(m_percentLabel);
     
-    rateLabel = geode::Label::create("", "bigFont.fnt");
-    rateLabel->setScale(.25f);
-    rateLabel->setPosition({this->getContentWidth() / 2, 6});
-    rateLabel->setAnchorPoint({.5f, 0});
-    this->addChild(rateLabel);
+    m_rateLabel = geode::Label::create("", "bigFont.fnt");
+    m_rateLabel->setScale(.25f);
+    m_rateLabel->setPosition({this->getContentWidth() / 2, 6});
+    m_rateLabel->setAnchorPoint({.5f, 0});
+    this->addChild(m_rateLabel);
 
     return true;
 }
@@ -56,8 +58,8 @@ void GraphPointDisplay::setContent(std::string run, float ratePercent, DTGraphTy
     else
         runSprFormatted = fmt::format("{}%-{}%", runInfo.unwrap().start.value(), runInfo.unwrap().end);
 
-    setFittedText(percentLabel, runSprFormatted, .4f);
-    percentLabel->setColor(graphOuter);
+    setFittedText(m_percentLabel, runSprFormatted, .4f);
+    m_percentLabel->setColor(graphOuter);
 
     std::string rateType;
 
@@ -75,6 +77,10 @@ void GraphPointDisplay::setContent(std::string run, float ratePercent, DTGraphTy
         break;
     }
 
-    setFittedText(rateLabel, fmt::format("{}: {:.4f}%", rateType, ratePercent), .25f);
-    rateLabel->setColor(graphInner);
+    setFittedText(m_rateLabel, fmt::format("{}: {:.4f}%", rateType, ratePercent), .25f);
+    m_rateLabel->setColor(graphInner);
+}
+
+void GraphPointDisplay::setPositionReal(float positionReal) {
+    m_positionReal = std::move(positionReal);
 }

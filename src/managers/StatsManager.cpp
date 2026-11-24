@@ -5,28 +5,6 @@
 #include <nodes/DTLayer.hpp>
 #include <asp/fs.hpp>
 
-std::vector<std::string> StatsManager::splitStr(const std::string& str, const std::string& delim) {
-    if (delim.empty()) return {};
-
-    size_t posStart = 0;
-    size_t posEnd;
-    size_t delimLen = delim.length();
-
-    std::vector<std::string> res;
-
-    while ((posEnd = str.find(delim, posStart)) != std::string::npos) {
-        std::string token = str.substr(posStart, posEnd - posStart);
-        posStart = posEnd + delimLen;
-        res.push_back(token);
-    }
-
-    std::string lastToken = str.substr(posStart);
-    if (!lastToken.empty() || res.empty())
-        res.push_back(lastToken);
-
-    return res;
-}
-
 /* static member variables
 =========================== */
 std::set<std::string> StatsManager::m_playedLevels{};
@@ -1069,8 +1047,8 @@ Result<std::vector<std::pair<std::string, LevelMetadata>>> StatsManager::getAllL
     return Ok(toReturn);
 }
 
-std::pair<std::string, std::string> StatsManager::splitLevelKey(const std::string& levelKey) {
-    auto levelKeySplit = splitStr(levelKey, "-");
+std::pair<std::string, std::string> StatsManager::splitLevelKey(std::string_view levelKey) {
+    auto levelKeySplit = string::split(levelKey, "-");
 
     std::pair<std::string, std::string> toReturn;
 

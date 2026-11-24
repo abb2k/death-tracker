@@ -1,13 +1,15 @@
 #include "DTTutorialLayer.hpp"
+
 #include <hooks/DTDialogLayer.hpp>
-#include <nodes/general/TouchSender.hpp>
 
 DTTutorialLayer* DTTutorialLayer::create() {
     auto ret = new DTTutorialLayer();
+
     if (ret && ret->init()) {
         ret->autorelease();
         return ret;
     }
+
     CC_SAFE_DELETE(ret);
     return nullptr;
 }
@@ -18,27 +20,27 @@ bool DTTutorialLayer::init() {
 
     auto winSize = CCDirector::get()->getWinSize();
 
-    lightRT = CCRenderTexture::create(winSize.width, winSize.height, CCTexture2DPixelFormat::kCCTexture2DPixelFormat_RGBA8888);
-    lightRT->setPosition(winSize / 2);
-    lightRT->getSprite()->setOpacity(0);
-    this->addChild(lightRT);
+    m_lightRT = CCRenderTexture::create(winSize.width, winSize.height, CCTexture2DPixelFormat::kCCTexture2DPixelFormat_RGBA8888);
+    m_lightRT->setPosition(winSize / 2);
+    m_lightRT->getSprite()->setOpacity(0);
+    this->addChild(m_lightRT);
 
     auto skipButtonSpr = ButtonSprite::create("Skip Tutorial");
     skipButtonSpr->setScale(.5f);
     skipButtonSpr->setCascadeOpacityEnabled(true);
-    skipButton = CCMenuItemSpriteExtra::create(
+    m_skipButton = CCMenuItemSpriteExtra::create(
         skipButtonSpr,
         this,
         menu_selector(DTTutorialLayer::skipTutorial)
     );
-    skipButton->setAnchorPoint({1, 0});
-    skipButton->setOpacity(0);
-    skipButton->runAction(CCFadeIn::create(.5f));
+    m_skipButton->setAnchorPoint({1, 0});
+    m_skipButton->setOpacity(0);
+    m_skipButton->runAction(CCFadeIn::create(.5f));
 
     auto menu = CCMenu::create();
     this->addChild(menu);
 
-    menu->addChildAtPosition(skipButton, Anchor::BottomRight);
+    menu->addChildAtPosition(m_skipButton, Anchor::BottomRight);
 
     scheduleUpdate();
     this->setMouseEnabled(true);
@@ -59,71 +61,71 @@ DTTutorialLayer* DTTutorialLayer::appendDialogue(const std::string& text, Tutori
 }
 
 DTTutorialLayer* DTTutorialLayer::appendDialogue(DialogObject* dialogue) {
-    TutorialSegment segment{
+    TutorialSegment segment {
         .dialogue = dialogue
     };
     
-    allSegments.push_back(std::move(segment));
+    m_allSegments.push_back(std::move(segment));
 
     return this;
 }
 
 DTTutorialLayer* DTTutorialLayer::joinTransform(TutorialBoxPlacement alignment, float boxScale) {
-    if (!allSegments.size()) return this;
+    if (!m_allSegments.size()) return this;
 
-    allSegments[allSegments.size() - 1].alignment = alignment;
-    allSegments[allSegments.size() - 1].boxScale = boxScale;
+    m_allSegments[m_allSegments.size() - 1].alignment = alignment;
+    m_allSegments[m_allSegments.size() - 1].boxScale = boxScale;
 
     return this;
 }
 
 DTTutorialLayer* DTTutorialLayer::joinHighlight(CCNode* targetObject, float delayTime, bool allowTouches, bool ignoreDisabled) {
-    return insertHighlight(allSegments.size() - 1, targetObject, delayTime, allowTouches, ignoreDisabled);
+    return insertHighlight(m_allSegments.size() - 1, targetObject, delayTime, allowTouches, ignoreDisabled);
 }
 DTTutorialLayer* DTTutorialLayer::joinPreviousHighlight() {
-    if (allSegments.size() - 2 <= 0) return this;
+    if (m_allSegments.size() - 2 <= 0) return this;
 
-    for (const auto& [highlight, options] : allSegments[allSegments.size() - 2].targetObjects)
+    for (const auto& [highlight, options] : m_allSegments[m_allSegments.size() - 2].targetObjects)
     {
-        insertHighlight(allSegments.size() - 1, highlight, std::get<0>(options), std::get<1>(options), std::get<2>(options));
+        insertHighlight(m_allSegments.size() - 1, highlight, std::get<0>(options), std::get<1>(options), std::get<2>(options));
     }
     
     return this;
 }
 
 DTTutorialLayer* DTTutorialLayer::joinTextToHighlight(const std::string& text, float size, TutorialTextPlacement alignment) {
-    return insertJoinTextToHighlight(allSegments.size() - 1, text, size, alignment);
+    return insertJoinTextToHighlight(m_allSegments.size() - 1, text, size, alignment);
 }
 
 DTTutorialLayer* DTTutorialLayer::joinCallback(Function<void()> callback, bool beforeDialogue) {
-    if (!allSegments.size()) return this;
+    if (!m_allSegments.size()) return this;
 
     if (beforeDialogue)
-        allSegments[allSegments.size() - 1].beforeCallback = std::move(callback);
+        m_allSegments[m_allSegments.size() - 1].beforeCallback = std::move(callback);
     else
-        allSegments[allSegments.size() - 1].afterCallback = std::move(callback);
+        m_allSegments[m_allSegments.size() - 1].afterCallback = std::move(callback);
 
     return this;
 }
 
 DTTutorialLayer* DTTutorialLayer::insertHighlight(int dialogueIndex, CCNode* targetObject, float delayTime, bool allowTouches, bool ignoreDisabled) {
     if (targetObject == nullptr) return this;
-    if (!allSegments.size() || allSegments.size() <= dialogueIndex) return this;
+    if (!m_allSegments.size() || m_allSegments.size() <= dialogueIndex) return this;
     
-    allSegments[dialogueIndex].targetObjects.insert({targetObject, {delayTime, allowTouches, ignoreDisabled}});
+    m_allSegments[dialogueIndex].targetObjects.insert({targetObject, {delayTime, allowTouches, ignoreDisabled}});
 
-    allSegments[dialogueIndex].lastAddedHighlight = targetObject;
+    m_allSegments[dialogueIndex].lastAddedHighlight = targetObject;
 
     return this;
 }
 
 DTTutorialLayer* DTTutorialLayer::insertJoinTextToHighlight(int dialogueIndex, const std::string& text, float size, TutorialTextPlacement alignment) {
-    if (!allSegments.size() || allSegments.size() <= dialogueIndex) return this;
+    if (!m_allSegments.size() || m_allSegments.size() <= dialogueIndex) return this;
 
-    auto& targetObjects = allSegments[dialogueIndex].targetObjects;
+    auto& targetObjects = m_allSegments[dialogueIndex].targetObjects;
     if (!targetObjects.size()) return this;
 
-    allSegments[dialogueIndex].textForTargets[allSegments[dialogueIndex].lastAddedHighlight] = HighlightText{
+    m_allSegments[dialogueIndex].textForTargets[m_allSegments[dialogueIndex].lastAddedHighlight] = HighlightText{
         .text = text,
         .placement = alignment,
         .size = size
@@ -133,7 +135,7 @@ DTTutorialLayer* DTTutorialLayer::insertJoinTextToHighlight(int dialogueIndex, c
 }
 
 void DTTutorialLayer::show() {
-    if (!allSegments.size()) return;
+    if (!m_allSegments.size()) return;
     auto highestZ = CCScene::get()->getHighestChildZ();
 
     this->setZOrder(highestZ + 1);
@@ -141,15 +143,15 @@ void DTTutorialLayer::show() {
 
     auto dialogueArray = CCArray::create();
     int i = 0;
-    for (const auto& segment : allSegments)
+    for (const auto& segment : m_allSegments)
     {
         dialogueArray->addObject(segment.dialogue);
 
-        dialogueSegmentIndexes.insert({segment.dialogue, i});
+        m_dialogueSegmentIndexes.insert({segment.dialogue, i});
         i++;
     }
     
-    dialogueLayer = DTDialogLayer::createWithTaggedSprites(dialogueArray, 1, {
+    m_dialogueLayer = DTDialogLayer::createWithTaggedSprites(dialogueArray, 1, {
         {"normal.png"_spr, static_cast<int>(TutorialCharacterFace::TCFNormal), 2},
         {"tiltedNormal.png"_spr, static_cast<int>(TutorialCharacterFace::TCFNormalTilted), 2.15f},
         {"happy.png"_spr, static_cast<int>(TutorialCharacterFace::TCFHappy), 2.15f},
@@ -158,24 +160,24 @@ void DTTutorialLayer::show() {
         {"sleeping.png"_spr, static_cast<int>(TutorialCharacterFace::TCFSleeping), 2},
         {"bored.png"_spr, static_cast<int>(TutorialCharacterFace::TCFBored), 2}
     });
-    static_cast<DTDialogLayer*>(dialogueLayer)->setProgressCallback(std::bind(&DTTutorialLayer::onProgress, this, std::placeholders::_1));
-    dialogueLayer->addToMainScene();
-    dialogueLayer->m_delegate = this;
-    dialogueLayer->setTouchEnabled(false);
-    dialogueLayer->setKeypadEnabled(false);
-    dialogueLayer->setOpacity(0);
+    static_cast<DTDialogLayer*>(m_dialogueLayer)->setProgressCallback(std::bind(&DTTutorialLayer::onProgress, this, std::placeholders::_1));
+    m_dialogueLayer->addToMainScene();
+    m_dialogueLayer->m_delegate = this;
+    m_dialogueLayer->setTouchEnabled(false);
+    m_dialogueLayer->setKeypadEnabled(false);
+    m_dialogueLayer->setOpacity(0);
 }
 
 void DTTutorialLayer::onProgress(DialogObject* dObject) {
-    if (prevDialogue != nullptr && dialogueSegmentIndexes.contains(dObject) && allSegments[dialogueSegmentIndexes[dObject]].afterCallback != NULL) {
-        auto& objToRunOn = allSegments[dialogueSegmentIndexes[dObject]];
+    if (m_prevDialogue != nullptr && m_dialogueSegmentIndexes.contains(dObject) && m_allSegments[m_dialogueSegmentIndexes[dObject]].afterCallback != NULL) {
+        auto& objToRunOn = m_allSegments[m_dialogueSegmentIndexes[dObject]];
         objToRunOn.afterCallback();
     }
     
-    auto segmentIndex = dialogueSegmentIndexes[dObject];
+    auto segmentIndex = m_dialogueSegmentIndexes[dObject];
 
-    if (allSegments[segmentIndex].beforeCallback != NULL) {
-        auto& objToRunOn = allSegments[segmentIndex];
+    if (m_allSegments[segmentIndex].beforeCallback != NULL) {
+        auto& objToRunOn = m_allSegments[segmentIndex];
         objToRunOn.beforeCallback();
     }
 
@@ -185,21 +187,21 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
 
     bool firstRN = false;
 
-    if (!firstDialogue) {
-        firstDialogue = true;
+    if (!m_firstDialogue) {
+        m_firstDialogue = true;
         firstRN = true;
-        lightRT->getSprite()->runAction(CCEaseInOut::create(CCFadeTo::create(.25f, 255), 2));
+        m_lightRT->getSprite()->runAction(CCEaseInOut::create(CCFadeTo::create(.25f, 255), 2));
     }
     
-    if (allSegments[segmentIndex].alignment.has_value()) {
-        dialogueLayer->m_mainLayer->stopActionByTag(10);
+    if (m_allSegments[segmentIndex].alignment.has_value()) {
+        m_dialogueLayer->m_mainLayer->stopActionByTag(10);
         CCPoint toMoveTo;
 
-        auto bg = static_cast<CCScale9Sprite*>(dialogueLayer->m_mainLayer->getChildren()->objectAtIndex(0));
+        auto bg = static_cast<CCScale9Sprite*>(m_dialogueLayer->m_mainLayer->getChildren()->objectAtIndex(0));
 
-        float scaleMultiplier = allSegments[segmentIndex].boxScale.has_value() ? allSegments[segmentIndex].boxScale.value() : dialogueLayer->m_mainLayer->getScale();
+        float scaleMultiplier = m_allSegments[segmentIndex].boxScale.has_value() ? m_allSegments[segmentIndex].boxScale.value() : m_dialogueLayer->m_mainLayer->getScale();
 
-        switch (allSegments[segmentIndex].alignment.value()) {
+        switch (m_allSegments[segmentIndex].alignment.value()) {
             case TutorialBoxPlacement::TBPCenter:
                 toMoveTo = CCPoint{winSize.width * 0.5F, winSize.height * 0.5F};
             break;
@@ -230,43 +232,43 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
         }
 
         if (firstRN) {
-            dialogueLayer->m_mainLayer->setPosition(toMoveTo);
+            m_dialogueLayer->m_mainLayer->setPosition(toMoveTo);
         }
         else {
             auto movement = CCEaseInOut::create(CCMoveTo::create(time, toMoveTo), 2);
             movement->setTag(10);
-            dialogueLayer->m_mainLayer->runAction(movement);
+            m_dialogueLayer->m_mainLayer->runAction(movement);
         }
     }
 
-    if (allSegments[segmentIndex].boxScale.has_value()) {
-        dialogueLayer->m_mainLayer->stopActionByTag(11);
+    if (m_allSegments[segmentIndex].boxScale.has_value()) {
+        m_dialogueLayer->m_mainLayer->stopActionByTag(11);
         
         if (firstRN) {
-            dialogueLayer->m_mainLayer->setScale(allSegments[segmentIndex].boxScale.value());
+            m_dialogueLayer->m_mainLayer->setScale(m_allSegments[segmentIndex].boxScale.value());
         }
         else {
-            auto scaleEase = CCEaseInOut::create(CCScaleTo::create(time, allSegments[segmentIndex].boxScale.value()), 2);
+            auto scaleEase = CCEaseInOut::create(CCScaleTo::create(time, m_allSegments[segmentIndex].boxScale.value()), 2);
             scaleEase->setTag(11);
-            dialogueLayer->m_mainLayer->runAction(scaleEase);
+            m_dialogueLayer->m_mainLayer->runAction(scaleEase);
         }   
     }
 
-    for (const auto& glow : retainedSprites) {
-        if (prevHighlights.contains(glow) && allSegments[segmentIndex].targetObjects.contains(prevHighlights[glow])) continue;
+    for (const auto& glow : m_retainedSprites) {
+        if (m_prevHighlights.contains(glow) && m_allSegments[segmentIndex].targetObjects.contains(m_prevHighlights[glow])) continue;
         glow->stopActionByTag(14);
         glow->runAction(CCFadeTo::create(.25f, 0));
         glow->setTag(1);
 
-        if (textsForHighlights.contains(glow)) {
-            textsForHighlights[glow]->stopActionByTag(14);
-            textsForHighlights[glow]->runAction(CCFadeTo::create(.25f, 0));
+        if (m_textsForHighlights.contains(glow)) {
+            m_textsForHighlights[glow]->stopActionByTag(14);
+            m_textsForHighlights[glow]->runAction(CCFadeTo::create(.25f, 0));
         }
     }
 
-    prevHighlights.clear();
+    m_prevHighlights.clear();
 
-    for (const auto& [highlightTarget, dataPair] : allSegments[segmentIndex].targetObjects)
+    for (const auto& [highlightTarget, dataPair] : m_allSegments[segmentIndex].targetObjects)
     {
         auto& [delayTime, touchesAllowed, ignoreDisabled] = dataPair;
 
@@ -292,7 +294,7 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
         glow->_scale9Image->setBlendFunc({GL_ZERO, GL_ONE_MINUS_SRC_ALPHA});
         glow->retain();
         glow->onEnter();
-        retainedSprites.insert(glow);
+        m_retainedSprites.insert(glow);
 
         glow->setOpacity(0);
         CCSequence* fadeSeq;
@@ -307,15 +309,15 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
         }
         glow->setTag(2);
 
-        prevHighlights.insert({glow, highlightTarget});
+        m_prevHighlights.insert({glow, highlightTarget});
         if (touchesAllowed)
-            touchAllowedNodes.insert({glow, highlightTarget});
+            m_touchAllowedNodes.insert({glow, highlightTarget});
 
-        prevDialogue = dObject;
+        m_prevDialogue = dObject;
 
-        if (!allSegments[segmentIndex].textForTargets.contains(highlightTarget)) continue;
+        if (!m_allSegments[segmentIndex].textForTargets.contains(highlightTarget)) continue;
 
-        auto& textInfo = allSegments[segmentIndex].textForTargets[highlightTarget];
+        auto& textInfo = m_allSegments[segmentIndex].textForTargets[highlightTarget];
 
         auto label = geode::Label::create(textInfo.text.c_str(), "bigFont.fnt");
         label->setAlignment(textInfo.placement == TutorialTextPlacement::TTLeft ? 
@@ -350,25 +352,25 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
         }
         this->addChild(label);
 
-        textsForHighlights.insert({glow, label});
+        m_textsForHighlights.insert({glow, label});
     }
 
 }
 
 void DTTutorialLayer::dialogClosed(DialogLayer* layer) {
-    if (isClosing) return;
+    if (m_isClosing) return;
 
-    isClosing = true;
+    m_isClosing = true;
     
-    lightRT->getSprite()->runAction(CCSequence::create(
+    m_lightRT->getSprite()->runAction(CCSequence::create(
         CCEaseInOut::create(CCFadeTo::create(.25f, 0), 2),
         CCCallFunc::create(this, callfunc_selector(DTTutorialLayer::close)),
         nullptr
     ));
 
-    skipButton->runAction(CCFadeOut::create(.5f));
+    m_skipButton->runAction(CCFadeOut::create(.5f));
 
-    dialogueLayer = nullptr;
+    m_dialogueLayer = nullptr;
 }
 
 void DTTutorialLayer::close() {
@@ -376,16 +378,16 @@ void DTTutorialLayer::close() {
 }
 
 void DTTutorialLayer::update(float dt) {
-    lightRT->beginWithClear(0, 0, 0, 0.85f);
+    m_lightRT->beginWithClear(0, 0, 0, 0.85f);
 
-    for (const auto& glow : retainedSprites)
+    for (const auto& glow : m_retainedSprites)
         glow->visit();
     
-    lightRT->end();
+    m_lightRT->end();
 }
 
 DTTutorialLayer::~DTTutorialLayer() {
-    for (const auto& glow : retainedSprites) {
+    for (const auto& glow : m_retainedSprites) {
         glow->release();
     }
     
@@ -393,103 +395,103 @@ DTTutorialLayer::~DTTutorialLayer() {
 }
 
 bool DTTutorialLayer::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) {
-    if (dialogueLayer == nullptr) return false;
-    if (static_cast<CCScale9Sprite*>(dialogueLayer->m_mainLayer->getChildren()->objectAtIndex(0))->boundingBox().containsPoint(
-        dialogueLayer->m_mainLayer->convertTouchToNodeSpace(pTouch)))
-        return dialogueLayer->ccTouchBegan(pTouch, pEvent);
+    if (m_dialogueLayer == nullptr) return false;
 
-    for (const auto& glow : retainedSprites) {
-        if (!touchAllowedNodes.contains(glow)) continue;
+    if (static_cast<CCScale9Sprite*>(m_dialogueLayer->m_mainLayer->getChildren()->objectAtIndex(0))->boundingBox().containsPoint(m_dialogueLayer->m_mainLayer->convertTouchToNodeSpace(pTouch)))
+        return m_dialogueLayer->ccTouchBegan(pTouch, pEvent);
+
+    for (const auto& glow : m_retainedSprites) {
+        if (!m_touchAllowedNodes.contains(glow)) continue;
         if (glow->getTag() != 2) continue;
 
-        auto touchDelegate = dynamic_cast<CCTouchDelegate*>(touchAllowedNodes[glow]);
+        auto touchDelegate = dynamic_cast<CCTouchDelegate*>(m_touchAllowedNodes[glow]);
         if (touchDelegate != nullptr && touchDelegate->ccTouchBegan(pTouch, pEvent)) {
-            touchedHighlight = touchDelegate;
+            m_touchedHighlight = touchDelegate;
             return true;
         }
     }
 
-    return dialogueLayer->ccTouchBegan(pTouch, pEvent);
+    return m_dialogueLayer->ccTouchBegan(pTouch, pEvent);
 }
 void DTTutorialLayer::ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent) {
-    if (dialogueLayer == nullptr) return;
+    if (m_dialogueLayer == nullptr) return;
 
-    if (touchedHighlight != nullptr) {
-        touchedHighlight->ccTouchMoved(pTouch, pEvent);
+    if (m_touchedHighlight != nullptr) {
+        m_touchedHighlight->ccTouchMoved(pTouch, pEvent);
         return;
     }
-    dialogueLayer->ccTouchMoved(pTouch, pEvent);
+    m_dialogueLayer->ccTouchMoved(pTouch, pEvent);
 }
 void DTTutorialLayer::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent) {
-    if (dialogueLayer == nullptr) return;
+    if (m_dialogueLayer == nullptr) return;
 
-    if (touchedHighlight != nullptr) {
-        touchedHighlight->ccTouchEnded(pTouch, pEvent);
-        touchedHighlight = nullptr;
+    if (m_touchedHighlight != nullptr) {
+        m_touchedHighlight->ccTouchEnded(pTouch, pEvent);
+        m_touchedHighlight = nullptr;
         return;
     }
-    dialogueLayer->ccTouchEnded(pTouch, pEvent);
+    m_dialogueLayer->ccTouchEnded(pTouch, pEvent);
 }
 void DTTutorialLayer::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent) {
-    if (dialogueLayer == nullptr) return;
+    if (m_dialogueLayer == nullptr) return;
 
-    if (touchedHighlight != nullptr) {
-        touchedHighlight->ccTouchCancelled(pTouch, pEvent);
-        touchedHighlight = nullptr;
+    if (m_touchedHighlight != nullptr) {
+        m_touchedHighlight->ccTouchCancelled(pTouch, pEvent);
+        m_touchedHighlight = nullptr;
         return;
     }
-    dialogueLayer->ccTouchCancelled(pTouch, pEvent);
+    m_dialogueLayer->ccTouchCancelled(pTouch, pEvent);
 }
 
 void DTTutorialLayer::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent) {
-    if (dialogueLayer == nullptr) return;
+    if (m_dialogueLayer == nullptr) return;
 
-    if (touchedHighlight != nullptr) {
-        touchedHighlight->ccTouchesBegan(pTouches, pEvent);
+    if (m_touchedHighlight != nullptr) {
+        m_touchedHighlight->ccTouchesBegan(pTouches, pEvent);
         return;
     }
-    dialogueLayer->ccTouchesBegan(pTouches, pEvent);
+    m_dialogueLayer->ccTouchesBegan(pTouches, pEvent);
 }
 void DTTutorialLayer::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent) {
-    if (dialogueLayer == nullptr) return;
+    if (m_dialogueLayer == nullptr) return;
 
-    if (touchedHighlight != nullptr) {
-        touchedHighlight->ccTouchesMoved(pTouches, pEvent);
+    if (m_touchedHighlight != nullptr) {
+        m_touchedHighlight->ccTouchesMoved(pTouches, pEvent);
         return;
     }
-    dialogueLayer->ccTouchesMoved(pTouches, pEvent);
+    m_dialogueLayer->ccTouchesMoved(pTouches, pEvent);
 }
 void DTTutorialLayer::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent) {
-    if (dialogueLayer == nullptr) return;
+    if (m_dialogueLayer == nullptr) return;
 
-    if (touchedHighlight != nullptr) {
-        touchedHighlight->ccTouchesEnded(pTouches, pEvent);
+    if (m_touchedHighlight != nullptr) {
+        m_touchedHighlight->ccTouchesEnded(pTouches, pEvent);
         return;
     }
-    dialogueLayer->ccTouchesEnded(pTouches, pEvent);
+    m_dialogueLayer->ccTouchesEnded(pTouches, pEvent);
 }
 void DTTutorialLayer::ccTouchesCancelled(CCSet *pTouches, CCEvent *pEvent) {
-    if (dialogueLayer == nullptr) return;
+    if (m_dialogueLayer == nullptr) return;
 
-    if (touchedHighlight != nullptr) {
-        touchedHighlight->ccTouchesCancelled(pTouches, pEvent);
+    if (m_touchedHighlight != nullptr) {
+        m_touchedHighlight->ccTouchesCancelled(pTouches, pEvent);
         return;
     }
-    dialogueLayer->ccTouchesCancelled(pTouches, pEvent);
+    m_dialogueLayer->ccTouchesCancelled(pTouches, pEvent);
 }
 
 void DTTutorialLayer::keyBackClicked() {
-    if (dialogueLayer == nullptr) return;
-    dialogueLayer->handleDialogTap();
+    if (m_dialogueLayer == nullptr) return;
+    m_dialogueLayer->handleDialogTap();
 }
 
 void DTTutorialLayer::keyDown(enumKeyCodes key, double d) {
-    if (dialogueLayer == nullptr) return;
-    for (const auto& glow : retainedSprites) {
-        if (!touchAllowedNodes.contains(glow)) continue;
+    if (m_dialogueLayer == nullptr) return;
+    for (const auto& glow : m_retainedSprites) {
+        if (!m_touchAllowedNodes.contains(glow)) continue;
         if (glow->getTag() != 2) continue;
 
-        auto keyDel = dynamic_cast<CCKeyboardDelegate*>(touchAllowedNodes[glow]);
+        auto keyDel = dynamic_cast<CCKeyboardDelegate*>(m_touchAllowedNodes[glow]);
         if (keyDel != nullptr) {
             keyDel->keyDown(key, d);
             return;
@@ -499,12 +501,12 @@ void DTTutorialLayer::keyDown(enumKeyCodes key, double d) {
     CCLayer::keyDown(key, d);
 }
 void DTTutorialLayer::keyUp(enumKeyCodes key, double d) {
-    if (dialogueLayer == nullptr) return;
-    for (const auto& glow : retainedSprites) {
-        if (!touchAllowedNodes.contains(glow)) continue;
+    if (m_dialogueLayer == nullptr) return;
+    for (const auto& glow : m_retainedSprites) {
+        if (!m_touchAllowedNodes.contains(glow)) continue;
         if (glow->getTag() != 2) continue;
 
-        auto keyDel = dynamic_cast<CCKeyboardDelegate*>(touchAllowedNodes[glow]);
+        auto keyDel = dynamic_cast<CCKeyboardDelegate*>(m_touchAllowedNodes[glow]);
         if (keyDel != nullptr) {
             keyDel->keyUp(key, d);
             return;
@@ -515,12 +517,12 @@ void DTTutorialLayer::keyUp(enumKeyCodes key, double d) {
 }
 
 void DTTutorialLayer::rightKeyDown() {
-    if (dialogueLayer == nullptr) return;
-    for (const auto& glow : retainedSprites) {
-        if (!touchAllowedNodes.contains(glow)) continue;
+    if (m_dialogueLayer == nullptr) return;
+    for (const auto& glow : m_retainedSprites) {
+        if (!m_touchAllowedNodes.contains(glow)) continue;
         if (glow->getTag() != 2) continue;
 
-        auto mDel = dynamic_cast<CCMouseDelegate*>(touchAllowedNodes[glow]);
+        auto mDel = dynamic_cast<CCMouseDelegate*>(m_touchAllowedNodes[glow]);
         if (mDel != nullptr) {
             mDel->rightKeyDown();
             return;
@@ -529,12 +531,12 @@ void DTTutorialLayer::rightKeyDown() {
 }
 
 void DTTutorialLayer::rightKeyUp() {
-    if (dialogueLayer == nullptr) return;
-    for (const auto& glow : retainedSprites) {
-        if (!touchAllowedNodes.contains(glow)) continue;
+    if (m_dialogueLayer == nullptr) return;
+    for (const auto& glow : m_retainedSprites) {
+        if (!m_touchAllowedNodes.contains(glow)) continue;
         if (glow->getTag() != 2) continue;
 
-        auto mDel = dynamic_cast<CCMouseDelegate*>(touchAllowedNodes[glow]);
+        auto mDel = dynamic_cast<CCMouseDelegate*>(m_touchAllowedNodes[glow]);
         if (mDel != nullptr) {
             mDel->rightKeyUp();
             return;
@@ -543,13 +545,13 @@ void DTTutorialLayer::rightKeyUp() {
 }
 
 bool DTTutorialLayer::scrollWheel(float x, float y) {
-    if (dialogueLayer == nullptr) return false;
+    if (m_dialogueLayer == nullptr) return false;
     
-    for (const auto& glow : retainedSprites) {
-        if (!touchAllowedNodes.contains(glow)) continue;
+    for (const auto& glow : m_retainedSprites) {
+        if (!m_touchAllowedNodes.contains(glow)) continue;
         if (glow->getTag() != 2) continue;
 
-        auto mDel = dynamic_cast<CCMouseDelegate*>(touchAllowedNodes[glow]);
+        auto mDel = dynamic_cast<CCMouseDelegate*>(m_touchAllowedNodes[glow]);
         if (mDel != nullptr) {
             mDel->scrollWheel(x, y);
             return true;
@@ -560,7 +562,7 @@ bool DTTutorialLayer::scrollWheel(float x, float y) {
 }
 
 void DTTutorialLayer::skipTutorial(CCObject*) {
-    if (isClosing) return;
-    dialogueLayer->removeMeAndCleanup();
+    if (m_isClosing) return;
+    m_dialogueLayer->removeMeAndCleanup();
     dialogClosed(nullptr);
 }

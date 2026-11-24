@@ -1,6 +1,7 @@
 #include "ModifyOptions.hpp"
 #include <nodes/DTLayer.hpp>
 #include <utils/Dev.hpp>
+#include <nodes/Tutorial/DTTutorialLayer.hpp>
 
 ModifyOptions* ModifyOptions::create(const CCSize& size) {
     auto ret = new ModifyOptions();

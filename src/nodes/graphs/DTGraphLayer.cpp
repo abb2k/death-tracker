@@ -1,8 +1,29 @@
-#include <nodes/graphs/DTGraphLayer.hpp>
-#include <utils/Settings.hpp>
+#include "DTGraphLayer.hpp"
+
 #include <utils/Save.hpp>
 #include <nodes/Tutorial/TutorialButton.hpp>
+#include <nodes/Tutorial/DTTutorialLayer.hpp>
+
+#if defined(GEODE_IS_MOBILE)
 #include <nodes/general/SwitcherButton.hpp>
+#endif
+
+#include <nodes/graphs/DTGraphNode.hpp>
+#include <nodes/general/OptionSwitcher.hpp>
+#include <nodes/graphs/GraphPointDisplay.hpp>
+#include <nodes/graphs/GraphCell.hpp>
+#include <nodes/graphs/GraphHolder.hpp>
+#include <nodes/general/AdvancedScrollLayer.hpp>
+#include <nodes/general/SessionSelector.hpp>
+
+bool GraphPointDisplayPtrCompare::operator()(GraphPointDisplay const* a, GraphPointDisplay const* b) const {
+    if (a == b) return false;
+    if (!a) return true;
+    if (!b) return false;
+    if (a->getPositionReal() > b->getPositionReal()) return true;
+    if (a->getPositionReal() < b->getPositionReal()) return false;
+    return a < b;
+}
 
 DTGraphLayer* DTGraphLayer::create() {
     auto ret = new DTGraphLayer();
@@ -507,18 +528,18 @@ void DTGraphLayer::OnPointSelected(GraphPoint* point) {
     }
     else {
         GraphPointDisplay* lowestOther = *displays.rbegin();
-        position = ccp(lowestOther->getPositionX(), lowestOther->positionReal) + ccp(0, -lowestOther->getScaledContentHeight() / 2 - display->getScaledContentHeight() / 2);
+        position = ccp(lowestOther->getPositionX(), lowestOther->getPositionReal()) + ccp(0, -lowestOther->getScaledContentHeight() / 2 - display->getScaledContentHeight() / 2);
     }
 
-    auto innerColor = point->relatedGraph->getInfo().value().color;
-    auto outerColor = point->relatedGraph->getInfo().value().outlineColor;
+    auto innerColor = point->getRelatedGraph()->getInfo().value().color;
+    auto outerColor = point->getRelatedGraph()->getInfo().value().outlineColor;
 
-    display->positionReal = position.y;
+    display->setPositionReal(position.y);
     display->setPosition(position);
     display->setContent(
-        point->m_Run, 
-        point->m_Rate, 
-        point->relatedGraph->getInfo().value().type, 
+        point->getRun(), 
+        point->getRate(), 
+        point->getRelatedGraph()->getInfo().value().type, 
         {innerColor.r, innerColor.g, innerColor.b},
         {outerColor.r, outerColor.g, outerColor.b}
     );
@@ -529,11 +550,11 @@ void DTGraphLayer::OnPointSelected(GraphPoint* point) {
 
     auto lowestDisplay = *displays.rbegin();
 
-    auto gloablPos = lowestDisplay->getParent()->convertToWorldSpace({lowestDisplay->getPositionX(), lowestDisplay->positionReal});
+    auto gloablPos = lowestDisplay->getParent()->convertToWorldSpace({lowestDisplay->getPositionX(), lowestDisplay->getPositionReal()});
     if (gloablPos.y < 0) {
-        float overallHeight = point->getScaledContentHeight();
+        float overallHeight = lowestDisplay->getScaledContentHeight();
         for (const auto& otherDisplay : displays) {
-            otherDisplay->setPositionY(otherDisplay->positionReal + otherDisplay->getScaledContentHeight() + overallHeight);
+            otherDisplay->setPositionY(otherDisplay->getPositionReal() + otherDisplay->getScaledContentHeight() + overallHeight);
             overallHeight += otherDisplay->getScaledContentHeight() * 2;
         }
     }
@@ -548,8 +569,8 @@ void DTGraphLayer::OnPointDeselected(GraphPoint* point) {
 
     for (const auto& otherDisplay : displays)
     {
-        if (otherDisplay->positionReal < display->positionReal) {
-            otherDisplay->positionReal += display->getScaledContentHeight();
+        if (otherDisplay->getPositionReal() < display->getPositionReal()) {
+            otherDisplay->setPositionReal(otherDisplay->getPositionReal() + display->getScaledContentHeight());
         }
     }
     
@@ -560,17 +581,17 @@ void DTGraphLayer::OnPointDeselected(GraphPoint* point) {
 
     auto lowestDisplay = *displays.rbegin();
 
-    auto gloablPos = lowestDisplay->getParent()->convertToWorldSpace({lowestDisplay->getPositionX(), lowestDisplay->positionReal});
+    auto gloablPos = lowestDisplay->getParent()->convertToWorldSpace({lowestDisplay->getPositionX(), lowestDisplay->getPositionReal()});
     if (gloablPos.y < 0) {
-        float overallHeight = point->getScaledContentHeight();
+        float overallHeight = lowestDisplay->getScaledContentHeight();
         for (const auto& otherDisplay : displays) {
-            otherDisplay->setPositionY(otherDisplay->positionReal + otherDisplay->getScaledContentHeight() + overallHeight);
+            otherDisplay->setPositionY(otherDisplay->getPositionReal() + otherDisplay->getScaledContentHeight() + overallHeight);
             overallHeight += otherDisplay->getScaledContentHeight() * 2;
         }
     }
     else {
         for (const auto& displayToSetYOf : displays) {
-            displayToSetYOf->setPositionY(displayToSetYOf->positionReal);
+            displayToSetYOf->setPositionY(displayToSetYOf->getPositionReal());
         }
     }
 }
@@ -610,7 +631,7 @@ void DTGraphLayer::addGraph() {
 
         if (highestZ < cell->getZOrder()) highestZ = cell->getZOrder();
 
-        auto splitName = StatsManager::splitStr(cell->getinfo().name, " ");
+        auto splitName = string::split(cell->getinfo().name, " ");
         if (!splitName.size()) continue;
 
         if (splitName[0] == name) {

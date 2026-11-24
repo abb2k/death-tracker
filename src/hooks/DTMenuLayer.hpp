@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Geode/modify/MenuLayer.hpp>
 
 class $modify(DTMenuLayer, MenuLayer) {

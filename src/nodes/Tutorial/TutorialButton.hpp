@@ -1,24 +1,23 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-#include <nodes/Tutorial/DTTutorialLayer.hpp>
-
 using namespace geode::prelude;
 
+class DTTutorialLayer;
+
 class TutorialButton : public CCMenuItemSpriteExtra {
-    protected:
-        bool init(float size, const std::string& id, Function<void(DTTutorialLayer*)> initilizeTutorial);
-        
-    public:
-        static TutorialButton* create(float size, const std::string& id, Function<void(DTTutorialLayer*)> initilizeTutorial);
+protected:
+    bool init(float size, std::string_view id, Function<void(DTTutorialLayer*)> initilizeTutorial);
+    
+public:
+    static TutorialButton* create(float size, std::string_view id, Function<void(DTTutorialLayer*)> initilizeTutorial);
 
-    private:
+private:
 
-        Function<void(DTTutorialLayer*)> initilizeTutorial = NULL;
+    Function<void(DTTutorialLayer*)> m_initilizeTutorial = NULL;
 
-        void onClicked(CCObject*);
+    void onClicked(CCObject*);
 
-        std::string id;
-        CCSprite* spr;
-        float size;
+    std::string m_id;
+    CCSprite* m_spr;
+    float m_size;
 };

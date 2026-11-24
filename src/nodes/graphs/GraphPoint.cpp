@@ -1,28 +1,30 @@
-#include <nodes/graphs/GraphPoint.hpp>
+#include "GraphPoint.hpp"
 
-GraphPoint* GraphPoint::create(const std::string& run, const float& rate, const ccColor4B& color) {
+GraphPoint* GraphPoint::create(std::string_view run, float rate, ccColor4B color, DTGraphNode* relatedGraph) {
     auto ret = new GraphPoint();
-    if (ret && ret->init(run, rate, color)) {
+
+    if (ret && ret->init(run, std::move(rate), std::move(color), relatedGraph)) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+
+    delete ret;
+    return nullptr;
 }
 
-bool GraphPoint::init(const std::string& run, const float& rate, const ccColor4B& color) {
+bool GraphPoint::init(std::string_view run, float rate, ccColor4B color, DTGraphNode* relatedGraph) {
 
     m_Run = run;
-    m_Rate = rate;
+    m_Rate = std::move(rate);
+    m_relatedGraph = relatedGraph;
 
-    c = CCSprite::createWithSpriteFrameName("d_circle_02_001.png");
-    c->setColor({color.r, color.g, color.b});
-    c->setOpacity(color.a);
-    c->setPosition(c->getContentSize());
-    this->addChild(c);
+    m_c = CCSprite::createWithSpriteFrameName("d_circle_02_001.png");
+    m_c->setColor({color.r, color.g, color.b});
+    m_c->setOpacity(color.a);
+    m_c->setPosition(m_c->getContentSize());
+    this->addChild(m_c);
 
-    this->setContentSize(c->getContentSize() * 2);
+    this->setContentSize(m_c->getContentSize() * 2);
     this->setAnchorPoint({0.5f, 0.5f});
 
     this->setEnabled(true);
@@ -47,7 +49,7 @@ void GraphPoint::update(float delta) {
 
 
     if (isHovered && geode::cocos::nodeIsVisible(this)) {
-        c->setScale(2);
+        m_c->setScale(2);
         if (!m_oneTimeCall) {
             m_oneTimeCall = true;
             if (m_Delegate == nullptr) return;
@@ -55,7 +57,7 @@ void GraphPoint::update(float delta) {
         }
     }
     else {
-        c->setScale(1);
+        m_c->setScale(1);
         if (m_oneTimeCall) {
             m_oneTimeCall = false;
             if (m_Delegate == nullptr) return;

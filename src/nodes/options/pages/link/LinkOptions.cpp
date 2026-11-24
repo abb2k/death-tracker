@@ -5,6 +5,7 @@
 #include <utils/Dev.hpp>
 #include <actions/CCTextAreaFadeTo.hpp>
 #include <arc/task/Yield.hpp>
+#include <nodes/Tutorial/DTTutorialLayer.hpp>
 
 const int LinkOptions::PER_PAGE_COUNT = 10;
 

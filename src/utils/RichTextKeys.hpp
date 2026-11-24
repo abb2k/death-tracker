@@ -1,9 +1,11 @@
 #pragma once
 
-#include <nodes/general/RichTextArea.hpp>
 #include <types/DTTypes.hpp>
 
 using namespace geode::prelude;
+
+template<class T>
+class RichTextKey;
 
 class RichTextKeys {
 public:

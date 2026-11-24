@@ -1,5 +1,6 @@
 #include "LabelEditSpecialKeyEditorPopup.hpp"
 #include <nodes/Tutorial/TutorialButton.hpp>
+#include <nodes/Tutorial/DTTutorialLayer.hpp>
 
 LabelEditSpecialKeyEditorPopup* LabelEditSpecialKeyEditorPopup::create(Function<void(const std::string&)> callback) {
     auto ret = new LabelEditSpecialKeyEditorPopup();

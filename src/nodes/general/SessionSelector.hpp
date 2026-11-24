@@ -4,7 +4,6 @@
 
 using namespace geode::prelude;
 
-
 class SessionSelector : public CCMenu {
     public:
         static SessionSelector* create(int count);

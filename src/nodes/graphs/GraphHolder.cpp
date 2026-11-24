@@ -1,17 +1,21 @@
-#include <nodes/graphs/GraphHolder.hpp>
+#include "GraphHolder.hpp"
 
-GraphHolder* GraphHolder::create(const CCSize& scaling) {
+#include <nodes/graphs/DTGraphNode.hpp>
+#include <nodes/general/AdvancedScrollLayer.hpp>
+
+GraphHolder* GraphHolder::create(CCSize scaling) {
     auto ret = new GraphHolder();
-    if (ret && ret->init(scaling)) {
+
+    if (ret && ret->init(std::move(scaling))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+
+    delete ret;
+    return nullptr;
 }
 
-bool GraphHolder::init(const CCSize& scaling) {
+bool GraphHolder::init(CCSize scaling) {
     if (!CCNode::init()) return false;
     
     this->setContentSize(scaling);
@@ -77,28 +81,28 @@ bool GraphHolder::init(const CCSize& scaling) {
     return true;
 }
 
-void GraphHolder::setBGFillColor(const ccColor4B& color) {
-    GraphHolder::refreshBackground(color, outlineThickness, outlineColor);
+void GraphHolder::setBGFillColor(ccColor4B color) {
+    GraphHolder::refreshBackground(std::move(color), std::move(outlineThickness), std::move(outlineColor));
 }
 
 void GraphHolder::setOutlineThickness(float thickness) {
-    GraphHolder::refreshBackground(fillColor, thickness, outlineColor);
+    GraphHolder::refreshBackground(std::move(fillColor), std::move(thickness), std::move(outlineColor));
 }
 
-void GraphHolder::setOutlineColor(const ccColor4B& color) {
-    GraphHolder::refreshBackground(fillColor, outlineThickness, color);
+void GraphHolder::setOutlineColor(ccColor4B color) {
+    GraphHolder::refreshBackground(std::move(fillColor), std::move(outlineThickness), std::move(color));
 }
 
-void GraphHolder::refreshBackground(const ccColor4B& newFillColor, float newOutlineThickness, const ccColor4B& newOutlineColor) {
+void GraphHolder::refreshBackground(ccColor4B newFillColor, float newOutlineThickness, ccColor4B newOutlineColor) {
     if (fillNode) fillNode->clear();
     else fillNode = CCDrawNode::create();
 
     if (outlineNode) outlineNode->clear();
     else outlineNode = CCDrawNode::create();
 
-    fillColor = newFillColor;
-    outlineThickness = newOutlineThickness;
-    outlineColor = newOutlineColor;
+    fillColor = std::move(newFillColor);
+    outlineThickness = std::move(newOutlineThickness);
+    outlineColor = std::move(newOutlineColor);
 
     auto size = scrollLayer->content->getContentSize() * scrollLayer->getCurrentZoom();
     
@@ -129,13 +133,13 @@ void GraphHolder::refreshBackground(const ccColor4B& newFillColor, float newOutl
         graphContainer->addChild(coverageLineNode);
     }
 
-    fillNode->drawPolygon(MaskShape, 4, ccc4FFromccc4B(newFillColor), newOutlineThickness, ccc4FFromccc4B(newOutlineColor));
+    fillNode->drawPolygon(MaskShape, 4, ccc4FFromccc4B(fillColor), outlineThickness, ccc4FFromccc4B(outlineColor));
     fillNode->setID("fill");
     fillNode->setZOrder(-1);
     mask->setStencil(fillNode);
     mask->addChild(fillNode);
 
-    outlineNode->drawPolygon(MaskShape, 4, ccc4FFromccc4B({0, 0, 0, 0}), newOutlineThickness, ccc4FFromccc4B(newOutlineColor));
+    outlineNode->drawPolygon(MaskShape, 4, ccc4FFromccc4B({0, 0, 0, 0}), outlineThickness, ccc4FFromccc4B(outlineColor));
     outlineNode->setID("outline");
     outlineNode->setZOrder(2);
     mask->addChild(outlineNode);
@@ -328,27 +332,27 @@ void GraphHolder::refreshCoverageIndicators(const CCSize& graphSize) {
     if (endX > 0 && endX < graphSize.width) drawDottedLine(endX);
 }
 
-void GraphHolder::setSmallLinesColor(const ccColor4B& newColor) {
-    smallLineColor = newColor;
+void GraphHolder::setSmallLinesColor(ccColor4B newColor) {
+    smallLineColor = std::move(newColor);
     for (auto line : smallLines) {
-        line->setColor({newColor.r, newColor.g, newColor.b});
-        line->setOpacity(newColor.a);
+        line->setColor({smallLineColor.r, smallLineColor.g, smallLineColor.b});
+        line->setOpacity(smallLineColor.a);
     }
 }
 
-void GraphHolder::setBoldLinesColor(const ccColor4B& newColor) {
-    boldLineColor = newColor;
+void GraphHolder::setBoldLinesColor(ccColor4B newColor) {
+    boldLineColor = std::move(newColor);
     for (auto line : boldLines) {
-        line->setColor({newColor.r, newColor.g, newColor.b});
-        line->setOpacity(newColor.a);
+        line->setColor({boldLineColor.r, boldLineColor.g, boldLineColor.b});
+        line->setOpacity(boldLineColor.a);
     }
 }
 
-void GraphHolder::setLabelsColor(const ccColor4B& newColor) {
-    labelColor = newColor;
+void GraphHolder::setLabelsColor(ccColor4B newColor) {
+    labelColor = std::move(newColor);
     for (auto label : labels) {
-        label->setColor({newColor.r, newColor.g, newColor.b});
-        label->setOpacity(newColor.a);
+        label->setColor({labelColor.r, labelColor.g, labelColor.b});
+        label->setOpacity(labelColor.a);
     }
 }
 
@@ -421,6 +425,14 @@ void GraphHolder::sendKeyStuff(bool up, enumKeyCodes key) {
         scrollLayer->keyDown(key, 0);
 }
 
+std::vector<DTGraphNode*> GraphHolder::getAllGraphNodes() const {
+    std::vector<DTGraphNode*> toReturn{};
+    for (const auto& [_, graph] : allGraphs)
+        toReturn.push_back(graph);
+
+    return toReturn;
+}
+
 void GraphHolder::changeGraphName(const std::string& oldName, const std::string& newName) {
     if (!allGraphs.contains(oldName) || allGraphs.contains(newName)) return;
 
@@ -435,7 +447,7 @@ void GraphHolder::setToAllGraphs(Function<void(DTGraphNode*)> graphSetFunction) 
     }
 }
 
-void GraphHolder::sendUpdateToGraphOfType(DTGraphCoverage coverage) {
+void GraphHolder::sendUpdateToGraphOfType(DTGraphCoverage const& coverage) {
     for (const auto& [name, graph] : allGraphs)
     {
         if (graph->getInfo().has_value() && graph->getInfo().value().coverage == coverage) {

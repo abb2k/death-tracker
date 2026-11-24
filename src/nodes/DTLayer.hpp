@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
 #include <managers/StatsManager.hpp>
 #include <utils/Save.hpp>
 #include <nodes/general/AdvancedScrollLayer.hpp>
@@ -14,8 +13,6 @@
 #include <nodes/layout/usage/DecimalPopup.hpp>
 
 using namespace geode::prelude;
-template<class T>
-using GetTFuture = arc::Future<Result<T, UpdateFutureError>>;
 
 struct ColumnComperator {
     bool operator() (LayoutColumn* a, LayoutColumn* b) const;

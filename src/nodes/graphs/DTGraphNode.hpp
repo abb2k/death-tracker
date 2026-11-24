@@ -1,14 +1,11 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-#include <managers/StatsManager.hpp>
-#include <nodes/graphs/GraphPoint.hpp>
+#include <nodes/layout/usage/SpecialKey.hpp>
 #include <types/DTTypes.hpp>
-#include <nodes/general/SessionSelector.hpp>
-#include <nodes/DTLayer.hpp>
 
 using namespace geode::prelude;
 
+class GraphPointDelegate;
 
 class DTGraphNode : public CCNode {
     protected:

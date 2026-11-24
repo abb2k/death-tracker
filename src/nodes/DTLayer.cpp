@@ -22,6 +22,7 @@
 #include <managers/AuthManager.hpp>
 
 #include <nodes/layout/layoutEditing/DTColorPickerPopup.hpp>
+#include <nodes/Tutorial/DTTutorialLayer.hpp>
 
 float DTLayer::transitionTime = .35f;
 geode::Label* DTLayer::verText = nullptr;

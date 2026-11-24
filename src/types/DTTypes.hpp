@@ -1,7 +1,5 @@
 #pragma once
 
-#include <matjson/stl_serialize.hpp>
-
 using namespace geode::prelude;
 
 using Deaths = std::map<std::string, int>;

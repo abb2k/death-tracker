@@ -3,6 +3,7 @@
 #include <nodes/DTLayer.hpp>
 #include <utils/Dev.hpp>
 #include <nodes/Tutorial/TutorialButton.hpp>
+#include <nodes/Tutorial/DTTutorialLayer.hpp>
 
 RunOptions* RunOptions::create(const CCSize& size) {
     auto ret = new RunOptions();

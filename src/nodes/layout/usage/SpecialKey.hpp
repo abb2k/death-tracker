@@ -26,7 +26,10 @@ struct UpdateFutureError{
     }
 };
 
-using UpdateFuture = arc::Future<Result<std::string, UpdateFutureError>>;
+template<class T>
+using GetTFuture = arc::Future<Result<T, UpdateFutureError>>;
+
+using UpdateFuture = GetTFuture<std::string>;
 
 #ifndef BIND_UPDATE_FUNC
 #define BIND_UPDATE_FUNC(METHOD) [&](std::map<std::string, std::any> payload) { return METHOD(payload); }

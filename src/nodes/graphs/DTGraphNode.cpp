@@ -1,4 +1,9 @@
-#include <nodes/graphs/DTGraphNode.hpp>
+#include "DTGraphNode.hpp"
+
+#include <managers/StatsManager.hpp>
+#include <nodes/general/SessionSelector.hpp>
+#include <nodes/DTLayer.hpp>
+#include <nodes/graphs/GraphPoint.hpp>
 
 DTGraphNode* DTGraphNode::create() {
     auto ret = new DTGraphNode();
@@ -432,8 +437,7 @@ void DTGraphNode::updateGraphContent() {
     auto addGraphPoint = [&](const CCPoint& linePoint, const std::string& pointText) {
         if (linePoint.x >= 0 && linePoint.x <= 100 * scaling.width && linePoint.y >= 0 && linePoint.y <= 100 * scaling.height)
         {
-            auto GP = GraphPoint::create(pointText, linePoint.y / scaling.height, info.value().pointColor);
-            GP->relatedGraph = this;
+            auto GP = GraphPoint::create(pointText, linePoint.y / scaling.height, info.value().pointColor, this);
             GP->setDelegate(delegate);
             GP->setPosition(linePoint);
             GP->setScale(info.value().pointScale);

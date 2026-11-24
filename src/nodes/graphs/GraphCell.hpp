@@ -1,13 +1,14 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
 #include <types/DTTypes.hpp>
-#include <nodes/general/SimpleToggler.hpp>
-#include <nodes/general/OptionSwitcher.hpp>
-#include <nodes/general/SessionSelector.hpp>
-#include <nodes/general/FloatingList.hpp>
 
 using namespace geode::prelude;
+
+class SessionSelector;
+template <class T>
+class OptionSwitcher;
+class SimpleToggler;
+class FloatingList;
 
 class GraphCell : public CCNode {
     public:

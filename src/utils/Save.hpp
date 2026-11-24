@@ -3,66 +3,66 @@
 #include <types/DTTypes.hpp>
 
 class Save {
-    public:
-        static std::vector<V2LabelLayout> getOldLayout();
-        static void setOldLayout(const std::vector<V2LabelLayout>& layout);
+public:
+    static std::vector<V2LabelLayout> getOldLayout();
+    static void setOldLayout(const std::vector<V2LabelLayout>& layout);
 
-        static DTLayoutV3 getLayout();
-        static void setLayout(const DTLayoutV3& layout);
+    static DTLayoutV3 getLayout();
+    static void setLayout(const DTLayoutV3& layout);
 
-        static CustomizationData getNewBestCustomizations();
-        static void setNewBestCustomizations(const CustomizationData& data);
+    static CustomizationData getNewBestCustomizations();
+    static void setNewBestCustomizations(const CustomizationData& data);
 
-        static CustomizationData getSessionBestCustomizations();
-        static void setSessionBestCustomizations(const CustomizationData& data);
+    static CustomizationData getSessionBestCustomizations();
+    static void setSessionBestCustomizations(const CustomizationData& data);
 
-        static bool getExportWOutLabels();
-        static void setExportWOutLabels(const bool& b);
+    static bool getExportWOutLabels();
+    static void setExportWOutLabels(const bool& b);
 
-        static bool getDidConvertToV3();
-        static void setDidConvertToV3(const bool& b);
+    static bool getDidConvertToV3();
+    static void setDidConvertToV3(const bool& b);
 
-        static std::string getLastOpenedVersion();
-        static void setLastOpenedVersion(const std::string& verion);
+    static std::string getLastOpenedVersion();
+    static void setLastOpenedVersion(const std::string& verion);
 
-        static stringCustomazations getFrom0Customazations();
-        static void setFrom0Customazations(const stringCustomazations& from0Custom);
+    static stringCustomazations getFrom0Customazations();
+    static void setFrom0Customazations(const stringCustomazations& from0Custom);
 
-        static stringCustomazations getRunsCustomazations();
-        static void setRunCustomazations(const stringCustomazations& runCustom);
+    static stringCustomazations getRunsCustomazations();
+    static void setRunCustomazations(const stringCustomazations& runCustom);
 
-        static stringCustomazations getSessionF0Customazations();
-        static void setSessionF0Customazations(const stringCustomazations& sessionF0Custom);
+    static stringCustomazations getSessionF0Customazations();
+    static void setSessionF0Customazations(const stringCustomazations& sessionF0Custom);
 
-        static stringCustomazations getSessionRunCustomazations();
-        static void setSessionRunCustomazations(const stringCustomazations& sessionRunCustom);
-        
-        static std::vector<DTGraphInfo> getGraphs();
-        static void setGraphs(const std::vector<DTGraphInfo>& graphs);
+    static stringCustomazations getSessionRunCustomazations();
+    static void setSessionRunCustomazations(const stringCustomazations& sessionRunCustom);
+    
+    static std::vector<DTGraphInfo> getGraphs();
+    static void setGraphs(const std::vector<DTGraphInfo>& graphs);
 
-        static bool wasTutorialSeen(const std::string& tutorialID);
-        static void setTutorialSeen(const std::string& tutorialID);
+    static bool wasTutorialSeen(const std::string& tutorialID);
+    static void setTutorialSeen(const std::string& tutorialID);
 
-        static std::vector<DTLayoutPreset> getLayoutPresets();
-        static void setLayoutPresets(const std::vector<DTLayoutPreset>& presets);
+    static std::vector<DTLayoutPreset> getLayoutPresets();
+    static void setLayoutPresets(const std::vector<DTLayoutPreset>& presets);
 
-        class OverlayLabelsChangedEvent : public Event<OverlayLabelsChangedEvent, bool()> {
-            public:
-                using Event::Event;
-        };
+    class OverlayLabelsChangedEvent : public Event<OverlayLabelsChangedEvent, bool()> {
+        public:
+            using Event::Event;
+    };
 
-        static OverlayLabelSettings getOverlayLabels();
-        static void setOverlayLabels(const OverlayLabelSettings& labels);
+    static OverlayLabelSettings getOverlayLabels();
+    static void setOverlayLabels(const OverlayLabelSettings& labels);
 
-        static bool getLevelWasPTTransferred(std::string const& lvlKey);
-        static void setLevelWasPTTransferred(std::string const& lvlKey);
+    static bool getLevelWasPTTransferred(std::string const& lvlKey);
+    static void setLevelWasPTTransferred(std::string const& lvlKey);
 
-        static bool getDidInitLayout();
-        static void setDidInitLayout(const bool& b);
+    static bool getDidInitLayout();
+    static void setDidInitLayout(const bool& b);
 
-        static DTLayoutV3 getDefaultLayout();
-        static CustomizationData getDefaultNewBestCustomizations();
-        static CustomizationData getDefaultSessionBestCustomizations();
-        static std::vector<DTGraphInfo> getDefaultGraphs();
-        static OverlayLabelSettings getDefaultOverlayLabels();
+    static DTLayoutV3 getDefaultLayout();
+    static CustomizationData getDefaultNewBestCustomizations();
+    static CustomizationData getDefaultSessionBestCustomizations();
+    static std::vector<DTGraphInfo> getDefaultGraphs();
+    static OverlayLabelSettings getDefaultOverlayLabels();
 };

@@ -1,5 +1,6 @@
 #include "RichTextKeys.hpp"
 
+#include <nodes/general/RichTextArea.hpp>
 #include <actions/CCWaveAction.hpp>
 #include <actions/CCGradientAction.hpp>
 #include <managers/StatsManager.hpp>

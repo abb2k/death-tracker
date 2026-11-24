@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Geode/modify/EditLevelLayer.hpp>
 
 using namespace geode::prelude;

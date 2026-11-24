@@ -4,6 +4,7 @@
 #include <utils/Dev.hpp>
 #include <nodes/options/pages/save/backup/CreateBackupPopup.hpp>
 #include <nodes/options/pages/save/import/ImportPopup.hpp>
+#include <nodes/Tutorial/DTTutorialLayer.hpp>
 
 #include <asp/fs.hpp>
 

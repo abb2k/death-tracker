@@ -8,6 +8,7 @@
 #include <utils/RichTextKeys.hpp>
 #include <nodes/DTLayer.hpp>
 #include <nodes/Tutorial/TutorialButton.hpp>
+#include <nodes/Tutorial/DTTutorialLayer.hpp>
 
 #include <managers/AuthManager.hpp>
 

@@ -3,6 +3,11 @@
 #include <managers/StatsManager.hpp>
 #include <nodes/DTLayer.hpp>
 
+#include <nodes/general/SimpleToggler.hpp>
+#include <nodes/general/OptionSwitcher.hpp>
+#include <nodes/general/SessionSelector.hpp>
+#include <nodes/general/FloatingList.hpp>
+
 GraphCell* GraphCell::create(float width, const DTGraphInfo& graphInfo) {
     auto ret = new GraphCell();
     if (ret && ret->init(width, graphInfo)) {

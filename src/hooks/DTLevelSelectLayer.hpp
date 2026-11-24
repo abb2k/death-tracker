@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Geode/modify/LevelSelectLayer.hpp>
 
 using namespace geode::prelude;

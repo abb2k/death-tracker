@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Geode/modify/LevelInfoLayer.hpp>
 
 using namespace geode::prelude;

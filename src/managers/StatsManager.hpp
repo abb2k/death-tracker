@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
 #include <types/DTTypes.hpp>
 
 using namespace geode::prelude;
@@ -132,16 +131,13 @@ public:
     //gets an array of all levels you have progress on
     static Result<std::vector<std::pair<std::string, LevelMetadata>>> getAllLevels();
     //seperate a level key to [levelID, levelType]
-    static std::pair<std::string, std::string> splitLevelKey(const std::string& levelKey);
+    static std::pair<std::string, std::string> splitLevelKey(std::string_view levelKey);
     //get the difficulty of a level
     //
     // -1 = auto, 0 = NA, 1 = Easy, 2 = Normal
     // 3 = Hard, 4 = Harder, 5 = Insane, 6 = Hard Demon
     // 7 = Easy Demon, 8 = Medium Demon, 9 = Insane Demon, 10 = Extreme Demon
     static int getDifficulty(GJGameLevel* const& level);
-
-    // return a splitted version of the string provided, devided by the delim
-    static std::vector<std::string> splitStr(const std::string& str, const std::string& delim);
     
     //gets the index in which the CCLabelBMFonts cursor is located on the string
     static int getCursorPosition(geode::Label* const& text, geode::Label* const& cursor);

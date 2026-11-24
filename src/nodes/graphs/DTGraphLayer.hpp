@@ -1,25 +1,18 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-#include <nodes/DTLayer.hpp>
-#include <nodes/graphs/GraphPoint.hpp>
-#include <nodes/graphs/GraphHolder.hpp>
-#include <nodes/graphs/GraphCell.hpp>
-#include <nodes/general/OptionSwitcher.hpp>
-#include <nodes/graphs/GraphPointDisplay.hpp>
-#include <nodes/general/FloatingList.hpp>
-
 using namespace geode::prelude;
 
+#include <types/DTTypes.hpp>
+#include <nodes/graphs/GraphPoint.hpp>
+
+template <class T>
+class OptionSwitcher;
+class GraphPointDisplay;
+class GraphCell;
+class GraphHolder;
+
 struct GraphPointDisplayPtrCompare {
-    bool operator()(GraphPointDisplay const* a, GraphPointDisplay const* b) const {
-        if (a == b) return false;
-        if (!a) return true;
-        if (!b) return false;
-        if (a->positionReal > b->positionReal) return true;
-        if (a->positionReal < b->positionReal) return false;
-        return a < b;
-    }
+    bool operator()(GraphPointDisplay const* a, GraphPointDisplay const* b) const;
 };
 
 class DTGraphLayer : public Popup, public GraphPointDelegate, public FLAlertLayerProtocol {

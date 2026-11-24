@@ -1,38 +1,41 @@
 #include "TutorialButton.hpp"
 #include <utils/Save.hpp>
 
-TutorialButton* TutorialButton::create(float size, const std::string& id, Function<void(DTTutorialLayer*)> initilizeTutorial) {
+#include <nodes/Tutorial/DTTutorialLayer.hpp>
+
+TutorialButton* TutorialButton::create(float size, std::string_view id, Function<void(DTTutorialLayer*)> initilizeTutorial) {
     auto ret = new TutorialButton();
-    if (ret && ret->init(size, id, std::move(initilizeTutorial))) {
+    
+    if (ret && ret->init(std::move(size), id, std::move(initilizeTutorial))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+
+    delete ret;
+    return nullptr;
 }
 
-bool TutorialButton::init(float size, const std::string& id, Function<void(DTTutorialLayer*)> initilizeTutorial) {
-    this->size = size;
+bool TutorialButton::init(float size, std::string_view id, Function<void(DTTutorialLayer*)> initilizeTutorial) {
+    this->m_size = std::move(size);
 
-    spr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
-    spr->setScale(size);
+    m_spr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+    m_spr->setScale(m_size);
 
-    if (!CCMenuItemSpriteExtra::init(spr, nullptr, this, menu_selector(TutorialButton::onClicked))) return false;
+    if (!CCMenuItemSpriteExtra::init(m_spr, nullptr, this, menu_selector(TutorialButton::onClicked))) return false;
 
-    this->initilizeTutorial = std::move(initilizeTutorial);
+    this->m_initilizeTutorial = std::move(initilizeTutorial);
 
-    this->id = id;
+    this->m_id = std::string(id);
 
-    if (!Save::wasTutorialSeen(id)) {
+    if (!Save::wasTutorialSeen(m_id)) {
         auto action = CCRepeatForever::create(CCSequence::create(
-            CCEaseInOut::create(CCScaleTo::create(.5f, size + .1f), 2),
-            CCEaseInOut::create(CCScaleTo::create(.5f, size), 2),
+            CCEaseInOut::create(CCScaleTo::create(.5f, m_size + .1f), 2),
+            CCEaseInOut::create(CCScaleTo::create(.5f, m_size), 2),
             nullptr
         ));
         action->setTag(1);
 
-        spr->runAction(action);
+        m_spr->runAction(action);
     }
 
     return true;
@@ -41,14 +44,14 @@ bool TutorialButton::init(float size, const std::string& id, Function<void(DTTut
 void TutorialButton::onClicked(CCObject*) {
     auto layer = DTTutorialLayer::create();
 
-    initilizeTutorial(layer);
+    m_initilizeTutorial(layer);
 
     layer->show();
 
-    if (!Save::wasTutorialSeen(id)) {
-        Save::setTutorialSeen(id);
+    if (!Save::wasTutorialSeen(m_id)) {
+        Save::setTutorialSeen(m_id);
 
-        spr->stopActionByTag(1);
-        spr->runAction(CCEaseInOut::create(CCScaleTo::create(.5f, size), 2));
+        m_spr->stopActionByTag(1);
+        m_spr->runAction(CCEaseInOut::create(CCScaleTo::create(.5f, m_size), 2));
     }
 }
