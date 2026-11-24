@@ -27,10 +27,12 @@ bool GraphPointDisplayPtrCompare::operator()(GraphPointDisplay const* a, GraphPo
 
 DTGraphLayer* DTGraphLayer::create() {
     auto ret = new DTGraphLayer();
+
     if (ret->init()) {
         ret->autorelease();
         return ret;
     }
+
     delete ret;
     return nullptr;
 }
@@ -48,27 +50,27 @@ bool DTGraphLayer::init() {
 
     m_graph = GraphHolder::create(ccp(m_size.width - 140, m_size.height - 50));
     m_graph->setPosition({m_size.width - m_graph->getContentWidth() / 2 - 20, m_size.height / 2 + 5});
-    m_graph->m_delegate = this;
+    m_graph->setDelegate(this);
     this->m_mainLayer->addChild(m_graph);
 
     auto graphTutorial = TutorialButton::create(.6f, "grapg-overall", [&](DTTutorialLayer* tl) {
         tl->appendDialogue("Welcome to the graph view!", TutorialCharacterFace::TCFNormal)
             ->appendDialogue("This is the main graphs view", TutorialCharacterFace::TCFNormal)
-            ->joinHighlight(m_graph->m_scrollLayer)
+            ->joinHighlight(m_graph->getScrollLayer())
             ->joinTransform(TutorialBoxPlacement::TBPBottomLeft, .5f)
 #if !defined(GEODE_IS_MOBILE)
             ->appendDialogue("You can hold <cg>control</c> and <cp>scroll</c> to zoom in! and <cc>shift</c> and <cp>scroll</c> to move side to side.", TutorialCharacterFace::TCFNormal)
 #else
             ->appendDialogue("You can <cg>pinch</c> to zoom in! and <cc>swipe</c> to move side to side.", TutorialCharacterFace::TCFNormal)
 #endif
-            ->joinHighlight(m_graph->m_scrollLayer)
+            ->joinHighlight(m_graph->getScrollLayer())
             ->appendDialogue("You can also hover on any of the points in the graph to see their details!", TutorialCharacterFace::TCFNormal)
             ->joinCallback([&, tl]() {
                 for (const auto& graphNode : m_graph->getAllGraphNodes())
                 {
                     if (!graphNode->isVisible()) continue;
 
-                    for (const auto& child : CCArrayExt<CCNode*>(graphNode->m_pointHolder->getChildren())) {
+                    for (const auto& child : CCArrayExt<CCNode*>(graphNode->getPointHolder()->getChildren())) {
                         tl->insertHighlight(3, child)
                             ->insertJoinTextToHighlight(3, "V", .25f);
                     }
@@ -176,8 +178,8 @@ bool DTGraphLayer::init() {
         {
             if (!cell) continue;
             if (firstBtn == nullptr)
-                firstBtn = cell->m_mainMenu->getChildByID("toggle-btn");
-            tl->joinHighlight(cell->m_mainMenu->getChildByID("toggle-btn"));
+                firstBtn = cell->getMainMenu()->getChildByID("toggle-btn");
+            tl->joinHighlight(cell->getMainMenu()->getChildByID("toggle-btn"));
         }
         tl->appendDialogue("If you toggle a graph <cy>ON</c>, all others will be <cr>disabled</c>", TutorialCharacterFace::TCFNormal)
             ->joinHighlight(firstBtn)
@@ -188,7 +190,7 @@ bool DTGraphLayer::init() {
         for (const auto& cell : getGraphCells(m_graphsScroll->m_contentLayer))
         {
             if (!cell) continue;
-            tl->joinHighlight(cell->m_mainMenu->getChildByID("toggle-btn"), index * .3f);
+            tl->joinHighlight(cell->getMainMenu()->getChildByID("toggle-btn"), index * .3f);
             tl->joinTextToHighlight(std::to_string(index + 1), .5f, TutorialTextPlacement::TTLeft);
             index++;
         }
@@ -200,37 +202,37 @@ bool DTGraphLayer::init() {
         for (const auto& cell : getGraphCells(m_graphsScroll->m_contentLayer))
         {
             if (!cell) continue;
-            tl->joinHighlight(cell->m_mainMenu->getChildByID("settings-btn"));
+            tl->joinHighlight(cell->getMainMenu()->getChildByID("settings-btn"));
         }
         tl->appendDialogue("And you can also change their <cg>layering order</c> using the <cf>arrows</c> on the right!", TutorialCharacterFace::TCFHappy);
         for (const auto& cell : getGraphCells(m_graphsScroll->m_contentLayer))
         {
             if (!cell) continue;
-            tl->joinHighlight(cell->m_mainMenu->getChildByID("up-arrow"));
-            tl->joinHighlight(cell->m_mainMenu->getChildByID("down-arrow"));
+            tl->joinHighlight(cell->getMainMenu()->getChildByID("up-arrow"));
+            tl->joinHighlight(cell->getMainMenu()->getChildByID("down-arrow"));
         }
         tl->appendDialogue("You also have quick access to change the <cy>graphs type</c>, more on that in the graph settings page!", TutorialCharacterFace::TCFNormalTilted);
         for (const auto& cell : getGraphCells(m_graphsScroll->m_contentLayer))
         {
             if (!cell) continue;
-            tl->joinHighlight(cell->m_mainMenu->getChildByID("type-switcher"));
-            tl->joinHighlight(cell->m_mainMenu->getChildByID("type-label"));
+            tl->joinHighlight(cell->getMainMenu()->getChildByID("type-switcher"));
+            tl->joinHighlight(cell->getMainMenu()->getChildByID("type-label"));
         }
         tl->appendDialogue("You can choose which <co>session</c> the session graphs show using their <co>session switcher</c>", TutorialCharacterFace::TCFNormal)
             ->joinTransform(TutorialBoxPlacement::TBPBottomRight, .75f);
         for (const auto& cell : getGraphCells(m_graphsScroll->m_contentLayer))
         {
             if (!cell) continue;
-            tl->joinHighlight(cell->m_sessionSelectorLabel);
-            tl->joinHighlight(cell->m_sessionSelector);
+            tl->joinHighlight(cell->getSessionSelectorLabel());
+            tl->joinHighlight(cell->getSessionSelector());
         }
         tl->appendDialogue("And choose which <cf>run</c> the run graphs would display using the <cf>run input!</c>", TutorialCharacterFace::TCFHappy);
         for (const auto& cell : getGraphCells(m_graphsScroll->m_contentLayer))
         {
             if (!cell) continue;
-            tl->joinHighlight(cell->m_runLabel);
-            tl->joinHighlight(cell->m_runInput);
-            tl->joinHighlight(cell->m_runSelectHelperBtn);
+            tl->joinHighlight(cell->getRunLabel());
+            tl->joinHighlight(cell->getRunInput());
+            tl->joinHighlight(cell->getRunSelectHelperBtn());
         }
         tl->appendDialogue("The <cf>percent</c> you input would be the <cy>starting percent</c> of the run you wanna see!", TutorialCharacterFace::TCFNormal)
             ->joinPreviousHighlight()
@@ -663,7 +665,7 @@ void DTGraphLayer::addGraph() {
 void DTGraphLayer::addGraph(const DTGraphInfo& info) {
     auto graphCell = GraphCell::create(m_graphsScroll->getContentWidth(), info);
 
-    graphCell->m_onArrowCallback = [&](GraphCell* cell, bool isUp) {
+    graphCell->setOnArrowCallback([&](GraphCell* cell, bool isUp) {
         if (!isUp) {
             int highestZ = 0;
             GraphCell* existingCellWithZ = nullptr;
@@ -699,11 +701,11 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
         updateGRapgCellLayout();
 
         saveAllGraphs();
-    };
-    graphCell->m_onOptionsCallback = [&](GraphCell* cell) {
+    });
+    graphCell->setOnOptionsCallback([&](GraphCell* cell) {
         openOptionsFor(cell);
-    };
-    graphCell->m_onEnabledChanged = [&](GraphCell* cell) {
+    });
+    graphCell->setOnEnabledChanged([&](GraphCell* cell) {
         m_graph->getGraphNode(cell->getinfo().m_name)->setInfo(cell->getinfo());
 
         if (!m_holdingShift && cell->getinfo().m_isEnabled) {
@@ -715,20 +717,20 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
         }
 
         saveAllGraphs();
-    };
-    graphCell->m_onInfoChangedCallback = [&](GraphCell* cell) {
+    });
+    graphCell->setOnInfoChangedCallback([&](GraphCell* cell) {
         auto graphNode = m_graph->getGraphNode(cell->getinfo().m_name);
         bool changeName = false;
 
         if (graphNode == nullptr) {
-            graphNode = m_graph->getGraphNode(cell->m_oldName);
+            graphNode = m_graph->getGraphNode(cell->getOldName());
             changeName = true;
         }
 
         if (graphNode == nullptr) return;
 
         if (changeName)
-            m_graph->changeGraphName(cell->m_oldName, cell->getinfo().m_name);
+            m_graph->changeGraphName(cell->getOldName(), cell->getinfo().m_name);
 
         if (graphNode->getInfo().has_value() && cell->getinfo().m_coverage != graphNode->getInfo().value().m_coverage)
             updateGRapgCellLayout();
@@ -738,9 +740,9 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
         cell->resendSection();
 
         saveAllGraphs();
-    };
+    });
 
-    graphCell->m_canChangeNameTo = [&](const std::string& to, GraphCell* cell) -> bool {
+    graphCell->setCanChangeNameTo([&](const std::string& to, GraphCell* cell) -> bool {
         GraphCell* cellWithName = nullptr;
 
         for (const auto& child : getGraphCells(m_graphsScroll->m_contentLayer))
@@ -753,9 +755,9 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
         }
         
         return cellWithName == nullptr || cellWithName == cell;
-    };
+    });
 
-    graphCell->m_beforeDeletion = [&](DTGraphInfo info, GraphCell* deletingCell) {
+    graphCell->setBeforeDeletion([&](DTGraphInfo info, GraphCell* deletingCell) {
         m_graph->removeGraph(info.m_name);
 
         int indexZ = 0;
@@ -767,33 +769,28 @@ void DTGraphLayer::addGraph(const DTGraphInfo& info) {
             child->setOrderPos(indexZ);
             indexZ++;
         }
-    };
+    });
 
-    graphCell->m_onDeleted = [&](DTGraphInfo info) {
+    graphCell->setOnDeleted([&](DTGraphInfo info) {
         updateGRapgCellLayout();
         saveAllGraphs();
-    };
+    });
 
-    graphCell->m_onNewSession = [&](GraphCell* cell, auto newSession) {
+    graphCell->setOnNewSession([&](GraphCell* cell, auto newSession) {
         auto graphNode = m_graph->getGraphNode(cell->getinfo().m_name);
 
-        graphNode->m_sessionToShow = std::move(newSession);
-
-        graphNode->updateDeaths();
-    };
-
-    graphCell->m_onNewRun = [&](GraphCell* cell, auto newRun) {
+        graphNode->setSessionToShow(std::move(newSession));
+    });
+    graphCell->setOnNewRun([&](GraphCell* cell, auto newRun) {
         auto graphNode = m_graph->getGraphNode(cell->getinfo().m_name);
 
-        graphNode->m_runPercent = newRun;
+        graphNode->setRunPercent(newRun);
+    });
 
-        graphNode->updateDeaths();
-    };
-
-    graphCell->m_onNewSection = [&](GraphCell* cell, const Section& section) {
+    graphCell->setOnNewSection([&](GraphCell* cell, const Section& section) {
         auto graphNode = m_graph->getGraphNode(cell->getinfo().m_name);
         graphNode->setSectionToShow(section);
-    };
+    });
 
     if (graphCell->getinfo().m_isEnabled && !m_holdingShift) {
         for (const auto& cell : getGraphCells(m_graphsScroll->m_contentLayer)) {

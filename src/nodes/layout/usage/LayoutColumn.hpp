@@ -10,7 +10,8 @@ class LayoutColumn : public CCMenu {
 public:
     static LayoutColumn* create(DTColumnInfo info, bool startVisible, float minHeight);
 
-    DTColumnInfo m_info;
+    const DTColumnInfo& getInfo() const { return m_info; }
+    void setOrderPos(int orderPos);
 
     void setColor(ccColor3B color);
 
@@ -44,11 +45,13 @@ public:
 private:
     bool init(DTColumnInfo info, bool startVisible, float minHeight);
 
+    DTColumnInfo m_info;
+
     float m_minHeight;
 
     bool m_isVisible;
 
-    int m_bgOpacity = 125;
+    static constexpr int m_bgOpacity = 125;
 
     CCScale9Sprite* m_topBorder1;
     
@@ -67,7 +70,7 @@ private:
     bool m_isTouchingSide;
     bool m_isTouchingTopSpr;
     CCPoint m_originalTopSprTouchPos;
-    float m_maxMovementOffset = 3;
+    static constexpr float m_maxMovementOffset = 3;
 
     void onAddLabelBtnClicked(CCObject*);
 

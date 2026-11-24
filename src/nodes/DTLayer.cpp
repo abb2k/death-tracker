@@ -23,6 +23,7 @@
 
 #include <nodes/layout/layoutEditing/DTColorPickerPopup.hpp>
 #include <nodes/Tutorial/DTTutorialLayer.hpp>
+#include <nodes/layout/usage/DTLabel.hpp>
 
 float DTLayer::transitionTime = .35f;
 geode::Label* DTLayer::verText = nullptr;
@@ -33,7 +34,7 @@ bool ColumnComperator::operator()(LayoutColumn* a, LayoutColumn* b) const {
     if (!a || !b) {
         return a < b;
     }
-    return a->m_info.m_orderPos < b->m_info.m_orderPos;
+    return a->getInfo().m_orderPos < b->getInfo().m_orderPos;
 }
 
 DTLayer* DTLayer::instance = nullptr;
@@ -497,7 +498,7 @@ bool DTLayer::init(GJGameLevel* const& level) {
                 if (allLabels.contains(label)) continue;
 
                 allLabels.insert(label);
-                tutorialLayer->joinHighlight(label->m_labelTitleBG, .1f * index);
+                tutorialLayer->joinHighlight(label->getLabelTitleBG(), .1f * index);
                 index++;
             }
         }
@@ -740,7 +741,7 @@ bool DTLayer::init(GJGameLevel* const& level) {
                 if (allLabels.contains(label)) continue;
 
                 allLabels.insert(label);
-                tutorialLayer->joinHighlight(label->m_labelTitleBG, .1f * index);
+                tutorialLayer->joinHighlight(label->getLabelTitleBG(), .1f * index);
                 index++;
             }
         }
@@ -754,8 +755,8 @@ bool DTLayer::init(GJGameLevel* const& level) {
 
         index = 0;
         for (const auto& label : allLabels) {
-            tutorialLayer->joinHighlight(label->m_leftExpandLine, .2f * index, false, false);
-            tutorialLayer->joinHighlight(label->m_rightExpandLine, .2f * index, false, false);
+            tutorialLayer->joinHighlight(label->getLeftExpandLine(), .2f * index, false, false);
+            tutorialLayer->joinHighlight(label->getRightExpandLine(), .2f * index, false, false);
 
             index++;
         }
@@ -817,7 +818,7 @@ void DTLayer::onEditLayout(CCObject*) {
         m_layoutOptionsLayer = LayoutOptionsLayer::create({150, m_size.height});
         auto winSize = CCDirector::sharedDirector()->getWinSize();
         m_layoutOptionsLayer->setPosition({winSize.width + 10, (winSize.height - m_layoutOptionsLayer->getContentHeight()) / 2});
-        m_layoutOptionsLayer->m_onBackedOut = [&]() {closeOptionsLayer();};
+        m_layoutOptionsLayer->setOnBackedOutCallback([&]() { this->closeOptionsLayer(); });
         this->addChild(m_layoutOptionsLayer);
     }
 
@@ -2296,7 +2297,7 @@ organizationFuture DTLayer::organizeLayoutTask() {
     {
         ColumnData colData;
         colData.m_column = column;
-        colData.m_orderPos = column->m_info.m_orderPos;
+        colData.m_orderPos = column->getInfo().m_orderPos;
 
         for (const auto& [layer, label] : column->m_labels)
         {
@@ -2330,8 +2331,8 @@ organizationFuture DTLayer::organizeLayoutTask() {
             if (allLabels.contains(label)) continue;
 
             allLabels.insert(label);
-            label->m_tempPos = ccp(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
-            label->m_tempWidth = 0;
+            label->setTempPos(ccp(std::numeric_limits<float>::max(), std::numeric_limits<float>::max()));
+            label->setTempWidth(0);
         }
 
         co_await arc::yield();
@@ -2354,20 +2355,20 @@ organizationFuture DTLayer::organizeLayoutTask() {
 
         float prevHeight = startPosInLabelSpace.y;
 
-        if (label->m_info.m_layer != 0 && prevLabel != nullptr) prevHeight = prevLabel->m_tempPos.y - prevLabel->getContentHeight();
+        if (label->getInfo().m_layer != 0 && prevLabel != nullptr) prevHeight = prevLabel->getTempPos().y - prevLabel->getContentHeight();
 
-        if (prevHeight < label->m_tempPos.y) label->m_tempPos.y = prevHeight;
+        if (prevHeight < label->getTempPos().y) label->setTempPos(ccp(label->getTempPos().x, prevHeight));
 
         float newX = startPosInLabelSpace.x;
 
-        if (newX < label->m_tempPos.x) label->m_tempPos.x = newX;
+        if (newX < label->getTempPos().x) label->setTempPos(ccp(newX, label->getTempPos().y));
     };
 
     auto UpdateTempWidth = [](DTLabel* label) -> arc::Future<> {
-        label->m_tempWidth = 0;
+        label->setTempWidth(0);
         for (const auto& labelColumn : label->getHolders())
         {
-            label->m_tempWidth += labelColumn->getContentWidth();
+            label->setTempWidth(label->getTempWidth() + labelColumn->getContentWidth());
 
             co_await arc::yield();
         }
@@ -2406,7 +2407,7 @@ organizationFuture DTLayer::organizeLayoutTask() {
 
                 lastVisitedLabelForColumn[column] = label;
 
-                int newLayer = prevLabel == nullptr ? 0 : prevLabel->m_info.m_layer + 1;
+                int newLayer = prevLabel == nullptr ? 0 : prevLabel->getInfo().m_layer + 1;
 
                 // log::info("destenation layer {}", newLayer);
 
@@ -2460,7 +2461,7 @@ organizationFuture DTLayer::organizeLayoutTask() {
 
                     // log::info("all layer values were found for label");
 
-                    label->m_info.m_layer = highestOptLayer;
+                    label->setlayer(highestOptLayer);
                     processedLabels.insert(label);
 
                     co_await UpdateTempWidth(label);
@@ -2473,7 +2474,7 @@ organizationFuture DTLayer::organizeLayoutTask() {
 
                 // log::info("non double found! adding..");
 
-                label->m_info.m_layer = newLayer;
+                label->setlayer(newLayer);
                 processedLabels.insert(label);
 
                 co_await UpdateTempPos(column, label, prevLabel);
@@ -2502,7 +2503,7 @@ organizationFuture DTLayer::organizeLayoutTask() {
     for (const auto& colData : columnSnapshots) {
         for (const auto& [_, label] : colData.m_labels)
         {
-            auto height = std::abs(label->m_tempPos.y) + label->getContentHeight() + LayoutColumn::addNewBtnOffset * 2;
+            auto height = std::abs(label->getTempPos().y) + label->getContentHeight() + LayoutColumn::addNewBtnOffset * 2;
             if (heighestHeight < height) heighestHeight = height;
             co_await arc::yield();
         }
@@ -2514,8 +2515,8 @@ organizationFuture DTLayer::organizeLayoutTask() {
 
     for (const auto& label : allLabels)
     {
-        auto targetPosition = label->m_tempPos;
-        auto targetWidth = label->m_tempWidth - LayoutColumn::borderWidth;
+        auto targetPosition = label->getTempPos();
+        auto targetWidth = label->getTempWidth() - LayoutColumn::borderWidth;
 
         data.m_labelData.push_back({label, targetPosition, targetWidth});
         co_await arc::yield();
@@ -2577,8 +2578,6 @@ std::set<LayoutColumn*, ColumnComperator> DTLayer::getColumnsBetween(CCPoint a, 
 
     auto rect = CCRect{x, y, w, h};
 
-    // log::info("checking rects... {}", rect);
-
     for (const auto& column : m_columns)
     {
         if (rect.intersectsRect(column->boundingBox()))
@@ -2609,9 +2608,8 @@ LayoutColumn* DTLayer::addColumn(std::optional<DTColumnInfo> info) {
         
         for (const auto& column : m_columns)
         {
-            if (column->m_info.m_orderPos >= info.value().m_orderPos) {
-                column->m_info.m_orderPos++;
-                column->setZOrder(column->m_info.m_orderPos);
+            if (column->getInfo().m_orderPos >= info.value().m_orderPos) {
+                column->setOrderPos(column->getInfo().m_orderPos + 1);
             }
         }
     }
@@ -2619,7 +2617,7 @@ LayoutColumn* DTLayer::addColumn(std::optional<DTColumnInfo> info) {
     auto column = LayoutColumn::create(info.value(), m_isEditingLayout, m_scrollLayer->getContentHeight());
     m_columnHolder->addChild(column);
     for (const auto& label : CCArrayExt<DTLabel*>(m_labelsHolder->getChildren())) {
-        if (label->m_info.m_maxPlacementRange >= info.value().m_orderPos && label->m_info.m_minPlacementRange < info.value().m_orderPos) {
+        if (label->getInfo().m_maxPlacementRange >= info.value().m_orderPos && label->getInfo().m_minPlacementRange < info.value().m_orderPos) {
             column->addLabel(label);
         }
     }
@@ -2683,12 +2681,12 @@ void DTLayer::setLayoutBy(const DTLayoutV3& layout)
         DTLabel* labelNode = createNewLabel(label);
         allLabels.push_back(labelNode);
 
-        const int minPos = labelNode->m_info.m_minPlacementRange;
-        const int maxPos = labelNode->m_info.m_maxPlacementRange;
+        const int minPos = labelNode->getInfo().m_minPlacementRange;
+        const int maxPos = labelNode->getInfo().m_maxPlacementRange;
 
         for (auto* column : m_columns)
         {
-            const int pos = column->m_info.m_orderPos;
+            const int pos = column->getInfo().m_orderPos;
 
             if (pos < minPos)
                 continue;
@@ -2725,8 +2723,7 @@ void DTLayer::fixUpColumnPositions() {
 
     for (const auto& column : m_columns)
     {
-        column->m_info.m_orderPos = supposedOrder;
-        column->setZOrder(column->m_info.m_orderPos);
+        column->setOrderPos(supposedOrder);
 
         supposedOrder++;
     }
@@ -2743,7 +2740,7 @@ DTLayoutV3 DTLayer::currentLayout() {
 
     for (const auto& column : m_columns)
     {
-        layout.m_columns.push_back(column->m_info);
+        layout.m_columns.push_back(column->getInfo());
 
         for (const auto& [labelLayer, label] : column->m_labels)
         {
@@ -2751,7 +2748,7 @@ DTLayoutV3 DTLayer::currentLayout() {
 
             labels.insert(label);
 
-            layout.m_labels.push_back(label->m_info);
+            layout.m_labels.push_back(label->getInfo());
         }
     }
 

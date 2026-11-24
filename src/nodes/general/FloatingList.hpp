@@ -58,9 +58,9 @@ private:
     ScrollLayer* m_scrollLayer;
     Scrollbar* m_scrollbar;
 
-    float m_elementHeight = 20.f;
+    static constexpr float m_elementHeight = 20.f;
 
-    float m_elementOffset = 5;
+    static constexpr float m_elementOffset = 5;
 
     bool m_isOpen = false;
 

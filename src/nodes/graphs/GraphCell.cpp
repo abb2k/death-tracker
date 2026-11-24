@@ -10,13 +10,14 @@
 
 GraphCell* GraphCell::create(float width, const DTGraphInfo& graphInfo) {
     auto ret = new GraphCell();
+    
     if (ret && ret->init(width, graphInfo)) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+
+    delete ret;
+    return nullptr;
 }
 
 bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
@@ -602,8 +603,6 @@ void GraphCell::resendSection() {
 }
 
 void GraphCell::setEnabled(bool value) {
-    //CCMenu::setEnabled(value);
-
     m_runInput->setEnabled(value);
     m_sessionSelector->setEnabled(value);
     m_sectionSelectorBtn->setEnabled(value && !m_sections.empty());
@@ -625,4 +624,44 @@ void GraphCell::onSectionSelectHelper(CCObject*) {
     else {
         m_sectionsFloatList->open();
     }
+}
+
+void GraphCell::setOnArrowCallback(Function<void(GraphCell* cell, bool up)> callback) {
+    m_onArrowCallback = std::move(callback);
+}
+
+void GraphCell::setOnOptionsCallback(Function<void(GraphCell* cell)> callback) {
+    m_onOptionsCallback = std::move(callback);
+}
+
+void GraphCell::setOnEnabledChanged(Function<void(GraphCell* cell)> callback) {
+    m_onEnabledChanged = std::move(callback);
+}
+
+void GraphCell::setOnInfoChangedCallback(Function<void(GraphCell* cell)> callback) {
+    m_onInfoChangedCallback = std::move(callback);
+}
+
+void GraphCell::setCanChangeNameTo(Function<bool(const std::string&, GraphCell*)> callback) {
+    m_canChangeNameTo = std::move(callback);
+}
+
+void GraphCell::setBeforeDeletion(Function<void(DTGraphInfo, GraphCell*)> callback) {
+    m_beforeDeletion = std::move(callback);
+}
+
+void GraphCell::setOnDeleted(Function<void(DTGraphInfo)> callback) {
+    m_onDeleted = std::move(callback);
+}
+
+void GraphCell::setOnNewSession(Function<void(GraphCell* cell, std::optional<Session>)> callback) {
+    m_onNewSession = std::move(callback);
+}
+
+void GraphCell::setOnNewRun(Function<void(GraphCell* cell, int)> callback) {
+    m_onNewRun = std::move(callback);
+}
+
+void GraphCell::setOnNewSection(Function<void(GraphCell* cell, Section)> callback) {
+    m_onNewSection = std::move(callback);
 }

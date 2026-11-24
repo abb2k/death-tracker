@@ -61,7 +61,7 @@ public:
     float m_minZoom = 2;
     float m_maxZoom = .5f;
 
-    float m_zoomSensetivity = 0.01f;
+    static constexpr float m_zoomSensetivity = 0.01f;
 
     float getMinimumPosition(bool horizontal);
     float getMaximumPosition(bool horizontal);

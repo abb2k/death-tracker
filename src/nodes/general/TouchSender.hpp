@@ -2,7 +2,7 @@
 
 using namespace geode::prelude;
 
-enum TouchSenderState{
+enum TouchSenderState {
     BeganSuccessful,
     BeganFailed,
     Ended,
@@ -14,14 +14,18 @@ class TouchSender : public CCMenu {
 public:
     static TouchSender* create(int prio, bool swallowTouches);
 
-    Function<bool(cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> m_beginCheck = NULL;
-    Function<void(TouchSenderState, cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> m_onTouch = NULL;
+    void setBeginCheckCallback(Function<bool(cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> beginCheck);
+
+    void setOnTouchCallback(Function<void(TouchSenderState, cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> onTouch);
 
 private:
     bool init(int prio, bool swallowTouches);
 
     int m_prio;
     bool m_swallowTouches;
+
+    Function<bool(cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> m_beginCheck = NULL;
+    Function<void(TouchSenderState, cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> m_onTouch = NULL;
 
     void registerWithTouchDispatcher() override;
     bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;

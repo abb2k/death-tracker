@@ -1,34 +1,34 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
 #include <types/DTTypes.hpp>
 
 using namespace geode::prelude;
 
 class SectionCell : public CCMenu {
-    public:
-        static SectionCell* create(float width, const Section& section);
+public:
+    static SectionCell* create(float width, Section section);
 
-        Function<void()> m_onChanged;
-        Function<void()> m_onDeleted;
+    void setOnChanged(Function<void()> onChanged);
+    void setOnDeleted(Function<void()> onDeleted);
 
-        Section getSection() const { 
-            return m_section;
-        }
+    Section getSection() const { return m_section; }
 
-        void fade(bool in, float time);
+    void fade(bool in, float time);
 
-    private:
-        bool init(float width, const Section& section);
+private:
+    bool init(float width, Section section);
 
-        Section m_section;
+    Section m_section;
 
-        TextInput* m_nameInput;
-        TextInput* m_endPercentInput;
-        TextInput* m_startPercentInput;
-        CCScale9Sprite* m_bg;
+    TextInput* m_nameInput;
+    TextInput* m_endPercentInput;
+    TextInput* m_startPercentInput;
+    CCScale9Sprite* m_bg;
 
-        void checkValidity();
+    void checkValidity();
 
-        void onDelete(CCObject* sender);
+    void onDelete(CCObject* sender);
+
+    Function<void()> m_onChanged;
+    Function<void()> m_onDeleted;
 };

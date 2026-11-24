@@ -1,8 +1,8 @@
 #include "SpecialKey.hpp"
 
-SpecialKey::SpecialKey(const std::string& key, const std::string& description, bool showInAddList) {
-    this->m_key = key;
-    this->m_description = description;
+SpecialKey::SpecialKey(std::string key, std::string description, bool showInAddList) {
+    this->m_key = std::move(key);
+    this->m_description = std::move(description);
     this->m_showInAddList = showInAddList;
 }
 
@@ -17,8 +17,6 @@ void SpecialKey::setUpdateFunction(Function<UpdateFuture(std::map<std::string, s
 void SpecialKey::updateContent() {
     if (!this->m_updateFunction.has_value()) return;
 
-    // log::info("Starting update for special key {}, {}", this->key, updateListener.isPending());
-
     if (!m_updateListener.isPending()) {
         if (this->m_updateStartedCallback)
             this->m_updateStartedCallback(this->shared_from_this());
@@ -31,7 +29,6 @@ void SpecialKey::updateContent() {
         "DT-update-key:" + m_key + "-task",
         updateFutureRunner({}),
         [&](UpdateFuture::Output val) {
-            // log::info("completed update for {}", val);
             this->onUpdateCompleted(val);
         }
     );
@@ -89,5 +86,4 @@ void SpecialKey::refreshWith(const std::set<std::string>& others) {
     {
         refreshWith(other);
     }
-    
 }

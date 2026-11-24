@@ -1,36 +1,28 @@
 #include "SaveOptions.hpp"
+
 #include <nodes/DTLayer.hpp>
 #include <nodes/options/DTLevelSpecificSettingsLayer.hpp>
-#include <utils/Dev.hpp>
 #include <nodes/options/pages/save/backup/CreateBackupPopup.hpp>
 #include <nodes/options/pages/save/import/ImportPopup.hpp>
 #include <nodes/Tutorial/DTTutorialLayer.hpp>
+#include <nodes/general/SimpleToggler.hpp>
+#include <nodes/options/pages/save/backup/BackupCell.hpp>
 
 #include <asp/fs.hpp>
 
-/*
--- auto backup settings --
-
-- toggle auto backups on/off
-- create on level exit
-- create on pause
-- create on exiting death tracker menu
-
-*/
-
-SaveOptions* SaveOptions::create(const CCSize& size) {
+SaveOptions* SaveOptions::create(CCSize size) {
     auto ret = new SaveOptions();
-    if (ret && ret->initWithSetup(size)) {
+
+    if (ret && ret->initWithSetup(std::move(size))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }
 
 bool SaveOptions::setup() {
-
     auto deleteBtnSpr = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
     auto deleteBtn = CCMenuItemSpriteExtra::create(
         deleteBtnSpr,
@@ -358,8 +350,8 @@ void SaveOptions::updateBackupsList() {
         int z = 0;
         for (const auto& backupTime : backupsList) {
             auto cell = BackupCell::create(m_backupsScrollLayer->getContentWidth() - 5, lvlKey.unwrap(), backupTime);
-            cell->m_onRevertCallback = std::bind(&SaveOptions::onBackupRevert, this, std::placeholders::_1);
-            cell->m_onDeleteCallback = std::bind(&SaveOptions::onBackupDelete, this, std::placeholders::_1);
+            cell->setOnRevertCallback([this](BackupCell* c) { this->onBackupRevert(c); });
+            cell->setOnDeleteCallback([this](BackupCell* c) { this->onBackupDelete(c); });
             m_backupsScrollLayer->m_contentLayer->addChild(cell);
 
             if (!this->isEnabled()) {
@@ -370,7 +362,6 @@ void SaveOptions::updateBackupsList() {
         }
     }
     
-
     m_backupsScrollLayer->m_contentLayer->updateLayout();
     m_backupsScrollLayer->moveToTop();
 }

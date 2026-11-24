@@ -1,15 +1,17 @@
 #include "PercentCell.hpp"
+
 #include <utils/Dev.hpp>
 
 PercentCell* PercentCell::create(float width, int Percent, int maxToHide, CCNode* sideButtonSprite, Function<void(PercentCell*)> callback) {
     auto ret = new PercentCell();
+
     if (ret && ret->init(width, Percent, maxToHide, sideButtonSprite, std::move(callback))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }
 
 bool PercentCell::init(float width, int percent, int maxToHide, CCNode* sideButtonSprite, Function<void(PercentCell*)> callback) {
@@ -148,4 +150,8 @@ void PercentCell::sliderEnded(Slider* slider) {
 void PercentCell::setMaxToHide(float val) {
     m_MTHScroll->setValue(val);
     mthScroll(nullptr);
+}
+
+void PercentCell::setOnMaxToHideChangedCallback(Function<void(PercentCell*)> callback) {
+    m_onMaxToHideChanged = std::move(callback);
 }

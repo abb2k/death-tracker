@@ -27,13 +27,13 @@ public:
 
     void sendUpdateToGraphOfType(DTGraphCoverage const& coverage);
 
-    GraphPointDelegate* m_delegate;
-
     void sendKeyStuff(bool up, enumKeyCodes key);
+
+    void setDelegate(GraphPointDelegate* delegate);
 
     std::vector<DTGraphNode*> getAllGraphNodes() const;
 
-    AdvancedScrollLayer* m_scrollLayer;
+    AdvancedScrollLayer* getScrollLayer() const { return m_scrollLayer; }
 
 private:
     bool init(CCSize scaling);
@@ -51,11 +51,11 @@ private:
     float m_outlineThickness = 0.2f;
     ccColor4B m_outlineColor = { 124, 124, 124, 255};
 
-    int m_labelEveryBase = 5;
+    static constexpr int m_labelEveryBase = 5;
     int m_labelEvery;
 
     CCDrawNode* m_boldGridNode = nullptr;
-    ccColor4B m_boldGridColor = { 29, 29, 29, 255 };
+    static constexpr ccColor4B m_boldGridColor = { 29, 29, 29, 255 };
 
     ccColor4B m_boldLineColor = {115, 115, 115, 255};
     ccColor4B m_smallLineColor = {115, 115, 115, 100};
@@ -85,7 +85,11 @@ private:
     std::optional<std::pair<float, float>> m_coverageBounds = std::nullopt;
     CCSize m_coverageGraphSize = {0, 0};
 
-    float m_labelMaskOffset = 8.5f;
+    static constexpr float m_labelMaskOffset = 8.5f;
 
-    float m_inGraphOffset = 7.5f;
+    static constexpr float m_inGraphOffset = 7.5f;
+
+    AdvancedScrollLayer* m_scrollLayer;
+
+    GraphPointDelegate* m_delegate;
 };

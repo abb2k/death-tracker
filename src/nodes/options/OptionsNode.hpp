@@ -1,25 +1,22 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
 class DTLevelSpecificSettingsLayer;
 
 class OptionsNode : public CCMenu {
-    protected:
-        bool initWithSetup(const CCSize& size);
+public:
+    virtual void onOpened() = 0;
+    virtual void onClosed() = 0;
 
-        virtual bool setup() = 0;
+    void setSettingsLayer(DTLevelSpecificSettingsLayer* settingsLayer);
 
-        DTLevelSpecificSettingsLayer* m_settingsLayer;
-    public:
-        virtual void onOpened() = 0;
-        virtual void onClosed() = 0;
+protected:
+    bool initWithSetup(CCSize size);
 
-        void setSettingsLayer(DTLevelSpecificSettingsLayer* settingsLayer) {
-            this->m_settingsLayer = settingsLayer;
-        }
-    protected:
-        CCSize m_size;
+    virtual bool setup() = 0;
+
+    DTLevelSpecificSettingsLayer* m_settingsLayer;
+
+    CCSize m_size;
 };

@@ -10,7 +10,7 @@ SpecialKeyCell* SpecialKeyCell::create(std::shared_ptr<SpecialKey> key, Function
         return ret;
     }
 
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 

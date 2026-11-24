@@ -1,25 +1,28 @@
 #include "ModifyOptions.hpp"
+
 #include <nodes/DTLayer.hpp>
 #include <utils/Dev.hpp>
 #include <nodes/Tutorial/DTTutorialLayer.hpp>
+#include <nodes/general/SimpleToggler.hpp>
+#include <nodes/layout/usage/DTLabel.hpp>
+#include <nodes/general/SessionSelector.hpp>
+#include <nodes/general/SwitcherButton.hpp>
 
-ModifyOptions* ModifyOptions::create(const CCSize& size) {
+ModifyOptions* ModifyOptions::create(CCSize size) {
     auto ret = new ModifyOptions();
-    if (ret && ret->initWithSetup(size)) {
+
+    if (ret && ret->initWithSetup(std::move(size))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }
 
 bool ModifyOptions::setup() {
-
     this->setEnabled(false);
     this->setOpacity(0);
-
-    float topeToggleHightPadding = 5;
 
     auto dtLayer = DTLayer::get();
 
@@ -65,7 +68,7 @@ bool ModifyOptions::setup() {
     info.m_isExpanded = true;
 
     m_myLabel = DTLabel::create(info);
-    m_myLabel->m_ignoreExtraSettings = true;
+    m_myLabel->setIgnoreExtraSettings(true);
     m_myLabel->setExpandable(false);
     m_myLabel->setContentWidth(m_previewScroll->getContentWidth());
     m_previewScroll->m_contentLayer->addChild(m_myLabel);
@@ -519,7 +522,7 @@ bool ModifyOptions::setup() {
 
             ->appendDialogue("You can see <cs>what data</c> it currently displays in the <cl>labels title</c>", TutorialCharacterFace::TCFNormalTilted)
             ->joinTransform(TutorialBoxPlacement::TBPTopLeft, .75f)
-            ->joinHighlight(m_myLabel->m_labelTitleBG)
+            ->joinHighlight(m_myLabel->getLabelTitleBG())
 
             ->appendDialogue("At the top you can <cy>edit what data you are going to edit!</c>", TutorialCharacterFace::TCFHappy)
             ->joinTransform(TutorialBoxPlacement::TBPLeft, .75f)

@@ -1,7 +1,6 @@
 #include "DTLevelSpecificSettingsLayer.hpp"
 
 #include <actions/CCResizeTo.hpp>
-#include <nodes/DTLayer.hpp>
 
 #include <nodes/options/pages/run/RunOptions.hpp>
 #include <nodes/options/pages/link/LinkOptions.hpp>
@@ -11,10 +10,12 @@
 
 DTLevelSpecificSettingsLayer* DTLevelSpecificSettingsLayer::create() {
     auto popup = new DTLevelSpecificSettingsLayer;
+    
     if (popup->init()) {
         popup->autorelease();
         return popup;
     }
+
     delete popup;
     return nullptr;
 }
@@ -59,8 +60,6 @@ bool DTLevelSpecificSettingsLayer::init() {
     pages->addChild(DTLevelSpecificSettingsLayer::createPageBtn("Link", LinkOptions::create(ccp(m_size.width - 10, seperator->getPositionY() - 10))));
     pages->addChild(DTLevelSpecificSettingsLayer::createSeperator());
     pages->addChild(DTLevelSpecificSettingsLayer::createPageBtn("Section", SectionOptions::create(ccp(m_size.width - 10, seperator->getPositionY() - 10))));
-    // pages->addChild(DTLevelSpecificSettingsLayer::createSeperator());
-    // pages->addChild(DTLevelSpecificSettingsLayer::createPageBtn("Session", SessionOptions::create(ccp(m_size.width - 10, seperator->getPositionY() - 10))));
 
     pages->updateLayout();
     

@@ -10,13 +10,14 @@ float LayoutColumn::topHeight = 20;
 
 LayoutColumn* LayoutColumn::create(DTColumnInfo info, bool startVisible, float minHeight) {
     auto ret = new LayoutColumn();
+
     if (ret && ret->init(std::move(info), std::move(startVisible), std::move(minHeight))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }
 
 bool LayoutColumn::init(DTColumnInfo info, bool startVisible, float minHeight) {
@@ -98,7 +99,7 @@ bool LayoutColumn::init(DTColumnInfo info, bool startVisible, float minHeight) {
 
     auto touchSender = TouchSender::create(-502, false);
     touchSender->setID("touchSender");
-    touchSender->m_beginCheck = [&](cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
+    touchSender->setBeginCheckCallback([&](cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
         if (!m_isVisible) return false;
         auto touchInParentSpace = m_topBorder2->getParent()->convertTouchToNodeSpace(touch);
 
@@ -111,9 +112,9 @@ bool LayoutColumn::init(DTColumnInfo info, bool startVisible, float minHeight) {
         m_isTouchingTopSpr = false;
 
         return false;
-    };
+    });
 
-    touchSender->m_onTouch = [&](TouchSenderState state, cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
+    touchSender->setOnTouchCallback([&](TouchSenderState state, cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
         if (state == TouchSenderState::Moved) {
             if (m_isTouchingTopSpr) {
                 auto touchInParentSpace = m_topBorder2->getParent()->convertTouchToNodeSpace(touch);
@@ -133,7 +134,7 @@ bool LayoutColumn::init(DTColumnInfo info, bool startVisible, float minHeight) {
             }
             m_isTouchingTopSpr = false;
         }
-    };
+    });
 
     this->addChild(touchSender);
 
@@ -273,26 +274,26 @@ void LayoutColumn::setColor(ccColor3B color) {
 
 void LayoutColumn::addLabel(DTLabel* label) {
     label->addColumnAsHolder(this);
-    if (m_labels.contains(label->m_info.m_layer)) {
-        m_labels[label->m_info.m_layer]->moveUpLayer();
+    if (m_labels.contains(label->getInfo().m_layer)) {
+        m_labels[label->getInfo().m_layer]->moveUpLayer();
     }
     
-    m_labels.insert({label->m_info.m_layer, label});
+    m_labels.insert({label->getInfo().m_layer, label});
 }
 
 void LayoutColumn::removeLabel(DTLabel* label) {
     if (!label->isPartOfColumn(this)) return;
     label->removeColumnAsHolder(this);
 
-    this->m_labels.erase(label->m_info.m_layer);
+    this->m_labels.erase(label->getInfo().m_layer);
 }
 
 void LayoutColumn::updateLabelPosition(DTLabel* label) {
-    if (m_labels.contains(label->m_info.m_layer)) {
-        m_labels[label->m_info.m_layer]->moveUpLayer();
+    if (m_labels.contains(label->getInfo().m_layer)) {
+        m_labels[label->getInfo().m_layer]->moveUpLayer();
     }
 
-    m_labels.insert({label->m_info.m_layer, label});
+    m_labels.insert({label->getInfo().m_layer, label});
 }
 
 void LayoutColumn::onAddLabelBtnClicked(CCObject*) {
@@ -304,7 +305,7 @@ void LayoutColumn::onAddLabelBtnClicked(CCObject*) {
     {
         highestLayer = std::max(highestLayer, labelLayer);
     }
-    newLabel->m_info.m_layer = highestLayer + 1;
+    newLabel->setlayer(highestLayer + 1);
 
     addLabel(newLabel);
 
@@ -372,4 +373,9 @@ void LayoutColumn::setVisibility(bool visible) {
         opacityAction->setTag(5);
         child->runAction(opacityAction);
     }
+}
+
+void LayoutColumn::setOrderPos(int orderPos) {
+    m_info.m_orderPos = orderPos;
+    setZOrder(orderPos);
 }

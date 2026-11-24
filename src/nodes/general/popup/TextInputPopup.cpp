@@ -2,10 +2,12 @@
 
 TextInputPopup* TextInputPopup::create(std::string_view title, std::string_view placeholder, std::string_view bottomBtnText, std::string_view presetValue, Function<void(const std::string&)> callback) {
     auto ret = new TextInputPopup();
-    if (ret->init(title, placeholder, bottomBtnText, presetValue, std::move(callback))) {
+
+    if (ret && ret->init(title, placeholder, bottomBtnText, presetValue, std::move(callback))) {
         ret->autorelease();
         return ret;
     }
+
     delete ret;
     return nullptr;
 }

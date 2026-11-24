@@ -1,18 +1,19 @@
 #include "DecimalPopup.hpp"
 
 #include <managers/StatsManager.hpp>
-
+#include <nodes/layout/usage/DTLabel.hpp>
 #include <managers/AuthManager.hpp>
 
 DecimalPopup* DecimalPopup::create(CCSize size) {
     auto ret = new DecimalPopup();
-    if (ret && ret->init(size)) {
+
+    if (ret && ret->init(std::move(size))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }
 
 bool DecimalPopup::init(CCSize size) {
@@ -203,26 +204,26 @@ void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8
         }
     }
 
-    m_label->m_payload["decimalDepth"] = decimalDepth;
-    m_label->m_payload["decimalRun"] = run;
-    m_label->m_payload["decimalIsSess"] = isSess;
+    m_label->setPayload("decimalDepth", decimalDepth);
+    m_label->setPayload("decimalRun", run);
+    m_label->setPayload("decimalIsSess", isSess);
     if (occurrenceSelection) {
-        m_label->m_payload["decimalOccurrenceTimestamp"] = occurrenceSelection->first;
-        m_label->m_payload["decimalOccurrenceIndex"] = occurrenceSelection->second;
+        m_label->setPayload("decimalOccurrenceTimestamp", occurrenceSelection->first);
+        m_label->setPayload("decimalOccurrenceIndex", occurrenceSelection->second);
     }
     else {
-        m_label->m_payload.erase("decimalOccurrenceTimestamp");
-        m_label->m_payload.erase("decimalOccurrenceIndex");
+        m_label->removePayload("decimalOccurrenceTimestamp");
+        m_label->removePayload("decimalOccurrenceIndex");
     }
 
     auto runStrRes = StatsManager::createRunKey(run, occurrenceSelection.has_value());
 
     if (referenceLabel) {
-        m_label->setFontSize(referenceLabel->m_info.m_scale);
-        m_label->setFont(referenceLabel->m_info.m_font);
-        m_label->setLabelColor(referenceLabel->m_info.m_labelColor);
-        m_label->setTextColor(referenceLabel->m_info.m_textColor);
-        m_label->setTextWrapping(referenceLabel->m_info.m_wrapping);
+        m_label->setFontSize(referenceLabel->getInfo().m_scale);
+        m_label->setFont(referenceLabel->getInfo().m_font);
+        m_label->setLabelColor(referenceLabel->getInfo().m_labelColor);
+        m_label->setTextColor(referenceLabel->getInfo().m_textColor);
+        m_label->setTextWrapping(referenceLabel->getInfo().m_wrapping);
     }
     else {
         m_label->setFontSize(.5f);

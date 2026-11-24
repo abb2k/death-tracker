@@ -1,44 +1,41 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
 #include <nodes/options/OptionsNode.hpp>
-#include <nodes/general/SimpleToggler.hpp>
-#include <nodes/options/pages/run/PercentCell.hpp>
 
 using namespace geode::prelude;
 
+class PercentCell;
 
 class RunOptions : public OptionsNode, public SliderDelegate {
-    public:
-        static RunOptions* create(const CCSize& size);
+public:
+    static RunOptions* create(CCSize size);
 
-    private:
-        virtual bool setup() override;
+    void onOpened() override;
+    void onClosed() override;
 
-        void onAddNewRun(CCObject*);
-        bool addNewRun(int percent);
+private:
+    bool setup() override;
 
-        TextInput* m_runAdditionInput;
-        TextInput* m_RealEndPerInput;
-        TextInput* m_HidUpToInput;
+    void onAddNewRun(CCObject*);
+    bool addNewRun(int percent);
 
-        ScrollLayer* m_runsScrollLayer;
+    TextInput* m_runAdditionInput;
+    TextInput* m_RealEndPerInput;
+    TextInput* m_HidUpToInput;
 
-        void PercentCellClicked(PercentCell* cell);
-        void PercentMaxHideValChanged(PercentCell* cell);
+    ScrollLayer* m_runsScrollLayer;
 
-        void createRunCell(int percent, int maxToHide);
+    void PercentCellClicked(PercentCell* cell);
+    void PercentMaxHideValChanged(PercentCell* cell);
 
-        void onStartPoses(CCObject*);
-        void onSharedHideScroll(CCObject*);
+    void createRunCell(int percent, int maxToHide);
 
-        Slider* m_sharedHideScroll;
-        void sliderEnded(Slider* slider) override;
-        TextInput* m_sharedRunsToShowInput;
+    void onStartPoses(CCObject*);
+    void onSharedHideScroll(CCObject*);
 
-        Scrollbar* m_runsScrollBar;
+    Slider* m_sharedHideScroll;
+    void sliderEnded(Slider* slider) override;
+    TextInput* m_sharedRunsToShowInput;
 
-    public:
-        virtual void onOpened() override;
-        virtual void onClosed() override;
+    Scrollbar* m_runsScrollBar;
 };

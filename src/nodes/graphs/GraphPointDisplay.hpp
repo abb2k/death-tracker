@@ -5,9 +5,6 @@
 using namespace geode::prelude;
 
 class GraphPointDisplay : public CCNode {
-protected:
-    bool init();
-    
 public:
     static GraphPointDisplay* create();
 
@@ -17,6 +14,8 @@ public:
     void setPositionReal(float positionReal);
 
 private:
+    bool init();
+    
     float m_positionReal;
 
     geode::Label* m_percentLabel;

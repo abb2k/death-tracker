@@ -4,11 +4,13 @@
 #include <utils/Save.hpp>
 
 FileConversionLayer* FileConversionLayer::create(bool exitIfNone) {
-    auto popup = new FileConversionLayer;
-    if (popup->init(exitIfNone)) {
+    auto popup = new FileConversionLayer();
+
+    if (popup && popup->init(exitIfNone)) {
         popup->autorelease();
         return popup;
     }
+
     delete popup;
     return nullptr;
 }

@@ -1,18 +1,20 @@
 #include "CreateBackupPopup.hpp"
+
 #include <nodes/general/SimpleToggler.hpp>
 
 CreateBackupPopup* CreateBackupPopup::create() {
     auto ret = new CreateBackupPopup();
+
     if (ret->init()) {
         ret->autorelease();
         return ret;
     }
+
     delete ret;
     return nullptr;
 }
 
 bool CreateBackupPopup::init() {
-    auto winSize = CCDirector::sharedDirector()->getWinSize();
     if (!Popup::init(250, 120, "geode.loader/GE_square01.png"))
         return false;
     setTitle("Create Backup");
@@ -99,4 +101,8 @@ void CreateBackupPopup::createBackupClicked(cocos2d::CCObject* sender) {
     }
 
     this->onClose(sender);
+}
+
+void CreateBackupPopup::setCallback(Function<void(bool, std::optional<int>)> callback) {
+    this->m_callback = std::move(callback);
 }

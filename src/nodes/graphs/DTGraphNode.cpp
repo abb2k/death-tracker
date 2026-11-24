@@ -1,23 +1,22 @@
 #include "DTGraphNode.hpp"
 
 #include <managers/StatsManager.hpp>
-#include <nodes/general/SessionSelector.hpp>
 #include <nodes/DTLayer.hpp>
 #include <nodes/graphs/GraphPoint.hpp>
 
 DTGraphNode* DTGraphNode::create() {
     auto ret = new DTGraphNode();
+
     if (ret && ret->init()) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }
 
 bool DTGraphNode::init() {
-
     m_pointHolder = CCMenu::create();
     m_pointHolder->setZOrder(1);
     m_pointHolder->ignoreAnchorPointForPosition(false);
@@ -427,13 +426,8 @@ void DTGraphNode::updateGraphContent() {
 
     m_pointHolder->removeAllChildrenWithCleanup(true);
     
-    
-    //log::info("{} | {}", myGraph.points.size(), deaths.size());
-
     std::vector<CCPoint> segmentList{};
 
-    bool isFirst = false;
-    CCPoint prevPoint;
     auto addGraphPoint = [&](const CCPoint& linePoint, std::string_view pointText) {
         if (linePoint.x >= 0 && linePoint.x <= 100 * m_scaling.width && linePoint.y >= 0 && linePoint.y <= 100 * m_scaling.height)
         {
@@ -550,4 +544,26 @@ bool DTGraphNode::isRunCoverage(DTGraphCoverage coverage) {
 
 bool DTGraphNode::isSectionCoverage(DTGraphCoverage coverage) {
     return coverage == DTGraphCoverage::SectionContentCover || coverage == DTGraphCoverage::SectionGeneralCover || coverage == DTGraphCoverage::SectionSessionCover;
+}
+
+void DTGraphNode::setDelegate(GraphPointDelegate* delegate) {
+    this->m_delegate = delegate;
+}
+
+void DTGraphNode::setRunPercent(int runPercent) {
+    this->m_runPercent = runPercent;
+
+    this->updateDeaths();
+}
+
+void DTGraphNode::setSessionToShow(std::optional<Session> session) {
+    this->m_sessionToShow = std::move(session);
+
+    this->updateDeaths();
+}
+
+void DTGraphNode::setSectionToShow(std::optional<Section> section) {
+    this->m_sectionToShow = std::move(section);
+
+    this->updateDeaths();
 }

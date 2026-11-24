@@ -1,20 +1,22 @@
 #include "ImportPopup.hpp"
+
 #include <nodes/DTLayer.hpp>
 #include <nodes/options/pages/save/import/ImportCompletePopup.hpp>
 #include <asp/fs.hpp>
 
 ImportPopup* ImportPopup::create() {
     auto ret = new ImportPopup();
+    
     if (ret->init()) {
         ret->autorelease();
         return ret;
     }
+
     delete ret;
     return nullptr;
 }
 
 bool ImportPopup::init() {
-    auto winSize = CCDirector::sharedDirector()->getWinSize();
     if (!Popup::init(250, 150, "geode.loader/GE_square01.png"))
         return false;
     setTitle("Import");
@@ -159,6 +161,7 @@ void ImportPopup::onFromDT(CCObject*) {
         }
     );
 }
+
 void ImportPopup::onFromText(CCObject*) {
     auto dtLayer = DTLayer::get();
     if (dtLayer == nullptr || dtLayer->m_MyLevelStats.isErr()) return;
@@ -186,8 +189,6 @@ void ImportPopup::onFromText(CCObject*) {
             auto pickOpt = result.unwrap();
             if (!pickOpt.has_value()) return;
             auto pick = pickOpt.value();
-
-
         }
     );
 }

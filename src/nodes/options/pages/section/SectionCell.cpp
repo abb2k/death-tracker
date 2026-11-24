@@ -1,22 +1,23 @@
 #include "SectionCell.hpp"
-#include <managers/StatsManager.hpp>
+
 #include <utils/Dev.hpp>
 
-SectionCell* SectionCell::create(float width, const Section& section) {
+SectionCell* SectionCell::create(float width, Section section) {
     auto ret = new SectionCell();
-    if (ret && ret->init(width, section)) {
+
+    if (ret && ret->init(width, std::move(section))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+
+    delete ret;
+    return nullptr;
 }
 
-bool SectionCell::init(float width, const Section& section) {
+bool SectionCell::init(float width, Section section) {
     if (!CCMenu::init()) return false;
 
-    this->m_section = section;
+    this->m_section = std::move(section);
 
     this->setContentSize({width, 40});
 
@@ -27,7 +28,7 @@ bool SectionCell::init(float width, const Section& section) {
     this->addChild(m_bg);
 
     m_nameInput = TextInput::create(width / 1.75f, "Section Name", "bigFont.fnt");
-    m_nameInput->setString(section.m_name);
+    m_nameInput->setString(m_section.m_name);
     m_nameInput->setAnchorPoint({0, .5});
     m_nameInput->setScale(.8f);
     m_nameInput->setPosition({3, this->getContentHeight() / 2});
@@ -50,7 +51,7 @@ bool SectionCell::init(float width, const Section& section) {
     this->addChild(deleteButton);
 
     m_endPercentInput = TextInput::create(width / 5, "endPer", "bigFont.fnt");
-    m_endPercentInput->setString(std::to_string(section.m_endPercent));
+    m_endPercentInput->setString(std::to_string(m_section.m_endPercent));
     m_endPercentInput->setAnchorPoint({1, .5});
     m_endPercentInput->setScale(.75f);
     m_endPercentInput->setCommonFilter(CommonFilter::Uint);
@@ -85,7 +86,7 @@ bool SectionCell::init(float width, const Section& section) {
     this->addChild(runSeperator);
 
     m_startPercentInput = TextInput::create(width / 5, "startPer", "bigFont.fnt");
-    m_startPercentInput->setString(std::to_string(section.m_startPercent));
+    m_startPercentInput->setString(std::to_string(m_section.m_startPercent));
     m_startPercentInput->setAnchorPoint({1, .5});
     m_startPercentInput->setScale(.75f);
     m_startPercentInput->setCommonFilter(CommonFilter::Uint);
@@ -145,4 +146,12 @@ void SectionCell::fade(bool in, float time) {
         Dev::fadeTextInput(m_endPercentInput, false, time);
         Dev::fadeTextInput(m_nameInput, false, time);
     }
+}
+
+void SectionCell::setOnChanged(Function<void()> onChanged) {
+    m_onChanged = std::move(onChanged);
+}
+
+void SectionCell::setOnDeleted(Function<void()> onDeleted) {
+    m_onDeleted = std::move(onDeleted);
 }

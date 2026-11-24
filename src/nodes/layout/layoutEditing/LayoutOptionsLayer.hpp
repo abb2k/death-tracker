@@ -16,14 +16,12 @@ public:
 
     void close();
 
-    bool isEditingNode() const {
-        return m_editedLabel.has_value() || m_editedColumn.has_value();
-    }
-
-    Function<void()> m_onBackedOut = NULL;
-    Function<void()> m_onEnter = NULL;
+    bool isEditingNode() const { return m_editedLabel.has_value() || m_editedColumn.has_value(); }
 
     void keyBackClicked() override;
+
+    void setOnBackedOutCallback(Function<void()> func);
+    void setOnEnterCallback(Function<void()> func);
 
 private:
     bool init(CCSize size);
@@ -98,4 +96,7 @@ private:
 
     void onAddColumnToLeft(CCObject*);
     void onAddColumnToRight(CCObject*);
+
+    Function<void()> m_onBackedOut = NULL;
+    Function<void()> m_onEnter = NULL;
 };

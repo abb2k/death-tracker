@@ -1,29 +1,28 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
 #include <nodes/options/OptionsNode.hpp>
 #include <types/DTTypes.hpp>
 
 using namespace geode::prelude;
 
-
 class SectionOptions : public OptionsNode {
-    public:
-        static SectionOptions* create(const CCSize& size);
-    private:
-        virtual bool setup() override;
+public:
+    static SectionOptions* create(CCSize size);
 
-        void saveSections();
-        ScrollLayer* m_mainScroll;
-        CCScale9Sprite* m_scrollBG;
+    void onOpened() override;
+    void onClosed() override;
+    
+private:
+    bool setup() override;
 
-        void onStartPoses(CCObject*);
+    void saveSections();
+    ScrollLayer* m_mainScroll;
+    CCScale9Sprite* m_scrollBG;
 
-        bool doesSectionExist(const Section& section);
+    void onStartPoses(CCObject*);
 
-        void onAddSection(CCObject* sender);
-        void addSection(const Section& section);
-    public:
-        virtual void onOpened() override;
-        virtual void onClosed() override;
+    bool doesSectionExist(const Section& section);
+
+    void onAddSection(CCObject* sender);
+    void addSection(const Section& section);
 };

@@ -1,12 +1,11 @@
 #pragma once
 
-#include <ostream>
-
 #include <any>
 
 using namespace geode::prelude;
 
-struct UpdateFutureError{
+struct UpdateFutureError {
+public:
     std::string m_error = "";
     bool m_displayAsError = true;
 
@@ -36,61 +35,49 @@ using UpdateFuture = GetTFuture<std::string>;
 #endif
 
 class SpecialKey : public CCObject, public std::enable_shared_from_this<SpecialKey> {
-    private:
-        std::string m_currentContent;
+public:
+    SpecialKey(std::string key, std::string description, bool showInAddList = true);
+    ~SpecialKey() { cancel(); }
 
-        std::string m_key;
-        std::string m_description;
-        bool m_showInAddList;
+    bool compareToKey(std::string_view otherKey);
 
-        std::optional<Function<UpdateFuture(std::map<std::string, std::any>)>> m_updateFunction = std::nullopt;
+    void setUpdateFunction(Function<UpdateFuture(std::map<std::string, std::any>)> task);
 
-        Function<void(const std::shared_ptr<SpecialKey>&)> m_updateCompletedCallback = nullptr;
-        Function<void(const std::shared_ptr<SpecialKey>&)> m_updateStartedCallback = nullptr;
+    void updateContent();
+    UpdateFuture getUpdatedContentAsync(std::map<std::string, std::any> payload);
 
-        async::TaskHolder<UpdateFuture::Output> m_updateListener;
+    std::string getContent() const { return this->m_currentContent; }
+    std::string getKey() const { return this->m_key; }
+    std::string getDescription() const { return this->m_description; }
+    bool shouldShowInAddList() const { return this->m_showInAddList; }
 
-        UpdateFuture updateFutureRunner(std::map<std::string, std::any> payload);
-        void onUpdateCompleted(UpdateFuture::Output val);
+    void setUpdateCompletedCallback(Function<void(const std::shared_ptr<SpecialKey>&)> callback);
+    void setUpdateStartedCallback(Function<void(const std::shared_ptr<SpecialKey>&)> callback);
 
-        bool m_updateOngoing = false;
+    void cancel();
 
-        std::set<std::string> m_toRefreshWith{};
+    bool doesRefreshWith(const std::string& other);
 
-    public:
-        SpecialKey(const std::string& key, const std::string& description, bool showInAddList = true);
-        ~SpecialKey() {
-            //log::info("destroyed special key {}", key);
-            cancel();
-        }
+    void refreshWith(const std::string& other);
+    void refreshWith(const std::set<std::string>& others);
+private:
+    std::string m_currentContent;
 
-        bool compareToKey(std::string_view otherKey);
+    std::string m_key;
+    std::string m_description;
+    bool m_showInAddList;
 
-        void setUpdateFunction(Function<UpdateFuture(std::map<std::string, std::any>)> task);
+    std::optional<Function<UpdateFuture(std::map<std::string, std::any>)>> m_updateFunction = std::nullopt;
 
-        void updateContent();
-        UpdateFuture getUpdatedContentAsync(std::map<std::string, std::any> payload);
+    Function<void(const std::shared_ptr<SpecialKey>&)> m_updateCompletedCallback = nullptr;
+    Function<void(const std::shared_ptr<SpecialKey>&)> m_updateStartedCallback = nullptr;
 
-        std::string getContent() const{
-            return this->m_currentContent;
-        }
-        std::string getKey() const{
-            return this->m_key;
-        }
-        std::string getDescription() const{
-            return this->m_description;
-        }
-        bool shouldShowInAddList() const {
-            return this->m_showInAddList;
-        }
+    async::TaskHolder<UpdateFuture::Output> m_updateListener;
 
-        void setUpdateCompletedCallback(Function<void(const std::shared_ptr<SpecialKey>&)> callback);
-        void setUpdateStartedCallback(Function<void(const std::shared_ptr<SpecialKey>&)> callback);
+    UpdateFuture updateFutureRunner(std::map<std::string, std::any> payload);
+    void onUpdateCompleted(UpdateFuture::Output val);
 
-        void cancel();
+    bool m_updateOngoing = false;
 
-        bool doesRefreshWith(const std::string& other);
-
-        void refreshWith(const std::string& other);
-        void refreshWith(const std::set<std::string>& others);
+    std::set<std::string> m_toRefreshWith{};
 };

@@ -8,58 +8,63 @@ using namespace geode::prelude;
 class GraphPointDelegate;
 
 class DTGraphNode : public CCNode {
-    protected:
-        bool init();
-        
-    public:
-        static DTGraphNode* create();
+public:
+    static DTGraphNode* create();
 
-        void setInfo(const DTGraphInfo& info);
-        void setScaling(const CCSize& scaling);
+    void setInfo(const DTGraphInfo& info);
+    void setScaling(const CCSize& scaling);
 
-        std::optional<DTGraphInfo> getInfo() const{
-            return m_info;
-        };
-        std::optional<std::pair<float, float>> getCoverageRange();
+    std::optional<DTGraphInfo> getInfo() const { return m_info; };
+    std::optional<std::pair<float, float>> getCoverageRange();
 
-        std::optional<Session> m_sessionToShow = std::nullopt;
-        std::optional<Section> m_sectionToShow = std::nullopt;
+    void setRunPercent(int runPercent);
 
-        int m_runPercent = 0;
+    void updateDeaths();
+    void setSectionToShow(const Section& section);
 
-        void updateDeaths();
-        void setSectionToShow(const Section& section);
+    void setDelegate(GraphPointDelegate* delegate);
 
-        GraphPointDelegate* m_delegate;
+    CCNode* getPointHolder() const { return m_pointHolder; }
 
-        CCNode* m_pointHolder;
+    void setSessionToShow(std::optional<Session> session);
+    void setSectionToShow(std::optional<Section> section);
 
-    private:
+private:
+    bool init();
 
-        void updateGraphContent();
+    void updateGraphContent();
 
-        void onDeathsUpdated(GetTFuture<Deaths>::Output);
+    void onDeathsUpdated(GetTFuture<Deaths>::Output);
 
-        void getGeneralDeaths();
-        void getGeneralRuns();
-        void getSectionDeaths();
-        void getSessionDeaths();
-        void getSessionRuns();
+    void getGeneralDeaths();
+    void getGeneralRuns();
+    void getSectionDeaths();
+    void getSessionDeaths();
+    void getSessionRuns();
 
-        void getDeathsAsync(Function<Deaths(GeneralData const&)>&& dataGetter, bool session);
+    void getDeathsAsync(Function<Deaths(GeneralData const&)>&& dataGetter, bool session);
 
-        std::optional<DTGraphInfo> m_info = std::nullopt;
-        Deaths m_deaths{};
+    std::optional<DTGraphInfo> m_info = std::nullopt;
+    Deaths m_deaths{};
 
-        CCSize m_scaling;
+    CCSize m_scaling;
 
-        CCDrawNode* m_lineNode = nullptr;
+    CCDrawNode* m_lineNode = nullptr;
 
-        std::vector<CCPoint> m_points{};
+    std::vector<CCPoint> m_points{};
 
-        async::TaskHolder<GetTFuture<Deaths>::Output> m_getDeathsListener;
+    async::TaskHolder<GetTFuture<Deaths>::Output> m_getDeathsListener;
 
-        bool isRunCoverage(DTGraphCoverage coverage);
+    bool isRunCoverage(DTGraphCoverage coverage);
 
-        bool isSectionCoverage(DTGraphCoverage coverage);
+    bool isSectionCoverage(DTGraphCoverage coverage);
+
+    CCNode* m_pointHolder;
+
+    GraphPointDelegate* m_delegate;
+
+    int m_runPercent = 0;
+
+    std::optional<Session> m_sessionToShow = std::nullopt;
+    std::optional<Section> m_sectionToShow = std::nullopt;
 };

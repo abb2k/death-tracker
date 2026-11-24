@@ -4,16 +4,19 @@
 #include <utils/Dev.hpp>
 #include <nodes/Tutorial/TutorialButton.hpp>
 #include <nodes/Tutorial/DTTutorialLayer.hpp>
+#include <nodes/general/SimpleToggler.hpp>
+#include <nodes/options/pages/run/PercentCell.hpp>
 
-RunOptions* RunOptions::create(const CCSize& size) {
+RunOptions* RunOptions::create(CCSize size) {
     auto ret = new RunOptions();
-    if (ret && ret->initWithSetup(size)) {
+
+    if (ret && ret->initWithSetup(std::move(size))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+
+    delete ret;
+    return nullptr;
 }
 
 bool RunOptions::setup() {
@@ -512,7 +515,7 @@ void RunOptions::createRunCell(int percent, int maxToHide) {
         CCSprite::createWithSpriteFrameName("minus_button.png"_spr),
         [&](PercentCell* cell) { RunOptions::PercentCellClicked(cell); }
     );
-    percentCell->m_onMaxToHideChanged = [&](PercentCell* cell) { RunOptions::PercentMaxHideValChanged(cell); };
+    percentCell->setOnMaxToHideChangedCallback([&](PercentCell* cell) { RunOptions::PercentMaxHideValChanged(cell); });
     m_runsScrollLayer->m_contentLayer->addChild(percentCell);
 
     m_runsScrollLayer->m_contentLayer->updateLayout();

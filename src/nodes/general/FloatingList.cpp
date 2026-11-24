@@ -2,13 +2,14 @@
 
 FloatingList* FloatingList::create(CCSize size, bool startOpen) {
     auto ret = new FloatingList();
+    
     if (ret && ret->init(std::move(size), std::move(startOpen))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }
 
 bool FloatingList::init(CCSize size, bool startOpen) {

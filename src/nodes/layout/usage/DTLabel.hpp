@@ -12,22 +12,19 @@ class RichTextArea;
 
 class DTLabel : public CCMenu {
 public:
-    static DTLabel* create(const DTLabelInfo& info);
+    static DTLabel* create(DTLabelInfo info);
 
-    DTLabelInfo m_info;
+    const DTLabelInfo& getInfo() const { return m_info; }
+    void setlayer(int layer);
 
     void moveUpLayer();
 
-    CCPoint m_tempPos = CCPoint{0, 0};
-    float m_tempWidth = 0;
+    static constexpr float labelTitleHeight = 15;
 
-    static float labelTitleHeight;
-    static float moveThreshold;
-    static float labelLerpSpeed;
-
-    bool m_ignoreExtraSettings;
-
-    std::map<std::string, std::any> m_payload{};
+    void setIgnoreExtraSettings(bool ignoreExtraSettings);
+    bool shouldIgnoreExtraSettings() const;
+    void setPayload(const std::string& key, std::any value);
+    void removePayload(const std::string& key);
 
     void removeFromColumns();
 
@@ -51,8 +48,6 @@ public:
     void setTextWrapping(WrappingMode wrapMode);
     void setHideHeader(bool hideHeader);
 
-    float m_textCornerOffset = 5;
-
     void setDonerRichTextEnabled(bool enabled);
     void setLabelText(const std::string& text);
     void setRunMoreButtonsVisible(bool visible, float fadeTime);
@@ -61,8 +56,6 @@ public:
 
     void setLoading(const std::shared_ptr<SpecialKey>& key);
     void completeLoading(const std::shared_ptr<SpecialKey>& key);
-    
-    std::set<std::string> m_keysUsed{};
 
     void toggleExpand(CCObject*);
 
@@ -76,20 +69,29 @@ public:
     void fadeTextColorTo(ccColor4B newColor, float time);
     void fadeTitleColorTo(ccColor4B newColor, float time);
 
-    CCScale9Sprite* m_leftExpandLine;
-    CCScale9Sprite* m_rightExpandLine;
-    CCScale9Sprite* m_labelTitleBG;
-
     ~DTLabel();
 
     void updateInfoWithColumnData();
 
     void attachedDecimalPopup(DecimalPopup* popup);
 
+    void setTempPos(const CCPoint& pos);
+    void setTempWidth(float width);
+
+    const CCPoint& getTempPos() const { return m_tempPos; }
+    float getTempWidth() const { return m_tempWidth; }
+
+    CCScale9Sprite* getLeftExpandLine() const { return m_leftExpandLine; }
+    CCScale9Sprite* getRightExpandLine() const { return m_rightExpandLine; }
+    CCScale9Sprite* getLabelTitleBG() const { return m_labelTitleBG; }
+
 private:
-    bool init(const DTLabelInfo& info);
+    bool init(DTLabelInfo info);
 
     void update(float dt) override;
+
+    bool m_ignoreExtraSettings = false;
+    std::map<std::string, std::any> m_payload{};
 
     async::TaskHolder<std::optional<std::string>> m_modifyListener;
 
@@ -114,7 +116,7 @@ private:
 
     CCSprite* m_hideBGSpr;
 
-    float m_normalBGOpacity = 150;
+    static constexpr float m_normalBGOpacity = 150;
 
     void registerWithTouchDispatcher() override;
     bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
@@ -147,7 +149,7 @@ private:
     bool m_isBeingEdited = false;
     bool m_isHovering;
 
-    float m_doubleClickTimer = .2f;
+    static constexpr float m_doubleClickTimer = .2f;
 
     float getSpecificTitleHeight();
 
@@ -155,8 +157,23 @@ private:
 
     void onRunMoreClicked(CCObject* sender);
 
-    int m_runMoreButtonFadeActionTag = 1;
-    GLubyte m_runMoreButtonOpacity = 100;
+    static constexpr int m_runMoreButtonFadeActionTag = 1;
+    static constexpr GLubyte m_runMoreButtonOpacity = 100;
 
     DecimalPopup* m_decimalPopup = nullptr;
+
+    std::set<std::string> m_keysUsed{};
+
+    static constexpr float m_textCornerOffset = 5;
+    static constexpr float moveThreshold = 5;
+    static constexpr float labelLerpSpeed = 10;
+
+    CCPoint m_tempPos = CCPoint{0, 0};
+    float m_tempWidth = 0;
+
+    CCScale9Sprite* m_leftExpandLine;
+    CCScale9Sprite* m_rightExpandLine;
+    CCScale9Sprite* m_labelTitleBG;
+
+    DTLabelInfo m_info;
 };

@@ -1,20 +1,21 @@
 #include "LevelLinkCell.hpp"
 
-LevelLinkCell* LevelLinkCell::create(float width, const std::string& levelKey, const LevelMetadata& data) {
+LevelLinkCell* LevelLinkCell::create(float width, std::string levelKey, const LevelMetadata& data) {
     auto ret = new LevelLinkCell();
-    if (ret && ret->init(width, levelKey, data)) {
+
+    if (ret && ret->init(width, std::move(levelKey), data)) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }
 
-bool LevelLinkCell::init(float width, const std::string& levelKey, const LevelMetadata& data) {
+bool LevelLinkCell::init(float width, std::string levelKey, const LevelMetadata& data) {
     if (!CCMenu::init()) return false;
 
-    this->m_levelKey = levelKey;
+    this->m_levelKey = std::move(levelKey);
 
     this->setContentSize({width, 40});
 
@@ -46,7 +47,7 @@ bool LevelLinkCell::init(float width, const std::string& levelKey, const LevelMe
     m_title->setCascadeOpacityEnabled(true);
     this->addChild(m_title);
 
-    m_att = geode::Label::create(fmt::format("{} attempts | levelID: {}", data.m_attempts, levelKey).c_str(), "chatFont.fnt");
+    m_att = geode::Label::create(fmt::format("{} attempts | levelID: {}", data.m_attempts, m_levelKey).c_str(), "chatFont.fnt");
     m_attWidth = width - m_diffSpr->getScaledContentWidth() - m_arrowBtn->getContentWidth() - 20;
     m_att->setLimitLabelWidth(m_attWidth, .5f);
     m_att->setCascadeOpacityEnabled(true);

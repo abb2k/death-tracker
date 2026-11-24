@@ -9,8 +9,6 @@
 #include <actions/CCTextAreaFadeTo.hpp>
 
 #include <regex>
-#include <typeinfo>
-#include <arc/task/Yield.hpp>
 
 #include <managers/AuthManager.hpp>
 
@@ -23,23 +21,20 @@
 
 #include <nodes/general/RichTextArea.hpp>
 
-float DTLabel::labelTitleHeight = 15;
-float DTLabel::moveThreshold = 5;
-float DTLabel::labelLerpSpeed = 10;
-
 bool DTLabel::ColumnComperator::operator()(LayoutColumn* a, LayoutColumn* b) const {
-    return a->m_info.m_orderPos < b->m_info.m_orderPos;
+    return a->getInfo().m_orderPos < b->getInfo().m_orderPos;
 }
 
-DTLabel* DTLabel::create(const DTLabelInfo& info) {
+DTLabel* DTLabel::create(DTLabelInfo info) {
     auto ret = new DTLabel();
-    if (ret && ret->init(info)) {
+
+    if (ret && ret->init(std::move(info))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }
 
 DTLabel::~DTLabel() {
@@ -49,7 +44,7 @@ DTLabel::~DTLabel() {
     DTLayer::get()->unsubscribeKeyListener(this);
 }
 
-bool DTLabel::init(const DTLabelInfo& info) {
+bool DTLabel::init(DTLabelInfo info) {
     if (DTLayer::get() != nullptr) {
         DTLayer::get()->subscribeToOrganizationEvent(this, [&](auto _) {
             m_bg->stopAllActions();
@@ -61,7 +56,7 @@ bool DTLabel::init(const DTLabelInfo& info) {
 
     this->setCascadeOpacityEnabled(true);
 
-    this->m_info = info;
+    this->m_info = std::move(info);
     m_donerRichTextEnabled = AuthManager::isDoner();
 
     this->setAnchorPoint({0, 1});
@@ -83,13 +78,13 @@ bool DTLabel::init(const DTLabelInfo& info) {
     m_labelTextContainer->setZOrder(1);
     this->addChild(m_labelTextContainer);
 
-    m_labelText = RichTextArea::create("", info.m_font, info.m_scale);
+    m_labelText = RichTextArea::create("", m_info.m_font, m_info.m_scale);
     m_labelText->setID("text");
     m_labelText->setAnchorPoint({.5f, 1});
-    m_labelText->setAlignment(info.m_horizontalAlignment);
+    m_labelText->setAlignment(m_info.m_horizontalAlignment);
     m_labelText->setWrappingMode(WrappingMode::CUTOFF_WRAP);
     m_labelText->setWidth(this->getContentWidth() - m_textCornerOffset);
-    setLabelText(info.m_text);
+    setLabelText(m_info.m_text);
     m_labelTextContainer->addChild(m_labelText);
     
     m_labelText->registerRichTextKey(RichTextKeys::makeWaveKey([this](){ return m_donerRichTextEnabled; }));
@@ -105,7 +100,7 @@ bool DTLabel::init(const DTLabelInfo& info) {
     ));
 
     auto textHeight = 0.0f;
-    if (!info.m_isExpanded) textHeight = 0;
+    if (!m_info.m_isExpanded) textHeight = 0;
     else {
         textHeight = m_labelText->getContentHeight() + m_textCornerOffset;
     }
@@ -115,15 +110,15 @@ bool DTLabel::init(const DTLabelInfo& info) {
     this->setPosition({0, 0});
     this->ignoreAnchorPointForPosition(false);
 
-    m_labelTextContainer->setScale(info.m_isExpanded ? 1 : 0);
+    m_labelTextContainer->setScale(m_info.m_isExpanded ? 1 : 0);
 
     m_bg = CCScale9Sprite::create("GJ_squareB_01.png");
     m_bg->setID("text-bg");
-    m_bg->setOpacity(m_normalBGOpacity * (info.m_labelColor.a / 255.0f));
+    m_bg->setOpacity(m_normalBGOpacity * (m_info.m_labelColor.a / 255.0f));
     m_bg->setScale(.2f);
     m_bg->setAnchorPoint({0, 1});
     m_bg->setContentHeight(getSpecificTitleHeight() / m_bg->getScale());
-    if (info.m_isExpanded) m_bg->setContentHeight(this->getContentHeight() / m_bg->getScale());
+    if (m_info.m_isExpanded) m_bg->setContentHeight(this->getContentHeight() / m_bg->getScale());
     this->addChild(m_bg);
     
     m_labelTitleBG = CCScale9Sprite::create("GJ_squareB_01.png");
@@ -131,23 +126,23 @@ bool DTLabel::init(const DTLabelInfo& info) {
     m_labelTitleBG->setScale(.15f);
     m_labelTitleBG->setAnchorPoint({0, 1});
     m_labelTitleBG->setContentHeight(labelTitleHeight / m_labelTitleBG->getScale());
-    m_labelTitleBG->setOpacity(info.m_hideHeader ? 0 : 255);
+    m_labelTitleBG->setOpacity(m_info.m_hideHeader ? 0 : 255);
     this->addChild(m_labelTitleBG);
 
     m_hideBGSpr = CCSprite::createWithSpriteFrameName("hideBtn_001.png");
     m_hideBGSpr->setPositionY(m_labelTitleBG->getContentHeight() / 2);
     m_hideBGSpr->setAnchorPoint({1, .5f});
     m_hideBGSpr->setScale(1 / m_labelTitleBG->getScale() / 2);
-    m_hideBGSpr->setVisible(info.m_hideHeader);
+    m_hideBGSpr->setVisible(m_info.m_hideHeader);
     m_labelTitleBG->addChild(m_hideBGSpr);
 
-    m_labelTitleArea = RichTextArea::create(info.m_labelName, "bigFont.fnt", .35f);
+    m_labelTitleArea = RichTextArea::create(m_info.m_labelName, "bigFont.fnt", .35f);
     m_labelTitleArea->setID("title-text");
     m_labelTitleArea->setAnchorPoint({.5f, 1});
     m_labelTitleArea->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
     m_labelTitleArea->setWrappingMode(WrappingMode::CUTOFF_WRAP);
     m_labelTitleArea->setMaxLines(1);
-    m_labelTitleArea->setVisible(!info.m_hideHeader);
+    m_labelTitleArea->setVisible(!m_info.m_hideHeader);
     
     m_labelTitleArea->registerRichTextKey(RichTextKeys::makeWaveKey([&](){ return m_donerRichTextEnabled; }));
     m_labelTitleArea->registerRichTextKey(RichTextKeys::makeGradientKey([&](){ return m_donerRichTextEnabled; }));
@@ -192,21 +187,21 @@ bool DTLabel::init(const DTLabelInfo& info) {
     m_expandBtn->setPosition({5.0f, -labelTitleHeight / 2});
     m_menu->addChild(m_expandBtn);
 
-    if (info.m_isExpanded) {
+    if (m_info.m_isExpanded) {
         m_expandBtn->setRotation(90);
         m_expandBtn->setPositionX(8);
     }
 
-    m_menu->setEnabled(!info.m_hideHeader);
-    m_menu->setOpacity(info.m_hideHeader ? 0 : 255);
+    m_menu->setEnabled(!m_info.m_hideHeader);
+    m_menu->setOpacity(m_info.m_hideHeader ? 0 : 255);
     
     this->scheduleUpdate();
 
-    setLabelColor(info.m_labelColor);
-    setTextColor(info.m_textColor);
-    setTextWrapping(info.m_wrapping);
+    setLabelColor(m_info.m_labelColor);
+    setTextColor(m_info.m_textColor);
+    setTextWrapping(m_info.m_wrapping);
 
-    m_labelTitleArea->setAlignment(info.m_horizontalAlignment);
+    m_labelTitleArea->setAlignment(m_info.m_horizontalAlignment);
 
     m_glow = CCSprite::create("pixel.png");
     m_glow->setAnchorPoint({0, 0});
@@ -601,8 +596,8 @@ void DTLabel::updateInfoWithColumnData() {
 
     for (const auto& column : m_holders)
     {
-        min = std::min(min, column->m_info.m_orderPos);
-        max = std::max(max, column->m_info.m_orderPos);
+        min = std::min(min, column->getInfo().m_orderPos);
+        max = std::max(max, column->getInfo().m_orderPos);
     }
 
     m_info.m_minPlacementRange = min;
@@ -611,6 +606,22 @@ void DTLabel::updateInfoWithColumnData() {
 
 std::set<LayoutColumn*, DTLabel::ColumnComperator> DTLabel::getHolders() {
     return m_holders;
+}
+
+void DTLabel::setIgnoreExtraSettings(bool ignoreExtraSettings) {
+    m_ignoreExtraSettings = ignoreExtraSettings;
+}
+
+bool DTLabel::shouldIgnoreExtraSettings() const {
+    return m_ignoreExtraSettings;
+}
+
+void DTLabel::setPayload(const std::string& key, std::any value) {
+    m_payload.insert_or_assign(key, std::move(value));
+}
+
+void DTLabel::removePayload(const std::string& key) {
+    m_payload.erase(key);
 }
 
 void DTLabel::setDonerRichTextEnabled(bool enabled) {
@@ -945,4 +956,16 @@ void DTLabel::onRunMoreClicked(CCObject* sender) {
 
 void DTLabel::attachedDecimalPopup(DecimalPopup* popup) {
     m_decimalPopup = popup;
+}
+
+void DTLabel::setTempPos(const CCPoint& pos) {
+    m_tempPos = pos;
+}
+
+void DTLabel::setTempWidth(float width) {
+    m_tempWidth = width;
+}
+
+void DTLabel::setlayer(int layer) {
+    m_info.m_layer = layer;
 }

@@ -9,7 +9,7 @@ public:
     void deselect();
     void select();
 
-    std::string m_font;
+    const std::string& getFont() const { return m_font; }
     
 private:
     bool init(std::string font, Function<void(FontSelectionCell* onSelected)> onFontChosen);
@@ -18,4 +18,6 @@ private:
 
     void onUsedClicked(CCObject*);
     CCMenuItemSpriteExtra* m_useBtn;
+
+    std::string m_font;
 };

@@ -2,13 +2,14 @@
 
 FontSelectionCell* FontSelectionCell::create(std::string font, Function<void(FontSelectionCell* onSelected)> onFontChosen) {
     auto ret = new FontSelectionCell();
+    
     if (ret && ret->init(std::move(font), std::move(onFontChosen))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+
+    delete ret;
+    return nullptr;
 }
 
 bool FontSelectionCell::init(std::string font, Function<void(FontSelectionCell* onSelected)> onFontChosen) {

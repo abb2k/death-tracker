@@ -3,7 +3,7 @@
 ChangelogPopup* ChangelogPopup::create() {
     auto ret = new ChangelogPopup();
 
-    if (ret->init()) {
+    if (ret && ret->init()) {
         ret->autorelease();
         return ret;
     }

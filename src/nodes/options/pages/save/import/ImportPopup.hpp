@@ -1,19 +1,16 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
 class ImportPopup : public Popup {
-    protected:
-        bool init() override;
+public:
+    static ImportPopup* create();
 
-    public:
-        static ImportPopup* create();
+private:
+    bool init() override;
 
-    private:
-        void onFromDT(CCObject*);
-        void onFromText(CCObject*);
+    void onFromDT(CCObject*);
+    void onFromText(CCObject*);
 
-        async::TaskHolder<file::PickResult> m_fileListener;
+    async::TaskHolder<file::PickResult> m_fileListener;
 };

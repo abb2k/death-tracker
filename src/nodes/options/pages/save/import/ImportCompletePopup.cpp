@@ -1,25 +1,29 @@
 #include "ImportCompletePopup.hpp"
+
 #include <nodes/DTLayer.hpp>
 #include <nodes/options/pages/save/import/SessionCell.hpp>
+#include <nodes/layout/usage/DTLabel.hpp>
+#include <nodes/general/SimpleToggler.hpp>
 
-ImportCompletePopup* ImportCompletePopup::create(LevelData&& data, std::vector<Session> const& sessions) {
+ImportCompletePopup* ImportCompletePopup::create(LevelData data, std::vector<Session> sessions) {
     auto ret = new ImportCompletePopup();
+    
     if (ret->init(std::move(data), std::move(sessions))) {
         ret->autorelease();
         return ret;
     }
+
     delete ret;
     return nullptr;
 }
 
-bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _sessions) {
-    auto winSize = CCDirector::sharedDirector()->getWinSize();
+bool ImportCompletePopup::init(LevelData data, std::vector<Session> sessions) {
     if (!Popup::init(250, 250, "geode.loader/GE_square01.png"))
         return false;
     setTitle("Import Complete");
 
-    this->m_data = std::move(_data);
-    this->m_sessions = std::move(_sessions);
+    this->m_data = std::move(data);
+    this->m_sessions = std::move(sessions);
 
     m_generalView = ScrollLayer::create({m_size.width / 2.25f, 150});
     m_generalView->ignoreAnchorPointForPosition(false);

@@ -8,7 +8,7 @@ SimpleToggler* SimpleToggler::create(CCNode* offSprite, CCNode* onSprite, float 
         return ret;
     }
 
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 

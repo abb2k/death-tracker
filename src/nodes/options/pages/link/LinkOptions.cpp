@@ -1,21 +1,23 @@
 #include "LinkOptions.hpp"
+
 #include <managers/StatsManager.hpp>
 #include <nodes/DTLayer.hpp>
 #include <nodes/options/pages/link/LevelLinkCell.hpp>
 #include <utils/Dev.hpp>
 #include <actions/CCTextAreaFadeTo.hpp>
-#include <arc/task/Yield.hpp>
 #include <nodes/Tutorial/DTTutorialLayer.hpp>
+#include <nodes/general/SimpleToggler.hpp>
 
-LinkOptions* LinkOptions::create(const CCSize& size) {
+LinkOptions* LinkOptions::create(CCSize size) {
     auto ret = new LinkOptions();
-    if (ret && ret->initWithSetup(size)) {
+
+    if (ret && ret->initWithSetup(std::move(size))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }
 
 LinkOptions::~LinkOptions() {

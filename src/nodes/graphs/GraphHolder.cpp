@@ -399,7 +399,7 @@ void GraphHolder::addGraph(const DTGraphInfo& graph) {
 
     auto graphNode = DTGraphNode::create();
     graphNode->setInfo(graph);
-    graphNode->m_delegate = m_delegate;
+    graphNode->setDelegate(m_delegate);
     graphNode->setScaling(size);
     m_graphContainer->addChild(graphNode);
     m_allGraphs.insert({graph.m_name, graphNode});
@@ -454,4 +454,8 @@ void GraphHolder::sendUpdateToGraphOfType(DTGraphCoverage const& coverage) {
             graph->updateDeaths();
         }
     }
+}
+
+void GraphHolder::setDelegate(GraphPointDelegate* delegate) {
+    m_delegate = delegate;
 }

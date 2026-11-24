@@ -15,18 +15,18 @@ public:
     static DTColorPickerPopup* create(ccColor4B const& color);
     static DTColorPickerPopup* create(CustomizationData const& color);
 
-    enum class Pages {
-        Color,
-        Gradient,
-        Wave
-    };
-
     void setGradientChangedCallback(Function<void(GradientData const& data)> callback);
     void setGradientEnabledChangedCallback(Function<void(bool enabled)> callback);
     void setWaveChangedCallback(Function<void(WaveData const& data)> callback);
     void setWaveEnabledChangedCallback(Function<void(bool enabled)> callback);
 
 private:
+    enum class Pages {
+        Color,
+        Gradient,
+        Wave
+    };
+
     class GradientColorPickerDelegate : public ColorPickerDelegate {
     public:
         DTColorPickerPopup* m_popup = nullptr;

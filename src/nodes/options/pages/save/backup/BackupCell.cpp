@@ -1,23 +1,25 @@
 #include "BackupCell.hpp"
+
 #include <managers/StatsManager.hpp>
 #include <utils/DateFormatter.hpp>
 
-BackupCell* BackupCell::create(float width, const std::string& levelKey, const long long backupTime) {
+BackupCell* BackupCell::create(float width, std::string levelKey, long long backupTime) {
     auto ret = new BackupCell();
-    if (ret && ret->init(width, levelKey, backupTime)) {
+
+    if (ret && ret->init(std::move(width), std::move(levelKey), std::move(backupTime))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }
 
-bool BackupCell::init(float width, const std::string& levelKey, const long long backupTime) {
+bool BackupCell::init(float width, std::string levelKey, long long backupTime) {
     if (!CCMenu::init()) return false;
 
-    this->m_levelKey = levelKey;
-    this->m_backupTime = backupTime;
+    this->m_levelKey = std::move(levelKey);
+    this->m_backupTime = std::move(backupTime);
 
     this->setContentSize({width, 40});
 
@@ -143,4 +145,12 @@ void BackupCell::onRevert(CCObject* sender) {
 void BackupCell::onDelete(CCObject* sender) {
     if (m_onDeleteCallback != NULL)
         m_onDeleteCallback(this);
+}
+
+void BackupCell::setOnRevertCallback(Function<void(BackupCell*)> callback) {
+    m_onRevertCallback = std::move(callback);
+}
+
+void BackupCell::setOnDeleteCallback(Function<void(BackupCell*)> callback) {
+    m_onDeleteCallback = std::move(callback);
 }

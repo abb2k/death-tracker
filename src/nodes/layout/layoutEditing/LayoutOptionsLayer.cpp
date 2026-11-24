@@ -39,7 +39,7 @@ LayoutOptionsLayer* LayoutOptionsLayer::create(CCSize size) {
         return ret;
     }
 
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -516,7 +516,7 @@ bool LayoutOptionsLayer::init(CCSize size) {
             return;
         }
 
-        auto widthText = std::to_string(m_editedColumn.value()->m_info.m_currentWidth);
+        auto widthText = std::to_string(m_editedColumn.value()->getInfo().m_currentWidth);
         for (int i = widthText.length() - 1; i >= 0; i--)
         {
             if (widthText[i] != '0') break;
@@ -547,35 +547,35 @@ void LayoutOptionsLayer::setEditedNodeTo(DTLabel* label) {
 
     label->onBeingEdited();
 
-    if (!label->m_info.m_isExpanded)
+    if (!label->getInfo().m_isExpanded)
         label->toggleExpand(nullptr);
 
     onAlignmentChanged(m_alignmentMenu->getChildByID(fmt::format(
         "{}-align-btn",
-        label->m_info.m_horizontalAlignment == CCTextAlignment::kCCTextAlignmentLeft ? "left" : (
-            label->m_info.m_horizontalAlignment == CCTextAlignment::kCCTextAlignmentCenter ? "center" : "right"
+        label->getInfo().m_horizontalAlignment == CCTextAlignment::kCCTextAlignmentLeft ? "left" : (
+            label->getInfo().m_horizontalAlignment == CCTextAlignment::kCCTextAlignmentCenter ? "center" : "right"
         )
     )));
 
-    m_labelColorBtnSprite->setColor({label->m_info.m_labelColor.r, label->m_info.m_labelColor.g, label->m_info.m_labelColor.b});
-    m_textColorBtnSprite->setColor({label->m_info.m_textColor.r, label->m_info.m_textColor.g, label->m_info.m_textColor.b});
+    m_labelColorBtnSprite->setColor({label->getInfo().m_labelColor.r, label->getInfo().m_labelColor.g, label->getInfo().m_labelColor.b});
+    m_textColorBtnSprite->setColor({label->getInfo().m_textColor.r, label->getInfo().m_textColor.g, label->getInfo().m_textColor.b});
 
-    m_labelNameInput->setString(label->m_info.m_labelName);
-    m_labelTextInput->setString(label->m_info.m_text);
-    m_labelTextSpecialKeysInput->setString(label->m_info.m_text);
+    m_labelNameInput->setString(label->getInfo().m_labelName);
+    m_labelTextInput->setString(label->getInfo().m_text);
+    m_labelTextSpecialKeysInput->setString(label->getInfo().m_text);
 
     m_scaleSlider->setValue(
-        (label->m_info.m_scale - DTLabelInfo::MIN_MAX_SCALE.x) / (DTLabelInfo::MIN_MAX_SCALE.y - DTLabelInfo::MIN_MAX_SCALE.x)
+        (label->getInfo().m_scale - DTLabelInfo::MIN_MAX_SCALE.x) / (DTLabelInfo::MIN_MAX_SCALE.y - DTLabelInfo::MIN_MAX_SCALE.x)
     );
     scaleSliderChanged(nullptr);
 
     updateFontSelectFont();
     if (m_currentlySelectedFontCell != nullptr)
         m_currentlySelectedFontCell->deselect();
-    m_currentlySelectedFontCell = m_allFontCells[label->m_info.m_font];
+    m_currentlySelectedFontCell = m_allFontCells[label->getInfo().m_font];
     m_currentlySelectedFontCell->select();
 
-    m_hideHeaderToggler->toggle(label->m_info.m_hideHeader);
+    m_hideHeaderToggler->toggle(label->getInfo().m_hideHeader);
 
     switchToMenu(1);
 
@@ -583,7 +583,7 @@ void LayoutOptionsLayer::setEditedNodeTo(DTLabel* label) {
 
     geode::Label::Alignment textAlignment;
 
-    switch (label->m_info.m_horizontalAlignment)
+    switch (label->getInfo().m_horizontalAlignment)
     {
     default:
     case kCCTextAlignmentLeft:
@@ -614,7 +614,7 @@ void LayoutOptionsLayer::setEditedNodeTo(LayoutColumn* column) {
     m_editedColumn = column;
     m_editedLabel = std::nullopt;
 
-    auto widthText = std::to_string(column->m_info.m_currentWidth);
+    auto widthText = std::to_string(column->getInfo().m_currentWidth);
     for (int i = widthText.length() - 1; i >= 0; i--)
     {
         if (widthText[i] != '0') break;
@@ -646,7 +646,7 @@ void LayoutOptionsLayer::close() {
 void LayoutOptionsLayer::onTextColorBtnClicked(CCObject*) {
     if (!m_editedLabel.has_value()) return;
 
-    auto popup = geode::ColorPickPopup::create(m_editedLabel.value()->m_info.m_textColor);
+    auto popup = geode::ColorPickPopup::create(m_editedLabel.value()->getInfo().m_textColor);
     popup->setCallback([&](auto color) { updateColor(color); });
     popup->setColorTarget(m_textColorBtnSprite);
     m_colorChangeFunc = [&](cocos2d::ccColor4B const& color) {
@@ -657,7 +657,7 @@ void LayoutOptionsLayer::onTextColorBtnClicked(CCObject*) {
 void LayoutOptionsLayer::onLabelColorBtnClicked(CCObject*) {
     if (!m_editedLabel.has_value()) return;
 
-    auto popup = geode::ColorPickPopup::create(m_editedLabel.value()->m_info.m_labelColor);
+    auto popup = geode::ColorPickPopup::create(m_editedLabel.value()->getInfo().m_labelColor);
     popup->setCallback([&](auto color) { updateColor(color); });
     popup->setColorTarget(m_labelColorBtnSprite);
     m_colorChangeFunc = [&](cocos2d::ccColor4B const& color) {
@@ -855,7 +855,7 @@ void LayoutOptionsLayer::onFontSelected(FontSelectionCell* cell) {
     m_currentlySelectedFontCell->select();
 
     if (m_editedLabel.has_value()) {
-        m_editedLabel.value()->setFont(cell->m_font);
+        m_editedLabel.value()->setFont(cell->getFont());
         DTLayer::get()->organizeLayout();
         updateFontSelectFont();
     }
@@ -889,7 +889,7 @@ void LayoutOptionsLayer::updateWrapModeBtnVisuals() {
         child->setVisible(false);
     }
 
-    switch (m_editedLabel.value()->m_info.m_wrapping)
+    switch (m_editedLabel.value()->getInfo().m_wrapping)
     {
     case WrappingMode::CUTOFF_WRAP:
         m_wrappingModeBtn->getChildByID("cutoff")->setVisible(true);
@@ -960,12 +960,12 @@ void LayoutOptionsLayer::updateFontSelectFont() {
     m_fontSelectedIndicatorLabel = TextInput::create(
         m_size.width / 2 + 10,
         "",
-        m_editedLabel.value()->m_info.m_font
+        m_editedLabel.value()->getInfo().m_font
     );
     m_fontSelectedIndicatorLabel->setID("font-select-indicator-label");
     m_fontSelectedIndicatorLabel->setString(fmt::format(
         "Font: \"{}\"", 
-        m_editedLabel.value()->m_info.m_font.substr(0, m_editedLabel.value()->m_info.m_font.length() - 4)
+        m_editedLabel.value()->getInfo().m_font.substr(0, m_editedLabel.value()->getInfo().m_font.length() - 4)
     ));
     m_fontSelectedIndicatorLabel->setAnchorPoint({0, .5f});
     m_fontSelectedIndicatorLabel->setPosition(ccp(-m_size.width / 2 + 5, -260));
@@ -982,7 +982,7 @@ void LayoutOptionsLayer::onAddColumnToLeft(CCObject*) {
     if (!m_editedColumn.has_value()) return;
 
     DTColumnInfo info {
-        .m_orderPos = m_editedColumn.value()->m_info.m_orderPos
+        .m_orderPos = m_editedColumn.value()->getInfo().m_orderPos
     };
 
     DTLayer::get()->addColumn(info);
@@ -992,8 +992,16 @@ void LayoutOptionsLayer::onAddColumnToRight(CCObject*) {
     if (!m_editedColumn.has_value()) return;
 
     DTColumnInfo info {
-        .m_orderPos = m_editedColumn.value()->m_info.m_orderPos + 1
+        .m_orderPos = m_editedColumn.value()->getInfo().m_orderPos + 1
     };
 
     DTLayer::get()->addColumn(info);
+}
+
+void LayoutOptionsLayer::setOnBackedOutCallback(Function<void()> func) {
+    m_onBackedOut = std::move(func);
+}
+
+void LayoutOptionsLayer::setOnEnterCallback(Function<void()> func) {
+    m_onEnter = std::move(func);
 }

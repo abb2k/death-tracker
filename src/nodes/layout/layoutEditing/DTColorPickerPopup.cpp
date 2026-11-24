@@ -12,10 +12,12 @@
 
 DTColorPickerPopup* DTColorPickerPopup::create(CustomizationData const& data, bool isRGBA) {
     auto ret = new DTColorPickerPopup();
+    
     if (ret->init(data, isRGBA)) {
         ret->autorelease();
         return ret;
     }
+
     delete ret;
     return nullptr;
 }

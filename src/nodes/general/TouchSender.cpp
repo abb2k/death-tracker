@@ -54,3 +54,11 @@ void TouchSender::ccTouchCancelled(cocos2d::CCTouch* touch, cocos2d::CCEvent* ev
         m_onTouch(TouchSenderState::Cancled, touch, event);
     }
 }
+
+void TouchSender::setBeginCheckCallback(Function<bool(cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> beginCheck) {
+    this->m_beginCheck = std::move(beginCheck);
+}
+
+void TouchSender::setOnTouchCallback(Function<void(TouchSenderState, cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> onTouch) {
+    this->m_onTouch = std::move(onTouch);
+}

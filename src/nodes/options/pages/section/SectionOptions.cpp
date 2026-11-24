@@ -1,21 +1,22 @@
 #include "SectionOptions.hpp"
+
 #include <nodes/DTLayer.hpp>
 #include <nodes/options/pages/section/SectionCell.hpp>
 #include <nodes/Tutorial/DTTutorialLayer.hpp>
 
-SectionOptions* SectionOptions::create(const CCSize& size) {
+SectionOptions* SectionOptions::create(CCSize size) {
     auto ret = new SectionOptions();
-    if (ret && ret->initWithSetup(size)) {
+
+    if (ret && ret->initWithSetup(std::move(size))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr;
 }
 
 bool SectionOptions::setup() {
-
     auto dtlayer = DTLayer::get();
 
     m_mainScroll = ScrollLayer::create(m_size / 1.2f);
@@ -73,7 +74,6 @@ bool SectionOptions::setup() {
     }
 
     auto addSectionBtnSpr = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
-    //addSectionBtnSpr->setScale(.75f);
     auto addSectionBtn = CCMenuItemSpriteExtra::create(
         addSectionBtnSpr,
         this,
@@ -179,13 +179,13 @@ void SectionOptions::onAddSection(CCObject* sender) {
 
 void SectionOptions::addSection(const Section& section) {
     auto cell = SectionCell::create(m_mainScroll->getContentWidth(), section);
-    cell->m_onDeleted = [&]() {
+    cell->setOnDeleted([&]() {
         m_mainScroll->m_contentLayer->updateLayout();
         this->saveSections();
-    };
-    cell->m_onChanged = [&]() {
+    });
+    cell->setOnChanged([&]() {
         this->saveSections();
-    };
+    });
     m_mainScroll->m_contentLayer->addChild(cell);
     m_mainScroll->m_contentLayer->updateLayout();
     m_mainScroll->m_contentLayer->setPositionY(0);
@@ -245,7 +245,6 @@ void SectionOptions::onStartPoses(CCObject*) {
         anythingAdded = true;
     }
 
-    
     if (anythingAdded) {
         saveSections();
         Notification::create("Added StartPos sections!", NotificationIcon::Success)->show();

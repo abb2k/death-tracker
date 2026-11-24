@@ -16,80 +16,75 @@ struct GraphPointDisplayPtrCompare {
 };
 
 class DTGraphLayer : public Popup, public GraphPointDelegate, public FLAlertLayerProtocol {
-    protected:
-        bool init() override;
-    public:
-        static DTGraphLayer* create();
+public:
+    static DTGraphLayer* create();
 
-    private:
-        //graph stuff
+private:
+    bool init() override;
 
-        geode::Label* m_noGraphLabel;
+    geode::Label* m_noGraphLabel;
 
-        //change the displayed point
-        void OnPointSelected(GraphPoint* point) override;
-        //have no point displayed if the deselected point was the was selected prior
-        void OnPointDeselected(GraphPoint* point) override;
+    void OnPointSelected(GraphPoint* point) override;
+    void OnPointDeselected(GraphPoint* point) override;
 
-        void keyDown(enumKeyCodes key, double d) override;
-        void keyUp(enumKeyCodes key, double d) override;
+    void keyDown(enumKeyCodes key, double d) override;
+    void keyUp(enumKeyCodes key, double d) override;
 
-        //handle the layer closing and refresh the text
-        void onClose(cocos2d::CCObject*) override;
+    void onClose(cocos2d::CCObject*) override;
 
-        void update(float dt) override;
+    void update(float dt) override;
 
-        GraphHolder* m_graph;
+    GraphHolder* m_graph;
 
-        ScrollLayer* m_graphsScroll;
-        Scrollbar* m_graphsScrollbar;
+    ScrollLayer* m_graphsScroll;
+    Scrollbar* m_graphsScrollbar;
 
-        void onAddGraph(CCObject*);
+    void onAddGraph(CCObject*);
 
-        void addGraph();
-        void addGraph(const DTGraphInfo& info);
-        void removeGraph(std::string_view graphName);
+    void addGraph();
+    void addGraph(const DTGraphInfo& info);
+    void removeGraph(std::string_view graphName);
 
-        void openOptionsFor(GraphCell* cell);
-        CCNode* m_graphsPage;
-        CCMenu* m_graphOptionsPage;
+    void openOptionsFor(GraphCell* cell);
+    CCNode* m_graphsPage;
+    CCMenu* m_graphOptionsPage;
 
-        void onColor(CCObject*);
+    void onColor(CCObject*);
 
-        TextInput* m_nameInput;
-        OptionSwitcher<DTGraphCoverage>* m_coverageSwitcher;
-        OptionSwitcher<DTGraphType>* m_typeSwitcher;
-        TextInput* m_thicknessBaseInput;
-        TextInput* m_thicknessOutlineInput;
-        CCSprite* m_colorBaseBtnSpr;
-        CCSprite* m_colorOutlineBtnSpr;
-        TextInput* m_pointScaleInput;
-        CCSprite* m_pointColorBtnSpr;
+    TextInput* m_nameInput;
+    OptionSwitcher<DTGraphCoverage>* m_coverageSwitcher;
+    OptionSwitcher<DTGraphType>* m_typeSwitcher;
+    TextInput* m_thicknessBaseInput;
+    TextInput* m_thicknessOutlineInput;
+    CCSprite* m_colorBaseBtnSpr;
+    CCSprite* m_colorOutlineBtnSpr;
+    TextInput* m_pointScaleInput;
+    CCSprite* m_pointColorBtnSpr;
 
-        std::optional<GraphCell*> m_editedGraph = std::nullopt;
+    std::optional<GraphCell*> m_editedGraph = std::nullopt;
 
-        void updateColor(cocos2d::ccColor4B const& color);
+    void updateColor(cocos2d::ccColor4B const& color);
 
-        std::optional<Function<void(const ccColor4B&)>> m_callbacksForColorPopups = std::nullopt;
+    std::optional<Function<void(const ccColor4B&)>> m_callbacksForColorPopups = std::nullopt;
 
-        void saveAllGraphs();
+    void saveAllGraphs();
 
-        void onOk(CCObject*);
-        void onDelete(CCObject*);
+    void onOk(CCObject*);
+    void onDelete(CCObject*);
 
-        void closeOptionsTab();
+    void closeOptionsTab();
 
-        FLAlertLayer* m_deleteNotification;
+    FLAlertLayer* m_deleteNotification;
 
-        void FLAlert_Clicked(FLAlertLayer* layer, bool btn2) override;
+    void FLAlert_Clicked(FLAlertLayer* layer, bool btn2) override;
 
-        std::map<GraphPoint*, GraphPointDisplay*> m_displaysForPoints{};
+    std::map<GraphPoint*, GraphPointDisplay*> m_displaysForPoints{};
 
-        std::set<GraphPointDisplay*, GraphPointDisplayPtrCompare> m_displays{};
+    std::set<GraphPointDisplay*, GraphPointDisplayPtrCompare> m_displays{};
 
-        bool m_holdingShift;
+    bool m_holdingShift;
 
-        void updateGRapgCellLayout();
+    void updateGRapgCellLayout();
 
-        std::vector<GraphCell*> getGraphCells(CCNode* contentLayer);
-    };
+    std::vector<GraphCell*> getGraphCells(CCNode* contentLayer);
+};
