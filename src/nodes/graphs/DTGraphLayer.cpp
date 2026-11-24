@@ -144,7 +144,7 @@ bool DTGraphLayer::init() {
 #if defined(GEODE_IS_MOBILE)
     auto shiftSwitcher = SwitcherButton::create({scrollBG->getContentWidth(), 20}, "GJ_button_02.png", {"One Graph", "Multiple Graphs"});
     shiftSwitcher->setOptionChangedCallback([&](auto opt) {
-        holdingShift = opt == 1;
+        m_holdingShift = opt == 1;
     });
     shiftSwitcher->setPosition({
         0,
