@@ -16,19 +16,22 @@ private:
     static Result<std::tuple<NewBests, int>> calcNewBests(GJGameLevel* const& level);
     static std::array<std::string, 62> m_AllFontsMap;
 
-    static void createFilesIfNeeded(const std::string& levelKey);
+    static void createFilesIfNeeded(std::string_view levelKey);
 
-    static const std::string METADATA_FILE_NAME;
-    static const std::string FROM0_FILE_NAME;
-    static const std::string SESSIONS_DIR_NAME;
-    static const std::string BACKUPS_DIR_NAME;
+    static constexpr std::string_view METADATA_FILE_NAME = "metadata";
+    static constexpr std::string_view FROM0_FILE_NAME = "general.dt";
+    static constexpr std::string_view SESSIONS_DIR_NAME = "sessions";
+    static constexpr std::string_view BACKUPS_DIR_NAME = "backups";
 
     static arc::TaskHandle<void> backupHandler;
 
 public:
     StatsManager() = delete;
 
-    static int MainLevelIDs[26];
+    static constexpr int MainLevelIDs[] = {
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+        5001, 5002, 5003, 5004, 3001
+    };
 
     static asp::fs::Path getSavesFolderPath();
 
@@ -55,14 +58,14 @@ public:
     static Result<LevelData, ErrorWithCode> getLevelData(GJGameLevel* const level);
     static Result<LevelData, ErrorWithCode> getLevelData(const std::string& levelKey);
     static Result<LevelData, ErrorWithCode> getLevelData(const asp::fs::Path& path);
-    static Result<BackupLevelData> getBackupData(const std::string& levelKey, long long backupName);
+    static Result<BackupLevelData> getBackupData(std::string_view levelKey, long long backupName);
 
     static Result<> setMetadata(const LevelMetadata& stats, GJGameLevel* const level);
-    static Result<> setMetadata(const LevelMetadata& stats, const std::string& levelKey);
+    static Result<> setMetadata(const LevelMetadata& stats, std::string_view levelKey);
     static Result<> setSession(Session& stats, GJGameLevel* const level, long long sessionTime, bool updateLastPlayed);
     static Result<> setSession(Session& stats, const std::string& levelKey, long long sessionTime, bool updateLastPlayed);
     static Result<> setGeneral(const GeneralData& stats, GJGameLevel* const level);
-    static Result<> setGeneral(const GeneralData& stats, const std::string& levelKey);
+    static Result<> setGeneral(const GeneralData& stats, std::string_view levelKey);
     // add a backup into the levels backups folder
     // sessionsToSave: how many sessions to save into the backup, -1 for all, nullopt for none
     static void addBackup(const std::string& levelKey, bool saveLevelStats, std::optional<int> sessionsToSave, bool showNotifications = false);
@@ -71,16 +74,16 @@ public:
     static std::set<long long> getAllSessionTimesForLevel(const std::string& levelKey);
     static std::set<long long> getAllSessionTimesForLevel(const asp::fs::Path& path);
 
-    static std::set<long long> getBackupsCount(const std::string& levelKey);
-    static uintmax_t getBackupFileSize(const std::string& levelKey, long long backupName);
+    static std::set<long long> getBackupsCount(std::string_view levelKey);
+    static uintmax_t getBackupFileSize(std::string_view levelKey, long long backupName);
 
-    static Result<> reveretBackupSessions(const std::string& levelKey, long long backupName);
+    static Result<> reveretBackupSessions(std::string_view levelKey, long long backupName);
 
-    static Result<> deleteLevelStats(const std::string& levelKey);
-    static Result<> deleteBackup(const std::string& levelKey, long long backupName);
-    static Result<> deleteAllSessions(const std::string& levelKey);
+    static Result<> deleteLevelStats(std::string_view levelKey);
+    static Result<> deleteBackup(std::string_view levelKey, long long backupName);
+    static Result<> deleteAllSessions(std::string_view levelKey);
 
-    static Result<> convertV2SaveToV3(const std::string& levelKey);
+    static Result<> convertV2SaveToV3(std::string_view levelKey);
     static std::vector<std::string> allV2FileLevelKeys();
 
     static std::vector<std::string> allV3FileLevelKeys();
@@ -114,7 +117,7 @@ public:
     //get the a levels level key
     static Result<std::string> getLevelKey(GJGameLevel* const& level);
     //convert a run string into a run struct
-    static Result<Run> splitRunKey(const std::string& runKey);
+    static Result<Run> splitRunKey(std::string_view runKey);
     static Result<std::string> createRunKey(const Run& runKey, bool roundToInt = false);
     //get the current ongoing session
     static Session* getCurrentSession();
@@ -146,7 +149,7 @@ public:
     //@param s the string to look for the key in
     //@param index the index where to look for the key in
     //@param key the key to look for in the string
-    static bool isKeyInIndex(const std::string& s, const int& Index, const std::string& key);
+    static bool isKeyInIndex(std::string_view s, const int& Index, std::string_view key);
 
     //better info calc :)
     //converts time to a working time string

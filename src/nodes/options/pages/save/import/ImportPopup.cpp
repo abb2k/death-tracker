@@ -15,7 +15,6 @@ ImportPopup* ImportPopup::create() {
 
 bool ImportPopup::init() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-    // @geode-ignore(unknown-resource)
     if (!Popup::init(250, 150, "geode.loader/GE_square01.png"))
         return false;
     setTitle("Import");
@@ -32,8 +31,7 @@ bool ImportPopup::init() {
     m_mainLayer->addChild(menu);
 
     auto fromDTBtnSpr = ButtonSprite::create(
-        // @geode-ignore(unknown-resource)
-        CCSprite::createWithSpriteFrameName("geode.loader/file.png"),
+            CCSprite::createWithSpriteFrameName("geode.loader/file.png"),
         50,
         50,
         50,
@@ -51,8 +49,7 @@ bool ImportPopup::init() {
     menu->addChild(fromDTBtn);
     
     auto fromTextBtnSpr = ButtonSprite::create(
-        // @geode-ignore(unknown-resource)
-        CCSprite::createWithSpriteFrameName("geode.loader/changelog.png"),
+            CCSprite::createWithSpriteFrameName("geode.loader/changelog.png"),
         50,
         50,
         50,
@@ -105,7 +102,7 @@ void ImportPopup::onFromDT(CCObject*) {
     auto dtLayer = DTLayer::get();
     if (dtLayer == nullptr || dtLayer->m_MyLevelStats.isErr()) return;
 
-    fileListener.spawn(
+    m_fileListener.spawn(
         "DT-import-from-dt-task",
         file::pick(file::PickMode::OpenFile, file::FilePickOptions{
             .filters = {
@@ -148,7 +145,7 @@ void ImportPopup::onFromDT(CCObject*) {
 
                 std::vector<Session> sessions;
 
-                for (const auto& sessionDate : lvlData.sessionNames)
+                for (const auto& sessionDate : lvlData.m_sessionNames)
                 {
                     auto session = StatsManager::getSession(tempDir, sessionDate);
                     if (session.isOk())
@@ -166,7 +163,7 @@ void ImportPopup::onFromText(CCObject*) {
     auto dtLayer = DTLayer::get();
     if (dtLayer == nullptr || dtLayer->m_MyLevelStats.isErr()) return;
 
-    fileListener.spawn(
+    m_fileListener.spawn(
         "DT-import-from-text-task",
         file::pick(file::PickMode::OpenFile, file::FilePickOptions{
             .filters = {

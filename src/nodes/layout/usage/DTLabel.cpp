@@ -1,4 +1,5 @@
 #include "DTLabel.hpp"
+
 #include <nodes/layout/usage/LayoutColumn.hpp>
 #include <nodes/DTLayer.hpp>
 
@@ -18,12 +19,16 @@
 
 #include <utils/RichTextKeys.hpp>
 
+#include <nodes/layout/usage/SpecialKey.hpp>
+
+#include <nodes/general/RichTextArea.hpp>
+
 float DTLabel::labelTitleHeight = 15;
 float DTLabel::moveThreshold = 5;
 float DTLabel::labelLerpSpeed = 10;
 
 bool DTLabel::ColumnComperator::operator()(LayoutColumn* a, LayoutColumn* b) const {
-    return a->info.orderPos < b->info.orderPos;
+    return a->m_info.m_orderPos < b->m_info.m_orderPos;
 }
 
 DTLabel* DTLabel::create(const DTLabelInfo& info) {
@@ -47,8 +52,8 @@ DTLabel::~DTLabel() {
 bool DTLabel::init(const DTLabelInfo& info) {
     if (DTLayer::get() != nullptr) {
         DTLayer::get()->subscribeToOrganizationEvent(this, [&](auto _) {
-            bg->stopAllActions();
-            bg->runAction(CCEaseInOut::create(CCResizeHeightTo::create(DTLayer::transitionTime, this->getContentHeight() / bg->getScale()), 2));
+            m_bg->stopAllActions();
+            m_bg->runAction(CCEaseInOut::create(CCResizeHeightTo::create(DTLayer::transitionTime, this->getContentHeight() / m_bg->getScale()), 2));
         });
         DTLayer::get()->subscribeKeyListener(this);
     }
@@ -56,8 +61,8 @@ bool DTLabel::init(const DTLabelInfo& info) {
 
     this->setCascadeOpacityEnabled(true);
 
-    this->info = info;
-    donerRichTextEnabled = AuthManager::isDoner();
+    this->m_info = info;
+    m_donerRichTextEnabled = AuthManager::isDoner();
 
     this->setAnchorPoint({0, 1});
 
@@ -66,43 +71,43 @@ bool DTLabel::init(const DTLabelInfo& info) {
     circleLayer->setZOrder(5);
     this->addChild(circleLayer);
 
-    loadingCircle = LoadingCircle::create();
-    loadingCircle->setParentLayer(circleLayer);
-    loadingCircle->show();
-    loadingCircle->ignoreAnchorPointForPosition(false);
-    loadingCircle->setVisible(false);
-    loadingCircle->setScale(.4f);
+    m_loadingCircle = LoadingCircle::create();
+    m_loadingCircle->setParentLayer(circleLayer);
+    m_loadingCircle->show();
+    m_loadingCircle->ignoreAnchorPointForPosition(false);
+    m_loadingCircle->setVisible(false);
+    m_loadingCircle->setScale(.4f);
 
-    labelTextContainer = CCNode::create();
-    labelTextContainer->setID("text-container");
-    labelTextContainer->setZOrder(1);
-    this->addChild(labelTextContainer);
+    m_labelTextContainer = CCNode::create();
+    m_labelTextContainer->setID("text-container");
+    m_labelTextContainer->setZOrder(1);
+    this->addChild(m_labelTextContainer);
 
-    labelText = RichTextArea::create("", info.font, info.scale);
-    labelText->setID("text");
-    labelText->setAnchorPoint({.5f, 1});
-    labelText->setAlignment(info.horizontalAlignment);
-    labelText->setWrappingMode(WrappingMode::CUTOFF_WRAP);
-    labelText->setWidth(this->getContentWidth() - textCornerOffset);
-    setLabelText(info.text);
-    labelTextContainer->addChild(labelText);
+    m_labelText = RichTextArea::create("", info.m_font, info.m_scale);
+    m_labelText->setID("text");
+    m_labelText->setAnchorPoint({.5f, 1});
+    m_labelText->setAlignment(info.m_horizontalAlignment);
+    m_labelText->setWrappingMode(WrappingMode::CUTOFF_WRAP);
+    m_labelText->setWidth(this->getContentWidth() - m_textCornerOffset);
+    setLabelText(info.m_text);
+    m_labelTextContainer->addChild(m_labelText);
     
-    labelText->registerRichTextKey(RichTextKeys::makeWaveKey([this](){ return donerRichTextEnabled; }));
+    m_labelText->registerRichTextKey(RichTextKeys::makeWaveKey([this](){ return m_donerRichTextEnabled; }));
     
-    labelText->registerRichTextKey(RichTextKeys::makeGradientKey([this](){ return donerRichTextEnabled; }));
+    m_labelText->registerRichTextKey(RichTextKeys::makeGradientKey([this](){ return m_donerRichTextEnabled; }));
     
-    labelText->registerRichTextKey(RichTextKeys::makeCPlusKey());
+    m_labelText->registerRichTextKey(RichTextKeys::makeCPlusKey());
 
-    labelText->registerRichTextKey(RichTextKeys::makeRunMoreKey(
-        [this]() { return this->info.font; },
-        [this]() { return runMoreButtonsVisible; },
+    m_labelText->registerRichTextKey(RichTextKeys::makeRunMoreKey(
+        [this]() { return this->m_info.m_font; },
+        [this]() { return m_runMoreButtonsVisible; },
         [this](CCMenuItemSpriteExtra* sender) { onRunMoreClicked(sender); }
     ));
 
     auto textHeight = 0.0f;
-    if (!info.isExpanded) textHeight = 0;
+    if (!info.m_isExpanded) textHeight = 0;
     else {
-        textHeight = labelText->getContentHeight() + textCornerOffset;   
+        textHeight = m_labelText->getContentHeight() + m_textCornerOffset;
     }
 
     this->setContentHeight(textHeight + getSpecificTitleHeight());
@@ -110,106 +115,106 @@ bool DTLabel::init(const DTLabelInfo& info) {
     this->setPosition({0, 0});
     this->ignoreAnchorPointForPosition(false);
 
-    labelTextContainer->setScale(info.isExpanded ? 1 : 0);
+    m_labelTextContainer->setScale(info.m_isExpanded ? 1 : 0);
 
-    bg = CCScale9Sprite::create("GJ_squareB_01.png");
-    bg->setID("text-bg");
-    bg->setOpacity(normalBGOpacity * (info.labelColor.a / 255.0f));
-    bg->setScale(.2f);
-    bg->setAnchorPoint({0, 1});
-    bg->setContentHeight(getSpecificTitleHeight() / bg->getScale());
-    if (info.isExpanded) bg->setContentHeight(this->getContentHeight() / bg->getScale());
-    this->addChild(bg);
+    m_bg = CCScale9Sprite::create("GJ_squareB_01.png");
+    m_bg->setID("text-bg");
+    m_bg->setOpacity(m_normalBGOpacity * (info.m_labelColor.a / 255.0f));
+    m_bg->setScale(.2f);
+    m_bg->setAnchorPoint({0, 1});
+    m_bg->setContentHeight(getSpecificTitleHeight() / m_bg->getScale());
+    if (info.m_isExpanded) m_bg->setContentHeight(this->getContentHeight() / m_bg->getScale());
+    this->addChild(m_bg);
     
-    labelTitleBG = CCScale9Sprite::create("GJ_squareB_01.png");
-    labelTitleBG->setID("title-bg");
-    labelTitleBG->setScale(.15f);
-    labelTitleBG->setAnchorPoint({0, 1});
-    labelTitleBG->setContentHeight(labelTitleHeight / labelTitleBG->getScale());
-    labelTitleBG->setOpacity(info.hideHeader ? 0 : 255);
-    this->addChild(labelTitleBG);
+    m_labelTitleBG = CCScale9Sprite::create("GJ_squareB_01.png");
+    m_labelTitleBG->setID("title-bg");
+    m_labelTitleBG->setScale(.15f);
+    m_labelTitleBG->setAnchorPoint({0, 1});
+    m_labelTitleBG->setContentHeight(labelTitleHeight / m_labelTitleBG->getScale());
+    m_labelTitleBG->setOpacity(info.m_hideHeader ? 0 : 255);
+    this->addChild(m_labelTitleBG);
 
-    hideBGSpr = CCSprite::createWithSpriteFrameName("hideBtn_001.png");
-    hideBGSpr->setPositionY(labelTitleBG->getContentHeight() / 2);
-    hideBGSpr->setAnchorPoint({1, .5f});
-    hideBGSpr->setScale(1 / labelTitleBG->getScale() / 2);
-    hideBGSpr->setVisible(info.hideHeader);
-    labelTitleBG->addChild(hideBGSpr);
+    m_hideBGSpr = CCSprite::createWithSpriteFrameName("hideBtn_001.png");
+    m_hideBGSpr->setPositionY(m_labelTitleBG->getContentHeight() / 2);
+    m_hideBGSpr->setAnchorPoint({1, .5f});
+    m_hideBGSpr->setScale(1 / m_labelTitleBG->getScale() / 2);
+    m_hideBGSpr->setVisible(info.m_hideHeader);
+    m_labelTitleBG->addChild(m_hideBGSpr);
 
-    labelTitleArea = RichTextArea::create(info.labelName, "bigFont.fnt", .35f);
-    labelTitleArea->setID("title-text");
-    labelTitleArea->setAnchorPoint({.5f, 1});
-    labelTitleArea->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
-    labelTitleArea->setWrappingMode(WrappingMode::CUTOFF_WRAP);
-    labelTitleArea->setMaxLines(1);
-    labelTitleArea->setVisible(!info.hideHeader);
+    m_labelTitleArea = RichTextArea::create(info.m_labelName, "bigFont.fnt", .35f);
+    m_labelTitleArea->setID("title-text");
+    m_labelTitleArea->setAnchorPoint({.5f, 1});
+    m_labelTitleArea->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
+    m_labelTitleArea->setWrappingMode(WrappingMode::CUTOFF_WRAP);
+    m_labelTitleArea->setMaxLines(1);
+    m_labelTitleArea->setVisible(!info.m_hideHeader);
     
-    labelTitleArea->registerRichTextKey(RichTextKeys::makeWaveKey([&](){ return donerRichTextEnabled; }));
-    labelTitleArea->registerRichTextKey(RichTextKeys::makeGradientKey([&](){ return donerRichTextEnabled; }));
-    labelTitleArea->registerRichTextKey(RichTextKeys::makeCPlusKey());
+    m_labelTitleArea->registerRichTextKey(RichTextKeys::makeWaveKey([&](){ return m_donerRichTextEnabled; }));
+    m_labelTitleArea->registerRichTextKey(RichTextKeys::makeGradientKey([&](){ return m_donerRichTextEnabled; }));
+    m_labelTitleArea->registerRichTextKey(RichTextKeys::makeCPlusKey());
 
-    labelTitleArea->updateContent();
+    m_labelTitleArea->updateContent();
 
-    this->addChild(labelTitleArea);
+    this->addChild(m_labelTitleArea);
 
     float expandLineWidth = 3;
 
-    leftExpandLine = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
-    leftExpandLine->setID("expand-line-left");
-    leftExpandLine->setAnchorPoint({0, 1});
-    leftExpandLine->setContentWidth(expandLineWidth);
-    leftExpandLine->setContentHeight(labelTitleHeight);
-    leftExpandLine->setVisible(false);
-    this->addChild(leftExpandLine);
+    m_leftExpandLine = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
+    m_leftExpandLine->setID("expand-line-left");
+    m_leftExpandLine->setAnchorPoint({0, 1});
+    m_leftExpandLine->setContentWidth(expandLineWidth);
+    m_leftExpandLine->setContentHeight(labelTitleHeight);
+    m_leftExpandLine->setVisible(false);
+    this->addChild(m_leftExpandLine);
 
-    rightExpandLine = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
-    rightExpandLine->setID("expand-line-right");
-    rightExpandLine->setAnchorPoint({1, 1});
-    rightExpandLine->setContentWidth(expandLineWidth);
-    rightExpandLine->setContentHeight(labelTitleHeight);
-    rightExpandLine->setVisible(false);
-    this->addChild(rightExpandLine);
+    m_rightExpandLine = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
+    m_rightExpandLine->setID("expand-line-right");
+    m_rightExpandLine->setAnchorPoint({1, 1});
+    m_rightExpandLine->setContentWidth(expandLineWidth);
+    m_rightExpandLine->setContentHeight(labelTitleHeight);
+    m_rightExpandLine->setVisible(false);
+    this->addChild(m_rightExpandLine);
 
-    menu = CCMenu::create();
-    menu->setID("btn-menu");
-    menu->setPosition({0,0});
-    menu->setTouchPriority(-503);
-    this->addChild(menu);
+    m_menu = CCMenu::create();
+    m_menu->setID("btn-menu");
+    m_menu->setPosition({0,0});
+    m_menu->setTouchPriority(-503);
+    this->addChild(m_menu);
 
     auto expandBtnSpr = CCSprite::createWithSpriteFrameName("navArrowBtn_001.png");
     expandBtnSpr->setScale(.20f);
-    expandBtn = CCMenuItemSpriteExtra::create(
+    m_expandBtn = CCMenuItemSpriteExtra::create(
         expandBtnSpr,
         this,
         menu_selector(DTLabel::toggleExpand)
     );
-    expandBtn->setID("expand-btn");
-    expandBtn->setPosition({5.0f, -labelTitleHeight / 2});
-    menu->addChild(expandBtn);
+    m_expandBtn->setID("expand-btn");
+    m_expandBtn->setPosition({5.0f, -labelTitleHeight / 2});
+    m_menu->addChild(m_expandBtn);
 
-    if (info.isExpanded) {
-        expandBtn->setRotation(90);
-        expandBtn->setPositionX(8);
+    if (info.m_isExpanded) {
+        m_expandBtn->setRotation(90);
+        m_expandBtn->setPositionX(8);
     }
 
-    menu->setEnabled(!info.hideHeader);
-    menu->setOpacity(info.hideHeader ? 0 : 255);
+    m_menu->setEnabled(!info.m_hideHeader);
+    m_menu->setOpacity(info.m_hideHeader ? 0 : 255);
     
     this->scheduleUpdate();
 
-    setLabelColor(info.labelColor);
-    setTextColor(info.textColor);
-    setTextWrapping(info.wrapping);
+    setLabelColor(info.m_labelColor);
+    setTextColor(info.m_textColor);
+    setTextWrapping(info.m_wrapping);
 
-    labelTitleArea->setAlignment(info.horizontalAlignment);
+    m_labelTitleArea->setAlignment(info.m_horizontalAlignment);
 
-    glow = CCSprite::create("pixel.png");
-    glow->setAnchorPoint({0, 0});
+    m_glow = CCSprite::create("pixel.png");
+    m_glow->setAnchorPoint({0, 0});
     ccBlendFunc bf = { GL_ONE, GL_ONE };
-    glow->setBlendFunc(bf);
-    glow->setColor({0, 0, 0});
-    glow->setZOrder(15);
-    this->addChild(glow);
+    m_glow->setBlendFunc(bf);
+    m_glow->setColor({0, 0, 0});
+    m_glow->setZOrder(15);
+    this->addChild(m_glow);
 
     return true;
 }
@@ -220,22 +225,22 @@ void DTLabel::registerWithTouchDispatcher() {
 
 void DTLabel::update(float dt) {
 
-    labelTextContainer->setPosition(bg->getPosition() + ccp(this->getContentWidth() / 2, -getSpecificTitleHeight()));
-    if (labelText->getWidth() != this->getContentWidth() - textCornerOffset && info.isExpanded) {
-        labelText->setWidth(this->getContentWidth() - textCornerOffset);
-        labelText->setWidth(labelText->getWidth());
+    m_labelTextContainer->setPosition(m_bg->getPosition() + ccp(this->getContentWidth() / 2, -getSpecificTitleHeight()));
+    if (m_labelText->getWidth() != this->getContentWidth() - m_textCornerOffset && m_info.m_isExpanded) {
+        m_labelText->setWidth(this->getContentWidth() - m_textCornerOffset);
+        m_labelText->setWidth(m_labelText->getWidth());
     }
-    if (labelText->getWidth() != this->getContentWidth() - textCornerOffset && info.isExpanded) {
-        labelText->setWidth(this->getContentWidth() - textCornerOffset);
-        labelText->setWidth(labelText->getWidth());
+    if (m_labelText->getWidth() != this->getContentWidth() - m_textCornerOffset && m_info.m_isExpanded) {
+        m_labelText->setWidth(this->getContentWidth() - m_textCornerOffset);
+        m_labelText->setWidth(m_labelText->getWidth());
     }
 
-    glow->setScaleX(this->getScaledContentWidth() / glow->getContentWidth());
-    glow->setScaleY(this->getScaledContentHeight() / glow->getContentHeight());
+    m_glow->setScaleX(this->getScaledContentWidth() / m_glow->getContentWidth());
+    m_glow->setScaleY(this->getScaledContentHeight() / m_glow->getContentHeight());
 
     auto textHeight = 0.0f;
-    if (!info.isExpanded) textHeight = 0;
-    else textHeight = labelText->getContentHeight() + textCornerOffset;
+    if (!m_info.m_isExpanded) textHeight = 0;
+    else textHeight = m_labelText->getContentHeight() + m_textCornerOffset;
 
     float targetHeight = textHeight + getSpecificTitleHeight();
     bool doUpdateLayout = false;
@@ -244,162 +249,162 @@ void DTLabel::update(float dt) {
 
     this->setContentHeight(targetHeight);
 
-    if (doUpdateLayout && DTLayer::get() && !DTLayer::get()->cornerOnNextOrganization) {
+    if (doUpdateLayout && DTLayer::get() && !DTLayer::get()->m_cornerOnNextOrganization) {
         DTLayer::get()->organizeLayout();
     }
 
-    labelTitleBG->setContentWidth(this->getContentWidth() / labelTitleBG->getScale());
-    bg->setContentWidth(this->getContentWidth() / bg->getScale());
-    labelTitleBG->setPositionY(this->getContentHeight());
-    bg->setPositionY(this->getContentHeight());
-    menu->setPositionY(this->getContentHeight());
+    m_labelTitleBG->setContentWidth(this->getContentWidth() / m_labelTitleBG->getScale());
+    m_bg->setContentWidth(this->getContentWidth() / m_bg->getScale());
+    m_labelTitleBG->setPositionY(this->getContentHeight());
+    m_bg->setPositionY(this->getContentHeight());
+    m_menu->setPositionY(this->getContentHeight());
 
-    loadingCircle->setPosition({this->getContentWidth() / 2, this->getContentHeight() - getSpecificTitleHeight() / 2});
+    m_loadingCircle->setPosition({this->getContentWidth() / 2, this->getContentHeight() - getSpecificTitleHeight() / 2});
 
-    auto titleWidth = this->getContentWidth() - expandBtn->getScaledContentHeight() * 2 - 5;
-    if (std::abs(labelTitleArea->getWidth() - titleWidth) > 0.01f) {
-        labelTitleArea->setWidth(titleWidth);
-        labelTitleArea->setWidth(labelTitleArea->getWidth());
+    auto titleWidth = this->getContentWidth() - m_expandBtn->getScaledContentHeight() * 2 - 5;
+    if (std::abs(m_labelTitleArea->getWidth() - titleWidth) > 0.01f) {
+        m_labelTitleArea->setWidth(titleWidth);
+        m_labelTitleArea->setWidth(m_labelTitleArea->getWidth());
     }
 
-    labelTitleArea->setPositionY(this->getContentHeight());
-    labelTitleArea->setPositionX(this->getContentWidth() / 2 + (
-        labelTitleArea->getAlignment() == CCTextAlignment::kCCTextAlignmentRight && !info.hideHeader ? 
-            expandBtn->getScaledContentHeight() :
+    m_labelTitleArea->setPositionY(this->getContentHeight());
+    m_labelTitleArea->setPositionX(this->getContentWidth() / 2 + (
+        m_labelTitleArea->getAlignment() == CCTextAlignment::kCCTextAlignmentRight && !m_info.m_hideHeader ?
+            m_expandBtn->getScaledContentHeight() :
             0
     ));
 
-    leftExpandLine->setPositionY(this->getContentHeight());
+    m_leftExpandLine->setPositionY(this->getContentHeight());
 
-    rightExpandLine->setPositionY(this->getContentHeight());
-    rightExpandLine->setPositionX(this->getContentWidth());
+    m_rightExpandLine->setPositionY(this->getContentHeight());
+    m_rightExpandLine->setPositionX(this->getContentWidth());
 
-    hideBGSpr->setPositionX(labelTitleBG->getContentWidth() - 5);
-    hideBGSpr->setOpacity(labelTitleBG->getOpacity());
+    m_hideBGSpr->setPositionX(m_labelTitleBG->getContentWidth() - 5);
+    m_hideBGSpr->setOpacity(m_labelTitleBG->getOpacity());
 
-    if (isMovingLabel)
+    if (m_isMovingLabel)
         onMoveUpdate(dt);
 
     auto mousePos = this->convertToNodeSpace(getMousePos());
 
-    if (isEditable && !isBeingEdited && labelTitleBG->boundingBox().containsPoint(mousePos) && !isHovering) {
-        isHovering = true;
-        glow->stopAllActions();
-        glow->runAction(CCTintTo::create(.1f, 20, 20, 20));
+    if (m_isEditable && !m_isBeingEdited && m_labelTitleBG->boundingBox().containsPoint(mousePos) && !m_isHovering) {
+        m_isHovering = true;
+        m_glow->stopAllActions();
+        m_glow->runAction(CCTintTo::create(.1f, 20, 20, 20));
     }
-    else if (isHovering && !labelTitleBG->boundingBox().containsPoint(mousePos) && !isBeingEdited) {
-        isHovering = false;
-        glow->stopAllActions();
-        glow->runAction(CCTintTo::create(.1f, 0, 0, 0));
+    else if (m_isHovering && !m_labelTitleBG->boundingBox().containsPoint(mousePos) && !m_isBeingEdited) {
+        m_isHovering = false;
+        m_glow->stopAllActions();
+        m_glow->runAction(CCTintTo::create(.1f, 0, 0, 0));
     }
     
-    if (leftExpandLine->boundingBox().containsPoint(mousePos) && !currentlyExpandingLeft && isEditable) {
-        leftExpandLine->setVisible(true);
-        leftExpandLine->setOpacity(150);
+    if (m_leftExpandLine->boundingBox().containsPoint(mousePos) && !m_currentlyExpandingLeft && m_isEditable) {
+        m_leftExpandLine->setVisible(true);
+        m_leftExpandLine->setOpacity(150);
     }
-    else if (!currentlyExpandingLeft) {
-        leftExpandLine->setVisible(false);
+    else if (!m_currentlyExpandingLeft) {
+        m_leftExpandLine->setVisible(false);
     }
 
-    if (rightExpandLine->boundingBox().containsPoint(mousePos) && !currentlyExpandingRight && isEditable) {
-        rightExpandLine->setVisible(true);
-        rightExpandLine->setOpacity(150);
+    if (m_rightExpandLine->boundingBox().containsPoint(mousePos) && !m_currentlyExpandingRight && m_isEditable) {
+        m_rightExpandLine->setVisible(true);
+        m_rightExpandLine->setOpacity(150);
     }
-    else if (!currentlyExpandingRight) {
-        rightExpandLine->setVisible(false);
+    else if (!m_currentlyExpandingRight) {
+        m_rightExpandLine->setVisible(false);
     }
 }
 
 
 void DTLabel::moveUpLayer() {
-    for (const auto& column : holders)
-        column->labels.erase(info.layer);
-    info.layer++;
-    for (const auto& column : holders)
+    for (const auto& column : m_holders)
+        column->m_labels.erase(m_info.m_layer);
+    m_info.m_layer++;
+    for (const auto& column : m_holders)
     {
         column->updateLabelPosition(this);
     }
 }
 
 void DTLabel::toggleExpand(CCObject*) {
-    if (!isExpandable) return;
+    if (!m_isExpandable) return;
 
-    info.isExpanded = !info.isExpanded;
+    m_info.m_isExpanded = !m_info.m_isExpanded;
 
-    expandBtn->stopAllActions();
-    expandBtn->runAction(
+    m_expandBtn->stopAllActions();
+    m_expandBtn->runAction(
         CCEaseInOut::create(
             CCRotateTo::create(
                 DTLayer::transitionTime, 
-                info.isExpanded ? 90 : 0
+                m_info.m_isExpanded ? 90 : 0
             ), 
             2
         )
     );
-    expandBtn->runAction(
+    m_expandBtn->runAction(
         CCEaseInOut::create(
             CCMoveTo::create(
                 DTLayer::transitionTime, 
-                info.isExpanded ? ccp(8, expandBtn->getPositionY()) : ccp(5, expandBtn->getPositionY())
+                m_info.m_isExpanded ? ccp(8, m_expandBtn->getPositionY()) : ccp(5, m_expandBtn->getPositionY())
             ),
             2
         )
     );
 
-    labelTextContainer->stopAllActions();
-    labelTextContainer->runAction(
+    m_labelTextContainer->stopAllActions();
+    m_labelTextContainer->runAction(
         CCEaseInOut::create(
             CCScaleTo::create(
                 DTLayer::transitionTime, 
-                info.isExpanded ? 1 : 0
+                m_info.m_isExpanded ? 1 : 0
             ), 
             2
         )
     );
 
-    if (!DTLayer::get()->isEditingLayout)
+    if (!DTLayer::get()->m_isEditingLayout)
         DTLayer::get()->saveCurrentLayout();
 }
 
 bool DTLabel::ccTouchBegan(CCTouch* touch, CCEvent* event) {
     auto touchInSpace = this->convertTouchToNodeSpace(touch);
-    if (!isEditable) {
-        if (labelTitleBG->boundingBox().containsPoint(touchInSpace)) {
+    if (!m_isEditable) {
+        if (m_labelTitleBG->boundingBox().containsPoint(touchInSpace)) {
 
-            if (labelTitleBG->getActionByTag(1) != nullptr) {
-                clipboard::write(labelText->getText());
-                Notification::create(fmt::format("Copied text from {}", info.labelName), NotificationIcon::Success)->show();
+            if (m_labelTitleBG->getActionByTag(1) != nullptr) {
+                clipboard::write(m_labelText->getText());
+                Notification::create(fmt::format("Copied text from {}", m_info.m_labelName), NotificationIcon::Success)->show();
                 return false;
             }
 
-            auto timerSeq = CCDelayTime::create(doubleClickTimer);
+            auto timerSeq = CCDelayTime::create(m_doubleClickTimer);
             timerSeq->setTag(1);
             
-            labelTitleBG->runAction(timerSeq);
+            m_labelTitleBG->runAction(timerSeq);
         }
 
         return false;
     }
 
-    if (leftExpandLine->boundingBox().containsPoint(touchInSpace)) {
-        leftExpandLine->setVisible(true);
-        leftExpandLine->setOpacity(255);
-        currentlyExpandingLeft = true;
+    if (m_leftExpandLine->boundingBox().containsPoint(touchInSpace)) {
+        m_leftExpandLine->setVisible(true);
+        m_leftExpandLine->setOpacity(255);
+        m_currentlyExpandingLeft = true;
 
         return true;
     }
-    else if (rightExpandLine->boundingBox().containsPoint(touchInSpace)) {
-        rightExpandLine->setVisible(true);
-        rightExpandLine->setOpacity(255);
-        currentlyExpandingRight = true;
+    else if (m_rightExpandLine->boundingBox().containsPoint(touchInSpace)) {
+        m_rightExpandLine->setVisible(true);
+        m_rightExpandLine->setOpacity(255);
+        m_currentlyExpandingRight = true;
 
         return true;
     }
-    else if (labelTitleBG->boundingBox().containsPoint(touchInSpace)) {
-        touchStartPoint = touch->getLocation();
-        isBeingTouched = true;
+    else if (m_labelTitleBG->boundingBox().containsPoint(touchInSpace)) {
+        m_touchStartPoint = touch->getLocation();
+        m_isBeingTouched = true;
 
-        currentTouchPosition = this->getParent()->convertTouchToNodeSpace(touch);
+        m_currentTouchPosition = this->getParent()->convertTouchToNodeSpace(touch);
 
         return true;
     }
@@ -408,68 +413,68 @@ bool DTLabel::ccTouchBegan(CCTouch* touch, CCEvent* event) {
 }
 
 void DTLabel::ccTouchEnded(CCTouch* touch, CCEvent*) {
-    if (isBeingTouched) {
-        if (!isMovingLabel) {
-            auto touchInSpace = labelTitleBG->getParent()->convertTouchToNodeSpace(touch);
+    if (m_isBeingTouched) {
+        if (!m_isMovingLabel) {
+            auto touchInSpace = m_labelTitleBG->getParent()->convertTouchToNodeSpace(touch);
 
-            if (labelTitleBG->boundingBox().containsPoint(touchInSpace)) {
+            if (m_labelTitleBG->boundingBox().containsPoint(touchInSpace)) {
                 onSettings();
             }
         }
         else {
-            currentTouchPosition = this->getParent()->convertTouchToNodeSpace(touch);
+            m_currentTouchPosition = this->getParent()->convertTouchToNodeSpace(touch);
             onMoveEnded();
         }
     }
 
-    if (currentlyExpandingLeft) {
-        leftExpandLine->setVisible(false);
+    if (m_currentlyExpandingLeft) {
+        m_leftExpandLine->setVisible(false);
     }
-    if (currentlyExpandingRight) {
-        rightExpandLine->setVisible(false);
+    if (m_currentlyExpandingRight) {
+        m_rightExpandLine->setVisible(false);
     }
 
-    isMovingLabel = false;
-    isBeingTouched = false;
-    currentlyExpandingLeft = false;
-    currentlyExpandingRight = false;
+    m_isMovingLabel = false;
+    m_isBeingTouched = false;
+    m_currentlyExpandingLeft = false;
+    m_currentlyExpandingRight = false;
 }
 
 void DTLabel::ccTouchCancelled(CCTouch* touch, CCEvent*) {
-    if (isBeingTouched) {
-        if (isMovingLabel) {
-            currentTouchPosition = this->getParent()->convertTouchToNodeSpace(touch);
+    if (m_isBeingTouched) {
+        if (m_isMovingLabel) {
+            m_currentTouchPosition = this->getParent()->convertTouchToNodeSpace(touch);
             onMoveEnded();
         }
     }
 
-    if (currentlyExpandingLeft) {
-        leftExpandLine->setVisible(false);
+    if (m_currentlyExpandingLeft) {
+        m_leftExpandLine->setVisible(false);
     }
-    if (currentlyExpandingRight) {
-        rightExpandLine->setVisible(false);
+    if (m_currentlyExpandingRight) {
+        m_rightExpandLine->setVisible(false);
     }
 
-    isMovingLabel = false;
-    isBeingTouched = false;
-    currentlyExpandingLeft = false;
-    currentlyExpandingRight = false;
+    m_isMovingLabel = false;
+    m_isBeingTouched = false;
+    m_currentlyExpandingLeft = false;
+    m_currentlyExpandingRight = false;
 }
 
 void DTLabel::ccTouchMoved(CCTouch* touch, CCEvent*) {
-    if (isBeingTouched) {
-        if (!isMovingLabel) {
+    if (m_isBeingTouched) {
+        if (!m_isMovingLabel) {
             auto touchCurrentLocation = touch->getLocation();
         
-            if (std::abs((touchStartPoint - touchCurrentLocation).getLength()) >= moveThreshold) {
-                isMovingLabel = true;
+            if (std::abs((m_touchStartPoint - touchCurrentLocation).getLength()) >= moveThreshold) {
+                m_isMovingLabel = true;
                 onMoveBegan();
             }
         }
-        else currentTouchPosition = this->getParent()->convertTouchToNodeSpace(touch);
+        else m_currentTouchPosition = this->getParent()->convertTouchToNodeSpace(touch);
     }
 
-    if (currentlyExpandingLeft) {
+    if (m_currentlyExpandingLeft) {
         auto worldPos = this->convertToWorldSpace(ccp(this->getContentWidth(), 0));
         auto touchPos = touch->getLocation();
 
@@ -479,7 +484,7 @@ void DTLabel::ccTouchMoved(CCTouch* touch, CCEvent*) {
 
         // log::info("found {} columns", columns.size());
 
-        int oldColumnsSize = holders.size();
+        int oldColumnsSize = m_holders.size();
 
         removeFromColumns();
 
@@ -488,11 +493,11 @@ void DTLabel::ccTouchMoved(CCTouch* touch, CCEvent*) {
             column->addLabel(this);
         }
 
-        if (holders.size() != oldColumnsSize)
+        if (m_holders.size() != oldColumnsSize)
             DTLayer::get()->organizeLayout();
     }
 
-    if (currentlyExpandingRight) {
+    if (m_currentlyExpandingRight) {
         auto worldPos = this->convertToWorldSpace(ccp(5, 0));
         auto touchPos = touch->getLocation();
 
@@ -502,7 +507,7 @@ void DTLabel::ccTouchMoved(CCTouch* touch, CCEvent*) {
 
         // log::info("found {} columns", columns.size());
 
-        int oldColumnsSize = holders.size();
+        int oldColumnsSize = m_holders.size();
 
         removeFromColumns();
 
@@ -511,7 +516,7 @@ void DTLabel::ccTouchMoved(CCTouch* touch, CCEvent*) {
             column->addLabel(this);
         }
 
-        if (holders.size() != oldColumnsSize)
+        if (m_holders.size() != oldColumnsSize)
             DTLayer::get()->organizeLayout();
     }
 }
@@ -521,7 +526,7 @@ void DTLabel::onSettings() {
 }
 
 void DTLabel::onMoveBegan() {
-    holdersSave = holders;
+    m_holdersSave = m_holders;
 
     removeFromColumns();
 
@@ -534,12 +539,12 @@ void DTLabel::onMoveBegan() {
             2
         )
     );
-    if (info.isExpanded) toggleExpand(nullptr);
+    if (m_info.m_isExpanded) toggleExpand(nullptr);
     else DTLayer::get()->organizeLayout();
 }
 
 void DTLabel::onMoveUpdate(float dt) {
-    auto targetPosition = currentTouchPosition + ccp(-this->getContentWidth(), this->getContentHeight()) / 2;
+    auto targetPosition = m_currentTouchPosition + ccp(-this->getContentWidth(), this->getContentHeight()) / 2;
     CCPoint currentLerp;
     currentLerp.x = std::lerp(this->getPositionX(), targetPosition.x, dt * DTLabel::labelLerpSpeed);
     currentLerp.y = std::lerp(this->getPositionY(), targetPosition.y, dt * DTLabel::labelLerpSpeed);
@@ -547,17 +552,17 @@ void DTLabel::onMoveUpdate(float dt) {
 }
 
 void DTLabel::onMoveEnded() {
-    auto res = DTLayer::get()->getColumnLayerFromPosition(this->getParent()->convertToWorldSpace(currentTouchPosition + ccp(-this->getContentWidth(), this->getContentHeight()) / 2));
+    auto res = DTLayer::get()->getColumnLayerFromPosition(this->getParent()->convertToWorldSpace(m_currentTouchPosition + ccp(-this->getContentWidth(), this->getContentHeight()) / 2));
 
     if (res.first == nullptr) {
-        for (const auto& container : holdersSave) {
+        for (const auto& container : m_holdersSave) {
             container->addLabel(this);
         }
 
         DTLayer::get()->organizeLayout();
     }
     else {
-        this->info.layer = res.second;
+        this->m_info.m_layer = res.second;
         res.first->addLabel(this);
 
         DTLayer::get()->organizeLayout();
@@ -565,97 +570,97 @@ void DTLabel::onMoveEnded() {
 }
 
 void DTLabel::removeFromColumns() {
-    auto holdersTemp = holders;
+    auto holdersTemp = m_holders;
     for (const auto& container : holdersTemp) {
         container->removeLabel(this);
     }
 }
 
 void DTLabel::addColumnAsHolder(LayoutColumn* column) {
-    holders.insert(column);
+    m_holders.insert(column);
 
     updateInfoWithColumnData();
 }
 void DTLabel::removeColumnAsHolder(LayoutColumn* column) {
-    holders.erase(column);
+    m_holders.erase(column);
 
     updateInfoWithColumnData();
 }
 
 bool DTLabel::isPartOfColumn(LayoutColumn* column) {
-    return holders.contains(column);
+    return m_holders.contains(column);
 }
 
 bool DTLabel::isAlone() {
-    return !holders.size();
+    return !m_holders.size();
 }
 
 void DTLabel::updateInfoWithColumnData() {
     int min = std::numeric_limits<int>::max();
     int max = std::numeric_limits<int>::min();
 
-    for (const auto& column : holders)
+    for (const auto& column : m_holders)
     {
-        min = std::min(min, column->info.orderPos);
-        max = std::max(max, column->info.orderPos);
+        min = std::min(min, column->m_info.m_orderPos);
+        max = std::max(max, column->m_info.m_orderPos);
     }
 
-    info.minPlacementRange = min;
-    info.maxPlacementRange = max;
+    m_info.m_minPlacementRange = min;
+    m_info.m_maxPlacementRange = max;
 }
 
 std::set<LayoutColumn*, DTLabel::ColumnComperator> DTLabel::getHolders() {
-    return holders;
+    return m_holders;
 }
 
 void DTLabel::setDonerRichTextEnabled(bool enabled) {
-    if (donerRichTextEnabled == enabled) return;
+    if (m_donerRichTextEnabled == enabled) return;
 
-    donerRichTextEnabled = enabled;
-    setLabelText(info.text);
-    labelTitleArea->updateContent();
+    m_donerRichTextEnabled = enabled;
+    setLabelText(m_info.m_text);
+    m_labelTitleArea->updateContent();
 }
 
 void DTLabel::setLabelText(const std::string& text) {
-    info.text = text;
-    labelText->setText(text);
+    m_info.m_text = text;
+    m_labelText->setText(text);
 
     auto self = this;
     self->retain();
 
-    modifyListener.spawn("DT-text-apply-keys-recursive-task", modifyKeys(), [self](std::optional<std::string> opt) {
+    m_modifyListener.spawn("DT-text-apply-keys-recursive-task", modifyKeys(), [self](std::optional<std::string> opt) {
         if (!self) return;
 
-        self->loadingCircle->setVisible(false);
+        self->m_loadingCircle->setVisible(false);
         if (!opt) {
             self->release();
             return;
         }
 
-        self->labelText->setText(opt.value());
+        self->m_labelText->setText(opt.value());
         self->release();
     });
 }
 
 void DTLabel::setRunMoreButtonsVisible(bool visible, float fadeTime) {
-    runMoreButtonsVisible = visible;
+    m_runMoreButtonsVisible = visible;
 
     auto applyVisibility = [&](auto&& self, CCNode* node) -> void {
         if (auto button = typeinfo_cast<CCMenuItemSpriteExtra*>(node)) {
             button->setEnabled(visible);
 
             if (auto image = typeinfo_cast<CCScale9Sprite*>(button->getNormalImage())) {
-                image->stopActionByTag(runMoreButtonFadeActionTag);
+                image->stopActionByTag(m_runMoreButtonFadeActionTag);
 
                 if (fadeTime <= 0) {
-                    image->setOpacity(visible ? runMoreButtonOpacity : 0);
+                    image->setOpacity(visible ? m_runMoreButtonOpacity : 0);
                 }
                 else {
                     auto fade = CCFadeTo::create(
                         fadeTime,
-                        visible ? runMoreButtonOpacity : 0
+                        visible ? m_runMoreButtonOpacity : 0
                     );
-                    fade->setTag(runMoreButtonFadeActionTag);
+                    fade->setTag(m_runMoreButtonFadeActionTag);
                     image->runAction(fade);
                 }
             }
@@ -669,22 +674,22 @@ void DTLabel::setRunMoreButtonsVisible(bool visible, float fadeTime) {
         }
     };
 
-    applyVisibility(applyVisibility, labelText);
+    applyVisibility(applyVisibility, m_labelText);
 }
 
 arc::Future<std::optional<std::string>> DTLabel::modifyKeys() {
-    if (currentlyLoadingFor.size() != 0) co_return std::nullopt;
+    if (m_currentlyLoadingFor.size() != 0) co_return std::nullopt;
 
     auto text = co_await async::waitForMainThread<std::string>([self = this]() -> std::string {
         if (!self) return "";
-        self->loadingCircle->setVisible(true);
-        return self->labelText->getRawText();
+        self->m_loadingCircle->setVisible(true);
+        return self->m_labelText->getRawText();
     });
     if (!text.has_value()) {
         co_return std::nullopt;
     }
     
-    keysUsed.clear();
+    m_keysUsed.clear();
     
     co_await arc::yield();
     auto modifiedText = co_await modifyStrRecursive(text.value());
@@ -695,31 +700,31 @@ arc::Future<std::optional<std::string>> DTLabel::modifyKeys() {
 }
 
 void DTLabel::setLoading(const std::shared_ptr<SpecialKey>& key) {
-    if (currentlyLoadingFor.contains(key) || (!keysUsed.contains(key->getKey()) && keysUsed.size())) return;
-    currentlyLoadingFor.insert(key);
+    if (m_currentlyLoadingFor.contains(key) || (!m_keysUsed.contains(key->getKey()) && m_keysUsed.size())) return;
+    m_currentlyLoadingFor.insert(key);
 
-    loadingCircle->setVisible(true);
+    m_loadingCircle->setVisible(true);
 }
 void DTLabel::completeLoading(const std::shared_ptr<SpecialKey>& key) {
-    if (!currentlyLoadingFor.contains(key)) return;
-    currentlyLoadingFor.erase(key);
+    if (!m_currentlyLoadingFor.contains(key)) return;
+    m_currentlyLoadingFor.erase(key);
 
-    if (currentlyLoadingFor.size() == 0) {
-        loadingCircle->setVisible(false);
-        labelText->setText(info.text);
+    if (m_currentlyLoadingFor.size() == 0) {
+        m_loadingCircle->setVisible(false);
+        m_labelText->setText(m_info.m_text);
         auto self = this;
         self->retain();
 
-        modifyListener.spawn("DT-load-complete-apply-keys-recursive-task", modifyKeys(), [self](std::optional<std::string> opt) {
+        m_modifyListener.spawn("DT-load-complete-apply-keys-recursive-task", modifyKeys(), [self](std::optional<std::string> opt) {
             if (!self) return;
 
-            self->loadingCircle->setVisible(false);
+            self->m_loadingCircle->setVisible(false);
             if (!opt) {
                 self->release();
                 return;
             }
 
-            self->labelText->setText(opt.value());
+            self->m_labelText->setText(opt.value());
             self->release();
         });
     }
@@ -727,89 +732,89 @@ void DTLabel::completeLoading(const std::shared_ptr<SpecialKey>& key) {
 
 void DTLabel::setFontSize(float newSize) {
     newSize = std::clamp(newSize, DTLabelInfo::MIN_MAX_SCALE.x, DTLabelInfo::MIN_MAX_SCALE.y);
-    info.scale = newSize;
+    m_info.m_scale = newSize;
 
-    labelText->setScale(newSize);
+    m_labelText->setScale(newSize);
 }
 
 void DTLabel::setFont(const std::string& fnt) {
-    info.font = fnt;
+    m_info.m_font = fnt;
     
-    labelText->setFont(fnt);
+    m_labelText->setFont(fnt);
 }
 
 void DTLabel::setLabelName(const std::string& newName) {
-    info.labelName = newName;
+    m_info.m_labelName = newName;
 
-    labelTitleArea->setText(newName);
-    labelTitleArea->updateContent();
+    m_labelTitleArea->setText(newName);
+    m_labelTitleArea->updateContent();
 }
 
 void DTLabel::setLabelColor(const ccColor4B& newColor) {
-    info.labelColor = newColor;
+    m_info.m_labelColor = newColor;
 
-    bg->setColor({info.labelColor.r, info.labelColor.g, info.labelColor.b});
-    bg->setOpacity(normalBGOpacity * (info.labelColor.a / 255.0f));
-    labelTitleBG->setColor({info.labelColor.r, info.labelColor.g, info.labelColor.b});
-    labelTitleBG->setOpacity(info.hideHeader && !isEditable ? 0 : info.labelColor.a);
+    m_bg->setColor({m_info.m_labelColor.r, m_info.m_labelColor.g, m_info.m_labelColor.b});
+    m_bg->setOpacity(m_normalBGOpacity * (m_info.m_labelColor.a / 255.0f));
+    m_labelTitleBG->setColor({m_info.m_labelColor.r, m_info.m_labelColor.g, m_info.m_labelColor.b});
+    m_labelTitleBG->setOpacity(m_info.m_hideHeader && !m_isEditable ? 0 : m_info.m_labelColor.a);
 }
 
 void DTLabel::setTextColor(const ccColor4B& newColor) {
-    labelText->stopActionByTag(10);
-    labelText->stopActionByTag(11);
-    info.textColor = newColor;
+    m_labelText->stopActionByTag(10);
+    m_labelText->stopActionByTag(11);
+    m_info.m_textColor = newColor;
 
-    labelText->setColor(newColor);
+    m_labelText->setColor(newColor);
 }
 
 void DTLabel::setTextAlignment(CCTextAlignment alignment) {
-    info.horizontalAlignment = alignment;
+    m_info.m_horizontalAlignment = alignment;
 
-    labelText->setAlignment(alignment);
-    labelTitleArea->setAlignment(alignment);
+    m_labelText->setAlignment(alignment);
+    m_labelTitleArea->setAlignment(alignment);
 }
 
 void DTLabel::setTextWrapping(WrappingMode wrapMode) {
     if (wrapMode == WrappingMode::NO_WRAP) wrapMode = WrappingMode::CUTOFF_WRAP;
-    info.wrapping = wrapMode;
+    m_info.m_wrapping = wrapMode;
 
-    labelText->setWrappingMode(wrapMode);
+    m_labelText->setWrappingMode(wrapMode);
 }
 
 void DTLabel::setHideHeader(bool hideHeader) {
-    info.hideHeader = hideHeader;
+    m_info.m_hideHeader = hideHeader;
 
-    hideBGSpr->setVisible(info.hideHeader);
+    m_hideBGSpr->setVisible(m_info.m_hideHeader);
 }
 
 void DTLabel::onBeingEdited() {
-    glow->stopAllActions();
-    glow->runAction(CCTintTo::create(.1f, 35, 35, 35));
-    isBeingEdited = true;
+    m_glow->stopAllActions();
+    m_glow->runAction(CCTintTo::create(.1f, 35, 35, 35));
+    m_isBeingEdited = true;
 }
 void DTLabel::onBeingEditedEnded() {
-    glow->stopAllActions();
-    glow->runAction(CCTintTo::create(.1f, 0, 0, 0));
-    isBeingEdited = false;
+    m_glow->stopAllActions();
+    m_glow->runAction(CCTintTo::create(.1f, 0, 0, 0));
+    m_isBeingEdited = false;
 }
 
 void DTLabel::setEditable(bool editable) {
-    isEditable = editable;
+    m_isEditable = editable;
 
-    if (isEditable) {
-        labelTitleBG->setOpacity(info.labelColor.a);
-        menu->setEnabled(true);
-        menu->setOpacity(255);
-        labelTitleArea->setVisible(true);
+    if (m_isEditable) {
+        m_labelTitleBG->setOpacity(m_info.m_labelColor.a);
+        m_menu->setEnabled(true);
+        m_menu->setOpacity(255);
+        m_labelTitleArea->setVisible(true);
     }
     else {
-        labelTitleBG->setOpacity(info.hideHeader ? 0 : info.labelColor.a);
-        menu->setEnabled(!info.hideHeader);
-        menu->setOpacity(info.hideHeader ? 0 : 255);
-        if (info.hideHeader && !info.isExpanded)
+        m_labelTitleBG->setOpacity(m_info.m_hideHeader ? 0 : m_info.m_labelColor.a);
+        m_menu->setEnabled(!m_info.m_hideHeader);
+        m_menu->setOpacity(m_info.m_hideHeader ? 0 : 255);
+        if (m_info.m_hideHeader && !m_info.m_isExpanded)
             toggleExpand(nullptr);
 
-        labelTitleArea->setVisible(!info.hideHeader);
+        m_labelTitleArea->setVisible(!m_info.m_hideHeader);
     }
 }
 
@@ -832,8 +837,8 @@ arc::Future<std::string> DTLabel::modifyStrRecursive(const std::string& str) {
         result += str.substr(lastPos, matchStart - lastPos);
 
         std::string key = match.str(1);
-        if (!keysUsed.contains(key)) {
-            keysUsed.insert(key);
+        if (!m_keysUsed.contains(key)) {
+            m_keysUsed.insert(key);
         }
         
         bool isCancellation = false;
@@ -845,16 +850,16 @@ arc::Future<std::string> DTLabel::modifyStrRecursive(const std::string& str) {
         std::string value = match.size() > 2 ? match.str(2) : "";
 
         auto dtLayer = DTLayer::get();
-        if (dtLayer != nullptr && dtLayer->specialStrings.contains(key)) {
-            std::string content = dtLayer->specialStrings.at(key)->getContent();
+        if (dtLayer != nullptr && dtLayer->m_specialStrings.contains(key)) {
+            std::string content = dtLayer->m_specialStrings.at(key)->getContent();
             
-            if (ignoreExtraSettings || payload.size()) {
+            if (m_ignoreExtraSettings || m_payload.size()) {
 
-                auto payloadCopy = payload;
-                if (ignoreExtraSettings)
+                auto payloadCopy = m_payload;
+                if (m_ignoreExtraSettings)
                     payloadCopy["ignoreExtraSettings"] = true;
 
-                auto res = co_await dtLayer->specialStrings.at(key)->getUpdatedContentAsync(payloadCopy);
+                auto res = co_await dtLayer->m_specialStrings.at(key)->getUpdatedContentAsync(payloadCopy);
                 if (res.isOk())
                     content = res.unwrap();
             }
@@ -876,15 +881,15 @@ arc::Future<std::string> DTLabel::modifyStrRecursive(const std::string& str) {
     co_return result;
 }
 void DTLabel::setExpandable(bool enabled) {
-    isExpandable = enabled;
-    expandBtn->setVisible(enabled);
+    m_isExpandable = enabled;
+    m_expandBtn->setVisible(enabled);
 }
 
 void DTLabel::fadeTextColorTo(ccColor4B newColor, float time) {
-    info.textColor = newColor;
+    m_info.m_textColor = newColor;
 
-    labelText->stopActionByTag(10);
-    labelText->stopActionByTag(11);
+    m_labelText->stopActionByTag(10);
+    m_labelText->stopActionByTag(11);
 
     auto faceAction = CCTextAreaFadeTo::create(time, newColor.a);
     faceAction->setTag(10);
@@ -892,13 +897,13 @@ void DTLabel::fadeTextColorTo(ccColor4B newColor, float time) {
     auto colorAction = CCTextAreaTintTo::create(time, {newColor.r, newColor.g, newColor.b});
     colorAction->setTag(11);
 
-    labelText->runAction(faceAction);
-    labelText->runAction(colorAction);
+    m_labelText->runAction(faceAction);
+    m_labelText->runAction(colorAction);
 }
 
 void DTLabel::fadeTitleColorTo(ccColor4B newColor, float time) {
-    labelTitleArea->stopActionByTag(10);
-    labelTitleArea->stopActionByTag(11);
+    m_labelTitleArea->stopActionByTag(10);
+    m_labelTitleArea->stopActionByTag(11);
 
     auto faceAction = CCTextAreaFadeTo::create(time, newColor.a);
     faceAction->setTag(10);
@@ -906,12 +911,12 @@ void DTLabel::fadeTitleColorTo(ccColor4B newColor, float time) {
     auto colorAction = CCTextAreaTintTo::create(time, {newColor.r, newColor.g, newColor.b});
     colorAction->setTag(11);
 
-    labelTitleArea->runAction(faceAction);
-    labelTitleArea->runAction(colorAction);
+    m_labelTitleArea->runAction(faceAction);
+    m_labelTitleArea->runAction(colorAction);
 }
 
 float DTLabel::getSpecificTitleHeight() {
-    return !info.hideHeader || isEditable ? labelTitleHeight : 2.5f;
+    return !m_info.m_hideHeader || m_isEditable ? labelTitleHeight : 2.5f;
 }
 
 void DTLabel::onRunMoreClicked(CCObject* sender) {
@@ -934,10 +939,10 @@ void DTLabel::onRunMoreClicked(CCObject* sender) {
         occurrenceSelection = std::make_pair(timestampRes.unwrap(), indexRes.unwrap());
     }
     
-    if (decimalPopup && !isEditable)
-        decimalPopup->setDisplay(moreBtn, runKeyRes.unwrap(), moreBtn->getTag() == 1, Settings::getDecimalPrecision(), this, occurrenceSelection);
+    if (m_decimalPopup && !m_isEditable)
+        m_decimalPopup->setDisplay(moreBtn, runKeyRes.unwrap(), moreBtn->getTag() == 1, Settings::getDecimalPrecision(), this, occurrenceSelection);
 }
 
 void DTLabel::attachedDecimalPopup(DecimalPopup* popup) {
-    decimalPopup = popup;
+    m_decimalPopup = popup;
 }

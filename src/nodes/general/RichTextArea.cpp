@@ -1,6 +1,6 @@
 #include "RichTextArea.hpp"
+
 #include <regex>
-#include <fmt/chrono.h>
 #include <asp/iter.hpp>
 
 cocos2d::CCLabelBMFont* RichTextArea::createLabel(std::string text, float top) {
@@ -615,14 +615,14 @@ std::vector<std::shared_ptr<RichTextKeyBase>> RichTextArea::getTextKeys(){
 void RichTextArea::didUpdateContainer() {
     auto pendingSpriteEffects = std::move(m_pendingSpriteEffects);
     for (const auto& effect : pendingSpriteEffects) {
-        effect.instance->applyChangesToSprite(
-            effect.sprite,
-            effect.localIndex,
-            static_cast<int>(effect.sourceCharacterIndex + 1)
+        effect.m_instance->applyChangesToSprite(
+            effect.m_sprite,
+            effect.m_localIndex,
+            static_cast<int>(effect.m_sourceCharacterIndex + 1)
         );
 
-        if (effect.instance->isButton() && !effect.instance->isCancellation()) {
-            m_charactersForButton[effect.instance].insert(effect.sprite);
+        if (effect.m_instance->isButton() && !effect.m_instance->isCancellation()) {
+            m_charactersForButton[effect.m_instance].insert(effect.m_sprite);
         }
     }
 }
@@ -636,12 +636,12 @@ void RichTextArea::formatRichText() {
 
     // theres probably a better way to do this lol idk aa
     struct MatchInfo {
-        int position;
-        ptrdiff_t length;
-        std::string key;
-        std::string value;
-        int overallOffset;
-        bool cancellation;
+        int m_position;
+        ptrdiff_t m_length;
+        std::string m_key;
+        std::string m_value;
+        int m_overallOffset;
+        bool m_cancellation;
     };
     std::vector<MatchInfo> matches;
 
@@ -668,12 +668,12 @@ void RichTextArea::formatRichText() {
     std::map<int, std::set<std::string>> specialExitCancellationsBeforeExtraOffset{};
 
     for (auto& m : asp::iter::fromReverse(matches)) {
-        bool keyIsContained = m_richTextKeys.contains(m.key);
+        bool keyIsContained = m_richTextKeys.contains(m.m_key);
 
-        if (!keyIsContained && m.cancellation) {
-            const int effectIndex = m.position - m.overallOffset;
+        if (!keyIsContained && m.m_cancellation) {
+            const int effectIndex = m.m_position - m.m_overallOffset;
             for (const auto& [keyStr, keyBaseRef] : m_richTextKeys) {
-                if (keyBaseRef && keyBaseRef->getSpecialExits().contains(m.key)) {
+                if (keyBaseRef && keyBaseRef->getSpecialExits().contains(m.m_key)) {
                     specialExitCancellationsBeforeExtraOffset[effectIndex].insert(keyStr);
                 }
             }
@@ -682,17 +682,17 @@ void RichTextArea::formatRichText() {
             continue;
         }
         else {
-            int effectIndex = m.position - m.overallOffset;
-            auto it = m_richTextKeys.find(m.key);
+            int effectIndex = m.m_position - m.m_overallOffset;
+            auto it = m_richTextKeys.find(m.m_key);
             if (it != m_richTextKeys.end() && it->second) {
-                auto result = it->second->createInstance(m.value, m.cancellation);
+                auto result = it->second->createInstance(m.m_value, m.m_cancellation);
                 if (result.isOk()) {
                     richTextInstancesBeforeExtraOffset[effectIndex].push_back(result.unwrap());
                 }
             }
         }
 
-        textToModify.erase(m.position, m.length);
+        textToModify.erase(m.m_position, m.m_length);
     }
 
     int textAdditionOverallOffset = 0;

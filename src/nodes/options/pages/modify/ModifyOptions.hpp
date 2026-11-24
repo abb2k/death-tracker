@@ -18,52 +18,52 @@ class ModifyOptions : public OptionsNode {
     private:
         virtual bool setup() override;
 
-        DTLabel* myLabel;
+        DTLabel* m_myLabel;
 
         void update(float dt) override;
-        ScrollLayer* previewScroll;
+        ScrollLayer* m_previewScroll;
         void updatePreviewName(bool categotyIsSession, bool f0State);
 
         void addPlusMinusBtns(CCNode* around, bool flip, Function<void(bool isPlus)> callback, float scale);
         void onPlusMinusBtn(CCObject* sender);
-        std::map<CCNode*, std::pair<CCMenuItemSpriteExtra*, CCMenuItemSpriteExtra*>> holdersOfPlusMinusBtns{};
-        std::map<CCMenuItemSpriteExtra*, std::shared_ptr<Function<void(bool isPlus)>>> plusMinusCallbacks{};
-        CCScale9Sprite* previewBG;
-        CCScale9Sprite* selectionBG;
-        CCScale9Sprite* runsBG;
-        CCScale9Sprite* f0BG;
-        CCScale9Sprite* nbBG;
+        std::map<CCNode*, std::pair<CCMenuItemSpriteExtra*, CCMenuItemSpriteExtra*>> m_holdersOfPlusMinusBtns{};
+        std::map<CCMenuItemSpriteExtra*, std::shared_ptr<Function<void(bool isPlus)>>> m_plusMinusCallbacks{};
+        CCScale9Sprite* m_previewBG;
+        CCScale9Sprite* m_selectionBG;
+        CCScale9Sprite* m_runsBG;
+        CCScale9Sprite* m_f0BG;
+        CCScale9Sprite* m_nbBG;
 
-        geode::Label* runLabel;
-        geode::Label* addRunSeperator;
-        geode::Label* runAmountLabel;
-        geode::Label* NBLabel;
-        geode::Label* f0AmountLabel;
-        geode::Label* f0Label;
+        geode::Label* m_runLabel;
+        geode::Label* m_addRunSeperator;
+        geode::Label* m_runAmountLabel;
+        geode::Label* m_NBLabel;
+        geode::Label* m_f0AmountLabel;
+        geode::Label* m_f0Label;
 
-        TextInput* addNewBestInput;
-        TextInput* addPercentInput;
-        TextInput* f0AmountInput;
-        TextInput* addRunEndInput;
-        TextInput* addRunStartInput;
-        TextInput* runAmountInput;
+        TextInput* m_addNewBestInput;
+        TextInput* m_addPercentInput;
+        TextInput* m_f0AmountInput;
+        TextInput* m_addRunEndInput;
+        TextInput* m_addRunStartInput;
+        TextInput* m_runAmountInput;
 
-        SessionSelector* sessionSelector;
-        Scrollbar* scrollbar;
-        DecimalPopup* decimalPopup;
+        SessionSelector* m_sessionSelector;
+        Scrollbar* m_scrollbar;
+        DecimalPopup* m_decimalPopup;
 
-        int currF0Amount = 1;
-        int currRunsAmount = 1;
+        int m_currF0Amount = 1;
+        int m_currRunsAmount = 1;
 
-        double currentF0ToAdd = 0;
+        double m_currentF0ToAdd = 0;
         
-        double currentStartRunToAdd = 0;
-        double currentEndRunToAdd = 0;
+        double m_currentStartRunToAdd = 0;
+        double m_currentEndRunToAdd = 0;
 
-        double currentNBToAdd = 0;
+        double m_currentNBToAdd = 0;
 
-        SwitcherButton* sessLvlSwitcher;
-        SimpleToggler* runF0Toggler;
+        SwitcherButton* m_sessLvlSwitcher;
+        SimpleToggler* m_runF0Toggler;
 
         void removeNB(CCObject*);
         void addNB(CCObject*);

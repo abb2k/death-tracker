@@ -13,7 +13,6 @@ LabelEditSpecialKeyEditorPopup* LabelEditSpecialKeyEditorPopup::create(Function<
 }
 
 bool LabelEditSpecialKeyEditorPopup::init(Function<void(const std::string&)> callback) {
-    // @geode-ignore(unknown-resource)
     if (!Popup::init(250, 170, "geode.loader/GE_square01.png"))
         return false;
     setTitle("Create Key");
@@ -61,24 +60,24 @@ bool LabelEditSpecialKeyEditorPopup::init(Function<void(const std::string&)> cal
     }
 
     m_keyTypeList->addItems({
-        FloatingListItem{.id = 0, .text = "Death Count", .BGTexture = "GJ_button_04.png"},
-        FloatingListItem{.id = 1, .text = "Best Runs", .BGTexture = "GJ_button_04.png"},
-        FloatingListItem{.id = 2, .text = "Same Death Count", .BGTexture = "GJ_button_04.png"}
+        FloatingListItem{.m_id = 0, .m_text = "Death Count", .m_BGTexture = "GJ_button_04.png"},
+        FloatingListItem{.m_id = 1, .m_text = "Best Runs", .m_BGTexture = "GJ_button_04.png"},
+        FloatingListItem{.m_id = 2, .m_text = "Same Death Count", .m_BGTexture = "GJ_button_04.png"}
     });
     m_scopeList->addItems({
-        FloatingListItem{.id = 0, .text = "Session", .BGTexture = "GJ_button_04.png"},
-        FloatingListItem{.id = 1, .text = "General", .BGTexture = "GJ_button_04.png"},
-        FloatingListItem{.id = 2, .text = "Day", .BGTexture = "GJ_button_04.png"}
+        FloatingListItem{.m_id = 0, .m_text = "Session", .m_BGTexture = "GJ_button_04.png"},
+        FloatingListItem{.m_id = 1, .m_text = "General", .m_BGTexture = "GJ_button_04.png"},
+        FloatingListItem{.m_id = 2, .m_text = "Day", .m_BGTexture = "GJ_button_04.png"}
     });
     m_operatorList->addItems({
-        FloatingListItem{.id = 0, .text = ">=", .BGTexture = "GJ_button_04.png"},
-        FloatingListItem{.id = 1, .text = ">", .BGTexture = "GJ_button_04.png"},
-        FloatingListItem{.id = 2, .text = "<", .BGTexture = "GJ_button_04.png"},
-        FloatingListItem{.id = 3, .text = "Range", .BGTexture = "GJ_button_04.png"}
+        FloatingListItem{.m_id = 0, .m_text = ">=", .m_BGTexture = "GJ_button_04.png"},
+        FloatingListItem{.m_id = 1, .m_text = ">", .m_BGTexture = "GJ_button_04.png"},
+        FloatingListItem{.m_id = 2, .m_text = "<", .m_BGTexture = "GJ_button_04.png"},
+        FloatingListItem{.m_id = 3, .m_text = "Range", .m_BGTexture = "GJ_button_04.png"}
     });
     m_decimalList->addItems({
-        FloatingListItem{.id = 0, .text = "Off", .BGTexture = "GJ_button_04.png"},
-        FloatingListItem{.id = 1, .text = "On", .BGTexture = "GJ_button_04.png"}
+        FloatingListItem{.m_id = 0, .m_text = "Off", .m_BGTexture = "GJ_button_04.png"},
+        FloatingListItem{.m_id = 1, .m_text = "On", .m_BGTexture = "GJ_button_04.png"}
     });
 
     m_keyTypeList->setCallback([this](const int& id) {
@@ -218,16 +217,16 @@ void LabelEditSpecialKeyEditorPopup::updateControls() {
 
     m_secondValue->setCommonFilter(m_keyType == 1 ? CommonFilter::Float : CommonFilter::Uint);
 
-    auto keyTypeSprite = ButtonSprite::create(m_keyTypeList->getItemForID(m_keyType).value_or(FloatingListItem{}).text.c_str());
+    auto keyTypeSprite = ButtonSprite::create(m_keyTypeList->getItemForID(m_keyType).value_or(FloatingListItem{}).m_text.c_str());
     keyTypeSprite->setScale(.55f);
     m_keyTypeButton->setSprite(keyTypeSprite);
 
-    auto scopeSprite = ButtonSprite::create(m_scopeList->getItemForID(m_scope).value_or(FloatingListItem{}).text.c_str());
+    auto scopeSprite = ButtonSprite::create(m_scopeList->getItemForID(m_scope).value_or(FloatingListItem{}).m_text.c_str());
     scopeSprite->setScale(.5f);
     m_scopeButton->setSprite(scopeSprite);
 
     auto operatorText = m_keyType == 0
-        ? m_operatorList->getItemForID(m_operator).value_or(FloatingListItem{}).text
+        ? m_operatorList->getItemForID(m_operator).value_or(FloatingListItem{}).m_text
         : m_decimals ? "On" : "Off";
     auto operatorSprite = ButtonSprite::create(operatorText.c_str());
     operatorSprite->setScale(.55f);

@@ -7,10 +7,10 @@ using namespace geode::prelude;
 class $modify(DTLevelInfoLayer, LevelInfoLayer) {
 public:
     struct Fields {
-        CCMenuItemSpriteExtra* btn = nullptr;
-        CCPoint originalDiffPos;
-        bool prevStatToggle;
-        float prevProgressBarOpacity;
+        CCMenuItemSpriteExtra* m_btn = nullptr;
+        CCPoint m_originalDiffPos;
+        bool m_prevStatToggle;
+        float m_prevProgressBarOpacity;
     };
     
     bool init(GJGameLevel* p0, bool p1);

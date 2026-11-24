@@ -1,39 +1,41 @@
 #include "CalculatorPopup.hpp"
 
+#include <nodes/general/SwitcherButton.hpp>
+
 #include <nodes/calculator/BeforeCalcMode.hpp>
 #include <nodes/calculator/PastCalcMode.hpp>
 
 CalculatorPopup* CalculatorPopup::create() {
     auto ret = new CalculatorPopup();
+
     if (ret->init()) {
         ret->autorelease();
         return ret;
     }
+
     delete ret;
     return nullptr;
 }
 
 bool CalculatorPopup::init() {
-    auto winSize = CCDirector::sharedDirector()->getWinSize();
-    // @geode-ignore(unknown-resource)
     if (!Popup::init(200, 250, "geode.loader/GE_square01.png"))
         return false;
     setTitle("Calculator");
 
-    calcBG = TextInput::create(m_size.width / 1.2f, "NA");
-    calcBG->setPosition({
+    m_calcBG = TextInput::create(m_size.width / 1.2f, "NA");
+    m_calcBG->setPosition({
         m_size.width / 2,
-        m_title->getPositionY() - m_title->getScaledContentHeight() / 2 - calcBG->getScaledContentHeight() / 2 - 5
+        m_title->getPositionY() - m_title->getScaledContentHeight() / 2 - m_calcBG->getScaledContentHeight() / 2 - 5
     });
-    CCTouchDispatcher::get()->removeDelegate(calcBG);
-    CCMouseDispatcher::get()->removeDelegate(calcBG);
-    m_mainLayer->addChild(calcBG);
+    CCTouchDispatcher::get()->removeDelegate(m_calcBG);
+    CCMouseDispatcher::get()->removeDelegate(m_calcBG);
+    m_mainLayer->addChild(m_calcBG);
 
     auto modeLabel = geode::Label::create("Mode:", "bigFont.fnt");
     modeLabel->setScale(.5f);
     modeLabel->setPosition({
         m_size.width / 2,
-        calcBG->getPositionY() - calcBG->getScaledContentHeight() / 2 - modeLabel->getScaledContentHeight() / 2 - 5
+        m_calcBG->getPositionY() - m_calcBG->getScaledContentHeight() / 2 - modeLabel->getScaledContentHeight() / 2 - 5
     });
     m_mainLayer->addChild(modeLabel);
 
@@ -44,44 +46,44 @@ bool CalculatorPopup::init() {
 
     auto calcBtnSpr = ButtonSprite::create("Calculate", "goldFont.fnt", "GJ_button_03.png");
     calcBtnSpr->setScale(.8f);
-    calcBtn = CCMenuItemSpriteExtra::create(
+    m_calcBtn = CCMenuItemSpriteExtra::create(
         calcBtnSpr,
         this,
         menu_selector(CalculatorPopup::onCalcBtn)
     );
-    calcBtn->setPosition({
+    m_calcBtn->setPosition({
         m_size.width / 2,
-        calcBtn->getContentHeight() + 1.5f
+        m_calcBtn->getContentHeight() + 1.5f
     });
-    menu->addChild(calcBtn);
+    menu->addChild(m_calcBtn);
 
     auto modeSize = ccp(
         m_size.width / 1.2f,
-        (modeLabel->getPositionY() - modeLabel->getScaledContentHeight() / 2) / 1.5f - calcBtn->getPositionY()
+        (modeLabel->getPositionY() - modeLabel->getScaledContentHeight() / 2) / 1.5f - m_calcBtn->getPositionY()
     );
     
     addMode(PastCalcMode::create(modeSize, [&](auto str) { this->varsChanged(str); }, [&](auto str) { this->onCalc(str); }));
     addMode(BeforeCalcMode::create(modeSize, [&](auto str) { this->varsChanged(str); }, [&](auto str) { this->onCalc(str); }));
 
     std::vector<std::string> modesTexts{};
-    for (const auto& mode : modes)
+    for (const auto& mode : m_modes)
     {
         modesTexts.push_back(mode->getName());
     }
 
-    modeButton = SwitcherButton::create({m_size.width / 1.5f, 25}, "GJ_button_01.png", modesTexts);
-    modeButton->setPosition({
+    m_modeButton = SwitcherButton::create({m_size.width / 1.5f, 25}, "GJ_button_01.png", modesTexts);
+    m_modeButton->setPosition({
         m_size.width / 2,
-        modeLabel->getPositionY() - modeLabel->getScaledContentHeight() / 2 - modeButton->getScaledContentHeight() / 2 - 5
+        modeLabel->getPositionY() - modeLabel->getScaledContentHeight() / 2 - m_modeButton->getScaledContentHeight() / 2 - 5
     });
-    modeButton->setOptionChangedCallback([&](auto currOption) {
-        modes[currentMode]->close();
-        currentMode = currOption;
-        modes[currentMode]->open();
+    m_modeButton->setOptionChangedCallback([&](auto currOption) {
+        m_modes[m_currentMode]->close();
+        m_currentMode = currOption;
+        m_modes[m_currentMode]->open();
 
         updateText();
     });
-    menu->addChild(modeButton);
+    menu->addChild(m_modeButton);
 
     auto modeInfoBtnSpr = CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
     modeInfoBtnSpr->setScale(.65f);
@@ -91,51 +93,50 @@ bool CalculatorPopup::init() {
         menu_selector(CalculatorPopup::onModeInfo)
     );
     modeInfobtn->setPosition({
-        modeButton->getPositionX() + modeButton->getScaledContentWidth() / 2 + modeInfobtn->getScaledContentWidth() / 2 + 5,
-        modeButton->getPositionY()
+        m_modeButton->getPositionX() + m_modeButton->getScaledContentWidth() / 2 + modeInfobtn->getScaledContentWidth() / 2 + 5,
+        m_modeButton->getPositionY()
     });
     menu->addChild(modeInfobtn);
 
-    modes[currentMode]->open();
+    m_modes[m_currentMode]->open();
 
     return true;
 }
 
 void CalculatorPopup::onModeInfo(CCObject*) {
-    auto modeID = modeButton->getCurrentOptionIndex();
+    auto modeID = m_modeButton->getCurrentOptionIndex();
 
-    FLAlertLayer::create(modes[modeID]->getName().c_str(), modes[modeID]->getDescription().c_str(), "OK")->show();
+    FLAlertLayer::create(m_modes[modeID]->getName().c_str(), m_modes[modeID]->getDescription().c_str(), "OK")->show();
 }
 
 void CalculatorPopup::varsChanged(std::string const& vars) {
-    currentVars = vars;
-    currentCalc = std::nullopt;
+    m_currentVars = vars;
+    m_currentCalc = std::nullopt;
 
     updateText();
 }
 void CalculatorPopup::onCalc(std::string const& calculation) {
-    currentCalc = calculation;
+    m_currentCalc = calculation;
 
     updateText();
 }
 
 void CalculatorPopup::addMode(CalculatorMode* mode) {
-
     m_mainLayer->addChild(mode);
     mode->close();
-    mode->setPosition((m_size.width - mode->getContentWidth()) / 2, (m_size.width - mode->getContentWidth()) / 2 + 1.5f + calcBtn->getPositionY());
+    mode->setPosition((m_size.width - mode->getContentWidth()) / 2, (m_size.width - mode->getContentWidth()) / 2 + 1.5f + m_calcBtn->getPositionY());
 
-    modes.push_back(mode);
+    m_modes.push_back(mode);
 }
 
 void CalculatorPopup::updateText() {
-    std::string str = currentVars;
-    if (currentCalc.has_value())
-        str += " = " + currentCalc.value();
+    std::string str = m_currentVars;
+    if (m_currentCalc.has_value())
+        str += " = " + m_currentCalc.value();
 
-    calcBG->setString(str);
+    m_calcBG->setString(str);
 }
 
 void CalculatorPopup::onCalcBtn(CCObject*) {
-    modes[modeButton->getCurrentOptionIndex()]->calculate();
+    m_modes[m_modeButton->getCurrentOptionIndex()]->calculate();
 }

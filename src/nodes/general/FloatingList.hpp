@@ -1,73 +1,71 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
 struct FloatingListItem {
-    int id;
+    int m_id;
 
-    std::string text;
-    std::string font = "bigFont.fnt";
-    std::string BGTexture = "GJ_button_01.png";
+    std::string m_text;
+    std::string m_font = "bigFont.fnt";
+    std::string m_BGTexture = "GJ_button_01.png";
 
-    CCNode* sideButtonSprite = nullptr;
-    std::function<void(int id)> sideButtonCallback = [](int) {};
+    CCNode* m_sideButtonSprite = nullptr;
+    std::function<void(int id)> m_sideButtonCallback = [](int) {};
 };
 
 class FloatingList : public CCNode, public CCTouchDelegate {
-    public:
-        static FloatingList* create(CCSize const& size, bool startOpen = false);
+public:
+    static FloatingList* create(CCSize size, bool startOpen = false);
 
-        void addItem(const FloatingListItem& text);
-        void addItems(const std::vector<FloatingListItem>& texts);
+    void addItem(const FloatingListItem& text);
+    void addItems(const std::vector<FloatingListItem>& texts);
 
-        void removeItem(int id);
-        void clearAllItems();
+    void removeItem(int id);
+    void clearAllItems();
 
-        void open();
-        void close();
+    void open();
+    void close();
 
-        void setCallback(Function<void(const int& id)> callback);
+    void setCallback(Function<void(const int& id)> callback);
 
-        void setOpenDirection(bool openUpwards);
+    void setOpenDirection(bool openUpwards);
 
-        bool isOpened() const { return isOpen; }
+    bool isOpened() const { return m_isOpen; }
 
-        std::optional<FloatingListItem> getItemForID(int id);
+    std::optional<FloatingListItem> getItemForID(int id);
 
-        void setEnabled(bool b);
+    void setEnabled(bool b);
 
-        void updateListLayout();
+    void updateListLayout();
 
-        void setListOpenAnchor(CCPoint const& anchor);
+    void setListOpenAnchor(CCPoint const& anchor);
 
-    private:
-        bool init(CCSize const& size, bool startOpen);
+private:
+    bool init(CCSize size, bool startOpen);
 
-        Function<void(const int& id)> onItemClicked;
+    Function<void(const int& id)> m_onItemClicked;
 
-        void itemClicked(CCObject* sender);
-        void sideBtnClicked(CCObject* sender);
+    void itemClicked(CCObject* sender);
+    void sideBtnClicked(CCObject* sender);
 
-        void setItemEnabled(bool isEnabled);
+    void setItemEnabled(bool isEnabled);
 
-        bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;
+    bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;
 
-        std::map<CCMenuItemSpriteExtra*, FloatingListItem> itemIds{};
-        std::map<CCMenuItemSpriteExtra*, FloatingListItem> extraButtonsItemIds{};
+    std::map<CCMenuItemSpriteExtra*, FloatingListItem> m_itemIds{};
+    std::map<CCMenuItemSpriteExtra*, FloatingListItem> m_extraButtonsItemIds{};
 
-        ScrollLayer* scrollLayer;
-        Scrollbar* scrollbar;
+    ScrollLayer* m_scrollLayer;
+    Scrollbar* m_scrollbar;
 
-        float elementHeight = 20.f;
+    float m_elementHeight = 20.f;
 
-        float elementOffset = 5;
+    float m_elementOffset = 5;
 
-        bool isOpen = false;
+    bool m_isOpen = false;
 
-        CCNode* clickArea;
+    CCNode* m_clickArea;
 
-        void onEnter() override;
-        void onExit() override;
+    void onEnter() override;
+    void onExit() override;
 };

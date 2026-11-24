@@ -15,7 +15,7 @@ class DTLevelSpecificSettingsLayer : public geode::Popup {
 
         void onClose(CCObject*) override;
 
-        CCNode* createPageBtn(const std::string& text, OptionsNode* page);
+        CCNode* createPageBtn(std::string_view text, OptionsNode* page);
         CCNode* createSeperator();
 
         void sendUnderlineTo(CCNode* node, bool instant = false);
@@ -23,8 +23,8 @@ class DTLevelSpecificSettingsLayer : public geode::Popup {
 
         void switchPage(CCObject* sender);
 
-        std::map<CCObject*, OptionsNode*> pages{};
-        OptionsNode* currentPage = nullptr;
+        std::map<CCObject*, OptionsNode*> m_pages{};
+        OptionsNode* m_currentPage = nullptr;
 
-        CCScale9Sprite* optionUnderline;
+        CCScale9Sprite* m_optionUnderline;
 };

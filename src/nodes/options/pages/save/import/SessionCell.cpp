@@ -16,7 +16,7 @@ SessionCell* SessionCell::create(float width, Session const& session) {
 bool SessionCell::init(float width, Session const& session) {
     if (!CCMenu::init()) return false;
 
-    this->session = session;
+    this->m_session = session;
 
     this->setContentSize({width, 30});
 
@@ -27,7 +27,7 @@ bool SessionCell::init(float width, Session const& session) {
     this->addChild(bg);
 
     std::tm tm{};
-    std::time_t time = static_cast<std::time_t>(session.sessionStartDate);
+    std::time_t time = static_cast<std::time_t>(session.m_sessionStartDate);
     #if defined(_WIN32)
         localtime_s(&tm, &time);
     #else
@@ -42,11 +42,11 @@ bool SessionCell::init(float width, Session const& session) {
     dateLabel->setScale(.2f);
     this->addChild(dateLabel);
 
-    auto deathCount = session.data.deaths.totalDeaths();
-    auto runCount = session.data.runs.totalDeaths();
+    auto deathCount = session.m_data.m_deaths.totalDeaths();
+    auto runCount = session.m_data.m_runs.totalDeaths();
 
     auto infoLabel = geode::Label::create(
-        fmt::format("deaths: {} | runs: {} | playtime: {}", deathCount, runCount, StatsManager::workingTime(session.data.playtimeGeneral.playtimeF0 + session.data.playtimeGeneral.playtimeRuns)).c_str(),
+        fmt::format("deaths: {} | runs: {} | playtime: {}", deathCount, runCount, StatsManager::workingTime(session.m_data.m_playtimeGeneral.m_playtimeF0 + session.m_data.m_playtimeGeneral.m_playtimeRuns)).c_str(),
         "chatFont.fnt"
     );
     infoLabel->setPosition({5, 5});
@@ -54,23 +54,23 @@ bool SessionCell::init(float width, Session const& session) {
     infoLabel->setScale(.35f);
     this->addChild(infoLabel);
 
-    toggler = SimpleToggler::createWithDefaults(
+    m_toggler = SimpleToggler::createWithDefaults(
         .4f,
         true
     );
-    toggler->setPosition({
-        this->getContentWidth() - toggler->getContentWidth() / 2 - 5,
-        this->getContentHeight() - toggler->getContentHeight() / 2 - 5
+    m_toggler->setPosition({
+        this->getContentWidth() - m_toggler->getContentWidth() / 2 - 5,
+        this->getContentHeight() - m_toggler->getContentHeight() / 2 - 5
     });
-    toggler->setCallback([&](auto state) {
-        selected = state;
+    m_toggler->setCallback([&](auto state) {
+        m_selected = state;
     });
-    this->addChild(toggler);
+    this->addChild(m_toggler);
 
     return true;
 }
 
 void SessionCell::setSelected(bool b) {
-    if (selected != b)
-        toggler->toggleWithCallback(b);
+    if (m_selected != b)
+        m_toggler->toggleWithCallback(b);
 }

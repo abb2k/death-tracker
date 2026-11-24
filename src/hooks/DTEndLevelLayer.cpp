@@ -26,16 +26,16 @@ void DTEndLevelLayer::customSetup() {
     s->setScale(0.75f);
     s->setCascadeOpacityEnabled(true);
     s2->setCascadeOpacityEnabled(true);
-    m_fields->skullBtn = CCMenuItemSpriteExtra::create(
+    m_fields->m_skullBtn = CCMenuItemSpriteExtra::create(
         s,
         nullptr,
         this,
         menu_selector(DTEndLevelLayer::openDTLayer)
     );
-    m_fields->skullBtn->setID("dt-skull-button");
+    m_fields->m_skullBtn->setID("dt-skull-button");
 
     auto hideLMenu = this->getChildByID("hide-layer-menu");
-    hideLMenu->addChild(m_fields->skullBtn);
+    hideLMenu->addChild(m_fields->m_skullBtn);
 
     hideLMenu->updateLayout();
 }
@@ -47,9 +47,9 @@ void DTEndLevelLayer::openDTLayer(CCObject*) {
 void DTEndLevelLayer::onHideLayer(CCObject* sender) {
     EndLevelLayer::onHideLayer(sender);
 
-    if (m_fields->skullBtn == nullptr) return;
+    if (m_fields->m_skullBtn == nullptr) return;
 
-    m_fields->skullBtn->stopAllActions();
-    m_fields->skullBtn->runAction(CCFadeTo::create(.25f, m_hidden ? 0 : 255));
-    m_fields->skullBtn->setEnabled(!m_hidden);
+    m_fields->m_skullBtn->stopAllActions();
+    m_fields->m_skullBtn->runAction(CCFadeTo::create(.25f, m_hidden ? 0 : 255));
+    m_fields->m_skullBtn->setEnabled(!m_hidden);
 }

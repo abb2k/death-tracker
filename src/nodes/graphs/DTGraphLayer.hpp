@@ -24,7 +24,7 @@ class DTGraphLayer : public Popup, public GraphPointDelegate, public FLAlertLaye
     private:
         //graph stuff
 
-        geode::Label* noGraphLabel;
+        geode::Label* m_noGraphLabel;
 
         //change the displayed point
         void OnPointSelected(GraphPoint* point) override;
@@ -39,38 +39,38 @@ class DTGraphLayer : public Popup, public GraphPointDelegate, public FLAlertLaye
 
         void update(float dt) override;
 
-        GraphHolder* graph;
+        GraphHolder* m_graph;
 
-        ScrollLayer* graphsScroll;
-        Scrollbar* graphsScrollbar;
+        ScrollLayer* m_graphsScroll;
+        Scrollbar* m_graphsScrollbar;
 
         void onAddGraph(CCObject*);
 
         void addGraph();
         void addGraph(const DTGraphInfo& info);
-        void removeGraph(const std::string& graphName);
+        void removeGraph(std::string_view graphName);
 
         void openOptionsFor(GraphCell* cell);
-        CCNode* graphsPage;
-        CCMenu* graphOptionsPage;
+        CCNode* m_graphsPage;
+        CCMenu* m_graphOptionsPage;
 
         void onColor(CCObject*);
 
-        TextInput* nameInput;
-        OptionSwitcher<DTGraphCoverage>* coverageSwitcher;
-        OptionSwitcher<DTGraphType>* typeSwitcher;
-        TextInput* thicknessBaseInput;
-        TextInput* thicknessOutlineInput;
-        CCSprite* colorBaseBtnSpr;
-        CCSprite* colorOutlineBtnSpr;
-        TextInput* pointScaleInput;
-        CCSprite* pointColorBtnSpr;
+        TextInput* m_nameInput;
+        OptionSwitcher<DTGraphCoverage>* m_coverageSwitcher;
+        OptionSwitcher<DTGraphType>* m_typeSwitcher;
+        TextInput* m_thicknessBaseInput;
+        TextInput* m_thicknessOutlineInput;
+        CCSprite* m_colorBaseBtnSpr;
+        CCSprite* m_colorOutlineBtnSpr;
+        TextInput* m_pointScaleInput;
+        CCSprite* m_pointColorBtnSpr;
 
-        std::optional<GraphCell*> editedGraph = std::nullopt;
+        std::optional<GraphCell*> m_editedGraph = std::nullopt;
 
         void updateColor(cocos2d::ccColor4B const& color);
 
-        std::optional<Function<void(const ccColor4B&)>> callbacksForColorPopups = std::nullopt;
+        std::optional<Function<void(const ccColor4B&)>> m_callbacksForColorPopups = std::nullopt;
 
         void saveAllGraphs();
 
@@ -79,15 +79,15 @@ class DTGraphLayer : public Popup, public GraphPointDelegate, public FLAlertLaye
 
         void closeOptionsTab();
 
-        FLAlertLayer* deleteNotification;
+        FLAlertLayer* m_deleteNotification;
 
         void FLAlert_Clicked(FLAlertLayer* layer, bool btn2) override;
 
-        std::map<GraphPoint*, GraphPointDisplay*> displaysForPoints{};
+        std::map<GraphPoint*, GraphPointDisplay*> m_displaysForPoints{};
 
-        std::set<GraphPointDisplay*, GraphPointDisplayPtrCompare> displays{};
+        std::set<GraphPointDisplay*, GraphPointDisplayPtrCompare> m_displays{};
 
-        bool holdingShift;
+        bool m_holdingShift;
 
         void updateGRapgCellLayout();
 

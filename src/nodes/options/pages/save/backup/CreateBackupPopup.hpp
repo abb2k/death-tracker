@@ -12,14 +12,14 @@ class CreateBackupPopup : public Popup {
         static CreateBackupPopup* create();
 
         void setCallback(Function<void(bool, std::optional<int>)> callback) {
-            this->callback = std::move(callback);
+            this->m_callback = std::move(callback);
         }
 
     private:
-        Function<void(bool, std::optional<int>)> callback = NULL;
+        Function<void(bool, std::optional<int>)> m_callback = NULL;
 
-        std::optional<int> sessions = -1;
-        bool general = true;
+        std::optional<int> m_sessions = -1;
+        bool m_general = true;
 
         void createBackupClicked(cocos2d::CCObject* sender);
 };

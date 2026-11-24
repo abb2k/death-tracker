@@ -18,31 +18,31 @@ bool SectionOptions::setup() {
 
     auto dtlayer = DTLayer::get();
 
-    mainScroll = ScrollLayer::create(size / 1.2f);
-    mainScroll->ignoreAnchorPointForPosition(false);
-    mainScroll->setPosition({size / 2 - ccp(0, 20)});
+    m_mainScroll = ScrollLayer::create(m_size / 1.2f);
+    m_mainScroll->ignoreAnchorPointForPosition(false);
+    m_mainScroll->setPosition({m_size / 2 - ccp(0, 20)});
     
-    mainScroll->m_contentLayer->setLayout(ColumnLayout::create()
+    m_mainScroll->m_contentLayer->setLayout(ColumnLayout::create()
         ->setGrowCrossAxis(true)
         ->setCrossAxisOverflow(false)
-        ->setAutoGrowAxis(mainScroll->getContentHeight())
+        ->setAutoGrowAxis(m_mainScroll->getContentHeight())
         ->setAxisAlignment(AxisAlignment::End)
         ->setAxisReverse(true)
         ->ignoreInvisibleChildren(false)
     );
-    this->addChild(mainScroll);
+    this->addChild(m_mainScroll);
 
-    scrollBG = CCScale9Sprite::create("square02_001.png");
-    scrollBG->setContentSize(mainScroll->getContentSize() + ccp(15, 10));
-    scrollBG->setPosition(mainScroll->getPosition());
-    scrollBG->setOpacity(0);
-    scrollBG->setID("BG");
-    scrollBG->setZOrder(-1);
-    scrollBG->setCascadeOpacityEnabled(false);
-    this->addChild(scrollBG);
+    m_scrollBG = CCScale9Sprite::create("square02_001.png");
+    m_scrollBG->setContentSize(m_mainScroll->getContentSize() + ccp(15, 10));
+    m_scrollBG->setPosition(m_mainScroll->getPosition());
+    m_scrollBG->setOpacity(0);
+    m_scrollBG->setID("BG");
+    m_scrollBG->setZOrder(-1);
+    m_scrollBG->setCascadeOpacityEnabled(false);
+    this->addChild(m_scrollBG);
 
     auto sectionsLabel = geode::Label::create("Sections", "bigFont.fnt");
-    sectionsLabel->setPosition(mainScroll->getPosition() + ccp(0, mainScroll->getContentSize().height / 2 + sectionsLabel->getScaledContentHeight() / 2 + 5));
+    sectionsLabel->setPosition(m_mainScroll->getPosition() + ccp(0, m_mainScroll->getContentSize().height / 2 + sectionsLabel->getScaledContentHeight() / 2 + 5));
     sectionsLabel->setScale(.75f);
     this->addChild(sectionsLabel);
 
@@ -66,7 +66,7 @@ bool SectionOptions::setup() {
     }
     else {
         auto myStats = dtlayer->m_MyLevelStats.unwrap();
-        for (const auto& section : myStats.metadata.sections)
+        for (const auto& section : myStats.m_metadata.m_sections)
         {
             addSection(section);
         }
@@ -79,7 +79,7 @@ bool SectionOptions::setup() {
         this,
         menu_selector(SectionOptions::onAddSection)
     );
-    addSectionBtn->setPosition(mainScroll->getPosition() + ccp(mainScroll->getScaledContentWidth() / 2, mainScroll->getScaledContentHeight() / 2));
+    addSectionBtn->setPosition(m_mainScroll->getPosition() + ccp(m_mainScroll->getScaledContentWidth() / 2, m_mainScroll->getScaledContentHeight() / 2));
     this->addChild(addSectionBtn);
 
     auto sectionsInfo = TutorialButton::create(.75f, "section-overall", [
@@ -91,22 +91,22 @@ bool SectionOptions::setup() {
             ->joinTransform(TutorialBoxPlacement::TBPTop, .75f)
             ->joinHighlight(addSectionBtn)
             ->appendDialogue("Each section has a <cy>starting</c> and <cc>ending percent</c>", TutorialCharacterFace::TCFNormal);
-        for (const auto& child : mainScroll->m_contentLayer->getChildrenExt<CCMenu*>())
+        for (const auto& child : m_mainScroll->m_contentLayer->getChildrenExt<CCMenu*>())
         {
             tutorialLayer->joinHighlight(child->getChildByID("start-per"))
                 ->joinHighlight(child->getChildByID("end-per"));
         }
         tutorialLayer->appendDialogue("And an input for the <cf>name</c> of the section", TutorialCharacterFace::TCFNormalTilted);
-        for (const auto& child : mainScroll->m_contentLayer->getChildrenExt<CCMenu*>())
+        for (const auto& child : m_mainScroll->m_contentLayer->getChildrenExt<CCMenu*>())
         {
             tutorialLayer->joinHighlight(child->getChildByID("name"));
         }
         tutorialLayer->appendDialogue("And if a sections percent <cy>range is invalid</c>, the section will turn <cr>red</c>", TutorialCharacterFace::TCFNormal);
     });
-    sectionsInfo->setPosition(size - sectionsInfo->getScaledContentSize() / 2 + ccp(2, 2));
+    sectionsInfo->setPosition(m_size - sectionsInfo->getScaledContentSize() / 2 + ccp(2, 2));
     this->addChild(sectionsInfo);
 
-    for (const auto& cell : mainScroll->m_contentLayer->getChildrenExt<SectionCell*>())
+    for (const auto& cell : m_mainScroll->m_contentLayer->getChildrenExt<SectionCell*>())
     {
         cell->fade(false, 0);
     }
@@ -114,9 +114,9 @@ bool SectionOptions::setup() {
     this->setOpacity(0);
     this->setEnabled(false);
 
-    mainScroll->setMouseEnabled(false);
+    m_mainScroll->setMouseEnabled(false);
 
-    mainScroll->m_contentLayer->updateLayout();
+    m_mainScroll->m_contentLayer->updateLayout();
 
     return true;
 }
@@ -125,12 +125,12 @@ void SectionOptions::onOpened() {
     float fadeTime = .2f;
     this->setEnabled(true);
     this->runAction(CCFadeTo::create(fadeTime, 255));
-    mainScroll->moveToTop();
-    mainScroll->setMouseEnabled(true);
+    m_mainScroll->moveToTop();
+    m_mainScroll->setMouseEnabled(true);
 
-    scrollBG->runAction(CCFadeTo::create(fadeTime, 120));
+    m_scrollBG->runAction(CCFadeTo::create(fadeTime, 120));
 
-    for (const auto& cell : mainScroll->m_contentLayer->getChildrenExt<SectionCell*>())
+    for (const auto& cell : m_mainScroll->m_contentLayer->getChildrenExt<SectionCell*>())
     {
         cell->fade(true, fadeTime);
     }
@@ -140,10 +140,10 @@ void SectionOptions::onClosed() {
     this->setEnabled(false);
     this->runAction(CCFadeTo::create(fadeTime, 0));
 
-    mainScroll->setMouseEnabled(false);
-    scrollBG->runAction(CCFadeTo::create(fadeTime, 0));
+    m_mainScroll->setMouseEnabled(false);
+    m_scrollBG->runAction(CCFadeTo::create(fadeTime, 0));
 
-    for (const auto& cell : mainScroll->m_contentLayer->getChildrenExt<SectionCell*>())
+    for (const auto& cell : m_mainScroll->m_contentLayer->getChildrenExt<SectionCell*>())
     {
         cell->fade(false, fadeTime);
     }
@@ -156,39 +156,39 @@ void SectionOptions::saveSections() {
     auto& myStats = dtlayer->m_MyLevelStats.unwrap();
 
     std::vector<Section> newSections;
-    for (const auto& cell : mainScroll->m_contentLayer->getChildrenExt<SectionCell*>()) {
+    for (const auto& cell : m_mainScroll->m_contentLayer->getChildrenExt<SectionCell*>()) {
         newSections.push_back(cell->getSection());
     }
 
-    myStats.metadata.sections = newSections;
-    (void)StatsManager::setMetadata(myStats.metadata, myStats.levelKey);
+    myStats.m_metadata.m_sections = newSections;
+    (void)StatsManager::setMetadata(myStats.m_metadata, myStats.m_levelKey);
 
     dtlayer->foreachLinkedLevel([&](auto& lvlData) {
-        lvlData.metadata.sections = newSections;
-        (void)StatsManager::setMetadata(lvlData.metadata, lvlData.levelKey);
+        lvlData.m_metadata.m_sections = newSections;
+        (void)StatsManager::setMetadata(lvlData.m_metadata, lvlData.m_levelKey);
     });
 
-    DTLayer::get()->specialStrings["section"]->updateContent();
+    DTLayer::get()->m_specialStrings["section"]->updateContent();
 }
 
 void SectionOptions::onAddSection(CCObject* sender) {
     addSection(Section{});
-    mainScroll->m_contentLayer->updateLayout();
+    m_mainScroll->m_contentLayer->updateLayout();
     saveSections();
 }
 
 void SectionOptions::addSection(const Section& section) {
-    auto cell = SectionCell::create(mainScroll->getContentWidth(), section);
-    cell->onDeleted = [&]() {
-        mainScroll->m_contentLayer->updateLayout();
+    auto cell = SectionCell::create(m_mainScroll->getContentWidth(), section);
+    cell->m_onDeleted = [&]() {
+        m_mainScroll->m_contentLayer->updateLayout();
         this->saveSections();
     };
-    cell->onChanged = [&]() {
+    cell->m_onChanged = [&]() {
         this->saveSections();
     };
-    mainScroll->m_contentLayer->addChild(cell);
-    mainScroll->m_contentLayer->updateLayout();
-    mainScroll->m_contentLayer->setPositionY(0);
+    m_mainScroll->m_contentLayer->addChild(cell);
+    m_mainScroll->m_contentLayer->updateLayout();
+    m_mainScroll->m_contentLayer->setPositionY(0);
 }
 
 void SectionOptions::onStartPoses(CCObject*) {
@@ -230,11 +230,11 @@ void SectionOptions::onStartPoses(CCObject*) {
 
     for (const auto& percent : startPosPercents) {
         Section section{
-            .startPercent = prevRunPercent,
-            .endPercent = percent,
+            .m_startPercent = prevRunPercent,
+            .m_endPercent = percent,
         };
 
-        section.name = fmt::format("#{}", 1 + index);
+        section.m_name = fmt::format("#{}", 1 + index);
         index++;
 
         prevRunPercent = percent;
@@ -256,12 +256,12 @@ void SectionOptions::onStartPoses(CCObject*) {
 
 bool SectionOptions::doesSectionExist(const Section& section) {
     std::vector<Section> newSections;
-    for (const auto& cell : mainScroll->m_contentLayer->getChildrenExt<SectionCell*>()) {
+    for (const auto& cell : m_mainScroll->m_contentLayer->getChildrenExt<SectionCell*>()) {
         newSections.push_back(cell->getSection());
     }
 
     for (const auto& existingSection : newSections) {
-        if (existingSection.startPercent == section.startPercent && existingSection.endPercent == section.endPercent) {
+        if (existingSection.m_startPercent == section.m_startPercent && existingSection.m_endPercent == section.m_endPercent) {
             return true;
         }
     }

@@ -7,8 +7,6 @@
 #include <arc/task/Yield.hpp>
 #include <nodes/Tutorial/DTTutorialLayer.hpp>
 
-const int LinkOptions::PER_PAGE_COUNT = 10;
-
 LinkOptions* LinkOptions::create(const CCSize& size) {
     auto ret = new LinkOptions();
     if (ret && ret->initWithSetup(size)) {
@@ -21,67 +19,67 @@ LinkOptions* LinkOptions::create(const CCSize& size) {
 }
 
 LinkOptions::~LinkOptions() {
-    callbackOwner->store(nullptr, std::memory_order_release);
+    m_callbackOwner->store(nullptr, std::memory_order_release);
 }
 
 bool LinkOptions::setup() {
-    callbackOwner->store(this, std::memory_order_release);
+    m_callbackOwner->store(this, std::memory_order_release);
 
-    linkedScroll = ScrollLayer::create({size.width / 2 - 5, size.height - 70});
+    m_linkedScroll = ScrollLayer::create({m_size.width / 2 - 5, m_size.height - 70});
     auto linkedScrollBG = CCScale9Sprite::create("square02_small.png");
-    linkedScrollBG->setContentSize(linkedScroll->getContentSize());
+    linkedScrollBG->setContentSize(m_linkedScroll->getContentSize());
     linkedScrollBG->setZOrder(-1);
     linkedScrollBG->ignoreAnchorPointForPosition(true);
     linkedScrollBG->setID("bg");
-    linkedScroll->addChild(linkedScrollBG);
-    linkedScroll->m_contentLayer->setLayout(ColumnLayout::create()
-        ->setAutoGrowAxis(linkedScroll->getContentHeight())
+    m_linkedScroll->addChild(linkedScrollBG);
+    m_linkedScroll->m_contentLayer->setLayout(ColumnLayout::create()
+        ->setAutoGrowAxis(m_linkedScroll->getContentHeight())
         ->setAxisReverse(true)
         ->setAxisAlignment(AxisAlignment::End)
     );
-    linkedScroll->setMouseEnabled(false);
-    linkedScroll->ignoreAnchorPointForPosition(true);
-    this->addChild(linkedScroll);
+    m_linkedScroll->setMouseEnabled(false);
+    m_linkedScroll->ignoreAnchorPointForPosition(true);
+    this->addChild(m_linkedScroll);
     
-    playedScroll = ScrollLayer::create({size.width / 2 - 5, size.height - 70});
+    m_playedScroll = ScrollLayer::create({m_size.width / 2 - 5, m_size.height - 70});
     auto playedScrollBG = CCScale9Sprite::create("square02_small.png");
-    playedScrollBG->setContentSize(playedScroll->getContentSize());
+    playedScrollBG->setContentSize(m_playedScroll->getContentSize());
     playedScrollBG->setZOrder(-1);
     playedScrollBG->ignoreAnchorPointForPosition(true);
     playedScrollBG->setID("bg");
-    playedScroll->addChild(playedScrollBG);
-    playedScroll->setPositionX(linkedScroll->getContentWidth() + 10);
-    playedScroll->m_contentLayer->setLayout(ColumnLayout::create()
-        ->setAutoGrowAxis(playedScroll->getContentHeight())
+    m_playedScroll->addChild(playedScrollBG);
+    m_playedScroll->setPositionX(m_linkedScroll->getContentWidth() + 10);
+    m_playedScroll->m_contentLayer->setLayout(ColumnLayout::create()
+        ->setAutoGrowAxis(m_playedScroll->getContentHeight())
         ->setAxisReverse(true)
         ->setAxisAlignment(AxisAlignment::End)
     );
-    playedScroll->ignoreAnchorPointForPosition(true);
-    playedScroll->setMouseEnabled(false);
-    this->addChild(playedScroll);
+    m_playedScroll->ignoreAnchorPointForPosition(true);
+    m_playedScroll->setMouseEnabled(false);
+    this->addChild(m_playedScroll);
 
-    nonePlayedFoundText = SimpleTextArea::create("No unlinked played levels found!", "bigFont.fnt", .5f);
-    nonePlayedFoundText->setPosition(playedScroll->getPosition() + playedScroll->getContentSize() / 2);
-    nonePlayedFoundText->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    nonePlayedFoundText->setWidth(playedScroll->getContentWidth() / 1.2f);
-    nonePlayedFoundText->setWrappingMode(WrappingMode::SPACE_WRAP);
-    this->addChild(nonePlayedFoundText);
+    m_nonePlayedFoundText = SimpleTextArea::create("No unlinked played levels found!", "bigFont.fnt", .5f);
+    m_nonePlayedFoundText->setPosition(m_playedScroll->getPosition() + m_playedScroll->getContentSize() / 2);
+    m_nonePlayedFoundText->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    m_nonePlayedFoundText->setWidth(m_playedScroll->getContentWidth() / 1.2f);
+    m_nonePlayedFoundText->setWrappingMode(WrappingMode::SPACE_WRAP);
+    this->addChild(m_nonePlayedFoundText);
     
-    noneLinkedFoundText = SimpleTextArea::create("No linked levels found!", "bigFont.fnt", .5f);
-    noneLinkedFoundText->setPosition(linkedScroll->getPosition() + linkedScroll->getContentSize() / 2);
-    noneLinkedFoundText->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    noneLinkedFoundText->setWidth(linkedScroll->getContentWidth() / 1.2f);
-    noneLinkedFoundText->setWrappingMode(WrappingMode::SPACE_WRAP);
-    this->addChild(noneLinkedFoundText);
+    m_noneLinkedFoundText = SimpleTextArea::create("No linked levels found!", "bigFont.fnt", .5f);
+    m_noneLinkedFoundText->setPosition(m_linkedScroll->getPosition() + m_linkedScroll->getContentSize() / 2);
+    m_noneLinkedFoundText->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    m_noneLinkedFoundText->setWidth(m_linkedScroll->getContentWidth() / 1.2f);
+    m_noneLinkedFoundText->setWrappingMode(WrappingMode::SPACE_WRAP);
+    this->addChild(m_noneLinkedFoundText);
 
-    linkedScrollPageLabel = geode::Label::create("0/0", "bigFont.fnt");
-    linkedScrollPageLabel->setScale(.55f);
-    linkedScrollPageLabel->setPosition(linkedScroll->getPosition() + ccp(linkedScroll->getContentWidth() / 2, linkedScroll->getContentHeight() + linkedScrollPageLabel->getScaledContentHeight() / 2 + 5));
-    this->addChild(linkedScrollPageLabel);
+    m_linkedScrollPageLabel = geode::Label::create("0/0", "bigFont.fnt");
+    m_linkedScrollPageLabel->setScale(.55f);
+    m_linkedScrollPageLabel->setPosition(m_linkedScroll->getPosition() + ccp(m_linkedScroll->getContentWidth() / 2, m_linkedScroll->getContentHeight() + m_linkedScrollPageLabel->getScaledContentHeight() / 2 + 5));
+    this->addChild(m_linkedScrollPageLabel);
 
     auto linkedScrollLabel = geode::Label::create("Linked", "bigFont.fnt");
     linkedScrollLabel->setScale(.55f);
-    linkedScrollLabel->setPosition(linkedScrollPageLabel->getPosition() + ccp(0, linkedScrollPageLabel->getScaledContentHeight() / 2 + linkedScrollLabel->getScaledContentHeight() / 2 + 5));
+    linkedScrollLabel->setPosition(m_linkedScrollPageLabel->getPosition() + ccp(0, m_linkedScrollPageLabel->getScaledContentHeight() / 2 + linkedScrollLabel->getScaledContentHeight() / 2 + 5));
     this->addChild(linkedScrollLabel);
 
     float arrowOffset = 60;
@@ -95,7 +93,7 @@ bool LinkOptions::setup() {
     );
     linkPageForward->setTag(1);
     linkPageForward->setID("link");
-    linkPageForward->setPosition(linkedScrollPageLabel->getPosition() + ccp(arrowOffset, 0));
+    linkPageForward->setPosition(m_linkedScrollPageLabel->getPosition() + ccp(arrowOffset, 0));
     linkPageForward->setRotation(180);
     this->addChild(linkPageForward);
 
@@ -108,17 +106,17 @@ bool LinkOptions::setup() {
     );
     linkPageBackward->setTag(-1);
     linkPageBackward->setID("link");
-    linkPageBackward->setPosition(linkedScrollPageLabel->getPosition() - ccp(arrowOffset, 0));
+    linkPageBackward->setPosition(m_linkedScrollPageLabel->getPosition() - ccp(arrowOffset, 0));
     this->addChild(linkPageBackward);
 
-    playedScrollPageLabel = geode::Label::create("0/0", "bigFont.fnt");
-    playedScrollPageLabel->setScale(.55f);
-    playedScrollPageLabel->setPosition(playedScroll->getPosition() + ccp(playedScroll->getContentWidth() / 2, playedScroll->getContentHeight() + playedScrollPageLabel->getScaledContentHeight() / 2 + 5));
-    this->addChild(playedScrollPageLabel);
+    m_playedScrollPageLabel = geode::Label::create("0/0", "bigFont.fnt");
+    m_playedScrollPageLabel->setScale(.55f);
+    m_playedScrollPageLabel->setPosition(m_playedScroll->getPosition() + ccp(m_playedScroll->getContentWidth() / 2, m_playedScroll->getContentHeight() + m_playedScrollPageLabel->getScaledContentHeight() / 2 + 5));
+    this->addChild(m_playedScrollPageLabel);
 
     auto playedScrollLabel = geode::Label::create("Played", "bigFont.fnt");
     playedScrollLabel->setScale(.55f);
-    playedScrollLabel->setPosition(playedScrollPageLabel->getPosition() + ccp(0, playedScrollPageLabel->getScaledContentHeight() / 2 + playedScrollLabel->getScaledContentHeight() / 2 + 5));
+    playedScrollLabel->setPosition(m_playedScrollPageLabel->getPosition() + ccp(0, m_playedScrollPageLabel->getScaledContentHeight() / 2 + playedScrollLabel->getScaledContentHeight() / 2 + 5));
     this->addChild(playedScrollLabel);
 
     auto playedPageForwardSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
@@ -130,7 +128,7 @@ bool LinkOptions::setup() {
     );
     playedPageForward->setTag(1);
     playedPageForward->setID("played");
-    playedPageForward->setPosition(playedScrollPageLabel->getPosition() + ccp(arrowOffset, 0));
+    playedPageForward->setPosition(m_playedScrollPageLabel->getPosition() + ccp(arrowOffset, 0));
     playedPageForward->setRotation(180);
     this->addChild(playedPageForward);
 
@@ -143,30 +141,30 @@ bool LinkOptions::setup() {
     );
     playedPageBackward->setTag(-1);
     playedPageBackward->setID("played");
-    playedPageBackward->setPosition(playedScrollPageLabel->getPosition() - ccp(arrowOffset, 0));
+    playedPageBackward->setPosition(m_playedScrollPageLabel->getPosition() - ccp(arrowOffset, 0));
     this->addChild(playedPageBackward);
 
-    searchBar = TextInput::create(size.width / 1.5f, "Search", "bigFont.fnt");
-    searchBar->setScale(.75f);
-    searchBar->setPosition(ccp(size.width / 2, size.height - searchBar->getScaledContentHeight() / 2 - 1));
-    searchBar->setCallback([&](const auto& newStr) {
-        searchStr = newStr;
+    m_searchBar = TextInput::create(m_size.width / 1.5f, "Search", "bigFont.fnt");
+    m_searchBar->setScale(.75f);
+    m_searchBar->setPosition(ccp(m_size.width / 2, m_size.height - m_searchBar->getScaledContentHeight() / 2 - 1));
+    m_searchBar->setCallback([&](const auto& newStr) {
+        m_searchStr = newStr;
 
-        if (levelsLoaded) updateScrollsContent(cachedLevels);
+        if (m_levelsLoaded) updateScrollsContent(m_cachedLevels);
     });
-    this->addChild(searchBar);
+    this->addChild(m_searchBar);
 
     auto idToggler = SimpleToggler::create(
         CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
         CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
         .6f
     );
-    idToggler->setPosition(searchBar->getPosition() + ccp(searchBar->getScaledContentWidth() / 2 + idToggler->getScaledContentWidth() / 2 + 5, 0));
+    idToggler->setPosition(m_searchBar->getPosition() + ccp(m_searchBar->getScaledContentWidth() / 2 + idToggler->getScaledContentWidth() / 2 + 5, 0));
     idToggler->setCallback([&](bool toggled) {
-        searchForID = toggled;
+        m_searchForID = toggled;
 
-        if (levelsLoaded && !searchStr.empty())
-            updateScrollsContent(cachedLevels);
+        if (m_levelsLoaded && !m_searchStr.empty())
+            updateScrollsContent(m_cachedLevels);
     });
     this->addChild(idToggler);
 
@@ -180,24 +178,24 @@ bool LinkOptions::setup() {
     parentLayer->setContentSize({0, 0});
     this->addChild(parentLayer);
 
-    loadingShadow = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
-    loadingShadow->setColor({0,0,0});
-    loadingShadow->setOpacity(100);
-    loadingShadow->setAnchorPoint({0,0});
-    loadingShadow->setContentSize({size.width, linkedScroll->getContentHeight()});
-    parentLayer->addChild(loadingShadow);
+    m_loadingShadow = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
+    m_loadingShadow->setColor({0,0,0});
+    m_loadingShadow->setOpacity(100);
+    m_loadingShadow->setAnchorPoint({0,0});
+    m_loadingShadow->setContentSize({m_size.width, m_linkedScroll->getContentHeight()});
+    parentLayer->addChild(m_loadingShadow);
 
-    loadingCircle = LoadingCircle::create();
-    loadingCircle->setParentLayer(parentLayer);
-    loadingCircle->ignoreAnchorPointForPosition(false);
-    loadingCircle->setPosition(linkedScroll->getPosition() + linkedScroll->getContentSize() + ccp(5, -linkedScroll->getContentHeight() / 4));
-    loadingCircle->show();
+    m_loadingCircle = LoadingCircle::create();
+    m_loadingCircle->setParentLayer(parentLayer);
+    m_loadingCircle->ignoreAnchorPointForPosition(false);
+    m_loadingCircle->setPosition(m_linkedScroll->getPosition() + m_linkedScroll->getContentSize() + ccp(5, -m_linkedScroll->getContentHeight() / 4));
+    m_loadingCircle->show();
 
-    loadingLabel = geode::Label::create("Loading levels...", "bigFont.fnt");
-    loadingLabel->setScale(.75f);
-    loadingLabel->setPosition(loadingCircle->getPosition() - ccp(0, loadingCircle->m_sprite->getScaledContentHeight() / 2 + loadingLabel->getScaledContentHeight() / 2 + 5));
-    loadingLabel->setAlignment(geode::Label::Alignment::Center);
-    parentLayer->addChild(loadingLabel);
+    m_loadingLabel = geode::Label::create("Loading levels...", "bigFont.fnt");
+    m_loadingLabel->setScale(.75f);
+    m_loadingLabel->setPosition(m_loadingCircle->getPosition() - ccp(0, m_loadingCircle->m_sprite->getScaledContentHeight() / 2 + m_loadingLabel->getScaledContentHeight() / 2 + 5));
+    m_loadingLabel->setAlignment(geode::Label::Alignment::Center);
+    parentLayer->addChild(m_loadingLabel);
 
     auto linkInfo = TutorialButton::create(.75f, "link-overall", [
         &,
@@ -213,13 +211,13 @@ bool LinkOptions::setup() {
             ->appendDialogue("And a list of all levels you have <cc>linked</c> already", TutorialCharacterFace::TCFNormal)
             ->joinHighlight(linkedScrollBG)
             ->appendDialogue("Each levels has <cg>arrow</c> buttons to move that level <cy>between the two lists</c>", TutorialCharacterFace::TCFNormalTilted);
-        for (const auto& child : playedScroll->m_contentLayer->getChildrenExt<CCMenu*>())
+        for (const auto& child : m_playedScroll->m_contentLayer->getChildrenExt<CCMenu*>())
         {
             if (!child->isEnabled()) continue;
 
             tutorialLayer->joinHighlight(child->getChildByID("arrow"));
         }
-        for (const auto& child : linkedScroll->m_contentLayer->getChildrenExt<CCMenu*>())
+        for (const auto& child : m_linkedScroll->m_contentLayer->getChildrenExt<CCMenu*>())
         {
             if (!child->isEnabled()) continue;
             
@@ -232,42 +230,42 @@ bool LinkOptions::setup() {
             ->appendDialogue("When viewing stats you will see the <cy>combined stats of all your linked levels</c>", TutorialCharacterFace::TCFNormal)
             ->joinTransform(TutorialBoxPlacement::TBPCenter, 1)
             ->appendDialogue("You also have a <cf>search bar</c> to search for the name of a level you would like to link", TutorialCharacterFace::TCFNormalTilted)
-            ->joinHighlight(searchBar)
+            ->joinHighlight(m_searchBar)
             ->joinTransform(TutorialBoxPlacement::TBPCenter, .75f)
             ->appendDialogue("You can also search by a <cf>level ID</c> when toggling the <cy>\"ID\" checkbox</c>", TutorialCharacterFace::TCFHappy)
             ->joinHighlight(idToggler)
             ->joinHighlight(idTogglerLabel);
     });
-    linkInfo->setPosition(size - linkInfo->getScaledContentSize() / 2 + ccp(2, 2));
+    linkInfo->setPosition(m_size - linkInfo->getScaledContentSize() / 2 + ccp(2, 2));
     this->addChild(linkInfo);
 
     this->setEnabled(false);
     this->setOpacity(0);
 
-    linkedScroll->getChildByID("bg")->runAction(CCFadeTo::create(0, 0));
-    playedScroll->getChildByID("bg")->runAction(CCFadeTo::create(0, 0));
+    m_linkedScroll->getChildByID("bg")->runAction(CCFadeTo::create(0, 0));
+    m_playedScroll->getChildByID("bg")->runAction(CCFadeTo::create(0, 0));
 
-    Dev::fadeTextInput(searchBar, false, 0);
+    Dev::fadeTextInput(m_searchBar, false, 0);
 
-    for (const auto& child : CCArrayExt<CCMenu*>(linkedScroll->m_contentLayer->getChildren())) {
+    for (const auto& child : CCArrayExt<CCMenu*>(m_linkedScroll->m_contentLayer->getChildren())) {
         child->setEnabled(false);
         child->setOpacity(0);
     }
-    for (const auto& child : CCArrayExt<CCMenu*>(playedScroll->m_contentLayer->getChildren())) {
+    for (const auto& child : CCArrayExt<CCMenu*>(m_playedScroll->m_contentLayer->getChildren())) {
         child->setEnabled(false);
         child->setOpacity(0);
     }
 
-    nonePlayedFoundText->runAction(CCTextAreaFadeTo::create(0, 0));
-    noneLinkedFoundText->runAction(CCTextAreaFadeTo::create(0, 0));
+    m_nonePlayedFoundText->runAction(CCTextAreaFadeTo::create(0, 0));
+    m_noneLinkedFoundText->runAction(CCTextAreaFadeTo::create(0, 0));
     
-    loadingLabel->setOpacity(0);
-    loadingShadow->setOpacity(0);
-    loadingCircle->m_sprite->setOpacity(0);
+    m_loadingLabel->setOpacity(0);
+    m_loadingShadow->setOpacity(0);
+    m_loadingCircle->m_sprite->setOpacity(0);
 
-    loadingLabel->setVisible(false);
-    loadingShadow->setVisible(false);
-    loadingCircle->m_sprite->setVisible(false);
+    m_loadingLabel->setVisible(false);
+    m_loadingShadow->setVisible(false);
+    m_loadingCircle->m_sprite->setVisible(false);
 
     scheduleUpdate();
 
@@ -279,30 +277,30 @@ void LinkOptions::onOpened() {
     this->setEnabled(true);
     this->runAction(CCFadeTo::create(fadeTime, 255));
 
-    linkedScroll->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 150));
-    playedScroll->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 150));
+    m_linkedScroll->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 150));
+    m_playedScroll->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 150));
 
-    for (const auto& child : CCArrayExt<LevelLinkCell*>(linkedScroll->m_contentLayer->getChildren())) {
+    for (const auto& child : CCArrayExt<LevelLinkCell*>(m_linkedScroll->m_contentLayer->getChildren())) {
         child->setEnabled(child->isEnabledAndFade());
         child->runAction(CCFadeTo::create(fadeTime, child->isEnabledAndFade() ? 255 : 120));
     }
-    for (const auto& child : CCArrayExt<LevelLinkCell*>(playedScroll->m_contentLayer->getChildren())) {
+    for (const auto& child : CCArrayExt<LevelLinkCell*>(m_playedScroll->m_contentLayer->getChildren())) {
         child->setEnabled(child->isEnabledAndFade());
         child->runAction(CCFadeTo::create(fadeTime, child->isEnabledAndFade() ? 255 : 120));
     }
 
-    playedScroll->setMouseEnabled(true);
-    linkedScroll->setMouseEnabled(true);
+    m_playedScroll->setMouseEnabled(true);
+    m_linkedScroll->setMouseEnabled(true);
 
-    nonePlayedFoundText->runAction(CCTextAreaFadeTo::create(fadeTime, 255));
-    noneLinkedFoundText->runAction(CCTextAreaFadeTo::create(fadeTime, 255));
-    loadingLabel->runAction(CCFadeTo::create(fadeTime, 255));
-    loadingShadow->runAction(CCFadeTo::create(fadeTime, 100));
-    loadingCircle->m_sprite->runAction(CCFadeTo::create(fadeTime, 200));
+    m_nonePlayedFoundText->runAction(CCTextAreaFadeTo::create(fadeTime, 255));
+    m_noneLinkedFoundText->runAction(CCTextAreaFadeTo::create(fadeTime, 255));
+    m_loadingLabel->runAction(CCFadeTo::create(fadeTime, 255));
+    m_loadingShadow->runAction(CCFadeTo::create(fadeTime, 100));
+    m_loadingCircle->m_sprite->runAction(CCFadeTo::create(fadeTime, 200));
 
-    Dev::fadeTextInput(searchBar, true, fadeTime);
+    Dev::fadeTextInput(m_searchBar, true, fadeTime);
 
-    if (!levelsLoaded && !levelsLoading)
+    if (!m_levelsLoaded && !m_levelsLoading)
         getAllLevelsData();
 }
 void LinkOptions::onClosed() {
@@ -310,38 +308,38 @@ void LinkOptions::onClosed() {
     this->setEnabled(false);
     this->runAction(CCFadeTo::create(fadeTime, 0));
 
-    linkedScroll->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 0));
-    playedScroll->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 0));
+    m_linkedScroll->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 0));
+    m_playedScroll->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 0));
 
-    for (const auto& child : CCArrayExt<CCMenu*>(linkedScroll->m_contentLayer->getChildren())) {
+    for (const auto& child : CCArrayExt<CCMenu*>(m_linkedScroll->m_contentLayer->getChildren())) {
         child->setEnabled(false);
         child->runAction(CCFadeTo::create(fadeTime, 0));
     }
-    for (const auto& child : CCArrayExt<CCMenu*>(playedScroll->m_contentLayer->getChildren())) {
+    for (const auto& child : CCArrayExt<CCMenu*>(m_playedScroll->m_contentLayer->getChildren())) {
         child->setEnabled(false);
         child->runAction(CCFadeTo::create(fadeTime, 0));
     }
 
-    playedScroll->setMouseEnabled(false);
-    linkedScroll->setMouseEnabled(false);
+    m_playedScroll->setMouseEnabled(false);
+    m_linkedScroll->setMouseEnabled(false);
 
-    nonePlayedFoundText->runAction(CCTextAreaFadeTo::create(fadeTime, 0));
-    noneLinkedFoundText->runAction(CCTextAreaFadeTo::create(fadeTime, 0));
+    m_nonePlayedFoundText->runAction(CCTextAreaFadeTo::create(fadeTime, 0));
+    m_noneLinkedFoundText->runAction(CCTextAreaFadeTo::create(fadeTime, 0));
 
-    loadingLabel->runAction(CCFadeTo::create(fadeTime, 0));
-    loadingShadow->runAction(CCFadeTo::create(fadeTime, 0));
-    loadingCircle->m_sprite->runAction(CCFadeTo::create(fadeTime, 0));
+    m_loadingLabel->runAction(CCFadeTo::create(fadeTime, 0));
+    m_loadingShadow->runAction(CCFadeTo::create(fadeTime, 0));
+    m_loadingCircle->m_sprite->runAction(CCFadeTo::create(fadeTime, 0));
 
-    Dev::fadeTextInput(searchBar, false, fadeTime);
+    Dev::fadeTextInput(m_searchBar, false, fadeTime);
 }
 
 void LinkOptions::getAllLevelsData() {
-    levelsLoading = true;
-    loadingLabel->setVisible(true);
-    loadingShadow->setVisible(true);
-    loadingCircle->m_sprite->setVisible(true);
+    m_levelsLoading = true;
+    m_loadingLabel->setVisible(true);
+    m_loadingShadow->setVisible(true);
+    m_loadingCircle->m_sprite->setVisible(true);
 
-    auto callbackOwner = this->callbackOwner;
+    auto callbackOwner = this->m_callbackOwner;
     LinkedLevelsCacheManager::getLinkedLevels(
         [callbackOwner](const GetLevelsTaskProgress& progress) {
             auto progressCopy = progress;
@@ -361,28 +359,28 @@ void LinkOptions::getAllLevelsData() {
 }
 
 void LinkOptions::onGetLevelsProgress(const GetLevelsTaskProgress& progress) {
-    loadingLabel->setString(fmt::format("{}\n{}/{}", progress.message, progress.current, progress.max).c_str());
+    m_loadingLabel->setString(fmt::format("{}\n{}/{}", progress.m_message, progress.m_current, progress.m_max).c_str());
 }
 
 void LinkOptions::onGetLevels(GetLevelsFuture::Output const& out) {
-    levelsLoading = false;
-    levelsLoaded = true;
-    cachedLevels = out;
+    m_levelsLoading = false;
+    m_levelsLoaded = true;
+    m_cachedLevels = out;
 
-    loadingLabel->setVisible(false);
-    loadingShadow->setVisible(false);
-    loadingCircle->m_sprite->setVisible(false);
+    m_loadingLabel->setVisible(false);
+    m_loadingShadow->setVisible(false);
+    m_loadingCircle->m_sprite->setVisible(false);
 
-    updateScrollsContent(cachedLevels);
+    updateScrollsContent(m_cachedLevels);
 }
 
 void LinkOptions::updateScrollsContent(GetLevelsFuture::Output const& levels) {
     if (DTLayer::get()->m_MyLevelStats.isErr()) return;
     struct LevelMetaNameCompare {
         bool operator()(const LinkData* a, const LinkData* b) const {
-            if (a->metadata.levelName != b->metadata.levelName)
-                return a->metadata.levelName < b->metadata.levelName;
-            return a->levelKey < b->levelKey;
+            if (a->m_metadata.m_levelName != b->m_metadata.m_levelName)
+                return a->m_metadata.m_levelName < b->m_metadata.m_levelName;
+            return a->m_levelKey < b->m_levelKey;
         }
     };
 
@@ -400,41 +398,41 @@ void LinkOptions::updateScrollsContent(GetLevelsFuture::Output const& levels) {
 
     for (const auto& meta : levels)
     {
-        if (myStats.levelKey == meta.levelKey) continue;
+        if (myStats.m_levelKey == meta.m_levelKey) continue;
 
-        if (!searchStr.empty()) {
-            if (!searchForID) {
-                auto lowerSearchStr = makeLower(searchStr);
-                auto lowerLevelName = makeLower(meta.metadata.levelName);
+        if (!m_searchStr.empty()) {
+            if (!m_searchForID) {
+                auto lowerSearchStr = makeLower(m_searchStr);
+                auto lowerLevelName = makeLower(meta.m_metadata.m_levelName);
 
                 if (lowerLevelName.find(lowerSearchStr) == std::string::npos)
                     continue;
             }
             else {
-                if (meta.levelKey.find(searchStr) == std::string::npos)
+                if (meta.m_levelKey.find(m_searchStr) == std::string::npos)
                     continue;
             }
         }
 
-        if (myStats.metadata.linkedLevels.contains(meta.levelKey))
+        if (myStats.m_metadata.m_linkedLevels.contains(meta.m_levelKey))
             linkedLevels.insert(&meta);
         else
             playedLevels.insert(&meta);
     }
 
-    maxLinkedPage = !linkedLevels.size() ? std::nullopt : std::make_optional(static_cast<unsigned int>(static_cast<float>(linkedLevels.size()) / LinkOptions::PER_PAGE_COUNT + 0.99f));
-    maxPlayedPage = !playedLevels.size() ? std::nullopt : std::make_optional(static_cast<unsigned int>(static_cast<float>(playedLevels.size()) / LinkOptions::PER_PAGE_COUNT + 0.99f));
-    currentLinkedPage = maxLinkedPage.has_value() ? std::min(currentLinkedPage, maxLinkedPage.value() - 1) : 0;
-    currentPlayedPage = maxPlayedPage.has_value() ? std::min(currentPlayedPage, maxPlayedPage.value() - 1) : 0;
+    m_maxLinkedPage = !linkedLevels.size() ? std::nullopt : std::make_optional(static_cast<unsigned int>(static_cast<float>(linkedLevels.size()) / LinkOptions::PER_PAGE_COUNT + 0.99f));
+    m_maxPlayedPage = !playedLevels.size() ? std::nullopt : std::make_optional(static_cast<unsigned int>(static_cast<float>(playedLevels.size()) / LinkOptions::PER_PAGE_COUNT + 0.99f));
+    m_currentLinkedPage = m_maxLinkedPage.has_value() ? std::min(m_currentLinkedPage, m_maxLinkedPage.value() - 1) : 0;
+    m_currentPlayedPage = m_maxPlayedPage.has_value() ? std::min(m_currentPlayedPage, m_maxPlayedPage.value() - 1) : 0;
 
-    nonePlayedFoundText->setVisible(!playedLevels.size());
-    noneLinkedFoundText->setVisible(!linkedLevels.size());
+    m_nonePlayedFoundText->setVisible(!playedLevels.size());
+    m_noneLinkedFoundText->setVisible(!linkedLevels.size());
     
-    linkedScroll->m_contentLayer->removeAllChildrenWithCleanup(true);
-    playedScroll->m_contentLayer->removeAllChildrenWithCleanup(true);
+    m_linkedScroll->m_contentLayer->removeAllChildrenWithCleanup(true);
+    m_playedScroll->m_contentLayer->removeAllChildrenWithCleanup(true);
 
-    if (currentLinkedPage == 0) {
-        auto cell = LevelLinkCell::create(linkedScroll->m_contentLayer->getContentWidth(), myStats.levelKey, myStats.metadata);    
+    if (m_currentLinkedPage == 0) {
+        auto cell = LevelLinkCell::create(m_linkedScroll->m_contentLayer->getContentWidth(), myStats.m_levelKey, myStats.m_metadata);
         cell->setAlignment(true);
         cell->setEnabledAndFade(false);
         if (!this->isEnabled()) {
@@ -442,7 +440,7 @@ void LinkOptions::updateScrollsContent(GetLevelsFuture::Output const& levels) {
             cell->setOpacity(0);
         }
         
-        linkedScroll->m_contentLayer->addChild(cell, -1);
+        m_linkedScroll->m_contentLayer->addChild(cell, -1);
     }
 
     auto addCellsAsChildren = [&](CCNode* parent, const std::set<const LinkData*, LevelMetaNameCompare>& setToUse, int pageNum, bool alignToLeft) {
@@ -455,7 +453,7 @@ void LinkOptions::updateScrollsContent(GetLevelsFuture::Output const& levels) {
 
         for (int i = 0; i < LinkOptions::PER_PAGE_COUNT; i++)
         {
-            auto cell = LevelLinkCell::create(parent->getContentWidth(), (**it).levelKey, (**it).metadata);
+            auto cell = LevelLinkCell::create(parent->getContentWidth(), (**it).m_levelKey, (**it).m_metadata);
             cell->setCallback([&](const std::string& levelKey, bool isLeftAligned) {onLinkCellClicked(levelKey, isLeftAligned);});
             
             cell->setAlignment(alignToLeft);
@@ -472,13 +470,13 @@ void LinkOptions::updateScrollsContent(GetLevelsFuture::Output const& levels) {
         }
     };
 
-    addCellsAsChildren(linkedScroll->m_contentLayer, linkedLevels, currentLinkedPage, true);
-    addCellsAsChildren(playedScroll->m_contentLayer, playedLevels, currentPlayedPage, false);
+    addCellsAsChildren(m_linkedScroll->m_contentLayer, linkedLevels, m_currentLinkedPage, true);
+    addCellsAsChildren(m_playedScroll->m_contentLayer, playedLevels, m_currentPlayedPage, false);
 
-    linkedScroll->m_contentLayer->updateLayout();
-    playedScroll->m_contentLayer->updateLayout();
-    linkedScroll->moveToTop();
-    playedScroll->moveToTop();
+    m_linkedScroll->m_contentLayer->updateLayout();
+    m_playedScroll->m_contentLayer->updateLayout();
+    m_linkedScroll->moveToTop();
+    m_playedScroll->moveToTop();
 
     updatePageLabels();
 }
@@ -490,61 +488,61 @@ void LinkOptions::onLinkCellClicked(const std::string& levelKey, bool isLeftAlig
 
     if (!isLeftAligned) { // link
         auto& myData = DTLayer::get()->m_MyLevelStats.unwrap();
-        myData.metadata.linkedLevels.insert(levelKey);
+        myData.m_metadata.m_linkedLevels.insert(levelKey);
         
         DTLayer::get()->UpdateSharedStats();
         
-        (void)StatsManager::setMetadata(myData.metadata, myData.levelKey);
+        (void)StatsManager::setMetadata(myData.m_metadata, myData.m_levelKey);
 
-        for (auto& other : DTLayer::get()->linkedLevelsData) {
-            if (other.levelKey == myData.levelKey) continue;
+        for (auto& other : DTLayer::get()->m_linkedLevelsData) {
+            if (other.m_levelKey == myData.m_levelKey) continue;
             bool changed = false;
 
-            for (const auto& k : myData.metadata.linkedLevels) {
-                if (k == other.levelKey) continue;
-                if (!other.metadata.linkedLevels.contains(k)) {
-                    other.metadata.linkedLevels.insert(k);
+            for (const auto& k : myData.m_metadata.m_linkedLevels) {
+                if (k == other.m_levelKey) continue;
+                if (!other.m_metadata.m_linkedLevels.contains(k)) {
+                    other.m_metadata.m_linkedLevels.insert(k);
                     changed = true;
                 }
             }
 
-            if (other.levelKey == levelKey) {
-                other.metadata.linkedLevels.insert(myData.levelKey);
+            if (other.m_levelKey == levelKey) {
+                other.m_metadata.m_linkedLevels.insert(myData.m_levelKey);
                 changed = true;
             }
 
             if (changed) {
-                (void)StatsManager::setMetadata(other.metadata, other.levelKey);
+                (void)StatsManager::setMetadata(other.m_metadata, other.m_levelKey);
             }
         }
 
         DTLayer::get()->foreachLinkedLevel([&myData](LevelData& linkedLevel) {
-            linkedLevel.metadata.showAnyRun = myData.metadata.showAnyRun;
-            linkedLevel.metadata.runsToShow = myData.metadata.runsToShow;
+            linkedLevel.m_metadata.m_showAnyRun = myData.m_metadata.m_showAnyRun;
+            linkedLevel.m_metadata.m_runsToShow = myData.m_metadata.m_runsToShow;
 
-            linkedLevel.metadata.sections = myData.metadata.sections;
+            linkedLevel.m_metadata.m_sections = myData.m_metadata.m_sections;
 
-            (void)StatsManager::setMetadata(linkedLevel.metadata, linkedLevel.levelKey);
+            (void)StatsManager::setMetadata(linkedLevel.m_metadata, linkedLevel.m_levelKey);
         });
     }
     else { // unlink
         auto& myData = DTLayer::get()->m_MyLevelStats.unwrap();
-        myData.metadata.linkedLevels.erase(levelKey);
+        myData.m_metadata.m_linkedLevels.erase(levelKey);
 
         std::set<std::string> toRemoveFromTarget{};
 
         LevelData* targetToRemove = nullptr;
 
-        for (auto& other : DTLayer::get()->linkedLevelsData) {
-            if (other.metadata.linkedLevels.contains(levelKey)) {
-                other.metadata.linkedLevels.erase(levelKey);
+        for (auto& other : DTLayer::get()->m_linkedLevelsData) {
+            if (other.m_metadata.m_linkedLevels.contains(levelKey)) {
+                other.m_metadata.m_linkedLevels.erase(levelKey);
 
-                toRemoveFromTarget.insert(other.levelKey);
+                toRemoveFromTarget.insert(other.m_levelKey);
 
-                (void)StatsManager::setMetadata(other.metadata, other.levelKey);
+                (void)StatsManager::setMetadata(other.m_metadata, other.m_levelKey);
             }
 
-            if (other.levelKey == levelKey) {
+            if (other.m_levelKey == levelKey) {
                 targetToRemove = &other;
             }
         }
@@ -552,18 +550,18 @@ void LinkOptions::onLinkCellClicked(const std::string& levelKey, bool isLeftAlig
         if (targetToRemove != nullptr) {
             for (const auto& lvlKey : toRemoveFromTarget)
             {
-                targetToRemove->metadata.linkedLevels.erase(lvlKey);
+                targetToRemove->m_metadata.m_linkedLevels.erase(lvlKey);
             }
 
-            (void)StatsManager::setMetadata(targetToRemove->metadata, targetToRemove->levelKey);
+            (void)StatsManager::setMetadata(targetToRemove->m_metadata, targetToRemove->m_levelKey);
         }
 
         DTLayer::get()->UpdateSharedStats();
 
-        (void)StatsManager::setMetadata(myData.metadata, myData.levelKey);
+        (void)StatsManager::setMetadata(myData.m_metadata, myData.m_levelKey);
     }
 
-    if (levelsLoaded) updateScrollsContent(cachedLevels);
+    if (m_levelsLoaded) updateScrollsContent(m_cachedLevels);
 }
 
 void LinkOptions::onSwitchedPage(CCObject* sender) {
@@ -571,48 +569,48 @@ void LinkOptions::onSwitchedPage(CCObject* sender) {
         auto amount = nodeSender->getTag();
 
         if (nodeSender->getID() == "link") {
-            currentLinkedPage += amount;
+            m_currentLinkedPage += amount;
             
-            if (maxLinkedPage.has_value() && currentLinkedPage == maxLinkedPage.value()) currentLinkedPage = 0;
+            if (m_maxLinkedPage.has_value() && m_currentLinkedPage == m_maxLinkedPage.value()) m_currentLinkedPage = 0;
             
-            currentLinkedPage = std::clamp(currentLinkedPage, static_cast<unsigned int>(0), maxLinkedPage.has_value() ? maxLinkedPage.value() - 1 : 0);
+            m_currentLinkedPage = std::clamp(m_currentLinkedPage, static_cast<unsigned int>(0), m_maxLinkedPage.has_value() ? m_maxLinkedPage.value() - 1 : 0);
         }
         else if (nodeSender->getID() == "played") {
-            currentPlayedPage += amount;
+            m_currentPlayedPage += amount;
                         
-            if (maxPlayedPage.has_value() && currentPlayedPage == maxPlayedPage.value()) currentPlayedPage = 0;
+            if (m_maxPlayedPage.has_value() && m_currentPlayedPage == m_maxPlayedPage.value()) m_currentPlayedPage = 0;
         
-            currentPlayedPage = std::clamp(currentPlayedPage, static_cast<unsigned int>(0), maxPlayedPage.has_value() ? maxPlayedPage.value() - 1 : 0);
+            m_currentPlayedPage = std::clamp(m_currentPlayedPage, static_cast<unsigned int>(0), m_maxPlayedPage.has_value() ? m_maxPlayedPage.value() - 1 : 0);
         }
 
-        if (levelsLoaded) updateScrollsContent(cachedLevels);
+        if (m_levelsLoaded) updateScrollsContent(m_cachedLevels);
     }
 }
 
 void LinkOptions::updatePageLabels() {
-    linkedScrollPageLabel->setString(fmt::format("{}/{}", maxLinkedPage.has_value() ? currentLinkedPage + 1 : 0, maxLinkedPage.has_value() ? maxLinkedPage.value() : 0).c_str());
-    playedScrollPageLabel->setString(fmt::format("{}/{}", maxPlayedPage.has_value() ? currentPlayedPage + 1 : 0, maxPlayedPage.has_value() ? maxPlayedPage.value() : 0).c_str());
+    m_linkedScrollPageLabel->setString(fmt::format("{}/{}", m_maxLinkedPage.has_value() ? m_currentLinkedPage + 1 : 0, m_maxLinkedPage.has_value() ? m_maxLinkedPage.value() : 0).c_str());
+    m_playedScrollPageLabel->setString(fmt::format("{}/{}", m_maxPlayedPage.has_value() ? m_currentPlayedPage + 1 : 0, m_maxPlayedPage.has_value() ? m_maxPlayedPage.value() : 0).c_str());
 }
 
 void LinkOptions::update(float dt) {
     if (!this->isEnabled()) {
-        linkedScroll->setMouseEnabled(false);
-        playedScroll->setMouseEnabled(false);
+        m_linkedScroll->setMouseEnabled(false);
+        m_playedScroll->setMouseEnabled(false);
 
         return;
     }
     auto mousePos = getMousePos();
 
-    CCRect playedScrollRect = {playedScroll->getPositionX(), playedScroll->getPositionY(), playedScroll->getScaledContentSize().width, playedScroll->getScaledContentSize().height};
+    CCRect playedScrollRect = {m_playedScroll->getPositionX(), m_playedScroll->getPositionY(), m_playedScroll->getScaledContentSize().width, m_playedScroll->getScaledContentSize().height};
 
-    CCRect linkedScrollRect = {linkedScroll->getPositionX(), linkedScroll->getPositionY(), linkedScroll->getScaledContentSize().width, linkedScroll->getScaledContentSize().height};
+    CCRect linkedScrollRect = {m_linkedScroll->getPositionX(), m_linkedScroll->getPositionY(), m_linkedScroll->getScaledContentSize().width, m_linkedScroll->getScaledContentSize().height};
 
-    if (linkedScrollRect.containsPoint(linkedScroll->getParent()->convertToNodeSpace(mousePos))) {
-        linkedScroll->setMouseEnabled(true);
-        playedScroll->setMouseEnabled(false);
+    if (linkedScrollRect.containsPoint(m_linkedScroll->getParent()->convertToNodeSpace(mousePos))) {
+        m_linkedScroll->setMouseEnabled(true);
+        m_playedScroll->setMouseEnabled(false);
     }
-    else if (playedScrollRect.containsPoint(playedScroll->getParent()->convertToNodeSpace(mousePos))) {
-        linkedScroll->setMouseEnabled(false);
-        playedScroll->setMouseEnabled(true);
+    else if (playedScrollRect.containsPoint(m_playedScroll->getParent()->convertToNodeSpace(mousePos))) {
+        m_linkedScroll->setMouseEnabled(false);
+        m_playedScroll->setMouseEnabled(true);
     }
 }

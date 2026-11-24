@@ -1,27 +1,26 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
+
 #include <nodes/calculator/CalculatorMode.hpp>
 
 class BeforeCalcMode : public CalculatorMode {
-    protected:
-        bool init(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate);
+public:
+    static BeforeCalcMode* create(CCSize size, Function<void(std::string const&)> onVariablesChanged, Function<void(std::string const&)> onCalculate);
 
-        TextInput* beforePercentInput;
+    std::string getName() const override;
+    std::string getDescription() const override;
 
-        bool isGeneral;
+    void sendVars();
 
-    public:
-        static BeforeCalcMode* create(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate);
+    void calculate() override;
+    void open() override;
+    void close() override;
+    
+protected:
+    bool init(CCSize size, Function<void(std::string const&)> onVariablesChanged, Function<void(std::string const&)> onCalculate);
 
-        std::string getName() const override;
-        std::string getDescription() const override;
+    TextInput* m_beforePercentInput;
 
-        void sendVars();
-
-        void calculate() override;
-        void open() override;
-        void close() override;
+    bool m_isGeneral;
 };

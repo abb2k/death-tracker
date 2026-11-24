@@ -24,43 +24,43 @@ class LinkOptions : public OptionsNode {
         void onGetLevels(GetLevelsFuture::Output const& out);
         void onGetLevelsProgress(const GetLevelsTaskProgress& progress);
 
-        std::shared_ptr<std::atomic<LinkOptions*>> callbackOwner = std::make_shared<std::atomic<LinkOptions*>>(nullptr);
-        std::vector<LinkData> cachedLevels;
-        bool levelsLoaded = false;
-        bool levelsLoading = false;
+        std::shared_ptr<std::atomic<LinkOptions*>> m_callbackOwner = std::make_shared<std::atomic<LinkOptions*>>(nullptr);
+        std::vector<LinkData> m_cachedLevels;
+        bool m_levelsLoaded = false;
+        bool m_levelsLoading = false;
 
-        unsigned int currentLinkedPage = 0;
-        unsigned int currentPlayedPage = 0;
+        unsigned int m_currentLinkedPage = 0;
+        unsigned int m_currentPlayedPage = 0;
 
-        std::optional<unsigned int> maxLinkedPage;
-        std::optional<unsigned int> maxPlayedPage;
+        std::optional<unsigned int> m_maxLinkedPage;
+        std::optional<unsigned int> m_maxPlayedPage;
 
         void updateScrollsContent(GetLevelsFuture::Output const& levels);
 
-        ScrollLayer* linkedScroll;
-        ScrollLayer* playedScroll;
+        ScrollLayer* m_linkedScroll;
+        ScrollLayer* m_playedScroll;
 
-        SimpleTextArea* nonePlayedFoundText;
-        SimpleTextArea* noneLinkedFoundText;
+        SimpleTextArea* m_nonePlayedFoundText;
+        SimpleTextArea* m_noneLinkedFoundText;
 
-        static const int PER_PAGE_COUNT;
+        static constexpr int PER_PAGE_COUNT = 10;
 
         void onLinkCellClicked(const std::string& levelKey, bool isLeftAligned);
 
         void onSwitchedPage(CCObject* sender);
         void updatePageLabels();
-        geode::Label* playedScrollPageLabel;
-        geode::Label* linkedScrollPageLabel;
+        geode::Label* m_playedScrollPageLabel;
+        geode::Label* m_linkedScrollPageLabel;
 
-        std::string searchStr;
-        bool searchForID = false;
-        TextInput* searchBar;
+        std::string m_searchStr;
+        bool m_searchForID = false;
+        TextInput* m_searchBar;
 
         void update(float dt) override;
 
-        geode::Label* loadingLabel;
-        LoadingCircle* loadingCircle;
-        CCScale9Sprite* loadingShadow;
+        geode::Label* m_loadingLabel;
+        LoadingCircle* m_loadingCircle;
+        CCScale9Sprite* m_loadingShadow;
 
     public:
         virtual void onOpened() override;

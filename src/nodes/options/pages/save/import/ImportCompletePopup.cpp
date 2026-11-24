@@ -14,34 +14,33 @@ ImportCompletePopup* ImportCompletePopup::create(LevelData&& data, std::vector<S
 
 bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _sessions) {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-    // @geode-ignore(unknown-resource)
     if (!Popup::init(250, 250, "geode.loader/GE_square01.png"))
         return false;
     setTitle("Import Complete");
 
-    this->data = std::move(_data);
-    this->sessions = std::move(_sessions);
+    this->m_data = std::move(_data);
+    this->m_sessions = std::move(_sessions);
 
-    generalView = ScrollLayer::create({m_size.width / 2.25f, 150});
-    generalView->ignoreAnchorPointForPosition(false);
-    generalView->setAnchorPoint({0, 1});
-    generalView->setZOrder(1);
-    generalView->setPosition({
+    m_generalView = ScrollLayer::create({m_size.width / 2.25f, 150});
+    m_generalView->ignoreAnchorPointForPosition(false);
+    m_generalView->setAnchorPoint({0, 1});
+    m_generalView->setZOrder(1);
+    m_generalView->setPosition({
         10,
         m_size.height - (m_size.height - m_title->getPositionY()) - m_title->getScaledContentHeight()
     });
-    generalView->m_contentLayer->setLayout(ColumnLayout::create()
-        ->setAutoGrowAxis(generalView->getContentHeight())
+    m_generalView->m_contentLayer->setLayout(ColumnLayout::create()
+        ->setAutoGrowAxis(m_generalView->getContentHeight())
         ->setAxisAlignment(AxisAlignment::End)
         ->setCrossAxisAlignment(AxisAlignment::Center)
         ->setCrossAxisOverflow(false)
     );
-    m_mainLayer->addChild(generalView);
+    m_mainLayer->addChild(m_generalView);
 
     auto generalViewBG = CCScale9Sprite::create("square02_small.png");
-    generalViewBG->setAnchorPoint(generalView->getAnchorPoint());
-    generalViewBG->setPosition(generalView->getPosition() - ccp(5, -5) / 2);
-    generalViewBG->setContentSize(generalView->getContentSize() + ccp(5, 5));
+    generalViewBG->setAnchorPoint(m_generalView->getAnchorPoint());
+    generalViewBG->setPosition(m_generalView->getPosition() - ccp(5, -5) / 2);
+    generalViewBG->setContentSize(m_generalView->getContentSize() + ccp(5, 5));
     generalViewBG->setOpacity(120);
     m_mainLayer->addChild(generalViewBG);
 
@@ -54,43 +53,43 @@ bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _s
     });
     m_mainLayer->addChild(sessionLabel);
 
-    sessionView = ScrollLayer::create({m_size.width / 2.25f, 150  - sessionLabel->getScaledContentHeight() - 5});
-    sessionView->ignoreAnchorPointForPosition(false);
-    sessionView->setAnchorPoint({1, 1});
-    sessionView->setZOrder(1);
-    sessionView->setPosition({
+    m_sessionView = ScrollLayer::create({m_size.width / 2.25f, 150  - sessionLabel->getScaledContentHeight() - 5});
+    m_sessionView->ignoreAnchorPointForPosition(false);
+    m_sessionView->setAnchorPoint({1, 1});
+    m_sessionView->setZOrder(1);
+    m_sessionView->setPosition({
         m_size.width - 10,
         m_size.height - (m_size.height - m_title->getPositionY()) - m_title->getScaledContentHeight() - sessionLabel->getScaledContentHeight() - 5
     });
-    sessionView->m_contentLayer->setLayout(ColumnLayout::create()
-        ->setAutoGrowAxis(sessionView->getContentHeight())
+    m_sessionView->m_contentLayer->setLayout(ColumnLayout::create()
+        ->setAutoGrowAxis(m_sessionView->getContentHeight())
         ->setAxisAlignment(AxisAlignment::End)
         ->setCrossAxisAlignment(AxisAlignment::Center)
         ->setCrossAxisOverflow(false)
     );
-    m_mainLayer->addChild(sessionView);
+    m_mainLayer->addChild(m_sessionView);
 
     auto sessionViewBG = CCScale9Sprite::create("square02_small.png");
-    sessionViewBG->setAnchorPoint(sessionView->getAnchorPoint());
-    sessionViewBG->setPosition(sessionView->getPosition() - ccp(-5, -5) / 2);
-    sessionViewBG->setContentSize(sessionView->getContentSize() + ccp(5, 5));
+    sessionViewBG->setAnchorPoint(m_sessionView->getAnchorPoint());
+    sessionViewBG->setPosition(m_sessionView->getPosition() - ccp(-5, -5) / 2);
+    sessionViewBG->setContentSize(m_sessionView->getContentSize() + ccp(5, 5));
     sessionViewBG->setOpacity(120);
     m_mainLayer->addChild(sessionViewBG);
 
     DTLabelInfo info;
-    info.labelName = "General Data";
-    info.scale = .3f;
-    info.wrapping = WrappingMode::SPACE_WRAP;
-    info.isExpanded = true;
+    info.m_labelName = "General Data";
+    info.m_scale = .3f;
+    info.m_wrapping = WrappingMode::SPACE_WRAP;
+    info.m_isExpanded = true;
 
-    if (data.from0.isErr()) {
-        info.text = "No found general data!";
+    if (m_data.m_from0.isErr()) {
+        info.m_text = "No found general data!";
     }
     else {
-        auto& f0 = data.from0.unwrap();
+        auto& f0 = m_data.m_from0.unwrap();
 
         std::string str = "Playtime{nl}" + StatsManager::workingTime(
-            f0.playtimeGeneral.playtimeF0 + f0.playtimeGeneral.playtimeRuns
+            f0.m_playtimeGeneral.m_playtimeF0 + f0.m_playtimeGeneral.m_playtimeRuns
         );
         
         str += "{nl} {nl}From 0:{nl}";
@@ -98,11 +97,11 @@ bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _s
         std::string f0Str;
 
         DTLayer::get()->createDeathsString(
-            f0.deaths,
-            data.metadata,
+            f0.m_deaths,
+            m_data.m_metadata,
             Save::getFrom0Customazations(),
             f0Str,
-            f0.newBests,
+            f0.m_newBests,
             Save::getNewBestCustomizations(),
             true
         );
@@ -112,8 +111,8 @@ bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _s
         std::string runsStr;
 
         DTLayer::get()->createDeathsString(
-            f0.runs,
-            data.metadata,
+            f0.m_runs,
+            m_data.m_metadata,
             Save::getRunsCustomazations(),
             runsStr
         );
@@ -122,38 +121,38 @@ bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _s
 
         str += runsStr;
 
-        info.text = str;
+        info.m_text = str;
     }
 
     auto label = DTLabel::create(info);
     label->setExpandable(false);
-    label->setContentWidth(generalView->getContentWidth());
-    generalView->m_contentLayer->addChild(label);
+    label->setContentWidth(m_generalView->getContentWidth());
+    m_generalView->m_contentLayer->addChild(label);
 
-    for (const auto& session : sessions)
+    for (const auto& session : m_sessions)
     {
-        sessionView->m_contentLayer->addChild(SessionCell::create(sessionView->getContentWidth(), session));
+        m_sessionView->m_contentLayer->addChild(SessionCell::create(m_sessionView->getContentWidth(), session));
     }
     
-    sessionView->m_contentLayer->updateLayout();
+    m_sessionView->m_contentLayer->updateLayout();
 
     auto btnMenu = CCMenu::create();
     btnMenu->setPosition({0,0});
     m_mainLayer->addChild(btnMenu);
 
-    DoAddGeneralToggler = SimpleToggler::createWithDefaults(
+    m_DoAddGeneralToggler = SimpleToggler::createWithDefaults(
         .6f,
         true
     );
-    DoAddGeneralToggler->setPosition(generalViewBG->getPosition() + ccp(
-        DoAddGeneralToggler->getScaledContentWidth() / 2 + 5,
-        -generalViewBG->getScaledContentHeight() - DoAddGeneralToggler->getScaledContentHeight() / 2 - 5)
+    m_DoAddGeneralToggler->setPosition(generalViewBG->getPosition() + ccp(
+        m_DoAddGeneralToggler->getScaledContentWidth() / 2 + 5,
+        -generalViewBG->getScaledContentHeight() - m_DoAddGeneralToggler->getScaledContentHeight() / 2 - 5)
     );
-    btnMenu->addChild(DoAddGeneralToggler);
+    btnMenu->addChild(m_DoAddGeneralToggler);
 
     auto DoAddGeneralTogglerLabel = geode::Label::create("Add General", "bigFont.fnt");
     DoAddGeneralTogglerLabel->setScale(.35f);
-    DoAddGeneralTogglerLabel->setPosition(DoAddGeneralToggler->getPosition() + ccp(DoAddGeneralTogglerLabel->getScaledContentWidth() / 2 + DoAddGeneralToggler->getScaledContentWidth() / 2 + 5, 0));
+    DoAddGeneralTogglerLabel->setPosition(m_DoAddGeneralToggler->getPosition() + ccp(DoAddGeneralTogglerLabel->getScaledContentWidth() / 2 + m_DoAddGeneralToggler->getScaledContentWidth() / 2 + 5, 0));
     btnMenu->addChild(DoAddGeneralTogglerLabel);
 
     auto deselectAllSessionBtnSpr = ButtonSprite::create("Deselect All", "goldFont.fnt", "GJ_button_06.png");
@@ -217,123 +216,123 @@ bool ImportCompletePopup::init(LevelData&& _data, std::vector<Session> const& _s
 }
 
 void ImportCompletePopup::update(float dt) {
-    float prevHeight = generalView->m_contentLayer->getContentHeight();
-    generalView->m_contentLayer->updateLayout();
-    if (generalView->m_contentLayer->getContentHeight() != prevHeight)
-        generalView->moveToTop();
+    float prevHeight = m_generalView->m_contentLayer->getContentHeight();
+    m_generalView->m_contentLayer->updateLayout();
+    if (m_generalView->m_contentLayer->getContentHeight() != prevHeight)
+        m_generalView->moveToTop();
 
     auto mousePos = getMousePos();
 
-    CCRect generalViewRect = {generalView->getPositionX(), generalView->getPositionY(), generalView->getScaledContentSize().width, generalView->getScaledContentSize().height};
+    CCRect generalViewRect = {m_generalView->getPositionX(), m_generalView->getPositionY(), m_generalView->getScaledContentSize().width, m_generalView->getScaledContentSize().height};
 
-    CCRect sessionViewRect = {sessionView->getPositionX(), sessionView->getPositionY(), sessionView->getScaledContentSize().width, sessionView->getScaledContentSize().height};
+    CCRect sessionViewRect = {m_sessionView->getPositionX(), m_sessionView->getPositionY(), m_sessionView->getScaledContentSize().width, m_sessionView->getScaledContentSize().height};
 
-    if (generalViewRect.containsPoint(generalView->getParent()->convertToNodeSpace(mousePos))) {
-        generalView->setMouseEnabled(true);
-        sessionView->setMouseEnabled(false);
+    if (generalViewRect.containsPoint(m_generalView->getParent()->convertToNodeSpace(mousePos))) {
+        m_generalView->setMouseEnabled(true);
+        m_sessionView->setMouseEnabled(false);
     }
-    else if (sessionViewRect.containsPoint(sessionView->getParent()->convertToNodeSpace(mousePos))) {
-        generalView->setMouseEnabled(false);
-        sessionView->setMouseEnabled(true);
+    else if (sessionViewRect.containsPoint(m_sessionView->getParent()->convertToNodeSpace(mousePos))) {
+        m_generalView->setMouseEnabled(false);
+        m_sessionView->setMouseEnabled(true);
     }
 }
 
 void ImportCompletePopup::selectAllSessions(CCObject*) {
-    for (const auto& SCell : sessionView->m_contentLayer->getChildrenExt<SessionCell*>())
+    for (const auto& SCell : m_sessionView->m_contentLayer->getChildrenExt<SessionCell*>())
     {
         SCell->setSelected(true);
     }
 }
 void ImportCompletePopup::deselectAllSessions(CCObject*) {
-    for (const auto& SCell : sessionView->m_contentLayer->getChildrenExt<SessionCell*>())
+    for (const auto& SCell : m_sessionView->m_contentLayer->getChildrenExt<SessionCell*>())
     {
         SCell->setSelected(false);
     }
 }
 
 void ImportCompletePopup::onCombine(CCObject*) {
-    combineAlert = FLAlertLayer::create(this, "Warning!", "Are you sure you want to combine these saves?\n \nCombining would merge this imported save with your existing data.\n \nThis change is not easily revertible.", "Cancel", "Combine");
-    combineAlert->show();
+    m_combineAlert = FLAlertLayer::create(this, "Warning!", "Are you sure you want to combine these saves?\n \nCombining would merge this imported save with your existing data.\n \nThis change is not easily revertible.", "Cancel", "Combine");
+    m_combineAlert->show();
 }
 
 void ImportCompletePopup::onOverride(CCObject*) {
-    overrideAlert = FLAlertLayer::create(this, "Warning!", "Are you sure you want to override your save with this imported one?\n \nOverriding would erase all existing data from the level and replace it with the data from the imported save.\n \nThis change is irrevertible.", "Cancel", "Override");
-    overrideAlert->show();
+    m_overrideAlert = FLAlertLayer::create(this, "Warning!", "Are you sure you want to override your save with this imported one?\n \nOverriding would erase all existing data from the level and replace it with the data from the imported save.\n \nThis change is irrevertible.", "Cancel", "Override");
+    m_overrideAlert->show();
 }
 
 void ImportCompletePopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
     if (!btn2) return;
 
     std::vector<Session> selectedSessions{};
-    for (const auto& SCell : sessionView->m_contentLayer->getChildrenExt<SessionCell*>())
+    for (const auto& SCell : m_sessionView->m_contentLayer->getChildrenExt<SessionCell*>())
     {
         if (SCell->isSelected())
             selectedSessions.push_back(SCell->getSession());
     }
     
 
-    if (combineAlert == layer) {
+    if (m_combineAlert == layer) {
         auto& stats = DTLayer::get()->m_MyLevelStats.unwrap();
-        auto key = stats.levelKey;
+        auto key = stats.m_levelKey;
 
-        if (DoAddGeneralToggler->isToggled()) {
-            if (stats.from0.isErr() && data.from0.isOk())
-                (void)StatsManager::setGeneral(data.from0.unwrap(), key);
-            else if (data.from0.isOk()) {
-                auto generalData = stats.from0.unwrap();
-                generalData += data.from0.unwrap();
+        if (m_DoAddGeneralToggler->isToggled()) {
+            if (stats.m_from0.isErr() && m_data.m_from0.isOk())
+                (void)StatsManager::setGeneral(m_data.m_from0.unwrap(), key);
+            else if (m_data.m_from0.isOk()) {
+                auto generalData = stats.m_from0.unwrap();
+                generalData += m_data.m_from0.unwrap();
                 (void)StatsManager::setGeneral(generalData, key);
             }
         }
 
         for (auto& session : selectedSessions)
         {
-            if (DTLayer::get()->m_MyLevelStats.unwrap().sessionNames.contains(session.sessionStartDate)) {
-                auto currSession = StatsManager::getSession(key, session.sessionStartDate);
+            if (DTLayer::get()->m_MyLevelStats.unwrap().m_sessionNames.contains(session.m_sessionStartDate)) {
+                auto currSession = StatsManager::getSession(key, session.m_sessionStartDate);
                 if (currSession.isErr())
-                    (void)StatsManager::setSession(session, key, session.sessionStartDate, false);
+                    (void)StatsManager::setSession(session, key, session.m_sessionStartDate, false);
                 else {
                     auto sess = currSession.unwrap();
-                    sess.data += session.data;
-                    sess.dataIsOverride = !DoAddGeneralToggler->isToggled();
-                    (void)StatsManager::setSession(sess, key, session.sessionStartDate, false);
+                    sess.m_data += session.m_data;
+                    sess.m_dataIsOverride = !m_DoAddGeneralToggler->isToggled();
+                    (void)StatsManager::setSession(sess, key, session.m_sessionStartDate, false);
                 }
             }
             else {
-                session.dataIsOverride = !DoAddGeneralToggler->isToggled();
-                (void)StatsManager::setSession(session, key, session.sessionStartDate, false);
+                session.m_dataIsOverride = !m_DoAddGeneralToggler->isToggled();
+                (void)StatsManager::setSession(session, key, session.m_sessionStartDate, false);
             }
         }
     }
-    else if (overrideAlert == layer) {
+    else if (m_overrideAlert == layer) {
         auto& stats = DTLayer::get()->m_MyLevelStats.unwrap();
-        auto key = stats.levelKey;
+        auto key = stats.m_levelKey;
         if (selectedSessions.size()) {
             auto deleteRes = StatsManager::deleteAllSessions(key);
             if (deleteRes.isErr()) return;
         }
 
-        if (DoAddGeneralToggler->isToggled()) {
-            if (data.from0.isErr()) {
-                stats.from0 = Ok(GeneralData{});
+        if (m_DoAddGeneralToggler->isToggled()) {
+            if (m_data.m_from0.isErr()) {
+                stats.m_from0 = Ok(GeneralData{});
             }
             else {
-                stats.from0 = Ok(data.from0.unwrap());
+                stats.m_from0 = Ok(m_data.m_from0.unwrap());
             }
 
-            (void)StatsManager::setGeneral(stats.from0.unwrap(), key);
+            (void)StatsManager::setGeneral(stats.m_from0.unwrap(), key);
         }
         
         for (auto& session : selectedSessions)
         {
-            session.dataIsOverride = session.dataIsOverride || !DoAddGeneralToggler->isToggled() || data.from0.isErr();
-            (void)StatsManager::setSession(session, key, session.sessionStartDate, false);
+            session.m_dataIsOverride = session.m_dataIsOverride || !m_DoAddGeneralToggler->isToggled() || m_data.m_from0.isErr();
+            (void)StatsManager::setSession(session, key, session.m_sessionStartDate, false);
         }
     }
 
     DTLayer::get()->CleanGetStats();
 
-    for (const auto& [_, key] : DTLayer::get()->specialStrings)
+    for (const auto& [_, key] : DTLayer::get()->m_specialStrings)
     {
         key->updateContent();
     }

@@ -1,8 +1,8 @@
 #include "FloatingList.hpp"
 
-FloatingList* FloatingList::create(CCSize const& size, bool startOpen) {
+FloatingList* FloatingList::create(CCSize size, bool startOpen) {
     auto ret = new FloatingList();
-    if (ret && ret->init(size, startOpen)) {
+    if (ret && ret->init(std::move(size), std::move(startOpen))) {
         ret->autorelease();
     } else {
         delete ret;
@@ -11,97 +11,97 @@ FloatingList* FloatingList::create(CCSize const& size, bool startOpen) {
     return ret;
 }
 
-bool FloatingList::init(CCSize const& size, bool startOpen) {
+bool FloatingList::init(CCSize size, bool startOpen) {
     if (!CCNode::init()) return false;
 
-    this->isOpen = startOpen;
+    this->m_isOpen = std::move(startOpen);
 
     this->setContentSize(size);
 
-    scrollLayer = ScrollLayer::create(size);
-    scrollLayer->ignoreAnchorPointForPosition(true);
-    this->addChild(scrollLayer);
+    m_scrollLayer = ScrollLayer::create(size);
+    m_scrollLayer->ignoreAnchorPointForPosition(true);
+    this->addChild(m_scrollLayer);
 
-    scrollLayer->m_contentLayer->setLayout(ColumnLayout::create()
+    m_scrollLayer->m_contentLayer->setLayout(ColumnLayout::create()
         ->setGrowCrossAxis(true)
         ->setCrossAxisOverflow(false)
-        ->setAutoGrowAxis(scrollLayer->getContentHeight())
+        ->setAutoGrowAxis(m_scrollLayer->getContentHeight())
         ->setAxisAlignment(AxisAlignment::End)
         ->setAxisReverse(true)
         ->ignoreInvisibleChildren(false)
-        ->setGap(elementOffset)
+        ->setGap(m_elementOffset)
     );
-    scrollLayer->setScaleY(startOpen ? 1 : 0);
-    scrollLayer->setVisible(startOpen);
+    m_scrollLayer->setScaleY(m_isOpen ? 1 : 0);
+    m_scrollLayer->setVisible(m_isOpen);
 
     auto listBG = CCScale9Sprite::create("square02_small.png");
     listBG->setContentSize(size);
     listBG->setOpacity(100);
     listBG->setPosition(size / 2);
-    scrollLayer->addChild(listBG, -1);
+    m_scrollLayer->addChild(listBG, -1);
 
     setOpenDirection(true);
 
-    scrollLayer->setMouseEnabled(startOpen);
-    scrollLayer->setStealingTouches(true);
-    scrollLayer->setCancelTouchLimit(0.01f);
-    scrollLayer->setKeypadEnabled(false);
-    scrollLayer->setKeyboardEnabled(false);
+    m_scrollLayer->setMouseEnabled(m_isOpen);
+    m_scrollLayer->setStealingTouches(true);
+    m_scrollLayer->setCancelTouchLimit(0.01f);
+    m_scrollLayer->setKeypadEnabled(false);
+    m_scrollLayer->setKeyboardEnabled(false);
 
-    scrollbar = Scrollbar::create(scrollLayer);
-    scrollbar->ignoreAnchorPointForPosition(false);
-    scrollbar->setPositionX(scrollLayer->getContentWidth() + 4);
-    scrollbar->setPositionY(scrollLayer->getContentHeight() / 2);
-    scrollbar->setScaleY(0);
-    this->addChild(scrollbar);
+    m_scrollbar = Scrollbar::create(m_scrollLayer);
+    m_scrollbar->ignoreAnchorPointForPosition(false);
+    m_scrollbar->setPositionX(m_scrollLayer->getContentWidth() + 4);
+    m_scrollbar->setPositionY(m_scrollLayer->getContentHeight() / 2);
+    m_scrollbar->setScaleY(0);
+    this->addChild(m_scrollbar);
 
-    clickArea = CCNode::create();
-    clickArea->setPosition(scrollLayer->getContentSize() / 2);
-    clickArea->setAnchorPoint({.5f, .5f});
-    clickArea->setContentSize(size + ccp(
+    m_clickArea = CCNode::create();
+    m_clickArea->setPosition(m_scrollLayer->getContentSize() / 2);
+    m_clickArea->setAnchorPoint({.5f, .5f});
+    m_clickArea->setContentSize(size + ccp(
         40,
         40
     ));
-    this->addChild(clickArea);
+    this->addChild(m_clickArea);
     
-    scrollbar->setTouchEnabled(startOpen);
+    m_scrollbar->setTouchEnabled(m_isOpen);
 
     return true;
 }
 
 void FloatingList::addItem(const FloatingListItem& text) {
-    for (const auto& [_, item] : itemIds) {
-        if (item.id == text.id)
+    for (const auto& [_, item] : m_itemIds) {
+        if (item.m_id == text.m_id)
             return;
     }
 
     float off = 5;
 
     CCMenuItemSpriteExtra* sideBtn = nullptr;
-    if (text.sideButtonSprite != nullptr) {
+    if (text.m_sideButtonSprite != nullptr) {
         sideBtn = CCMenuItemSpriteExtra::create(
-            text.sideButtonSprite,
+            text.m_sideButtonSprite,
             this,
             menu_selector(FloatingList::sideBtnClicked)
         );
-        sideBtn->setTag(text.id);
+        sideBtn->setTag(text.m_id);
     }
 
-    auto buttonSpr = ButtonSprite::create(text.text.c_str(), text.font.c_str(), text.BGTexture.c_str());
+    auto buttonSpr = ButtonSprite::create(text.m_text.c_str(), text.m_font.c_str(), text.m_BGTexture.c_str());
     float wantedScaleX = (this->getContentWidth() - off - (sideBtn != nullptr ? sideBtn->getContentWidth() : 0)) / buttonSpr->getContentWidth();
-    float wantedScaleY = (elementHeight - off) / buttonSpr->getContentHeight();
+    float wantedScaleY = (m_elementHeight - off) / buttonSpr->getContentHeight();
     buttonSpr->setScale(wantedScaleX > wantedScaleY ? wantedScaleY : wantedScaleX);
     auto buttonItem = CCMenuItemSpriteExtra::create(
         buttonSpr,
         this,
         menu_selector(FloatingList::itemClicked)
     );
-    buttonItem->setTag(text.id);
+    buttonItem->setTag(text.m_id);
 
     auto menu = CCMenu::createWithItem(buttonItem);
     menu->setContentSize({
         this->getContentWidth(),
-        elementHeight
+        m_elementHeight
     });
     buttonItem->setPosition(menu->getContentSize() / 2);
 
@@ -116,18 +116,18 @@ void FloatingList::addItem(const FloatingListItem& text) {
     itemBG->setPosition(menu->getContentSize() / 2);
     menu->addChild(itemBG, -1);
     
-    buttonItem->setEnabled(isOpen);
+    buttonItem->setEnabled(m_isOpen);
 
-    scrollLayer->m_contentLayer->addChild(menu);
+    m_scrollLayer->m_contentLayer->addChild(menu);
     updateListLayout();
-    itemIds[buttonItem] = text;
+    m_itemIds[buttonItem] = text;
     if (sideBtn != nullptr) {
         buttonItem->setPositionX(buttonItem->getPositionX() - sideBtn->getContentWidth() / 2 - 1);
         sideBtn->setPosition(buttonItem->getPosition() + ccp(
             buttonItem->getContentWidth() / 2 + sideBtn->getContentWidth() / 2 + 2,
             0
         ));
-        extraButtonsItemIds[sideBtn] = text;
+        m_extraButtonsItemIds[sideBtn] = text;
     }
 }
 void FloatingList::addItems(const std::vector<FloatingListItem>& texts) {
@@ -138,8 +138,8 @@ void FloatingList::addItems(const std::vector<FloatingListItem>& texts) {
 
 void FloatingList::removeItem(int id) {
     CCMenuItemSpriteExtra* element = nullptr;
-    for (const auto& [_, item] : itemIds) {
-        if (item.id == id) {
+    for (const auto& [_, item] : m_itemIds) {
+        if (item.m_id == id) {
             element = _;
             break;
         }
@@ -149,18 +149,18 @@ void FloatingList::removeItem(int id) {
 
     CCMenuItemSpriteExtra* extraToRemove = nullptr;
 
-    for (const auto& [item, _] : extraButtonsItemIds) {
-        if (_.id == id) {
+    for (const auto& [item, _] : m_extraButtonsItemIds) {
+        if (_.m_id == id) {
             extraToRemove = item;
             break;
         }
     }
 
     if (extraToRemove != nullptr) {
-        extraButtonsItemIds.erase(extraToRemove);
+        m_extraButtonsItemIds.erase(extraToRemove);
     }
 
-    itemIds.erase(element);
+    m_itemIds.erase(element);
 
     element->getParent()->removeMeAndCleanup();
     updateListLayout();
@@ -169,94 +169,93 @@ void FloatingList::removeItem(int id) {
 void FloatingList::clearAllItems() {
     std::set<int> ids{};
 
-    for (const auto& [_, item] : itemIds) {
-        ids.insert(item.id);
+    for (const auto& [_, item] : m_itemIds) {
+        ids.insert(item.m_id);
     }
 
     for (const auto& id : ids)
     {
         removeItem(id);
     }
-    
 }
 
 void FloatingList::open() {
-    isOpen = true;
+    m_isOpen = true;
 
-    scrollLayer->moveToTop();
+    m_scrollLayer->moveToTop();
 
-    scrollLayer->stopAllActions();
-    scrollLayer->setVisible(true);
-    scrollLayer->runAction(CCEaseInOut::create(CCScaleTo::create(0.1f, 1, 1), 2));
+    m_scrollLayer->stopAllActions();
+    m_scrollLayer->setVisible(true);
+    m_scrollLayer->runAction(CCEaseInOut::create(CCScaleTo::create(0.1f, 1, 1), 2));
     
-    scrollbar->stopAllActions();
-    scrollbar->runAction(CCEaseInOut::create(CCScaleTo::create(0.1f, 1, 1), 2));
+    m_scrollbar->stopAllActions();
+    m_scrollbar->runAction(CCEaseInOut::create(CCScaleTo::create(0.1f, 1, 1), 2));
 
     setItemEnabled(true);
 
-    scrollLayer->setMouseEnabled(isOpen);
-    scrollbar->setTouchEnabled(isOpen);
+    m_scrollLayer->setMouseEnabled(m_isOpen);
+    m_scrollbar->setTouchEnabled(m_isOpen);
 }
 
 void FloatingList::close() {
-    isOpen = false;
+    m_isOpen = false;
 
-    scrollLayer->stopAllActions();
-    scrollLayer->runAction(CCSequence::create(
+    m_scrollLayer->stopAllActions();
+    m_scrollLayer->runAction(CCSequence::create(
         CCEaseInOut::create(CCScaleTo::create(0.1f, 1, 0), 2),
         CCHide::create(),
         nullptr
     ));
     
-    scrollbar->stopAllActions();
-    scrollbar->runAction(CCEaseInOut::create(CCScaleTo::create(0.1f, 1, 0), 2));
+    m_scrollbar->stopAllActions();
+    m_scrollbar->runAction(CCEaseInOut::create(CCScaleTo::create(0.1f, 1, 0), 2));
 
     setItemEnabled(false);
 
-    scrollLayer->setMouseEnabled(isOpen);
-    scrollbar->setTouchEnabled(isOpen);
+    m_scrollLayer->setMouseEnabled(m_isOpen);
+    m_scrollbar->setTouchEnabled(m_isOpen);
 }
 
 void FloatingList::setItemEnabled(bool isEnabled) {
-    for (const auto& [item, _] : itemIds) {
+    for (const auto& [item, _] : m_itemIds) {
         item->setEnabled(isEnabled);
     }
-    for (const auto& [item, _] : extraButtonsItemIds) {
+    for (const auto& [item, _] : m_extraButtonsItemIds) {
         item->setEnabled(isEnabled);
     }
 }
 
 void FloatingList::setCallback(Function<void(const int& id)> callback) {
-    onItemClicked = std::move(callback);
+    m_onItemClicked = std::move(callback);
 }
 
 void FloatingList::itemClicked(CCObject* sender) {
     auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
-    if (!itemIds.contains(btn)) return;
+    if (!m_itemIds.contains(btn)) return;
 
-    if (onItemClicked) onItemClicked(itemIds[btn].id);
+    if (m_onItemClicked) m_onItemClicked(m_itemIds[btn].m_id);
 }
 
 void FloatingList::sideBtnClicked(CCObject* sender) {
     auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
-    if (!extraButtonsItemIds.contains(btn)) return;
+    if (!m_extraButtonsItemIds.contains(btn)) return;
 
-    extraButtonsItemIds[btn].sideButtonCallback(extraButtonsItemIds[btn].id);
+    m_extraButtonsItemIds[btn].m_sideButtonCallback(m_extraButtonsItemIds[btn].m_id);
 }
 
 void FloatingList::setOpenDirection(bool openUpwards) {
     if (openUpwards) {
-        scrollLayer->setAnchorPoint({0.5f, 0});
-        scrollLayer->setPositionY(0);
+        m_scrollLayer->setAnchorPoint({0.5f, 0});
+        m_scrollLayer->setPositionY(0);
     }
     else {
-        scrollLayer->setAnchorPoint({0.5f, 1});
-        scrollLayer->setPositionY(this->getContentHeight());
+        m_scrollLayer->setAnchorPoint({0.5f, 1});
+        m_scrollLayer->setPositionY(this->getContentHeight());
     }
 }
 
 std::optional<FloatingListItem> FloatingList::getItemForID(int id) {
-    for (const auto& [btn, item] : itemIds)
+    for (const auto& [btn, item] : m_itemIds)
     {
         if (btn->getTag() == id)
             return item;
@@ -266,13 +265,13 @@ std::optional<FloatingListItem> FloatingList::getItemForID(int id) {
 }
 
 bool FloatingList::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) {
-    auto area = clickArea->convertTouchToNodeSpace(pTouch);
+    auto area = m_clickArea->convertTouchToNodeSpace(pTouch);
 
-    if (isOpen) {
+    if (m_isOpen) {
         if (!(area.x >= 0 && 
             area.y >= 0 && 
-            area.x <= clickArea->getContentWidth() && 
-            area.y <= clickArea->getContentHeight()
+            area.x <= m_clickArea->getContentWidth() &&
+            area.y <= m_clickArea->getContentHeight()
         )) {
             close();
         }
@@ -292,11 +291,11 @@ void FloatingList::onExit() {
 }
 
 void FloatingList::setEnabled(bool b) {
-    for (const auto& [btn, _] : itemIds)
+    for (const auto& [btn, _] : m_itemIds)
     {
         btn->setEnabled(b);
     }
-    for (const auto& [btn, _] : extraButtonsItemIds)
+    for (const auto& [btn, _] : m_extraButtonsItemIds)
     {
         btn->setEnabled(b);
     }
@@ -305,23 +304,21 @@ void FloatingList::setEnabled(bool b) {
 void FloatingList::updateListLayout() {
     std::set<CCNode*> invisNodes{};
 
-    for (const auto& child : scrollLayer->m_contentLayer->getChildrenExt<CCNode*>())
+    for (const auto& child : m_scrollLayer->m_contentLayer->getChildrenExt<CCNode*>())
     {
         if (!child->isVisible())
             invisNodes.insert(child);
         child->setVisible(true);
     }
-    
 
-    scrollLayer->m_contentLayer->updateLayout();
+    m_scrollLayer->m_contentLayer->updateLayout();
 
     for (const auto& invis : invisNodes)
     {
         invis->setVisible(false);
     }
-    
 }
 
 void FloatingList::setListOpenAnchor(CCPoint const& anchor) {
-    scrollLayer->setAnchorPoint(anchor);
+    m_scrollLayer->setAnchorPoint(anchor);
 }

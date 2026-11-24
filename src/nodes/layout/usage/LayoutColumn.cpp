@@ -1,15 +1,16 @@
 #include "LayoutColumn.hpp"
 
 #include <nodes/DTLayer.hpp>
+#include <nodes/layout/usage/DTLabel.hpp>
 #include <nodes/general/TouchSender.hpp>
 
 float LayoutColumn::borderWidth = 2;
 float LayoutColumn::addNewBtnOffset = 15;
 float LayoutColumn::topHeight = 20;
 
-LayoutColumn* LayoutColumn::create(const DTColumnInfo& info, bool startVisible, float minHeight) {
+LayoutColumn* LayoutColumn::create(DTColumnInfo info, bool startVisible, float minHeight) {
     auto ret = new LayoutColumn();
-    if (ret && ret->init(info, startVisible, minHeight)) {
+    if (ret && ret->init(std::move(info), std::move(startVisible), std::move(minHeight))) {
         ret->autorelease();
     } else {
         delete ret;
@@ -18,56 +19,58 @@ LayoutColumn* LayoutColumn::create(const DTColumnInfo& info, bool startVisible, 
     return ret;
 }
 
-bool LayoutColumn::init(const DTColumnInfo& info, bool startVisible, float minHeight) {
+bool LayoutColumn::init(DTColumnInfo info, bool startVisible, float minHeight) {
     if (!CCMenu::init()) return false;
 
-    this->info = info;
+    this->m_info = std::move(info);
 
-    this->setZOrder(info.orderPos);
+    m_isVisible = std::move(startVisible);
 
-    this->minHeight = minHeight;
+    this->setZOrder(m_info.m_orderPos);
 
-    topSpr = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
-    topSpr->setID("top-spr");
-    topSpr->setAnchorPoint({0, 1});
-    this->addChild(topSpr);
+    this->m_minHeight = std::move(minHeight);
 
-    bgSpr = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
-    bgSpr->setID("bg-spr");
-    bgSpr->setAnchorPoint({0, 1});
-    bgSpr->setOpacity(bgOpacity);
-    bgSpr->setVisible(false);
-    this->addChild(bgSpr);
+    m_topSpr = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
+    m_topSpr->setID("top-spr");
+    m_topSpr->setAnchorPoint({0, 1});
+    this->addChild(m_topSpr);
 
-    topBorder1 = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
-    topBorder1->setID("top-border-1");
-    topBorder1->setAnchorPoint({0, 1});
-    topBorder1->setColor({0,0,0});
-    this->addChild(topBorder1);
+    m_bgSpr = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
+    m_bgSpr->setID("bg-spr");
+    m_bgSpr->setAnchorPoint({0, 1});
+    m_bgSpr->setOpacity(m_bgOpacity);
+    m_bgSpr->setVisible(false);
+    this->addChild(m_bgSpr);
 
-    topBorder2 = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
-    topBorder2->setID("top-border-2");
-    topBorder2->setAnchorPoint({1, 1});
-    topBorder2->setColor({0,0,0});
-    this->addChild(topBorder2);
+    m_topBorder1 = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
+    m_topBorder1->setID("top-border-1");
+    m_topBorder1->setAnchorPoint({0, 1});
+    m_topBorder1->setColor({0,0,0});
+    this->addChild(m_topBorder1);
 
-    topBorder3 = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
-    topBorder3->setID("top-border-3");
-    topBorder3->setAnchorPoint({0, 0});
-    topBorder3->setColor({0,0,0});
-    this->addChild(topBorder3);
+    m_topBorder2 = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
+    m_topBorder2->setID("top-border-2");
+    m_topBorder2->setAnchorPoint({1, 1});
+    m_topBorder2->setColor({0,0,0});
+    this->addChild(m_topBorder2);
 
-    bgSideBorder = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
-    bgSideBorder->setID("bg-side-border");
-    bgSideBorder->setAnchorPoint({1, 1});
-    bgSideBorder->setColor({0,0,0});
-    bgSideBorder->setOpacity(bgOpacity);
-    this->addChild(bgSideBorder);
+    m_topBorder3 = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
+    m_topBorder3->setID("top-border-3");
+    m_topBorder3->setAnchorPoint({0, 0});
+    m_topBorder3->setColor({0,0,0});
+    this->addChild(m_topBorder3);
 
-    menu = CCMenu::create();
-    menu->setPosition({0, 0});
-    menu->setEnabled(startVisible);
-    this->addChild(menu);
+    m_bgSideBorder = CCScale9Sprite::createWithSpriteFrameName("dtpixel.png"_spr);
+    m_bgSideBorder->setID("bg-side-border");
+    m_bgSideBorder->setAnchorPoint({1, 1});
+    m_bgSideBorder->setColor({0,0,0});
+    m_bgSideBorder->setOpacity(m_bgOpacity);
+    this->addChild(m_bgSideBorder);
+
+    m_menu = CCMenu::create();
+    m_menu->setPosition({0, 0});
+    m_menu->setEnabled(m_isVisible);
+    this->addChild(m_menu);
 
     auto addLabelBtnSpr = CCSprite::createWithSpriteFrameName("GJ_plus3Btn_001.png");
     //addLabelBtnSpr->setScale(.5f);
@@ -76,12 +79,12 @@ bool LayoutColumn::init(const DTColumnInfo& info, bool startVisible, float minHe
         this,
         menu_selector(LayoutColumn::onAddLabelBtnClicked)
     );
-    menu->addChild(addLabelBtn);
+    m_menu->addChild(addLabelBtn);
 
     this->setAnchorPoint({0, 1});
     this->ignoreAnchorPointForPosition(false);
-    this->setContentHeight(minHeight);
-    this->setContentWidth(info.currentWidth);
+    this->setContentHeight(m_minHeight);
+    this->setContentWidth(m_info.m_currentWidth);
     
     updateSizesByContent();
 
@@ -91,85 +94,86 @@ bool LayoutColumn::init(const DTColumnInfo& info, bool startVisible, float minHe
 
     this->scheduleUpdate();
 
-    setColor(info.color);
+    setColor(m_info.m_color);
 
     auto touchSender = TouchSender::create(-502, false);
     touchSender->setID("touchSender");
-    touchSender->beginCheck = [&](cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
-        if (!isVisible) return false;
-        auto touchInParentSpace = topBorder2->getParent()->convertTouchToNodeSpace(touch);
+    touchSender->m_beginCheck = [&](cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
+        if (!m_isVisible) return false;
+        auto touchInParentSpace = m_topBorder2->getParent()->convertTouchToNodeSpace(touch);
 
-        if (topSpr->boundingBox().containsPoint(touchInParentSpace)) {
-            isTouchingTopSpr = true;
-            originalTopSprTouchPos = touchInParentSpace;
+        if (m_topSpr->boundingBox().containsPoint(touchInParentSpace)) {
+            m_isTouchingTopSpr = true;
+            m_originalTopSprTouchPos = touchInParentSpace;
             return true;
         }
 
-        isTouchingTopSpr = false;
+        m_isTouchingTopSpr = false;
 
         return false;
     };
-    touchSender->onTouch = [&](TouchSenderState state, cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
-        if (state == TouchSenderState::Moved) {
-            if (isTouchingTopSpr) {
-                auto touchInParentSpace = topBorder2->getParent()->convertTouchToNodeSpace(touch);
-        
-                auto distance = (originalTopSprTouchPos - touchInParentSpace).getLength();
 
-                if (distance > maxMovementOffset)
-                    isTouchingTopSpr = false;
+    touchSender->m_onTouch = [&](TouchSenderState state, cocos2d::CCTouch* touch, cocos2d::CCEvent* event) {
+        if (state == TouchSenderState::Moved) {
+            if (m_isTouchingTopSpr) {
+                auto touchInParentSpace = m_topBorder2->getParent()->convertTouchToNodeSpace(touch);
+        
+                auto distance = (m_originalTopSprTouchPos - touchInParentSpace).getLength();
+
+                if (distance > m_maxMovementOffset)
+                    m_isTouchingTopSpr = false;
             }
         }
         else if (state == TouchSenderState::Cancled) {
-            isTouchingTopSpr = false;
+            m_isTouchingTopSpr = false;
         }
         else if (state == TouchSenderState::Ended) {
-            if (isTouchingTopSpr) {
+            if (m_isTouchingTopSpr) {
                 DTLayer::get()->setOptionsLayerTo(this);
             }
-            isTouchingTopSpr = false;
+            m_isTouchingTopSpr = false;
         }
     };
+
     this->addChild(touchSender);
 
-    if (!startVisible) {
+    if (!m_isVisible) {
         for (const auto& child : CCArrayExt<CCNode*>(this->getChildren()))
         {
             if (auto rgbChild = typeinfo_cast<CCRGBAProtocol*>(child))
                 rgbChild->setOpacity(0);
         }
     }
-    isVisible = startVisible;
 
     return true;
 }
 
 void LayoutColumn::updateSizesByContent() {
-    if (this->getContentHeight() < minHeight) this->setContentHeight(minHeight);
+    if (this->getContentHeight() < m_minHeight) this->setContentHeight(m_minHeight);
     
-    topSpr->setContentSize({this->getContentWidth(), topHeight});
-    topSpr->setPosition({0, this->getContentHeight()});
+    m_topSpr->setContentSize({this->getContentWidth(), topHeight});
+    m_topSpr->setPosition({0, this->getContentHeight()});
 
-    topBorder1->setContentSize({topSpr->getContentWidth(), borderWidth});
-    topBorder1->setPosition(topSpr->getPosition());
+    m_topBorder1->setContentSize({m_topSpr->getContentWidth(), borderWidth});
+    m_topBorder1->setPosition(m_topSpr->getPosition());
 
-    topBorder2->setContentSize({borderWidth, topSpr->getContentHeight()});
-    topBorder2->setPosition(topSpr->getPosition() + ccp(topSpr->getContentWidth(), 0));
+    m_topBorder2->setContentSize({borderWidth, m_topSpr->getContentHeight()});
+    m_topBorder2->setPosition(m_topSpr->getPosition() + ccp(m_topSpr->getContentWidth(), 0));
 
-    topBorder3->setContentSize({topSpr->getContentWidth(), borderWidth});
-    topBorder3->setPosition(topSpr->getPosition() - ccp(0, topSpr->getContentHeight()));
+    m_topBorder3->setContentSize({m_topSpr->getContentWidth(), borderWidth});
+    m_topBorder3->setPosition(m_topSpr->getPosition() - ccp(0, m_topSpr->getContentHeight()));
 
-    bgSpr->setContentSize({this->getContentWidth(), this->getContentHeight() - topHeight});
-    bgSpr->setPosition({0, bgSpr->getContentHeight()});
+    m_bgSpr->setContentSize({this->getContentWidth(), this->getContentHeight() - topHeight});
+    m_bgSpr->setPosition({0, m_bgSpr->getContentHeight()});
     
-    bgSideBorder->setContentSize({borderWidth, bgSpr->getContentHeight()});
-    bgSideBorder->setPosition(topBorder2->getPosition() - ccp(0, topBorder2->getContentHeight()));
+    m_bgSideBorder->setContentSize({borderWidth, m_bgSpr->getContentHeight()});
+    m_bgSideBorder->setPosition(m_topBorder2->getPosition() - ccp(0, m_topBorder2->getContentHeight()));
 }
 
 void LayoutColumn::update(float dt) {
     DTLabel* lowestLabel = nullptr;
 
-    auto labelsTemp = labels;
+    auto labelsTemp = m_labels;
     for (const auto& [labelLayer, label] : labelsTemp) {
         if (lowestLabel == nullptr) {
             lowestLabel = label;
@@ -186,19 +190,19 @@ void LayoutColumn::update(float dt) {
         targetAddBtnPos = this->convertToNodeSpace(lowestLabelPointWorldSpace) - ccp(0, addNewBtnOffset);
     }
     else {
-        targetAddBtnPos = bgSpr->getPosition() + ccp(0, -addNewBtnOffset);
+        targetAddBtnPos = m_bgSpr->getPosition() + ccp(0, -addNewBtnOffset);
     }
 
     targetAddBtnPos.x = this->getContentWidth() / 2;
 
     //log::info("plus button for column {}, {} | {}", orderPos, targetAddBtnPos, tempMenuPos);
 
-    if (!targetAddBtnPos.equals(tempMenuPos)) {
-        tempMenuPos = targetAddBtnPos;
-        menu->stopActionByTag(1);
+    if (!targetAddBtnPos.equals(m_tempMenuPos)) {
+        m_tempMenuPos = targetAddBtnPos;
+        m_menu->stopActionByTag(1);
         auto btnMoveAction = CCEaseInOut::create(CCMoveTo::create(.5f, targetAddBtnPos), 2);
         btnMoveAction->setTag(1);
-        menu->runAction(btnMoveAction);
+        m_menu->runAction(btnMoveAction);
     }
 }
 
@@ -210,7 +214,7 @@ void LayoutColumn::setContentHeight(float height) {
 void LayoutColumn::setContentWidth(float width) {
     CCMenu::setContentWidth(width);
 
-    info.currentWidth = width;
+    m_info.m_currentWidth = width;
 }
 
 void LayoutColumn::registerWithTouchDispatcher() {
@@ -218,33 +222,33 @@ void LayoutColumn::registerWithTouchDispatcher() {
 }
 
 bool LayoutColumn::ccTouchBegan(CCTouch* touch, CCEvent* event) {
-    if (!isVisible) return false;
-    auto touchInParentSpace = topBorder2->getParent()->convertTouchToNodeSpace(touch);
+    if (!m_isVisible) return false;
+    auto touchInParentSpace = m_topBorder2->getParent()->convertTouchToNodeSpace(touch);
 
-    if (topBorder2->boundingBox().containsPoint(touchInParentSpace)) {
-        isTouchingSide = true;
+    if (m_topBorder2->boundingBox().containsPoint(touchInParentSpace)) {
+        m_isTouchingSide = true;
         
         return true;
     }
 
-    isTouchingSide = false;
+    m_isTouchingSide = false;
     return false;
 }
 
 void LayoutColumn::ccTouchEnded(CCTouch*, CCEvent*) {
-    isTouchingSide = false;
+    m_isTouchingSide = false;
 
     DTLayer::get()->organizeLayout();
 }
 
 void LayoutColumn::ccTouchCancelled(CCTouch*, CCEvent*) {
-    isTouchingSide = false;
+    m_isTouchingSide = false;
 
     DTLayer::get()->organizeLayout();
 }
 
 void LayoutColumn::ccTouchMoved(CCTouch* touch, CCEvent*) {
-    if (isTouchingSide) {
+    if (m_isTouchingSide) {
         auto currentWidth = this->getContentWidth();
 
         auto spacedTouchLoc = this->getParent()->convertToNodeSpace(touch->getLocation());
@@ -261,34 +265,34 @@ void LayoutColumn::ccTouchMoved(CCTouch* touch, CCEvent*) {
 }
 
 void LayoutColumn::setColor(ccColor3B color) {
-    topSpr->setColor(color);
-    bgSpr->setColor(color);
+    m_topSpr->setColor(color);
+    m_bgSpr->setColor(color);
 
-    info.color = color;
+    m_info.m_color = color;
 }
 
 void LayoutColumn::addLabel(DTLabel* label) {
     label->addColumnAsHolder(this);
-    if (labels.contains(label->info.layer)) {
-        labels[label->info.layer]->moveUpLayer();
+    if (m_labels.contains(label->m_info.m_layer)) {
+        m_labels[label->m_info.m_layer]->moveUpLayer();
     }
     
-    labels.insert({label->info.layer, label});
+    m_labels.insert({label->m_info.m_layer, label});
 }
 
 void LayoutColumn::removeLabel(DTLabel* label) {
     if (!label->isPartOfColumn(this)) return;
     label->removeColumnAsHolder(this);
 
-    this->labels.erase(label->info.layer);
+    this->m_labels.erase(label->m_info.m_layer);
 }
 
 void LayoutColumn::updateLabelPosition(DTLabel* label) {
-    if (labels.contains(label->info.layer)) {
-        labels[label->info.layer]->moveUpLayer();
+    if (m_labels.contains(label->m_info.m_layer)) {
+        m_labels[label->m_info.m_layer]->moveUpLayer();
     }
 
-    labels.insert({label->info.layer, label});
+    m_labels.insert({label->m_info.m_layer, label});
 }
 
 void LayoutColumn::onAddLabelBtnClicked(CCObject*) {
@@ -296,11 +300,11 @@ void LayoutColumn::onAddLabelBtnClicked(CCObject*) {
 
     int highestLayer = 0;
 
-    for (const auto& [labelLayer, _] : labels)
+    for (const auto& [labelLayer, _] : m_labels)
     {
         highestLayer = std::max(highestLayer, labelLayer);
     }
-    newLabel->info.layer = highestLayer + 1;
+    newLabel->m_info.m_layer = highestLayer + 1;
 
     addLabel(newLabel);
 
@@ -308,11 +312,11 @@ void LayoutColumn::onAddLabelBtnClicked(CCObject*) {
 }
 
 void LayoutColumn::onOrganized(float deltaMove) {
-    menu->setPositionY(menu->getPositionY() - deltaMove);
+    m_menu->setPositionY(m_menu->getPositionY() - deltaMove);
 }
 
 void LayoutColumn::destroyColumnAndCleanup() {
-    auto labelsTemp = labels;
+    auto labelsTemp = m_labels;
     std::set<DTLabel*> labelsToDelete{};
     for (const auto& [labelLayer, label] : labelsTemp)
     {
@@ -338,15 +342,15 @@ void LayoutColumn::destroyColumnAndCleanup() {
 }
 
 void LayoutColumn::refreshAllLabelsLayer() {
-    auto labelsbackup = labels;
+    auto labelsbackup = m_labels;
 
-    for (const auto& [labelLayer, label] : labels)
+    for (const auto& [labelLayer, label] : m_labels)
     {
         if (!label->isPartOfColumn(this)) continue;
         label->removeColumnAsHolder(this);
     }
 
-    labels.clear();
+    m_labels.clear();
 
     for (const auto& [labelLayer, label] : labelsbackup)
     {
@@ -355,15 +359,15 @@ void LayoutColumn::refreshAllLabelsLayer() {
 }
 
 void LayoutColumn::setVisibility(bool visible) {
-    isVisible = visible;
-    menu->setEnabled(visible);
+    m_isVisible = visible;
+    m_menu->setEnabled(visible);
 
     for (const auto& child : CCArrayExt<CCNode*>(this->getChildren()))
     {
         child->stopActionByTag(5);
 
         int maxOpacity = 255;
-        if (child == bgSpr || child == bgSideBorder) maxOpacity = bgOpacity;
+        if (child == m_bgSpr || child == m_bgSideBorder) maxOpacity = m_bgOpacity;
         auto opacityAction = CCFadeTo::create(.15f, visible ? maxOpacity : 0);
         opacityAction->setTag(5);
         child->runAction(opacityAction);

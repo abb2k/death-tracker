@@ -1,60 +1,58 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-#include <type_traits>
-
 using namespace geode::prelude;
 
 template<typename E>
-struct NamedEnumValue{
-    E value;
-    std::string name;
+struct NamedEnumValue {
+public:
+    E m_value;
+    std::string m_name;
 
     NamedEnumValue(E value, std::string name)
-        : value(value), name(std::move(name)) {}
+        : m_value(value), m_name(std::move(name)) {}
 };
 
 template<typename E>
 class OptionSwitcher : public CCMenu {
-    protected:
-        bool init(float width, const std::vector<NamedEnumValue<E>>& options);
+public:
+    static OptionSwitcher<E>* create(float width, std::vector<NamedEnumValue<E>> options);
 
-    public:
-        static OptionSwitcher<E>* create(float width, const std::vector<NamedEnumValue<E>>& options);
+    E getSelectedOption();
 
-        E getSelectedOption();
+    void setCallback(Function<void(E)> callback);
 
-        void setCallback(Function<void(E)> callback);
+    void setValue(int index, bool runCallback = false);
+    void setValue(E e, bool runCallback = false);
 
-        void setValue(int index, bool runCallback = false);
-        void setValue(E e, bool runCallback = false);
+private:
+    bool init(float width, std::vector<NamedEnumValue<E>> options);
 
-    private:
-        std::vector<geode::Label*> labels{};
-        std::vector<E> values{};
+    std::vector<geode::Label*> m_labels{};
+    std::vector<E> m_values{};
 
-        void onLabelClicked(CCObject* sender);
+    void onLabelClicked(CCObject* sender);
 
-        int currentOption = 0;
+    int m_currentOption = 0;
 
-        Function<void(E)> callback = nullptr;
+    Function<void(E)> m_callback = nullptr;
 };
 
 
 template<typename E>
-OptionSwitcher<E>* OptionSwitcher<E>::create(float width, const std::vector<NamedEnumValue<E>>& options) {
+OptionSwitcher<E>* OptionSwitcher<E>::create(float width, std::vector<NamedEnumValue<E>> options) {
     auto ret = new OptionSwitcher<E>();
-    if (ret && ret->init(width, options)) {
+
+    if (ret && ret->init(std::move(width), std::move(options))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+
+    delete ret;
+    return nullptr;
 }
 
 template<typename E>
-bool OptionSwitcher<E>::init(float width, const std::vector<NamedEnumValue<E>>& options) {
+bool OptionSwitcher<E>::init(float width, std::vector<NamedEnumValue<E>> options) {
     if (!CCMenu::init()) return false;
 
     this->setContentSize({ width, 30 });
@@ -72,7 +70,7 @@ bool OptionSwitcher<E>::init(float width, const std::vector<NamedEnumValue<E>>& 
 
     int index = 0;
     for (const NamedEnumValue<E>& opt : options) {
-        auto label = geode::Label::create(opt.name.c_str(), "bigFont.fnt");
+        auto label = geode::Label::create(opt.m_name.c_str(), "bigFont.fnt");
         if (label->getContentWidth() > width)
             label->setScale(width / label->getContentWidth());
         label->setPosition(labelsHolder->getContentSize() / 2);
@@ -82,8 +80,8 @@ bool OptionSwitcher<E>::init(float width, const std::vector<NamedEnumValue<E>>& 
             label->setVisible(false);
         }
 
-        this->labels.push_back(label);
-        this->values.push_back(opt.value);
+        this->m_labels.push_back(label);
+        this->m_values.push_back(opt.m_value);
         index++;
     }
 
@@ -101,48 +99,48 @@ bool OptionSwitcher<E>::init(float width, const std::vector<NamedEnumValue<E>>& 
 
 template<typename E>
 E OptionSwitcher<E>::getSelectedOption() {
-    return values[currentOption];
+    return m_values[m_currentOption];
 }
 
 template<typename E>
 void OptionSwitcher<E>::onLabelClicked(CCObject* sender) {
-    auto prevNode = labels[currentOption];
+    auto prevNode = m_labels[m_currentOption];
 
-    currentOption += 1;
-    if (currentOption >= labels.size()) currentOption = 0;
+    m_currentOption += 1;
+    if (m_currentOption >= m_labels.size()) m_currentOption = 0;
 
     prevNode->setVisible(false);
 
-    auto currNode = labels[currentOption];
+    auto currNode = m_labels[m_currentOption];
     currNode->setVisible(true);
 
-    if (callback) callback(values[currentOption]);
+    if (m_callback) m_callback(m_values[m_currentOption]);
 }
 
 template<typename E>
 void OptionSwitcher<E>::setCallback(Function<void(E)> cb) {
-    this->callback = std::move(cb);
+    this->m_callback = std::move(cb);
 }
 
 template<typename E>
 void OptionSwitcher<E>::setValue(int index, bool runCallback) {
-    auto prevNode = labels[currentOption];
+    auto prevNode = m_labels[m_currentOption];
 
-    currentOption = std::clamp(index, 0, static_cast<int>(labels.size() - 1));
+    m_currentOption = std::clamp(index, 0, static_cast<int>(m_labels.size() - 1));
 
     prevNode->setVisible(false);
 
-    auto currNode = labels[currentOption];
+    auto currNode = m_labels[m_currentOption];
     currNode->setVisible(true);
 
-    if (callback && runCallback) callback(values[currentOption]);
+    if (m_callback && runCallback) m_callback(m_values[m_currentOption]);
 }
 
 template<typename E>
 void OptionSwitcher<E>::setValue(E e, bool runCallback) {
-    for (int i = 0; i < values.size(); i++)
+    for (int i = 0; i < m_values.size(); i++)
     {
-        if (values[i] != e) continue;
+        if (m_values[i] != e) continue;
         
         setValue(i, runCallback);
         return;

@@ -29,11 +29,11 @@ class DecimalPopup : public CCNode {
         void onEnter() override;
         void onExit() override;
 
-        comm::ListenerHandle donerListenerHandle;
+        comm::ListenerHandle m_donerListenerHandle;
 
         void onClose(CCObject* sender);
 
-        Scrollbar* scrollBargame;
+        Scrollbar* m_scrollBargame;
 
-        bool isHolding;
+        bool m_isHolding;
 };

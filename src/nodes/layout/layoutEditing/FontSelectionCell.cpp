@@ -1,8 +1,8 @@
 #include "FontSelectionCell.hpp"
 
-FontSelectionCell* FontSelectionCell::create(const std::string& font, Function<void(FontSelectionCell* onSelected)> onFontChosen) {
+FontSelectionCell* FontSelectionCell::create(std::string font, Function<void(FontSelectionCell* onSelected)> onFontChosen) {
     auto ret = new FontSelectionCell();
-    if (ret && ret->init(font, std::move(onFontChosen))) {
+    if (ret && ret->init(std::move(font), std::move(onFontChosen))) {
         ret->autorelease();
     } else {
         delete ret;
@@ -11,8 +11,11 @@ FontSelectionCell* FontSelectionCell::create(const std::string& font, Function<v
     return ret;
 }
 
-bool FontSelectionCell::init(const std::string& font, Function<void(FontSelectionCell* onSelected)> onFontChosen) {
+bool FontSelectionCell::init(std::string font, Function<void(FontSelectionCell* onSelected)> onFontChosen) {
     if (!CCMenu::init()) return false;
+
+    this->m_font = std::move(font);
+    this->m_onFontChosen = std::move(onFontChosen);
 
     this->setContentSize({135, 60});
     this->setPosition({0, 0});
@@ -25,7 +28,7 @@ bool FontSelectionCell::init(const std::string& font, Function<void(FontSelectio
     bg->setOpacity(150);
     this->addChild(bg);
 
-    auto fontText = geode::Label::create(font.substr(0, font.length() - 4).c_str(), font.c_str());
+    auto fontText = geode::Label::create(m_font.substr(0, m_font.length() - 4).c_str(), m_font.c_str());
     fontText->setPosition({this->getContentWidth() / 2, 40});
     fontText->setScale(.65f);
     this->addChild(fontText);
@@ -37,37 +40,34 @@ bool FontSelectionCell::init(const std::string& font, Function<void(FontSelectio
     auto useBtnSprUnused = ButtonSprite::create("Use", "bigFont.fnt", "GJ_button_03.png");
     useBtnSprUnused->setID("unused");
     useBtnSprUnused->setScale(.55f);
-    useBtn = CCMenuItemSpriteExtra::create(
+    m_useBtn = CCMenuItemSpriteExtra::create(
         useBtnSprUnused,
         this,
         menu_selector(FontSelectionCell::onUsedClicked)
     );
     useBtnSprUsed->setPosition(useBtnSprUnused->getPosition());
-    useBtn->setPosition({this->getContentWidth() / 2, 17});
-    useBtn->addChild(useBtnSprUsed);
-    this->addChild(useBtn);
-
-    this->font = font;
-    this->onFontChosen = std::move(onFontChosen);
+    m_useBtn->setPosition({this->getContentWidth() / 2, 17});
+    m_useBtn->addChild(useBtnSprUsed);
+    this->addChild(m_useBtn);
 
     return true;
 }
 
 void FontSelectionCell::deselect() {
-    useBtn->setEnabled(true);
-    useBtn->getChildByID("used")->setVisible(false);
-    useBtn->getChildByID("unused")->setVisible(true);
+    m_useBtn->setEnabled(true);
+    m_useBtn->getChildByID("used")->setVisible(false);
+    m_useBtn->getChildByID("unused")->setVisible(true);
 }
 
 void FontSelectionCell::select() {
-    useBtn->setEnabled(false);
-    useBtn->getChildByID("used")->setVisible(true);
-    useBtn->getChildByID("unused")->setVisible(false);
+    m_useBtn->setEnabled(false);
+    m_useBtn->getChildByID("used")->setVisible(true);
+    m_useBtn->getChildByID("unused")->setVisible(false);
 }
 
 void FontSelectionCell::onUsedClicked(CCObject*) {
     select();
 
-    if (onFontChosen != NULL)
-        onFontChosen(this);
+    if (m_onFontChosen != NULL)
+        m_onFontChosen(this);
 }

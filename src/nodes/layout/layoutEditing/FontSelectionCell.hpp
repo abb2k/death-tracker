@@ -1,22 +1,21 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
 class FontSelectionCell : public CCMenu {
-    public:
-        static FontSelectionCell* create(const std::string& font, Function<void(FontSelectionCell* onSelected)> onFontChosen);
+public:
+    static FontSelectionCell* create(std::string font, Function<void(FontSelectionCell* onSelected)> onFontChosen);
 
-        void deselect();
-        void select();
+    void deselect();
+    void select();
 
-        std::string font;
-    private:
-        bool init(const std::string& font, Function<void(FontSelectionCell* onSelected)> onFontChosen);
+    std::string m_font;
+    
+private:
+    bool init(std::string font, Function<void(FontSelectionCell* onSelected)> onFontChosen);
 
-        Function<void(FontSelectionCell* onSelected)> onFontChosen = NULL;
+    Function<void(FontSelectionCell* onSelected)> m_onFontChosen = NULL;
 
-        void onUsedClicked(CCObject*);
-        CCMenuItemSpriteExtra* useBtn;
+    void onUsedClicked(CCObject*);
+    CCMenuItemSpriteExtra* m_useBtn;
 };

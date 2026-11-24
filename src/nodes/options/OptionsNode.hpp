@@ -12,14 +12,14 @@ class OptionsNode : public CCMenu {
 
         virtual bool setup() = 0;
 
-        DTLevelSpecificSettingsLayer* settingsLayer;
+        DTLevelSpecificSettingsLayer* m_settingsLayer;
     public:
         virtual void onOpened() = 0;
         virtual void onClosed() = 0;
 
         void setSettingsLayer(DTLevelSpecificSettingsLayer* settingsLayer) {
-            this->settingsLayer = settingsLayer;
+            this->m_settingsLayer = settingsLayer;
         }
     protected:
-        CCSize size;
+        CCSize m_size;
 };

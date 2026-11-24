@@ -2,7 +2,7 @@
 
 bool OptionsNode::initWithSetup(const CCSize& size) {
     if (!CCMenu::init()) return false;
-    this->size = size;
+    this->m_size = size;
 
     this->setContentSize(size);
 

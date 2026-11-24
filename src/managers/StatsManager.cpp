@@ -15,20 +15,12 @@ std::optional<GeneralData> StatsManager::currentFrom0{};
 std::optional<LevelMetadata> StatsManager::currentMetadata{};
 std::optional<Session> StatsManager::currentSession{};
 
-const std::string StatsManager::METADATA_FILE_NAME = "metadata";
-const std::string StatsManager::FROM0_FILE_NAME = "general.dt";
-const std::string StatsManager::SESSIONS_DIR_NAME = "sessions";
-const std::string StatsManager::BACKUPS_DIR_NAME = "backups";
 arc::TaskHandle<void> StatsManager::backupHandler{};
 bool StatsManager::isGameClosing = false;
 
 asp::fs::Path StatsManager::getSavesFolderPath() {
     return Settings::getSavePath();
 }
-
-int StatsManager::MainLevelIDs[26]{
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 5001, 5002, 5003, 5004, 3001
-};
 
 std::array<std::string, 62> StatsManager::m_AllFontsMap{
     "bigFont.fnt",
@@ -146,21 +138,21 @@ Result<Session, ErrorWithCode> StatsManager::getSession(const asp::fs::Path& pat
     if (sessionResult.isErr()) return Err("Session Corrupted");
     auto session = std::move(sessionResult).unwrap();
 
-    if (!session.dataIsOverride && !session.timeRanges.empty()) {
+    if (!session.m_dataIsOverride && !session.m_timeRanges.empty()) {
         auto generalResult = getGeneral(path);
         if (generalResult.isErr()) {
-            if (generalResult.unwrapErr().code != 1)
-                return Err("Failed to load general data for session: {}", generalResult.unwrapErr().error);
+            if (generalResult.unwrapErr().m_code != 1)
+                return Err("Failed to load general data for session: {}", generalResult.unwrapErr().m_error);
         }
         else {
             auto general = std::move(generalResult).unwrap();
-            auto sessionDeaths = general.deaths.filterOccurrences(session.timeRanges);
-            auto sessionRuns = general.runs.filterOccurrences(session.timeRanges);
+            auto sessionDeaths = general.m_deaths.filterOccurrences(session.m_timeRanges);
+            auto sessionRuns = general.m_runs.filterOccurrences(session.m_timeRanges);
 
-            auto deathsResult = session.data.deaths.merge(sessionDeaths);
+            auto deathsResult = session.m_data.m_deaths.merge(sessionDeaths);
             if (deathsResult.isErr())
                 return Err("Failed to derive session deaths: {}", deathsResult.unwrapErr());
-            auto runsResult = session.data.runs.merge(sessionRuns);
+            auto runsResult = session.m_data.m_runs.merge(sessionRuns);
             if (runsResult.isErr())
                 return Err("Failed to derive session runs: {}", runsResult.unwrapErr());
         }
@@ -202,11 +194,11 @@ Result<LevelData, ErrorWithCode> StatsManager::getLevelData(GJGameLevel* const l
 Result<LevelData, ErrorWithCode> StatsManager::getLevelData(const std::string& levelKey) {
     LevelData data;
 
-    GEODE_UNWRAP_INTO(data.metadata, StatsManager::getMetadata(levelKey));
+    GEODE_UNWRAP_INTO(data.m_metadata, StatsManager::getMetadata(levelKey));
 
-    data.from0 = StatsManager::getGeneral(levelKey);
-    data.sessionNames = StatsManager::getAllSessionTimesForLevel(levelKey);
-    data.levelKey = levelKey;
+    data.m_from0 = StatsManager::getGeneral(levelKey);
+    data.m_sessionNames = StatsManager::getAllSessionTimesForLevel(levelKey);
+    data.m_levelKey = levelKey;
 
     return Ok(data);
 }
@@ -214,19 +206,19 @@ Result<LevelData, ErrorWithCode> StatsManager::getLevelData(const std::string& l
 Result<LevelData, ErrorWithCode> StatsManager::getLevelData(const asp::fs::Path& path) {
     LevelData data;
 
-    GEODE_UNWRAP_INTO(data.metadata, StatsManager::getMetadata(path));
+    GEODE_UNWRAP_INTO(data.m_metadata, StatsManager::getMetadata(path));
 
-    data.from0 = StatsManager::getGeneral(path);
-    data.sessionNames = StatsManager::getAllSessionTimesForLevel(path);
+    data.m_from0 = StatsManager::getGeneral(path);
+    data.m_sessionNames = StatsManager::getAllSessionTimesForLevel(path);
 
     return Ok(data);
 }
 
-Result<BackupLevelData> StatsManager::getBackupData(const std::string& levelKey, long long backupName) {
+Result<BackupLevelData> StatsManager::getBackupData(std::string_view levelKey, long long backupName) {
     BackupLevelData data;
 
-    auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName);
-    data.backupDate = backupName;
+    auto levelSaveFilePath = getSavesFolderPath() / std::string(levelKey) / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName);
+    data.m_backupDate = backupName;
 
     if (!levelSaveFilePath.exists())
         return Err("1 (no stats exist for backup!)");
@@ -238,7 +230,7 @@ Result<BackupLevelData> StatsManager::getBackupData(const std::string& levelKey,
         
         auto metaJsonObjRes = levelStatsJson.as<LevelMetadata>();
         if (metaJsonObjRes.isErr()) return Err("Failed to get backup metadata!");
-        data.meta = metaJsonObjRes.unwrap();
+        data.m_meta = metaJsonObjRes.unwrap();
     }
 
     if ((levelSaveFilePath / StatsManager::FROM0_FILE_NAME).exists()) {
@@ -248,7 +240,7 @@ Result<BackupLevelData> StatsManager::getBackupData(const std::string& levelKey,
         
         auto metaJsonObjRes = levelStatsJson.as<GeneralData>();
         if (metaJsonObjRes.isErr()) return Err("Failed to get backup metadata!");
-        data.from0 = metaJsonObjRes.unwrap();
+        data.m_from0 = metaJsonObjRes.unwrap();
     }
 
     if ((levelSaveFilePath / StatsManager::SESSIONS_DIR_NAME).exists()) {
@@ -270,7 +262,7 @@ Result<BackupLevelData> StatsManager::getBackupData(const std::string& levelKey,
             sessionDates.insert(numRes.unwrap());
         }
 
-        data.sessionNames = sessionDates;
+        data.m_sessionNames = sessionDates;
     }
 
     return Ok(data);
@@ -282,10 +274,10 @@ Result<> StatsManager::setMetadata(const LevelMetadata& stats, GJGameLevel* cons
 
     return Ok();
 }
-Result<> StatsManager::setMetadata(const LevelMetadata& stats, const std::string& levelKey) {
+Result<> StatsManager::setMetadata(const LevelMetadata& stats, std::string_view levelKey) {
     createFilesIfNeeded(levelKey);
 
-    auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::METADATA_FILE_NAME;
+    auto levelSaveFilePath = getSavesFolderPath() / std::string(levelKey) / StatsManager::METADATA_FILE_NAME;
 
     auto indentation = Dev::MINIFY_SAVE_FILE
         ? matjson::NO_INDENTATION
@@ -316,11 +308,11 @@ Result<> StatsManager::setSession(Session& stats, const std::string& levelKey, l
 
     if (updateLastPlayed) {
         auto now = StatsManager::getNowSeconds();
-        stats.lastPlayed = now;
+        stats.m_lastPlayed = now;
         stats.recordTimestamp(now);
     }
 
-    stats.ownerLevelKey = levelKey;
+    stats.m_ownerLevelKey = levelKey;
 
     auto jsonStr = matjson::Value(stats).dump(indentation);
     GEODE_UNWRAP(file::writeString(levelSaveFilePath, jsonStr));
@@ -334,10 +326,10 @@ Result<> StatsManager::setGeneral(const GeneralData& stats, GJGameLevel* const l
 
     return Ok();
 }
-Result<> StatsManager::setGeneral(const GeneralData& stats, const std::string& levelKey) {
+Result<> StatsManager::setGeneral(const GeneralData& stats, std::string_view levelKey) {
     createFilesIfNeeded(levelKey);
 
-    auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::FROM0_FILE_NAME;
+    auto levelSaveFilePath = getSavesFolderPath() / std::string(levelKey) / StatsManager::FROM0_FILE_NAME;
 
     auto indentation = Dev::MINIFY_SAVE_FILE
         ? matjson::NO_INDENTATION
@@ -359,7 +351,7 @@ void StatsManager::addBackup(const std::string& levelKey, bool saveLevelStats, s
     auto backupFunc = [levelKey, saveLevelStats, sessionsToSave, progressFunc]() -> arc::Future<Result<>> {
         progressFunc(0.0f);
         auto metaRes = getMetadata(levelKey);
-        if (metaRes.isErr()) co_return Err("No level to back up! {}", metaRes.unwrapErr().error);
+        if (metaRes.isErr()) co_return Err("No level to back up! {}", metaRes.unwrapErr().m_error);
         auto metadata = metaRes.unwrap();
         
         createFilesIfNeeded(levelKey);
@@ -496,10 +488,10 @@ void StatsManager::addBackup(const std::string& levelKey, bool saveLevelStats, s
     backupHandler.setName("DT-backup-task");
 }
 
-void StatsManager::createFilesIfNeeded(const std::string& levelKey) {
+void StatsManager::createFilesIfNeeded(std::string_view levelKey) {
     (void)geode::utils::file::createDirectory(getSavesFolderPath());
 
-    auto levelSaveFilePath = getSavesFolderPath() / levelKey;
+    auto levelSaveFilePath = getSavesFolderPath() / std::string(levelKey);
 
     auto lvlSavesDirRes = geode::utils::file::createDirectory(levelSaveFilePath);
     if (lvlSavesDirRes.isErr()) {
@@ -547,12 +539,12 @@ void StatsManager::setCurrentLevel(GJGameLevel* const& level) {
         currentFrom0 = std::nullopt;
         currentSession = std::nullopt;
         currentMetadata = std::nullopt;
-        log::error("Failed to apply current level stats as main stats ({})", metadataRes.unwrapErr().error);
+        log::error("Failed to apply current level stats as main stats ({})", metadataRes.unwrapErr().m_error);
         return;
     }
 
     if (from0Res.isErr()) {
-        if (from0Res.unwrapErr().code == 1) {
+        if (from0Res.unwrapErr().m_code == 1) {
             auto newF0 = GeneralData{};
 
             from0Res = Ok(newF0);
@@ -591,27 +583,27 @@ void StatsManager::logDeath(double percent, bool instantSave) {
     if (currentFrom0.has_value()) {
         auto& val = currentFrom0.value();
         ComplexDeathOccurrence occurrence;
-        occurrence.runEndTimestamp = static_cast<time_t>(getNowSeconds());
-        auto recordResult = val.deaths.recordDeath(exactPercent, std::nullopt, occurrence);
+        occurrence.m_runEndTimestamp = static_cast<time_t>(getNowSeconds());
+        auto recordResult = val.m_deaths.recordDeath(exactPercent, std::nullopt, occurrence);
         if (recordResult.isErr())
             log::error("Failed to record death at {}%: {}", percent, recordResult.unwrapErr());
 
-        if (val.newBests.size() != 0) overallBest = *val.newBests.rbegin();
+        if (val.m_newBests.size() != 0) overallBest = *val.m_newBests.rbegin();
 
         if (bestPercent > overallBest) {
-            val.newBests.insert(bestPercent);
+            val.m_newBests.insert(bestPercent);
         }
     }
 
     auto session = StatsManager::getCurrentSession();
     if (session != nullptr) {
-        // log::info("logging death {} to session {}", percentKey, session->sessionStartDate);
+        // log::info("logging death {} to session {}", percentKey, session->m_sessionStartDate);
 
         int sessionBest = -1;
-        if (session->data.newBests.size() != 0) sessionBest = *session->data.newBests.rbegin();
+        if (session->m_data.m_newBests.size() != 0) sessionBest = *session->m_data.m_newBests.rbegin();
 
         if (bestPercent > sessionBest) {
-            session->data.newBests.insert(bestPercent);
+            session->m_data.m_newBests.insert(bestPercent);
         }
     }
 
@@ -620,7 +612,7 @@ void StatsManager::logDeath(double percent, bool instantSave) {
             (void)StatsManager::setGeneral(currentFrom0.value(), currentLevel);
         }
         if (session) {
-            (void)StatsManager::setSession(*session, currentLevel, session->sessionStartDate, true);
+            (void)StatsManager::setSession(*session, currentLevel, session->m_sessionStartDate, true);
         }
     }
 }
@@ -645,18 +637,18 @@ void StatsManager::logDeaths(const std::vector<double>& percents) {
     }
     if (session) {
         //log::info("session does exist");
-        (void)StatsManager::setSession(*session, currentLevel, session->sessionStartDate, true);
+        (void)StatsManager::setSession(*session, currentLevel, session->m_sessionStartDate, true);
     }
 }
 
 void StatsManager::logRun(const Run& run, bool instantSave) {
-    if (currentLevel == nullptr || !run.start.has_value()) {
+    if (currentLevel == nullptr || !run.m_start.has_value()) {
         log::error("Failed to log run");
         return;
     }
 
-    auto startPercent = ComplexPercent::fromPercent(run.start.value());
-    auto endPercent = ComplexPercent::fromPercent(run.end);
+    auto startPercent = ComplexPercent::fromPercent(run.m_start.value());
+    auto endPercent = ComplexPercent::fromPercent(run.m_end);
     if (startPercent.isErr() || endPercent.isErr()) {
         log::error("Failed to log run with invalid percentages");
         return;
@@ -667,22 +659,22 @@ void StatsManager::logRun(const Run& run, bool instantSave) {
 
     const auto recordedAt = static_cast<time_t>(getNowSeconds());
     ComplexDeathOccurrence occurrence;
-    occurrence.runStartTimestamp = run.startTimestamp;
-    if (!occurrence.runStartTimestamp.has_value()) {
+    occurrence.m_runStartTimestamp = run.m_startTimestamp;
+    if (!occurrence.m_runStartTimestamp.has_value()) {
         log::warn("Run start timestamp is missing; using the logging time");
-        occurrence.runStartTimestamp = recordedAt;
+        occurrence.m_runStartTimestamp = recordedAt;
     }
-    occurrence.runEndTimestamp = run.endTimestamp.value_or(recordedAt);
-    occurrence.cheated = run.cheated;
+    occurrence.m_runEndTimestamp = run.m_endTimestamp.value_or(recordedAt);
+    occurrence.m_cheated = run.m_cheated;
 
     auto session = StatsManager::getCurrentSession();
     if (session != nullptr) {
-        // log::info("logging run {}-{} to session {}", run.start.value(), run.end, session->sessionStartDate);
+        // log::info("logging run {}-{} to session {}", run.m_start.value(), run.m_end, session->m_sessionStartDate);
     }
 
     if (currentFrom0.has_value()) {
         auto& val = currentFrom0.value();
-        auto recordResult = val.runs.recordDeath(
+        auto recordResult = val.m_runs.recordDeath(
             endPercent.unwrap(),
             startPercent.unwrap(),
             occurrence
@@ -696,7 +688,7 @@ void StatsManager::logRun(const Run& run, bool instantSave) {
             (void)StatsManager::setGeneral(currentFrom0.value(), currentLevel);
         }
         if (session) {
-            (void)StatsManager::setSession(*session, currentLevel, session->sessionStartDate, true);
+            (void)StatsManager::setSession(*session, currentLevel, session->m_sessionStartDate, true);
         }
     }
 }
@@ -721,15 +713,15 @@ void StatsManager::logRuns(const std::vector<Run>& runs) {
     }
     if (session) {
         //log::info("session does exist r");
-        (void)StatsManager::setSession(*session, currentLevel, session->sessionStartDate, true);
+        (void)StatsManager::setSession(*session, currentLevel, session->m_sessionStartDate, true);
     }
 }
 
 bool StatsManager::safeCheckCurrF0() {
     auto from0Res = getGeneral(currentLevel);
-    if (from0Res.isErr() && from0Res.unwrapErr().code != 1) {
+    if (from0Res.isErr() && from0Res.unwrapErr().m_code != 1) {
         currentFrom0 = std::nullopt;
-        Notification::create(fmt::format("Death Tracker cant save! {}", from0Res.unwrapErr().error), NotificationIcon::Error)->show();
+        Notification::create(fmt::format("Death Tracker cant save! {}", from0Res.unwrapErr().m_error), NotificationIcon::Error)->show();
         return false;
     }
     else if (from0Res.isErr()) {
@@ -781,7 +773,7 @@ Result<std::string> StatsManager::getLevelKey(GJGameLevel* const& level) {
 	return Ok(levelId);
 }
 
-Result<Run> StatsManager::splitRunKey(const std::string& runKey) {
+Result<Run> StatsManager::splitRunKey(std::string_view runKey) {
     if (runKey.empty())
         return Err("Invalid run key!");
 
@@ -789,7 +781,7 @@ Result<Run> StatsManager::splitRunKey(const std::string& runKey) {
     std::optional<double> start = std::nullopt;
     double end = 0;
 
-    if (separator == std::string::npos) {
+    if (separator == std::string_view::npos) {
         GEODE_UNWRAP_INTO(end, geode::utils::numFromString<double>(runKey));
     }
     else {
@@ -799,18 +791,18 @@ Result<Run> StatsManager::splitRunKey(const std::string& runKey) {
     }
 
     Run r;
-    r.start = start;
-    r.end = end;
+    r.m_start = start;
+    r.m_end = end;
 
     return Ok(r);
 }
 
 Result<std::string> StatsManager::createRunKey(const Run& runKey, bool roundToInt) {
-    if (runKey.start == std::nullopt) {
-        return Ok(fmt::format("{}", roundToInt ? static_cast<int>(runKey.end) : runKey.end));
+    if (runKey.m_start == std::nullopt) {
+        return Ok(fmt::format("{}", roundToInt ? static_cast<int>(runKey.m_end) : runKey.m_end));
     }
-    else if (runKey.start.value() >= 0) {
-        return Ok(fmt::format("{}-{}", roundToInt ? static_cast<int>(runKey.start.value()) : runKey.start.value(), roundToInt ? static_cast<int>(runKey.end) : runKey.end));
+    else if (runKey.m_start.value() >= 0) {
+        return Ok(fmt::format("{}-{}", roundToInt ? static_cast<int>(runKey.m_start.value()) : runKey.m_start.value(), roundToInt ? static_cast<int>(runKey.m_end) : runKey.m_end));
     }
 
     return Err("Bad percentages");
@@ -823,7 +815,7 @@ Session* StatsManager::getCurrentSession() {
     }
 
     auto currentSession = StatsManager::currentSession.has_value() ? &StatsManager::currentSession.value() : nullptr;
-    // log::info("getting curr session {}", currentSession == nullptr ? "session is null" : std::to_string(currentSession->sessionStartDate));
+    // log::info("getting curr session {}", currentSession == nullptr ? "session is null" : std::to_string(currentSession->m_sessionStartDate));
 
     auto levelKeyRes = StatsManager::getLevelKey(currentLevel);
 
@@ -839,7 +831,7 @@ Session* StatsManager::getCurrentSession() {
     // and are created when the player dies
     if (!sessionsCount.size() && !m_scheduleCreateNewSession) return nullptr;
 
-    if (!m_scheduleCreateNewSession && (currentSession == nullptr || currentSession->sessionStartDate == 0)) {
+    if (!m_scheduleCreateNewSession && (currentSession == nullptr || currentSession->m_sessionStartDate == 0)) {
         auto latestSession = StatsManager::getSession(currentLevel, *std::prev(sessionsCount.end()));
         if (latestSession.isErr()) {
             log::error("failed to load latest session! current session is dysfunctional");
@@ -861,16 +853,16 @@ Session* StatsManager::getCurrentSession() {
 
     // create the new session
     auto session = Session {
-        .lastPlayed = -1,
-        .sessionStartDate = StatsManager::getNowSeconds(),
-        .data = GeneralData{
-            .deaths = {},
-            .runs = {},
-            .newBests = {}
+        .m_lastPlayed = -1,
+        .m_sessionStartDate = StatsManager::getNowSeconds(),
+        .m_data = GeneralData{
+            .m_deaths = {},
+            .m_runs = {},
+            .m_newBests = {}
         }
     };
 
-    if (setSession(session, currentLevel, session.sessionStartDate, true).isErr()) {
+    if (setSession(session, currentLevel, session.m_sessionStartDate, true).isErr()) {
         log::error("Failed to create new session");
         return currentSession;
     }
@@ -879,13 +871,13 @@ Session* StatsManager::getCurrentSession() {
 
     auto meta = getMetadata(currentLevel).unwrapOrDefault();
 
-    for (const auto& linked : meta.linkedLevels)
+    for (const auto& linked : meta.m_linkedLevels)
     {
         if (linked == levelKeyRes.unwrap() || m_playedLevels.contains(linked)) continue;
 
         m_playedLevels.insert(linked);
 
-        if (setSession(session, linked, session.sessionStartDate, true).isErr()) {
+        if (setSession(session, linked, session.m_sessionStartDate, true).isErr()) {
 
         }
     }
@@ -918,8 +910,8 @@ bool StatsManager::hasPlayedLevel() {
 /* internal functions
 ======================= */
 
-Result<> StatsManager::deleteLevelStats(const std::string& levelKey) {
-    auto levelSaveFilePath = getSavesFolderPath() / levelKey;
+Result<> StatsManager::deleteLevelStats(std::string_view levelKey) {
+    auto levelSaveFilePath = getSavesFolderPath() / std::string(levelKey);
 
     if (levelSaveFilePath.isDir()) {
         auto res = asp::fs::removeDirAll(levelSaveFilePath);
@@ -930,8 +922,8 @@ Result<> StatsManager::deleteLevelStats(const std::string& levelKey) {
     return Err("Cant delete stats because level save file does not exist: " + levelSaveFilePath.string());
 }
 
-Result<> StatsManager::deleteBackup(const std::string& levelKey, long long backupName) {
-    auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName);
+Result<> StatsManager::deleteBackup(std::string_view levelKey, long long backupName) {
+    auto levelSaveFilePath = getSavesFolderPath() / std::string(levelKey) / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName);
 
     if (levelSaveFilePath.isDir()) {
         auto res = asp::fs::removeDirAll(levelSaveFilePath);
@@ -942,8 +934,8 @@ Result<> StatsManager::deleteBackup(const std::string& levelKey, long long backu
     return Err("Cant delete backup because level save file does not exist: " + levelSaveFilePath.string());
 }
 
-Result<> StatsManager::deleteAllSessions(const std::string& levelKey) {
-    auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::SESSIONS_DIR_NAME;
+Result<> StatsManager::deleteAllSessions(std::string_view levelKey) {
+    auto levelSaveFilePath = getSavesFolderPath() / std::string(levelKey) / StatsManager::SESSIONS_DIR_NAME;
 
     if (levelSaveFilePath.isDir()) {
         auto res = asp::fs::removeDirAll(levelSaveFilePath);
@@ -1022,7 +1014,7 @@ Result<std::vector<std::pair<std::string, LevelMetadata>>> StatsManager::getAllL
 
             auto currentLevel = StatsManager::getMetadata(currentDirName);
             if (currentLevel.isErr()) {
-                Notification::create(fmt::format("failed getting some levels, errors send in logs.", currentDirName, currentLevel.unwrapErr().error), nullptr)->show();
+                Notification::create(fmt::format("failed getting some levels, errors send in logs.", currentDirName, currentLevel.unwrapErr().m_error), nullptr)->show();
                 failedKeys.push_back(currentDirName);
                 continue;
             }
@@ -1106,7 +1098,7 @@ int StatsManager::getCursorPosition(geode::Label* const& text, geode::Label* con
     return index + 1;
 }
 
-bool StatsManager::isKeyInIndex(const std::string& s, const int& index, const std::string& key) {
+bool StatsManager::isKeyInIndex(std::string_view s, const int& index, std::string_view key) {
     if (index + key.length() > s.length()) return false;
 
     return s.substr(index, key.length()) == key;
@@ -1155,9 +1147,9 @@ void StatsManager::updateCurrentSessionLastPlayed() {
     if (!session) return;
 
     auto now = StatsManager::getNowSeconds();
-    session->lastPlayed = now;
+    session->m_lastPlayed = now;
 
-    (void)StatsManager::setSession(*session, currentLevel, session->sessionStartDate, true);
+    (void)StatsManager::setSession(*session, currentLevel, session->m_sessionStartDate, true);
 }
 
 GJGameLevel* StatsManager::getCurrentLevel() {
@@ -1203,8 +1195,8 @@ std::set<long long> StatsManager::getAllSessionTimesForLevel(const asp::fs::Path
     return toReturn;
 }
 
-std::set<long long> StatsManager::getBackupsCount(const std::string& levelKey) {
-    auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::BACKUPS_DIR_NAME;
+std::set<long long> StatsManager::getBackupsCount(std::string_view levelKey) {
+    auto levelSaveFilePath = getSavesFolderPath() / std::string(levelKey) / StatsManager::BACKUPS_DIR_NAME;
 
     if (!levelSaveFilePath.exists()) return {};
 
@@ -1232,8 +1224,8 @@ std::set<long long> StatsManager::getBackupsCount(const std::string& levelKey) {
     return toReturn;
 }
 
-uintmax_t StatsManager::getBackupFileSize(const std::string& levelKey, long long backupName) {
-    auto levelSaveFilePath = getSavesFolderPath() / levelKey / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName);
+uintmax_t StatsManager::getBackupFileSize(std::string_view levelKey, long long backupName) {
+    auto levelSaveFilePath = getSavesFolderPath() / std::string(levelKey) / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName);
 
     if (!levelSaveFilePath.exists()) return 0;
 
@@ -1258,9 +1250,9 @@ uintmax_t StatsManager::getBackupFileSize(const std::string& levelKey, long long
     return totalSize;
 }
 
-Result<> StatsManager::reveretBackupSessions(const std::string& levelKey, long long backupName) {
-    auto bakupSessionDirPath = getSavesFolderPath() / levelKey / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName) / StatsManager::SESSIONS_DIR_NAME;
-    auto sessionDirPath = getSavesFolderPath() / levelKey / StatsManager::SESSIONS_DIR_NAME;
+Result<> StatsManager::reveretBackupSessions(std::string_view levelKey, long long backupName) {
+    auto bakupSessionDirPath = getSavesFolderPath() / std::string(levelKey) / StatsManager::BACKUPS_DIR_NAME / std::to_string(backupName) / StatsManager::SESSIONS_DIR_NAME;
+    auto sessionDirPath = getSavesFolderPath() / std::string(levelKey) / StatsManager::SESSIONS_DIR_NAME;
 
     if (!bakupSessionDirPath.exists()) return Err("No sessions backup found!");
 
@@ -1275,12 +1267,13 @@ Result<> StatsManager::reveretBackupSessions(const std::string& levelKey, long l
     return Ok();
 }
 
-Result<> StatsManager::convertV2SaveToV3(const std::string& levelKey) {
+Result<> StatsManager::convertV2SaveToV3(std::string_view levelKey) {
     log::info("converting V2 save to V3...");
 
     if (!getSavesFolderPath().exists()) return Err("No levels directory found");
 
-    auto v2Path = getSavesFolderPath() / (levelKey + ".json");
+    auto ownedLevelKey = std::string(levelKey);
+    auto v2Path = getSavesFolderPath() / (ownedLevelKey + ".json");
 
     if (!v2Path.exists()) return Err("V2 level file doesnt exist!");
     
@@ -1296,7 +1289,7 @@ Result<> StatsManager::convertV2SaveToV3(const std::string& levelKey) {
     auto v3Meta = LevelMetadata{};
     std::map<int, int> runsMap{};
     bool showAnyRun = false;
-    for (const auto& percent : stats.RunsToSave)
+    for (const auto& percent : stats.m_RunsToSave)
     {
         if (percent == -1) {
             showAnyRun = true;
@@ -1305,54 +1298,54 @@ Result<> StatsManager::convertV2SaveToV3(const std::string& levelKey) {
 
         runsMap.insert({percent, percent});
     }
-    v3Meta.runsToShow = runsMap;
-    v3Meta.showAnyRun = showAnyRun;
-    std::set<std::string> linkedLevelsSet(stats.LinkedLevels.begin(), stats.LinkedLevels.end());
-    v3Meta.linkedLevels = linkedLevelsSet;
-    v3Meta.levelName = stats.levelName;
-    v3Meta.attempts = stats.attempts;
-    v3Meta.difficulty = stats.difficulty;
-    v3Meta.hideUpto = stats.hideUpto;
+    v3Meta.m_runsToShow = runsMap;
+    v3Meta.m_showAnyRun = showAnyRun;
+    std::set<std::string> linkedLevelsSet(stats.m_LinkedLevels.begin(), stats.m_LinkedLevels.end());
+    v3Meta.m_linkedLevels = linkedLevelsSet;
+    v3Meta.m_levelName = stats.m_levelName;
+    v3Meta.m_attempts = stats.m_attempts;
+    v3Meta.m_difficulty = stats.m_difficulty;
+    v3Meta.m_hideUpto = stats.m_hideUpto;
 
-    if (setMetadata(v3Meta, levelKey).isErr()) return Err("Failed to write V3 meta!");
+    if (setMetadata(v3Meta, ownedLevelKey).isErr()) return Err("Failed to write V3 meta!");
 
     auto v3General = GeneralData{};
-    auto deathsResult = ComplexDeathMap::fromLegacy(stats.deaths, false);
+    auto deathsResult = ComplexDeathMap::fromLegacy(stats.m_deaths, false);
     if (deathsResult.isErr())
         return Err("Failed converting V2 deaths: {}", deathsResult.unwrapErr());
-    auto runsResult = ComplexDeathMap::fromLegacy(stats.runs, true);
+    auto runsResult = ComplexDeathMap::fromLegacy(stats.m_runs, true);
     if (runsResult.isErr())
         return Err("Failed converting V2 runs: {}", runsResult.unwrapErr());
-    v3General.deaths = std::move(deathsResult).unwrap();
-    v3General.runs = std::move(runsResult).unwrap();
-    v3General.newBests = stats.newBests;
+    v3General.m_deaths = std::move(deathsResult).unwrap();
+    v3General.m_runs = std::move(runsResult).unwrap();
+    v3General.m_newBests = stats.m_newBests;
 
-    if (setGeneral(v3General, levelKey).isErr()) return Err("Failed to write V3 general!");
+    if (setGeneral(v3General, ownedLevelKey).isErr()) return Err("Failed to write V3 general!");
 
-    for (const auto& v2session : stats.sessions) {
+    for (const auto& v2session : stats.m_sessions) {
         auto v3Session = Session{};
 
-        v3Session.ownerLevelKey = levelKey;
-        v3Session.lastPlayed = v2session.lastPlayed;
-        auto sessionDeathsResult = ComplexDeathMap::fromLegacy(v2session.deaths, false);
+        v3Session.m_ownerLevelKey = ownedLevelKey;
+        v3Session.m_lastPlayed = v2session.m_lastPlayed;
+        auto sessionDeathsResult = ComplexDeathMap::fromLegacy(v2session.m_deaths, false);
         if (sessionDeathsResult.isErr())
             return Err("Failed converting V2 session deaths: {}", sessionDeathsResult.unwrapErr());
-        auto sessionRunsResult = ComplexDeathMap::fromLegacy(v2session.runs, true);
+        auto sessionRunsResult = ComplexDeathMap::fromLegacy(v2session.m_runs, true);
         if (sessionRunsResult.isErr())
             return Err("Failed converting V2 session runs: {}", sessionRunsResult.unwrapErr());
-        v3Session.data.deaths = std::move(sessionDeathsResult).unwrap();
-        v3Session.data.runs = std::move(sessionRunsResult).unwrap();
-        v3Session.data.newBests = v2session.newBests;
-        v3Session.sessionStartDate = v2session.sessionStartDate;
-        v3Session.legacyData = v3Session.data;
+        v3Session.m_data.m_deaths = std::move(sessionDeathsResult).unwrap();
+        v3Session.m_data.m_runs = std::move(sessionRunsResult).unwrap();
+        v3Session.m_data.m_newBests = v2session.m_newBests;
+        v3Session.m_sessionStartDate = v2session.m_sessionStartDate;
+        v3Session.m_legacyData = v3Session.m_data;
 
-        if (setSession(v3Session, levelKey, v3Session.sessionStartDate, false).isErr()) return Err("Failed to write V3 session! session sd: {}", v3Session.sessionStartDate);
+        if (setSession(v3Session, ownedLevelKey, v3Session.m_sessionStartDate, false).isErr()) return Err("Failed to write V3 session! session sd: {}", v3Session.m_sessionStartDate);
     }
 
     auto removeV2PathRes = asp::fs::remove(v2Path);
     if (removeV2PathRes.isErr()) return Err("Failed to erase old data: {}", removeV2PathRes.unwrapErr());
 
-    auto backupPath = getSavesFolderPath() / (levelKey + ".deathsBackup");
+    auto backupPath = getSavesFolderPath() / (ownedLevelKey + ".deathsBackup");
 
     if (backupPath.exists()) {
         auto removeBackupRes = asp::fs::remove(backupPath);
@@ -1428,13 +1421,13 @@ bool StatsManager::transferPlaytimeFromPT(geode::Result<LevelData, ErrorWithCode
 
     if (data.isErr()) {
         LevelData newData;
-        newData.levelKey = lvlKey;
+        newData.m_levelKey = lvlKey;
         data = Ok(newData);
     }
 
     auto& stats = data.unwrap();
 
-    if (stats.metadata.hasGottenDataFromPT) {
+    if (stats.m_metadata.m_hasGottenDataFromPT) {
         Save::setLevelWasPTTransferred(lvlKey);
         return false;
     }
@@ -1442,7 +1435,7 @@ bool StatsManager::transferPlaytimeFromPT(geode::Result<LevelData, ErrorWithCode
     if (Save::getLevelWasPTTransferred(lvlKey)) return false;
 
     Save::setLevelWasPTTransferred(lvlKey);
-    (void)StatsManager::setMetadata(stats.metadata, stats.levelKey);
+    (void)StatsManager::setMetadata(stats.m_metadata, stats.m_levelKey);
 
     auto ptObj = file::readFromJson<matjson::Value>(ptPath).unwrapOrDefault();
 
@@ -1453,10 +1446,10 @@ bool StatsManager::transferPlaytimeFromPT(geode::Result<LevelData, ErrorWithCode
     for (auto session : ptObj["sessions"]) {
         if (!session[0][0].isNumber()) continue;
 
-        for (const auto& dtSession : stats.sessionNames) {
+        for (const auto& dtSession : stats.m_sessionNames) {
             if (dtSession != session[0][0].as<long long>().unwrap()) continue;
 
-            auto realSessRes = StatsManager::getSession(stats.levelKey, dtSession);
+            auto realSessRes = StatsManager::getSession(stats.m_levelKey, dtSession);
             if (realSessRes.isErr()) continue;
             auto realSess = realSessRes.unwrap();
 
@@ -1466,12 +1459,12 @@ bool StatsManager::transferPlaytimeFromPT(geode::Result<LevelData, ErrorWithCode
                 auto startT = ptPair[0].as<long long>();
                 if (endT.isErr() || startT.isErr()) continue;
 
-                realSess.data.playtimeGeneral.playtimeF0 += (endT.unwrap() - startT.unwrap()) * 1000000000LL;
+                realSess.m_data.m_playtimeGeneral.m_playtimeF0 += (endT.unwrap() - startT.unwrap()) * 1000000000LL;
 
                 break;
             }
 
-            (void)StatsManager::setSession(realSess, stats.levelKey, dtSession, false);
+            (void)StatsManager::setSession(realSess, stats.m_levelKey, dtSession, false);
         }
 
         //log::info("found playtime for level");
@@ -1489,16 +1482,16 @@ bool StatsManager::transferPlaytimeFromPT(geode::Result<LevelData, ErrorWithCode
     }
 
     if (overallPT != 0) {
-        if (stats.from0.isErr()) {
+        if (stats.m_from0.isErr()) {
             GeneralData gData{};
-            stats.from0 = Ok(gData);
+            stats.m_from0 = Ok(gData);
         }
 
-        if (stats.from0.isOk()) {
-            auto& f0 = stats.from0.unwrap();
-            f0.playtimeGeneral.playtimeF0 += overallPT * 1000000000LL;
+        if (stats.m_from0.isOk()) {
+            auto& f0 = stats.m_from0.unwrap();
+            f0.m_playtimeGeneral.m_playtimeF0 += overallPT * 1000000000LL;
 
-            (void)StatsManager::setGeneral(f0, stats.levelKey);
+            (void)StatsManager::setGeneral(f0, stats.m_levelKey);
         }
     }
 

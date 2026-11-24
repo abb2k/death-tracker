@@ -9,11 +9,11 @@ class SectionCell : public CCMenu {
     public:
         static SectionCell* create(float width, const Section& section);
 
-        Function<void()> onChanged;
-        Function<void()> onDeleted;
+        Function<void()> m_onChanged;
+        Function<void()> m_onDeleted;
 
         Section getSection() const { 
-            return section; 
+            return m_section;
         }
 
         void fade(bool in, float time);
@@ -21,12 +21,12 @@ class SectionCell : public CCMenu {
     private:
         bool init(float width, const Section& section);
 
-        Section section;
+        Section m_section;
 
-        TextInput* nameInput;
-        TextInput* endPercentInput;
-        TextInput* startPercentInput;
-        CCScale9Sprite* bg;
+        TextInput* m_nameInput;
+        TextInput* m_endPercentInput;
+        TextInput* m_startPercentInput;
+        CCScale9Sprite* m_bg;
 
         void checkValidity();
 

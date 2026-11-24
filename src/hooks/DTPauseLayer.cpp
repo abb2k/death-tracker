@@ -61,8 +61,8 @@ void DTPauseLayer::onNormalMode(cocos2d::CCObject* sender) {
     auto* dtPlayLayer = static_cast<DTPlayLayer*>(playLayer);
     dtPlayLayer->m_fields->currentRun.start = 0.0;
     dtPlayLayer->m_fields->currentRun.end = 0.0;
-    dtPlayLayer->m_fields->currentRun.startTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
-    dtPlayLayer->m_fields->currentRun.endTimestamp.reset();
+    dtPlayLayer->m_fields->currentRun.m_startTimestamp = static_cast<time_t>(StatsManager::getNowSeconds());
+    dtPlayLayer->m_fields->currentRun.m_endTimestamp.reset();
 }
 
 #endif

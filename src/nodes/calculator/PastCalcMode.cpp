@@ -1,12 +1,11 @@
 #include "PastCalcMode.hpp"
 
 #include <nodes/DTLayer.hpp>
-
 #include <nodes/general/SwitcherButton.hpp>
 
-PastCalcMode* PastCalcMode::create(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate) {
+PastCalcMode* PastCalcMode::create(CCSize size, Function<void(std::string const&)> onVariablesChanged, Function<void(std::string const&)> onCalculate) {
     auto ret = new PastCalcMode();
-    if (ret && ret->init(size, std::move(onVariablesChanged), std::move(onCalculate))) {
+    if (ret && ret->init(std::move(size), std::move(onVariablesChanged), std::move(onCalculate))) {
         ret->autorelease();
     } else {
         delete ret;
@@ -15,29 +14,29 @@ PastCalcMode* PastCalcMode::create(CCSize const& size, Function<void(std::string
     return ret;
 }
 
-bool PastCalcMode::init(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate) {
-    if (!CalculatorMode::init(size, std::move(onVariablesChanged), std::move(onCalculate))) return false;
+bool PastCalcMode::init(CCSize size, Function<void(std::string const&)> onVariablesChanged, Function<void(std::string const&)> onCalculate) {
+    if (!CalculatorMode::init(std::move(size), std::move(onVariablesChanged), std::move(onCalculate))) return false;
 
-    passPercentInput = TextInput::create(size.width / 1.2f, "pass%");
-    passPercentInput->setCommonFilter(CommonFilter::Uint);
-    passPercentInput->setCallback([&](auto newStr) {
+    m_passPercentInput = TextInput::create(m_size.width / 1.2f, "pass%");
+    m_passPercentInput->setCommonFilter(CommonFilter::Uint);
+    m_passPercentInput->setCallback([&](auto newStr) {
         sendVars();
     });
-    passPercentInput->setPosition({size.width / 2, size.height});
-    passPercentInput->setAnchorPoint({.5f, 1});
-    this->addChild(passPercentInput);
+    m_passPercentInput->setPosition({m_size.width / 2, m_size.height});
+    m_passPercentInput->setAnchorPoint({.5f, 1});
+    this->addChild(m_passPercentInput);
 
     auto passPercentInputLabel = geode::Label::create("Passed percent", "bigFont.fnt");
     passPercentInputLabel->setScale(.45f);
-    passPercentInput->setPositionY(passPercentInput->getPositionY() - passPercentInputLabel->getScaledContentHeight());
-    passPercentInputLabel->setPosition(passPercentInput->getPosition() + ccp(1.5f, 0));
+    m_passPercentInput->setPositionY(m_passPercentInput->getPositionY() - passPercentInputLabel->getScaledContentHeight());
+    passPercentInputLabel->setPosition(m_passPercentInput->getPosition() + ccp(1.5f, 0));
     passPercentInputLabel->setAnchorPoint({.5f, 0});
     this->addChild(passPercentInputLabel);
 
-    auto sf0Btn = SwitcherButton::create({size.width / 1.5f / (1 / .85f), 25 / (1 / .85f)}, "GJ_button_01.png", {"General", "Session"});
-    sf0Btn->setPosition({size.width / 2, sf0Btn->getScaledContentHeight() / 2 + 2});
+    auto sf0Btn = SwitcherButton::create({m_size.width / 1.5f / (1 / .85f), 25 / (1 / .85f)}, "GJ_button_01.png", {"General", "Session"});
+    sf0Btn->setPosition({m_size.width / 2, sf0Btn->getScaledContentHeight() / 2 + 2});
     sf0Btn->setOptionChangedCallback([&](int opt) {
-        isGeneral = opt == 0;
+        m_isGeneral = opt == 0;
     });
 
     auto m = CCMenu::createWithItem(sf0Btn);
@@ -48,32 +47,32 @@ bool PastCalcMode::init(CCSize const& size, Function<void(std::string const&)>&&
 }
 
 void PastCalcMode::calculate() {
-    if (passPercentInput->getString() == "" || DTLayer::get()->m_MyLevelStats.isErr()) return;
+    if (m_passPercentInput->getString() == "" || DTLayer::get()->m_MyLevelStats.isErr()) return;
 
-    auto numRes = geode::utils::numFromString<int>(passPercentInput->getString());
+    auto numRes = geode::utils::numFromString<int>(m_passPercentInput->getString());
     if (numRes.isErr()) return;
     auto num = numRes.unwrap();
 
     auto& meStats = DTLayer::get()->m_MyLevelStats.unwrap();
 
-    if (meStats.from0.isErr()) return; 
-    auto& meGen = meStats.from0.unwrap();
+    if (meStats.m_from0.isErr()) return;
+    auto& meGen = meStats.m_from0.unwrap();
 
     auto deadsHandle = async::spawn(DTLayer::get()->getTFor<Deaths>([](GeneralData const& data) {
         Deaths runs{};
-        StatsManager::mergeMapsAdd(runs, data.deaths);
+        StatsManager::mergeMapsAdd(runs, data.m_deaths);
         return runs;
     },
     [](auto const& a, auto const& b) {
         auto map = a;
         StatsManager::mergeMapsAdd(map, b);
         return map;
-    }, !isGeneral));
+    }, !m_isGeneral));
     deadsHandle.setName("DT-past-calculator-deaths-task");
 
     auto deadsRes = deadsHandle.blockOn();
 
-    if (deadsRes.isErr()) onCalculate(deadsRes.unwrapErr().error);
+    if (deadsRes.isErr()) m_onCalculate(deadsRes.unwrapErr().m_error);
     auto deads = deadsRes.unwrap();
 
     int totalPastDeaths = 0;
@@ -83,11 +82,11 @@ void PastCalcMode::calculate() {
         auto run = StatsManager::splitRunKey(death.first);
         if (run.isErr()) continue;
 
-        if (run.unwrap().end > num)
+        if (run.unwrap().m_end > num)
             totalPastDeaths += death.second;
     }
     
-    onCalculate(fmt::format("{}x", totalPastDeaths));
+    m_onCalculate(fmt::format("{}x", totalPastDeaths));
 }
 
 std::string PastCalcMode::getName() const{
@@ -99,19 +98,19 @@ std::string PastCalcMode::getDescription() const{
 }
 
 void PastCalcMode::open() {
-    passPercentInput->setEnabled(true);
+    m_passPercentInput->setEnabled(true);
     this->setVisible(true);
 
     sendVars();
 }
 void PastCalcMode::close() {
-    passPercentInput->setEnabled(false);
+    m_passPercentInput->setEnabled(false);
     this->setVisible(false);
 }
 
 void PastCalcMode::sendVars() {
-    onVariablesChanged(passPercentInput->getString() != "" ? fmt::format(
+    m_onVariablesChanged(m_passPercentInput->getString() != "" ? fmt::format(
         "{}>",
-        passPercentInput->getString()
+        m_passPercentInput->getString()
     ) : "");
 }

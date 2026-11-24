@@ -5,17 +5,17 @@
 using namespace geode::prelude;
 
 struct GetLevelsTaskProgress {
-    std::string message;
-    int current;
-    int max;
+    std::string m_message;
+    int m_current;
+    int m_max;
 
     GetLevelsTaskProgress(std::string message_, int current_, int max_)
-        : message(std::move(message_)), current(current_), max(max_) {}
+        : m_message(std::move(message_)), m_current(current_), m_max(max_) {}
 };
 
 struct LinkData {
-    LevelMetadata metadata;
-    std::string levelKey;
+    LevelMetadata m_metadata;
+    std::string m_levelKey;
 };
 
 using GetLevelsFuture = arc::Future<std::vector<LinkData>>;

@@ -2,22 +2,20 @@
 
 ChangelogPopup* ChangelogPopup::create() {
     auto ret = new ChangelogPopup();
+
     if (ret->init()) {
         ret->autorelease();
         return ret;
     }
+
     delete ret;
     return nullptr;
 }
 
-// a little help from better edit on this one :)
 bool ChangelogPopup::init() {
-    auto winSize = CCDirector::sharedDirector()->getWinSize();
-    // @geode-ignore(unknown-resource)
     if (!Popup::init(240, 250, "geode.loader/GE_square01.png"))
         return false;
     setTitle("Changelog");
-    
 
     auto changelogOpt = Mod::get()->getMetadata().getChangelog();
     auto version = Mod::get()->getVersion();
@@ -64,7 +62,6 @@ bool ChangelogPopup::init() {
     m_mainLayer->addChildAtPosition(textArea, Anchor::Center);
     textArea->setPositionY(textArea->getPositionY() - m_title->getScaledContentHeight() / 2);
 
-    // @geode-ignore(unknown-resource)
     auto lower = CCSprite::createWithSpriteFrameName("geode.loader/mods-list-bottom-sapphire.png");
     lower->setAnchorPoint({0, .5f});
     lower->setScale(m_size.width / lower->getContentWidth());

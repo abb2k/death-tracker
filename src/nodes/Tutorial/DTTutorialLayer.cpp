@@ -62,7 +62,7 @@ DTTutorialLayer* DTTutorialLayer::appendDialogue(const std::string& text, Tutori
 
 DTTutorialLayer* DTTutorialLayer::appendDialogue(DialogObject* dialogue) {
     TutorialSegment segment {
-        .dialogue = dialogue
+        .m_dialogue = dialogue
     };
     
     m_allSegments.push_back(std::move(segment));
@@ -73,8 +73,8 @@ DTTutorialLayer* DTTutorialLayer::appendDialogue(DialogObject* dialogue) {
 DTTutorialLayer* DTTutorialLayer::joinTransform(TutorialBoxPlacement alignment, float boxScale) {
     if (!m_allSegments.size()) return this;
 
-    m_allSegments[m_allSegments.size() - 1].alignment = alignment;
-    m_allSegments[m_allSegments.size() - 1].boxScale = boxScale;
+    m_allSegments[m_allSegments.size() - 1].m_alignment = alignment;
+    m_allSegments[m_allSegments.size() - 1].m_boxScale = boxScale;
 
     return this;
 }
@@ -85,7 +85,7 @@ DTTutorialLayer* DTTutorialLayer::joinHighlight(CCNode* targetObject, float dela
 DTTutorialLayer* DTTutorialLayer::joinPreviousHighlight() {
     if (m_allSegments.size() - 2 <= 0) return this;
 
-    for (const auto& [highlight, options] : m_allSegments[m_allSegments.size() - 2].targetObjects)
+    for (const auto& [highlight, options] : m_allSegments[m_allSegments.size() - 2].m_targetObjects)
     {
         insertHighlight(m_allSegments.size() - 1, highlight, std::get<0>(options), std::get<1>(options), std::get<2>(options));
     }
@@ -101,9 +101,9 @@ DTTutorialLayer* DTTutorialLayer::joinCallback(Function<void()> callback, bool b
     if (!m_allSegments.size()) return this;
 
     if (beforeDialogue)
-        m_allSegments[m_allSegments.size() - 1].beforeCallback = std::move(callback);
+        m_allSegments[m_allSegments.size() - 1].m_beforeCallback = std::move(callback);
     else
-        m_allSegments[m_allSegments.size() - 1].afterCallback = std::move(callback);
+        m_allSegments[m_allSegments.size() - 1].m_afterCallback = std::move(callback);
 
     return this;
 }
@@ -112,9 +112,9 @@ DTTutorialLayer* DTTutorialLayer::insertHighlight(int dialogueIndex, CCNode* tar
     if (targetObject == nullptr) return this;
     if (!m_allSegments.size() || m_allSegments.size() <= dialogueIndex) return this;
     
-    m_allSegments[dialogueIndex].targetObjects.insert({targetObject, {delayTime, allowTouches, ignoreDisabled}});
+    m_allSegments[dialogueIndex].m_targetObjects.insert({targetObject, {delayTime, allowTouches, ignoreDisabled}});
 
-    m_allSegments[dialogueIndex].lastAddedHighlight = targetObject;
+    m_allSegments[dialogueIndex].m_lastAddedHighlight = targetObject;
 
     return this;
 }
@@ -122,13 +122,13 @@ DTTutorialLayer* DTTutorialLayer::insertHighlight(int dialogueIndex, CCNode* tar
 DTTutorialLayer* DTTutorialLayer::insertJoinTextToHighlight(int dialogueIndex, const std::string& text, float size, TutorialTextPlacement alignment) {
     if (!m_allSegments.size() || m_allSegments.size() <= dialogueIndex) return this;
 
-    auto& targetObjects = m_allSegments[dialogueIndex].targetObjects;
+    auto& targetObjects = m_allSegments[dialogueIndex].m_targetObjects;
     if (!targetObjects.size()) return this;
 
-    m_allSegments[dialogueIndex].textForTargets[m_allSegments[dialogueIndex].lastAddedHighlight] = HighlightText{
-        .text = text,
-        .placement = alignment,
-        .size = size
+    m_allSegments[dialogueIndex].m_textForTargets[m_allSegments[dialogueIndex].m_lastAddedHighlight] = HighlightText{
+        .m_text = text,
+        .m_placement = alignment,
+        .m_size = size
     };
 
     return this;
@@ -145,9 +145,9 @@ void DTTutorialLayer::show() {
     int i = 0;
     for (const auto& segment : m_allSegments)
     {
-        dialogueArray->addObject(segment.dialogue);
+        dialogueArray->addObject(segment.m_dialogue);
 
-        m_dialogueSegmentIndexes.insert({segment.dialogue, i});
+        m_dialogueSegmentIndexes.insert({segment.m_dialogue, i});
         i++;
     }
     
@@ -169,16 +169,16 @@ void DTTutorialLayer::show() {
 }
 
 void DTTutorialLayer::onProgress(DialogObject* dObject) {
-    if (m_prevDialogue != nullptr && m_dialogueSegmentIndexes.contains(dObject) && m_allSegments[m_dialogueSegmentIndexes[dObject]].afterCallback != NULL) {
+    if (m_prevDialogue != nullptr && m_dialogueSegmentIndexes.contains(dObject) && m_allSegments[m_dialogueSegmentIndexes[dObject]].m_afterCallback != NULL) {
         auto& objToRunOn = m_allSegments[m_dialogueSegmentIndexes[dObject]];
-        objToRunOn.afterCallback();
+        objToRunOn.m_afterCallback();
     }
     
     auto segmentIndex = m_dialogueSegmentIndexes[dObject];
 
-    if (m_allSegments[segmentIndex].beforeCallback != NULL) {
+    if (m_allSegments[segmentIndex].m_beforeCallback != NULL) {
         auto& objToRunOn = m_allSegments[segmentIndex];
-        objToRunOn.beforeCallback();
+        objToRunOn.m_beforeCallback();
     }
 
     auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
@@ -193,15 +193,15 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
         m_lightRT->getSprite()->runAction(CCEaseInOut::create(CCFadeTo::create(.25f, 255), 2));
     }
     
-    if (m_allSegments[segmentIndex].alignment.has_value()) {
+    if (m_allSegments[segmentIndex].m_alignment.has_value()) {
         m_dialogueLayer->m_mainLayer->stopActionByTag(10);
         CCPoint toMoveTo;
 
         auto bg = static_cast<CCScale9Sprite*>(m_dialogueLayer->m_mainLayer->getChildren()->objectAtIndex(0));
 
-        float scaleMultiplier = m_allSegments[segmentIndex].boxScale.has_value() ? m_allSegments[segmentIndex].boxScale.value() : m_dialogueLayer->m_mainLayer->getScale();
+        float scaleMultiplier = m_allSegments[segmentIndex].m_boxScale.has_value() ? m_allSegments[segmentIndex].m_boxScale.value() : m_dialogueLayer->m_mainLayer->getScale();
 
-        switch (m_allSegments[segmentIndex].alignment.value()) {
+        switch (m_allSegments[segmentIndex].m_alignment.value()) {
             case TutorialBoxPlacement::TBPCenter:
                 toMoveTo = CCPoint{winSize.width * 0.5F, winSize.height * 0.5F};
             break;
@@ -241,21 +241,21 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
         }
     }
 
-    if (m_allSegments[segmentIndex].boxScale.has_value()) {
+    if (m_allSegments[segmentIndex].m_boxScale.has_value()) {
         m_dialogueLayer->m_mainLayer->stopActionByTag(11);
         
         if (firstRN) {
-            m_dialogueLayer->m_mainLayer->setScale(m_allSegments[segmentIndex].boxScale.value());
+            m_dialogueLayer->m_mainLayer->setScale(m_allSegments[segmentIndex].m_boxScale.value());
         }
         else {
-            auto scaleEase = CCEaseInOut::create(CCScaleTo::create(time, m_allSegments[segmentIndex].boxScale.value()), 2);
+            auto scaleEase = CCEaseInOut::create(CCScaleTo::create(time, m_allSegments[segmentIndex].m_boxScale.value()), 2);
             scaleEase->setTag(11);
             m_dialogueLayer->m_mainLayer->runAction(scaleEase);
         }   
     }
 
     for (const auto& glow : m_retainedSprites) {
-        if (m_prevHighlights.contains(glow) && m_allSegments[segmentIndex].targetObjects.contains(m_prevHighlights[glow])) continue;
+        if (m_prevHighlights.contains(glow) && m_allSegments[segmentIndex].m_targetObjects.contains(m_prevHighlights[glow])) continue;
         glow->stopActionByTag(14);
         glow->runAction(CCFadeTo::create(.25f, 0));
         glow->setTag(1);
@@ -268,7 +268,7 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
 
     m_prevHighlights.clear();
 
-    for (const auto& [highlightTarget, dataPair] : m_allSegments[segmentIndex].targetObjects)
+    for (const auto& [highlightTarget, dataPair] : m_allSegments[segmentIndex].m_targetObjects)
     {
         auto& [delayTime, touchesAllowed, ignoreDisabled] = dataPair;
 
@@ -315,23 +315,23 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
 
         m_prevDialogue = dObject;
 
-        if (!m_allSegments[segmentIndex].textForTargets.contains(highlightTarget)) continue;
+        if (!m_allSegments[segmentIndex].m_textForTargets.contains(highlightTarget)) continue;
 
-        auto& textInfo = m_allSegments[segmentIndex].textForTargets[highlightTarget];
+        auto& textInfo = m_allSegments[segmentIndex].m_textForTargets[highlightTarget];
 
-        auto label = geode::Label::create(textInfo.text.c_str(), "bigFont.fnt");
-        label->setAlignment(textInfo.placement == TutorialTextPlacement::TTLeft ? 
+        auto label = geode::Label::create(textInfo.m_text.c_str(), "bigFont.fnt");
+        label->setAlignment(textInfo.m_placement == TutorialTextPlacement::TTLeft ?
             geode::Label::Alignment::Left :
-            (textInfo.placement == TutorialTextPlacement::TTRight ? 
+            (textInfo.m_placement == TutorialTextPlacement::TTRight ?
                 geode::Label::Alignment::Right : 
                 geode::Label::Alignment::Center
             ) 
         );
         auto anchotPoint = CCPoint{.5f, .5f};
-        if (textInfo.placement == TutorialTextPlacement::TTRight) anchotPoint.x = 0;
-        if (textInfo.placement == TutorialTextPlacement::TTLeft) anchotPoint.x = 1;
-        if (textInfo.placement == TutorialTextPlacement::TTTop) anchotPoint.y = 0;
-        if (textInfo.placement == TutorialTextPlacement::TTBottom) anchotPoint.y = 1;
+        if (textInfo.m_placement == TutorialTextPlacement::TTRight) anchotPoint.x = 0;
+        if (textInfo.m_placement == TutorialTextPlacement::TTLeft) anchotPoint.x = 1;
+        if (textInfo.m_placement == TutorialTextPlacement::TTTop) anchotPoint.y = 0;
+        if (textInfo.m_placement == TutorialTextPlacement::TTBottom) anchotPoint.y = 1;
         label->setAnchorPoint(anchotPoint);
         label->setPosition(this->convertToNodeSpace(
                 highlightTarget->convertToWorldSpace(
@@ -339,7 +339,7 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
                 )
             ) + realContentSize * ccp(std::abs(anchotPoint.x - 1), std::abs(anchotPoint.y - 1))
         );
-        label->setScale(textInfo.size);
+        label->setScale(textInfo.m_size);
         label->setOpacity(0);
         if (!ignoreDisabled || ignoreDisabled && nodeIsVisible(highlightTarget)) {
             fadeSeq = CCSequence::create(

@@ -1,10 +1,8 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
-#include <nodes/layout/usage/SpecialKey.hpp>
+class SpecialKey;
 
 class SpecialKeyCell : public CCMenu {
     public:
@@ -14,9 +12,9 @@ class SpecialKeyCell : public CCMenu {
     private:
         bool init(std::shared_ptr<SpecialKey> key, Function<void(const std::string&)> onSelected);
 
-        std::shared_ptr<SpecialKey> key;
+        std::shared_ptr<SpecialKey> m_key;
 
-        Function<void(const std::string&)> onSelected = NULL;
+        Function<void(const std::string&)> m_onSelected = NULL;
 
         void onAddClicked(CCObject*);
 };

@@ -1,23 +1,14 @@
-#include <nodes/calculator/CalculatorMode.hpp>
+#include "CalculatorMode.hpp"
 
-CalculatorMode* CalculatorMode::create(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate) {
-    auto ret = new CalculatorMode();
-    if (ret && ret->init(size, std::move(onVariablesChanged), std::move(onCalculate))) {
-        ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
-    }
-    return ret;
-}
-
-bool CalculatorMode::init(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate) {
+bool CalculatorMode::init(CCSize size, Function<void(std::string const&)> onVariablesChanged, Function<void(std::string const&)> onCalculate) {
     if (!CCNode::init()) return false;
+    
+    this->m_size = std::move(size);
 
-    this->onVariablesChanged = std::move(onVariablesChanged);
-    this->onCalculate = std::move(onCalculate);
+    this->m_onVariablesChanged = std::move(onVariablesChanged);
+    this->m_onCalculate = std::move(onCalculate);
 
-    this->setContentSize(size);
+    this->setContentSize(m_size);
 
     return true;
 }

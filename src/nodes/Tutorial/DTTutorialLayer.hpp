@@ -32,23 +32,23 @@ enum TutorialCharacterFace {
 };
 
 struct HighlightText {
-    std::string text;
-    TutorialTextPlacement placement;
-    float size;
+    std::string m_text;
+    TutorialTextPlacement m_placement;
+    float m_size;
 };
 
 struct TutorialSegment {
-    Function<void()> beforeCallback = NULL;
-    Function<void()> afterCallback = NULL;
+    Function<void()> m_beforeCallback = NULL;
+    Function<void()> m_afterCallback = NULL;
 
-    DialogObject* dialogue = nullptr;
-    std::optional<TutorialBoxPlacement> alignment = std::nullopt;
-    std::optional<float> boxScale = std::nullopt;
+    DialogObject* m_dialogue = nullptr;
+    std::optional<TutorialBoxPlacement> m_alignment = std::nullopt;
+    std::optional<float> m_boxScale = std::nullopt;
 
-    CCNode* lastAddedHighlight;
+    CCNode* m_lastAddedHighlight;
 
-    std::map<CCNode*, std::tuple<float, bool, bool>> targetObjects{};
-    std::map<CCNode*, HighlightText> textForTargets{};
+    std::map<CCNode*, std::tuple<float, bool, bool>> m_targetObjects{};
+    std::map<CCNode*, HighlightText> m_textForTargets{};
 };
 
 class DTTutorialLayer : public CCLayer, public DialogDelegate {

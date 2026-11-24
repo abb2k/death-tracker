@@ -28,7 +28,7 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
     this->addChildAtPosition(m_background, Anchor::BottomLeft);
     updateBackgroundColor();
 
-    m_labelName = SimpleTextArea::create(label.labelName, "bigFont.fnt", .5f);
+    m_labelName = SimpleTextArea::create(label.m_labelName, "bigFont.fnt", .5f);
     m_labelName->setAnchorPoint({0, 1});
     m_labelName->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
     m_labelName->setWidth(width / 1.2f);
@@ -40,13 +40,13 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
     settingsMenu->ignoreAnchorPointForPosition(false);
     this->addChildAtPosition(settingsMenu, Anchor::BottomLeft);
 
-    m_enabledToggle = SimpleToggler::createWithDefaults(.35f, label.enabled);
+    m_enabledToggle = SimpleToggler::createWithDefaults(.35f, label.m_enabled);
     m_enabledToggle->setPosition({10, 10});
     settingsMenu->addChild(m_enabledToggle);
     m_enabledToggle->setCallback([this](bool enabled) {
         if (m_updatingControls) return;
 
-        m_myLabelData.enabled = enabled;
+        m_myLabelData.m_enabled = enabled;
         updateBackgroundColor();
         if (m_onChanged != NULL) m_onChanged(this);
     });
@@ -57,7 +57,7 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
     m_enableLabel->setPosition({m_enabledToggle->getPositionX() + m_enabledToggle->getScaledContentWidth() / 2 + 3, 10});
     settingsMenu->addChild(m_enableLabel);
 
-    m_levelSpecificToggle = SimpleToggler::createWithDefaults(.35f, label.levelSpecific.has_value());
+    m_levelSpecificToggle = SimpleToggler::createWithDefaults(.35f, label.m_levelSpecific.has_value());
     m_levelSpecificToggle->setPosition({10, 18 + m_enabledToggle->getContentHeight()});
     settingsMenu->addChild(m_levelSpecificToggle);
     m_levelSpecificToggle->setCallback([this](bool enabled) {
@@ -65,9 +65,9 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
 
         if (enabled) {
             auto levelKeyRes = StatsManager::getLevelKey(DTLayer::get()->m_Level);
-            m_myLabelData.levelSpecific = levelKeyRes.isOk() ? std::optional<std::string>(levelKeyRes.unwrap()) : std::nullopt;
+            m_myLabelData.m_levelSpecific = levelKeyRes.isOk() ? std::optional<std::string>(levelKeyRes.unwrap()) : std::nullopt;
         } else {
-            m_myLabelData.levelSpecific = std::nullopt;
+            m_myLabelData.m_levelSpecific = std::nullopt;
         }
         updateLevelVisibility();
         updateBackgroundColor();
@@ -89,7 +89,7 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
     m_orderInput = TextInput::create(50, "Order");
     m_orderInput->setScale(.55f);
     m_orderInput->setCommonFilter(CommonFilter::Uint);
-    m_orderInput->setString(std::to_string(label.order));
+    m_orderInput->setString(std::to_string(label.m_order));
     m_orderInput->setAnchorPoint({0, .5f});
     m_orderInput->setPosition({m_orderLabel->getPositionX() + m_orderLabel->getScaledContentWidth() + 3, m_orderLabel->getPositionY()});
     m_orderInput->setCallback([this](const std::string& value) {
@@ -98,7 +98,7 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
         auto order = geode::utils::numFromString<int>(value);
         if (order.isErr()) return;
 
-        m_myLabelData.order = order.unwrap();
+        m_myLabelData.m_order = order.unwrap();
         if (m_onChanged != NULL) m_onChanged(this);
     });
     this->addChild(m_orderInput);
@@ -143,12 +143,12 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
 
 void OverlayLabelCell::setData(OverlayLabel const& label) {
     m_myLabelData = label;
-    m_labelName->setText(label.labelName);
+    m_labelName->setText(label.m_labelName);
     updateLevelVisibility();
     updateBackgroundColor();
     m_updatingControls = true;
-    m_enabledToggle->toggle(label.enabled);
-    m_orderInput->setString(std::to_string(label.order));
+    m_enabledToggle->toggle(label.m_enabled);
+    m_orderInput->setString(std::to_string(label.m_order));
     m_updatingControls = false;
 }
 
@@ -160,7 +160,7 @@ void OverlayLabelCell::setEditing(bool isEditing) {
 void OverlayLabelCell::updateLevelVisibility() {
     auto dtLayer = DTLayer::get();
 
-    LevelMetadata meta = dtLayer ? (dtLayer->m_MyLevelStats.isOk() ? dtLayer->m_MyLevelStats.unwrap().metadata : LevelMetadata{}) : LevelMetadata{};
+    LevelMetadata meta = dtLayer ? (dtLayer->m_MyLevelStats.isOk() ? dtLayer->m_MyLevelStats.unwrap().m_metadata : LevelMetadata{}) : LevelMetadata{};
 
     auto isVisible = m_myLabelData.isOverlayLabelVisibleOnLevel(
         dtLayer ? dtLayer->m_Level : nullptr,
@@ -171,7 +171,7 @@ void OverlayLabelCell::updateLevelVisibility() {
 }
 
 void OverlayLabelCell::updateBackgroundColor() {
-    if (!m_myLabelData.enabled) {
+    if (!m_myLabelData.m_enabled) {
         m_background->setColor({120, 120, 120});
     }
     else if (m_isEditing) {
@@ -179,7 +179,7 @@ void OverlayLabelCell::updateBackgroundColor() {
     }
     else {
 
-        if (m_myLabelData.levelSpecific.has_value())
+        if (m_myLabelData.m_levelSpecific.has_value())
             m_background->setColor({ 76, 86, 228 });
         else
             m_background->setColor({ 255, 255, 255 });

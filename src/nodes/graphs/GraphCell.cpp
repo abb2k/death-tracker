@@ -25,46 +25,46 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
     setID("graph-cell");
     this->setContentSize({width, 45});
 
-    this->graphInfo = graphInfo;
+    this->m_graphInfo = graphInfo;
 
-    everythingParent = CCNode::create();
-    everythingParent->setAnchorPoint({0, 0});
-    everythingParent->setPositionX(0);
-    everythingParent->ignoreAnchorPointForPosition(false);
-    this->addChild(everythingParent);
+    m_everythingParent = CCNode::create();
+    m_everythingParent->setAnchorPoint({0, 0});
+    m_everythingParent->setPositionX(0);
+    m_everythingParent->ignoreAnchorPointForPosition(false);
+    this->addChild(m_everythingParent);
 
-    bg = CCScale9Sprite::create("square01_001.png");
-    bg->setAnchorPoint({0, 1});
-    bg->setScale(.2f);
-    bg->setContentSize((this->getContentSize() - ccp(0, 2.5f)) / bg->getScale());
-    bg->setPositionY(bg->getScaledContentHeight());
-    everythingParent->addChild(bg);
+    m_bg = CCScale9Sprite::create("square01_001.png");
+    m_bg->setAnchorPoint({0, 1});
+    m_bg->setScale(.2f);
+    m_bg->setContentSize((this->getContentSize() - ccp(0, 2.5f)) / m_bg->getScale());
+    m_bg->setPositionY(m_bg->getScaledContentHeight());
+    m_everythingParent->addChild(m_bg);
 
-    everythingParent->setContentSize(bg->getScaledContentSize());
+    m_everythingParent->setContentSize(m_bg->getScaledContentSize());
 
-    mainMenu = CCMenu::create();
-    mainMenu->setPosition({0, 0});
-    mainMenu->setZOrder(1);
-    everythingParent->addChild(mainMenu);
+    m_mainMenu = CCMenu::create();
+    m_mainMenu->setPosition({0, 0});
+    m_mainMenu->setZOrder(1);
+    m_everythingParent->addChild(m_mainMenu);
 
-    label = SimpleTextArea::create(graphInfo.name, "bigFont.fnt");
-    label->setScale(.25f);
-    label->setAnchorPoint({0, 1});
-    label->setPosition(ccp(0 + 3, this->getContentHeight() - 5));
-    label->setWidth(width - 10);
-    label->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
-    everythingParent->addChild(label);
+    m_label = SimpleTextArea::create(graphInfo.m_name, "bigFont.fnt");
+    m_label->setScale(.25f);
+    m_label->setAnchorPoint({0, 1});
+    m_label->setPosition(ccp(0 + 3, this->getContentHeight() - 5));
+    m_label->setWidth(width - 10);
+    m_label->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
+    m_everythingParent->addChild(m_label);
 
-    outerColor = CCSprite::createWithSpriteFrameName("menuCircleWhite.png");
-    outerColor->setColor({graphInfo.outlineColor.r, graphInfo.outlineColor.g, graphInfo.outlineColor.b});
-    outerColor->setOpacity(graphInfo.outlineColor.a);
+    m_outerColor = CCSprite::createWithSpriteFrameName("menuCircleWhite.png");
+    m_outerColor->setColor({graphInfo.m_outlineColor.r, graphInfo.m_outlineColor.g, graphInfo.m_outlineColor.b});
+    m_outerColor->setOpacity(graphInfo.m_outlineColor.a);
 
-    innerColor = CCSprite::createWithSpriteFrameName("menuCircleWhite.png");
-    innerColor->setScale(.75f);
-    innerColor->setPosition(outerColor->getContentSize() / 2);
-    innerColor->setColor({graphInfo.color.r, graphInfo.color.g, graphInfo.color.b});
-    innerColor->setOpacity(graphInfo.color.a);
-    outerColor->addChild(innerColor);
+    m_innerColor = CCSprite::createWithSpriteFrameName("menuCircleWhite.png");
+    m_innerColor->setScale(.75f);
+    m_innerColor->setPosition(m_outerColor->getContentSize() / 2);
+    m_innerColor->setColor({graphInfo.m_color.r, graphInfo.m_color.g, graphInfo.m_color.b});
+    m_innerColor->setOpacity(graphInfo.m_color.a);
+    m_outerColor->addChild(m_innerColor);
 
     auto disabledCircle = CCSprite::createWithSpriteFrameName("menuCircleWhite.png");
     disabledCircle->setColor({ 84, 43, 43 });
@@ -74,30 +74,30 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
     disabledCircleX->setScale(1.65f);
     disabledCircle->addChild(disabledCircleX);
 
-    enableToggleBtn = SimpleToggler::create(
+    m_enableToggleBtn = SimpleToggler::create(
         disabledCircle,
-        outerColor,
+        m_outerColor,
         .35f,
-        graphInfo.isEnabled
+        graphInfo.m_isEnabled
     );
-    enableToggleBtn->setPosition(label->getPosition() + ccp(
-        enableToggleBtn->getContentWidth() / 2 + 1,
-        -label->getScaledContentHeight() - enableToggleBtn->getContentHeight() / 2 - 2
+    m_enableToggleBtn->setPosition(m_label->getPosition() + ccp(
+        m_enableToggleBtn->getContentWidth() / 2 + 1,
+        -m_label->getScaledContentHeight() - m_enableToggleBtn->getContentHeight() / 2 - 2
     ));
-    enableToggleBtn->setZOrder(1);
-    enableToggleBtn->setID("toggle-btn");
-    enableToggleBtn->setCallback([this](auto state) {
+    m_enableToggleBtn->setZOrder(1);
+    m_enableToggleBtn->setID("toggle-btn");
+    m_enableToggleBtn->setCallback([this](auto state) {
         setEnabledInfo(state, false, true);
     });
-    mainMenu->addChild(enableToggleBtn);
+    m_mainMenu->addChild(m_enableToggleBtn);
 
     auto bgCircle = CCSprite::createWithSpriteFrameName("menuCircleWhite.png");
     bgCircle->setColor({0,0,0});
-    bgCircle->setPosition(enableToggleBtn->getPosition());
+    bgCircle->setPosition(m_enableToggleBtn->getPosition());
     bgCircle->setScale(.4f);
-    everythingParent->addChild(bgCircle);
+    m_everythingParent->addChild(bgCircle);
 
-    this->setZOrder(graphInfo.orderPos);
+    this->setZOrder(graphInfo.m_orderPos);
 
     auto arrowDownSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
     arrowDownSpr->setScale(.2f);
@@ -112,7 +112,7 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
         width - arrowDown->getContentWidth() / 2 - 4,
         10
     });
-    mainMenu->addChild(arrowDown);
+    m_mainMenu->addChild(arrowDown);
 
     auto arrowUpSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
     arrowUpSpr->setScale(.2f);
@@ -127,7 +127,7 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
         arrowDown->getPositionX(),
         arrowDown->getPositionY() + arrowUp->getContentHeight() / 2 + arrowDown->getContentHeight() / 2 + 1
     });
-    mainMenu->addChild(arrowUp);
+    m_mainMenu->addChild(arrowUp);
 
     auto settingBtnSpr = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
     settingBtnSpr->setScale(.25f);
@@ -138,156 +138,156 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
     );
     settingBtn->setID("settings-btn");
     settingBtn->setScale(12 / settingBtn->getContentHeight());
-    settingBtn->setPosition({enableToggleBtn->getPositionX(), enableToggleBtn->getPositionY() - enableToggleBtn->getContentHeight() / 2 - settingBtn->getContentHeight() / 2});
-    mainMenu->addChild(settingBtn);
+    settingBtn->setPosition({m_enableToggleBtn->getPositionX(), m_enableToggleBtn->getPositionY() - m_enableToggleBtn->getContentHeight() / 2 - settingBtn->getContentHeight() / 2});
+    m_mainMenu->addChild(settingBtn);
 
-    typeSwitcher = OptionSwitcher<DTGraphType>::create(90, {
+    m_typeSwitcher = OptionSwitcher<DTGraphType>::create(90, {
         {DTGraphType::Passrate, "Passrate"},
         {DTGraphType::Reachrate, "Reachrate"}
     });
-    typeSwitcher->setID("type-switcher");
-    typeSwitcher->setScale(.4f);
-    typeSwitcher->setAnchorPoint({.5f, 0});
-    typeSwitcher->setPositionX(width / 2 + 2);
-    typeSwitcher->setPositionY(6.5f);
-    typeSwitcher->setCallback([this](auto value) {
+    m_typeSwitcher->setID("type-switcher");
+    m_typeSwitcher->setScale(.4f);
+    m_typeSwitcher->setAnchorPoint({.5f, 0});
+    m_typeSwitcher->setPositionX(width / 2 + 2);
+    m_typeSwitcher->setPositionY(6.5f);
+    m_typeSwitcher->setCallback([this](auto value) {
         setType(value);
     });
-    typeSwitcher->setValue(graphInfo.type, false);
-    mainMenu->addChild(typeSwitcher);
+    m_typeSwitcher->setValue(graphInfo.m_type, false);
+    m_mainMenu->addChild(m_typeSwitcher);
     
     auto typeSwitcherLabel = geode::Label::create("Type:", "bigFont.fnt");
     typeSwitcherLabel->setScale(.25f);
-    typeSwitcherLabel->setPosition(typeSwitcher->getPosition() + ccp(
+    typeSwitcherLabel->setPosition(m_typeSwitcher->getPosition() + ccp(
         0,
-        typeSwitcher->getScaledContentHeight() + typeSwitcherLabel->getScaledContentHeight() / 2
+        m_typeSwitcher->getScaledContentHeight() + typeSwitcherLabel->getScaledContentHeight() / 2
     ));
     typeSwitcherLabel->setID("type-label");
-    everythingParent->addChild(typeSwitcherLabel);
+    m_everythingParent->addChild(typeSwitcherLabel);
 
-    extrasContainer = CCNode::create();
-    extrasContainer->setContentSize({width / 1.2f, 80});
-    extrasContainer->setPosition({0, 0});
-    extrasContainer->setZOrder(2);
-    extrasContainer->setLayout(SimpleAxisLayout::create(Axis::Column)
+    m_extrasContainer = CCNode::create();
+    m_extrasContainer->setContentSize({width / 1.2f, 80});
+    m_extrasContainer->setPosition({0, 0});
+    m_extrasContainer->setZOrder(2);
+    m_extrasContainer->setLayout(SimpleAxisLayout::create(Axis::Column)
         ->setMainAxisAlignment(MainAxisAlignment::Start)
         ->setCrossAxisScaling(AxisScaling::None)
         ->setMainAxisScaling(AxisScaling::Scale)
     );
-    extrasContainer->setAnchorPoint({.5f, 1});
-    extrasContainer->setPositionX(width / 2);
-    everythingParent->addChild(extrasContainer);
+    m_extrasContainer->setAnchorPoint({.5f, 1});
+    m_extrasContainer->setPositionX(width / 2);
+    m_everythingParent->addChild(m_extrasContainer);
 
-    sessionContainer = CCNode::create();
-    sessionContainer->setVisible(false);
-    extrasContainer->addChild(sessionContainer);
+    m_sessionContainer = CCNode::create();
+    m_sessionContainer->setVisible(false);
+    m_extrasContainer->addChild(m_sessionContainer);
     
-    sessionSelectorLabel = geode::Label::create("Session", "bigFont.fnt");
-    sessionSelectorLabel->setScale(.4f);
-    sessionSelectorLabel->setAnchorPoint({.5f, 1});
-    sessionContainer->addChild(sessionSelectorLabel);
+    m_sessionSelectorLabel = geode::Label::create("Session", "bigFont.fnt");
+    m_sessionSelectorLabel->setScale(.4f);
+    m_sessionSelectorLabel->setAnchorPoint({.5f, 1});
+    m_sessionContainer->addChild(m_sessionSelectorLabel);
 
-    sessionSelector = SessionSelector::create(DTLayer::get()->sessionSelector->getMaximumCount());
-    sessionSelector->setEnabled(false);
-    sessionSelector->setScale(.45f);
-    sessionSelector->setAnchorPoint({.5f, 0});
-    sessionSelector->setCallback([&](auto sessionIndex) {
+    m_sessionSelector = SessionSelector::create(DTLayer::get()->m_sessionSelector->getMaximumCount());
+    m_sessionSelector->setEnabled(false);
+    m_sessionSelector->setScale(.45f);
+    m_sessionSelector->setAnchorPoint({.5f, 0});
+    m_sessionSelector->setCallback([&](auto sessionIndex) {
         sendNewSession(sessionIndex);
     });
-    sessionContainer->addChild(sessionSelector);
+    m_sessionContainer->addChild(m_sessionSelector);
 
-    sessionContainer->setContentSize({width, sessionSelector->getScaledContentHeight() + sessionSelectorLabel->getScaledContentHeight() + 5});
-    sessionSelectorLabel->setPosition({
-        sessionContainer->getContentWidth() / 2,
-        sessionContainer->getContentHeight()
+    m_sessionContainer->setContentSize({width, m_sessionSelector->getScaledContentHeight() + m_sessionSelectorLabel->getScaledContentHeight() + 5});
+    m_sessionSelectorLabel->setPosition({
+        m_sessionContainer->getContentWidth() / 2,
+        m_sessionContainer->getContentHeight()
     });
-    sessionSelector->setPosition({
-        sessionContainer->getContentWidth() / 2,
+    m_sessionSelector->setPosition({
+        m_sessionContainer->getContentWidth() / 2,
         0
     });
 
-    sectionContainer = CCMenu::create();
-    sectionContainer->setVisible(false);
-    extrasContainer->addChild(sectionContainer);
+    m_sectionContainer = CCMenu::create();
+    m_sectionContainer->setVisible(false);
+    m_extrasContainer->addChild(m_sectionContainer);
 
-    sectionSelectorLabel = geode::Label::create("Section:", "bigFont.fnt");
-    sectionSelectorLabel->setScale(.4f);
-    sectionSelectorLabel->setAnchorPoint({.5f, 1});
-    sectionContainer->addChild(sectionSelectorLabel);
+    m_sectionSelectorLabel = geode::Label::create("Section:", "bigFont.fnt");
+    m_sectionSelectorLabel->setScale(.4f);
+    m_sectionSelectorLabel->setAnchorPoint({.5f, 1});
+    m_sectionContainer->addChild(m_sectionSelectorLabel);
 
     if (DTLayer::get() != nullptr && DTLayer::get()->m_MyLevelStats.isOk()) {
-        sections = DTLayer::get()->m_MyLevelStats.unwrap().metadata.sections;
+        m_sections = DTLayer::get()->m_MyLevelStats.unwrap().m_metadata.m_sections;
     }
-    std::erase_if(sections, [](const Section& section) {
-        return !section.isValid() || section.startPercent == section.endPercent;
+    std::erase_if(m_sections, [](const Section& section) {
+        return !section.isValid() || section.m_startPercent == section.m_endPercent;
     });
-    std::sort(sections.begin(), sections.end(), [](const Section& a, const Section& b) {
-        if (a.startPercent != b.startPercent) return a.startPercent < b.startPercent;
-        return a.endPercent < b.endPercent;
+    std::sort(m_sections.begin(), m_sections.end(), [](const Section& a, const Section& b) {
+        if (a.m_startPercent != b.m_startPercent) return a.m_startPercent < b.m_startPercent;
+        return a.m_endPercent < b.m_endPercent;
     });
 
     std::vector<FloatingListItem> sectionItems;
-    for (size_t i = 0; i < sections.size(); ++i) {
+    for (size_t i = 0; i < m_sections.size(); ++i) {
         sectionItems.push_back(FloatingListItem{
-            .id = static_cast<int>(i),
-            .text = sections[i].name
+            .m_id = static_cast<int>(i),
+            .m_text = m_sections[i].m_name
         });
     }
 
     auto sectionButtonSpr = ButtonSprite::create(
-        sections.empty() ? "No Sections" : sections.front().name.c_str()
+        m_sections.empty() ? "No Sections" : m_sections.front().m_name.c_str()
     );
     sectionButtonSpr->setScale(std::min(.45f, (width - 10) / sectionButtonSpr->getContentWidth()));
-    sectionSelectorBtn = CCMenuItemSpriteExtra::create(
+    m_sectionSelectorBtn = CCMenuItemSpriteExtra::create(
         sectionButtonSpr,
         this,
         menu_selector(GraphCell::onSectionSelectHelper)
     );
-    sectionSelectorBtn->setEnabled(!sections.empty());
-    sectionContainer->addChild(sectionSelectorBtn);
+    m_sectionSelectorBtn->setEnabled(!m_sections.empty());
+    m_sectionContainer->addChild(m_sectionSelectorBtn);
 
-    sectionsFloatList = FloatingList::create({width, 100});
-    sectionsFloatList->setAnchorPoint({.5f, 0});
-    sectionsFloatList->addItems(sectionItems);
-    sectionsFloatList->setCallback([&](const int& id) {
-        if (id < 0 || id >= static_cast<int>(sections.size())) return;
-        selectedSectionIndex = static_cast<size_t>(id);
+    m_sectionsFloatList = FloatingList::create({width, 100});
+    m_sectionsFloatList->setAnchorPoint({.5f, 0});
+    m_sectionsFloatList->addItems(sectionItems);
+    m_sectionsFloatList->setCallback([&](const int& id) {
+        if (id < 0 || id >= static_cast<int>(m_sections.size())) return;
+        m_selectedSectionIndex = static_cast<size_t>(id);
         sendNewSection();
-        sectionsFloatList->close();
+        m_sectionsFloatList->close();
     });
-    sectionContainer->addChild(sectionsFloatList);
+    m_sectionContainer->addChild(m_sectionsFloatList);
 
-    sectionContainer->setContentSize({width, sectionSelectorBtn->getScaledContentHeight() + sectionSelectorLabel->getScaledContentHeight() + 5});
-    sectionSelectorLabel->setPosition({
-        sectionContainer->getContentWidth() / 2,
-        sectionContainer->getContentHeight()
+    m_sectionContainer->setContentSize({width, m_sectionSelectorBtn->getScaledContentHeight() + m_sectionSelectorLabel->getScaledContentHeight() + 5});
+    m_sectionSelectorLabel->setPosition({
+        m_sectionContainer->getContentWidth() / 2,
+        m_sectionContainer->getContentHeight()
     });
-    sectionSelectorBtn->setPosition({
-        sectionContainer->getContentWidth() / 2,
-        sectionSelectorBtn->getScaledContentHeight() / 2
+    m_sectionSelectorBtn->setPosition({
+        m_sectionContainer->getContentWidth() / 2,
+        m_sectionSelectorBtn->getScaledContentHeight() / 2
     });
-    sectionsFloatList->setPosition(
-        sectionSelectorBtn->getPosition() +
-        ccp(0, sectionSelectorBtn->getScaledContentHeight() / 2 + 5)
+    m_sectionsFloatList->setPosition(
+        m_sectionSelectorBtn->getPosition() +
+        ccp(0, m_sectionSelectorBtn->getScaledContentHeight() / 2 + 5)
     );
 
     updateSectionSelector();
 
-    runContainer = CCMenu::create();
-    runContainer->setVisible(false);
-    extrasContainer->addChild(runContainer);
+    m_runContainer = CCMenu::create();
+    m_runContainer->setVisible(false);
+    m_extrasContainer->addChild(m_runContainer);
     
-    runLabel = geode::Label::create("Run Start %", "bigFont.fnt");
-    runLabel->setScale(.3f);
-    runLabel->setAnchorPoint({.5f, 1});
-    runContainer->addChild(runLabel);
+    m_runLabel = geode::Label::create("Run Start %", "bigFont.fnt");
+    m_runLabel->setScale(.3f);
+    m_runLabel->setAnchorPoint({.5f, 1});
+    m_runContainer->addChild(m_runLabel);
 
-    runInput = TextInput::create(width / 1.1f, "run%");
-    runInput->setEnabled(false);
-    runInput->setScale(.7f);
-    runInput->setAnchorPoint({.5f, 0});
-    runInput->setCommonFilter(CommonFilter::Uint);
-    runInput->setCallback([&](auto str) {
+    m_runInput = TextInput::create(width / 1.1f, "run%");
+    m_runInput->setEnabled(false);
+    m_runInput->setScale(.7f);
+    m_runInput->setAnchorPoint({.5f, 0});
+    m_runInput->setCommonFilter(CommonFilter::Uint);
+    m_runInput->setCallback([&](auto str) {
         auto numRes = utils::numFromString<int>(str);
         int num = 0;
         if (numRes.isOk())
@@ -295,21 +295,21 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
 
         if (num > 100) {
             num = 100;
-            runInput->setString("100");
+            m_runInput->setString("100");
         }
         
-        if (onNewRun != NULL)
-            onNewRun(this, num);
+        if (m_onNewRun != NULL)
+            m_onNewRun(this, num);
     });
-    runContainer->addChild(runInput);
+    m_runContainer->addChild(m_runInput);
 
-    runContainer->setContentSize({width, runInput->getScaledContentHeight() + runLabel->getScaledContentHeight() + 5});
-    runLabel->setPosition({
-        runContainer->getContentWidth() / 2,
-        runContainer->getContentHeight()
+    m_runContainer->setContentSize({width, m_runInput->getScaledContentHeight() + m_runLabel->getScaledContentHeight() + 5});
+    m_runLabel->setPosition({
+        m_runContainer->getContentWidth() / 2,
+        m_runContainer->getContentHeight()
     });
-    runInput->setPosition({
-        runContainer->getContentWidth() / 2,
+    m_runInput->setPosition({
+        m_runContainer->getContentWidth() / 2,
         0
     });
 
@@ -326,41 +326,41 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
         1
     );
     runSelectHelperSpr->setScale(0.4f);
-    runSelectHelperBtn = CCMenuItemSpriteExtra::create(
+    m_runSelectHelperBtn = CCMenuItemSpriteExtra::create(
         runSelectHelperSpr,
         this,
         menu_selector(GraphCell::onRunSelectHelper)
     );
-    runSelectHelperBtn->setPosition(runInput->getPosition() + ccp(runInput->getScaledContentWidth() / 2 + 1, runInput->getScaledContentHeight() / 2));
-    runContainer->addChild(runSelectHelperBtn);
+    m_runSelectHelperBtn->setPosition(m_runInput->getPosition() + ccp(m_runInput->getScaledContentWidth() / 2 + 1, m_runInput->getScaledContentHeight() / 2));
+    m_runContainer->addChild(m_runSelectHelperBtn);
 
-    runInput->setPositionX(runInput->getPositionX() - runSelectHelperBtn->getContentWidth() / 2 - 1);
+    m_runInput->setPositionX(m_runInput->getPositionX() - m_runSelectHelperBtn->getContentWidth() / 2 - 1);
 
-    runsFloatList = FloatingList::create({runInput->getScaledContentWidth(), 100});
-    runsFloatList->setPosition(runInput->getPosition() + ccp(0, runInput->getScaledContentHeight() + 5));
-    runsFloatList->setAnchorPoint({.5f, 0});
+    m_runsFloatList = FloatingList::create({m_runInput->getScaledContentWidth(), 100});
+    m_runsFloatList->setPosition(m_runInput->getPosition() + ccp(0, m_runInput->getScaledContentHeight() + 5));
+    m_runsFloatList->setAnchorPoint({.5f, 0});
 
     std::vector<FloatingListItem> runItems{};
     if (DTLayer::get()->m_MyLevelStats.isOk()) {
         auto& levelStats = DTLayer::get()->m_MyLevelStats.unwrap();
-        for (const auto& run : levelStats.metadata.runsToShow)
+        for (const auto& run : levelStats.m_metadata.m_runsToShow)
         {
             runItems.push_back(FloatingListItem{
-                .id = run.first,
-                .text = fmt::format("{}%", run.first)
+                .m_id = run.first,
+                .m_text = fmt::format("{}%", run.first)
             });
         }
     }
 
-    runsFloatList->addItems(runItems);
-    runsFloatList->setCallback([&](const int& id) {
-        runInput->setString(std::to_string(id), true);
+    m_runsFloatList->addItems(runItems);
+    m_runsFloatList->setCallback([&](const int& id) {
+        m_runInput->setString(std::to_string(id), true);
 
-        runsFloatList->close();
+        m_runsFloatList->close();
     });
-    runContainer->addChild(runsFloatList);
+    m_runContainer->addChild(m_runsFloatList);
 
-    extrasContainer->updateLayout();
+    m_extrasContainer->updateLayout();
 
     checkForOptVisibilityChange();
 
@@ -368,168 +368,168 @@ bool GraphCell::init(float width, const DTGraphInfo& graphInfo) {
 }
 
 void GraphCell::onArrowUp(CCObject*) {
-    if (onArrowCallback != NULL) onArrowCallback(this, true);
+    if (m_onArrowCallback != NULL) m_onArrowCallback(this, true);
 }
 void GraphCell::onArrowDown(CCObject*) {
-    if (onArrowCallback != NULL) onArrowCallback(this, false);
+    if (m_onArrowCallback != NULL) m_onArrowCallback(this, false);
 }
 void GraphCell::onOptions(CCObject*) {
-    if (onOptionsCallback != NULL) onOptionsCallback(this);
+    if (m_onOptionsCallback != NULL) m_onOptionsCallback(this);
 }
 
 void GraphCell::setOrderPos(int pos) {
-    graphInfo.orderPos = pos;
+    m_graphInfo.m_orderPos = pos;
     this->setZOrder(pos);
     onInfoChanged(true);
 }
 
 bool GraphCell::setName(const std::string& name) {
-    if (!canChangeNameTo(name, this)) return false;
+    if (!m_canChangeNameTo(name, this)) return false;
 
-    oldName = graphInfo.name;
+    m_oldName = m_graphInfo.m_name;
 
-    graphInfo.name = name;
-    label->setText(name);
+    m_graphInfo.m_name = name;
+    m_label->setText(name);
     onInfoChanged(true);
 
     return true;
 }
 void GraphCell::setCoverage(DTGraphCoverage coverage) {
-    graphInfo.coverage = coverage;
+    m_graphInfo.m_coverage = coverage;
     checkForOptVisibilityChange();
     onInfoChanged(true);
 }
 void GraphCell::setType(DTGraphType type) {
-    graphInfo.type = type;
-    typeSwitcher->setValue(type, false);
+    m_graphInfo.m_type = type;
+    m_typeSwitcher->setValue(type, false);
     onInfoChanged(true);
 }
 
 void GraphCell::setThickness(float thickness) {
-    graphInfo.thickness = thickness;
+    m_graphInfo.m_thickness = thickness;
     onInfoChanged(true);
 }
 void GraphCell::setOutlineThickness(float outlineThickness) {
-    graphInfo.outlineThickness = outlineThickness;
+    m_graphInfo.m_outlineThickness = outlineThickness;
     onInfoChanged(true);
 }
 void GraphCell::setPointSize(float pointSize) {
-    graphInfo.pointScale = pointSize;
+    m_graphInfo.m_pointScale = pointSize;
     onInfoChanged(true);
 }
 void GraphCell::setColor(ccColor4B color) {
-    graphInfo.color = color;
-    innerColor->setColor({graphInfo.color.r, graphInfo.color.g, graphInfo.color.b});
-    innerColor->setOpacity(graphInfo.color.a);
+    m_graphInfo.m_color = color;
+    m_innerColor->setColor({m_graphInfo.m_color.r, m_graphInfo.m_color.g, m_graphInfo.m_color.b});
+    m_innerColor->setOpacity(m_graphInfo.m_color.a);
     onInfoChanged(true);
 }
 void GraphCell::setOutlineColor(ccColor4B color) {
-    graphInfo.outlineColor = color;
-    outerColor->setColor({graphInfo.outlineColor.r, graphInfo.outlineColor.g, graphInfo.outlineColor.b});
-    outerColor->setOpacity(graphInfo.outlineColor.a);
+    m_graphInfo.m_outlineColor = color;
+    m_outerColor->setColor({m_graphInfo.m_outlineColor.r, m_graphInfo.m_outlineColor.g, m_graphInfo.m_outlineColor.b});
+    m_outerColor->setOpacity(m_graphInfo.m_outlineColor.a);
     onInfoChanged(true);
 }
 void GraphCell::setPointColor(ccColor4B color) {
-    graphInfo.pointColor = color;
+    m_graphInfo.m_pointColor = color;
     onInfoChanged(true);
 }
 
 void GraphCell::onInfoChanged(bool updateGraph) {
-    if (updateGraph && onInfoChangedCallback != NULL)
-        onInfoChangedCallback(this);
+    if (updateGraph && m_onInfoChangedCallback != NULL)
+        m_onInfoChangedCallback(this);
 }
 
 void GraphCell::setEnabledInfo(bool b, bool changeToggler, bool callback) {
-    this->graphInfo.isEnabled = b;
+    this->m_graphInfo.m_isEnabled = b;
     if (changeToggler)
-        enableToggleBtn->toggle(b);
+        m_enableToggleBtn->toggle(b);
     if (callback)
-        onEnabledChanged(this);
+        m_onEnabledChanged(this);
 
     onInfoChanged(true);
 }
 
 void GraphCell::deleteMe() {
-    beforeDeletion(graphInfo, this);
+    m_beforeDeletion(m_graphInfo, this);
     this->removeMeAndCleanup();
     
-    onDeleted(graphInfo);
+    m_onDeleted(m_graphInfo);
 }
 
 void GraphCell::setSessionOptionsVisible(bool visible) {
     int sizeScaler = 0;
 
-    if (visible && !sessionContainer->isVisible()) {
-        sessionContainer->setVisible(true);
+    if (visible && !m_sessionContainer->isVisible()) {
+        m_sessionContainer->setVisible(true);
 
         sizeScaler = 1;
     }
-    else if (!visible && sessionContainer->isVisible()) {
-        sessionContainer->setVisible(false);
+    else if (!visible && m_sessionContainer->isVisible()) {
+        m_sessionContainer->setVisible(false);
 
         sizeScaler = -1;
     }
 
-    extrasContainer->updateLayout();
+    m_extrasContainer->updateLayout();
 
     if (sizeScaler != 0)
         this->setContentHeight(
             this->getContentHeight() +
-            sessionContainer->getScaledContentHeight() * sizeScaler
+            m_sessionContainer->getScaledContentHeight() * sizeScaler
         );
 
-    everythingParent->setPositionY(this->getContentHeight() - everythingParent->getScaledContentHeight());
-    bg->setContentSize((this->getContentSize() + ccp(0, 2.5f)) / bg->getScale());
+    m_everythingParent->setPositionY(this->getContentHeight() - m_everythingParent->getScaledContentHeight());
+    m_bg->setContentSize((this->getContentSize() + ccp(0, 2.5f)) / m_bg->getScale());
 }
 void GraphCell::setRunOptionsVisible(bool visible) {
     int sizeScaler = 0;
 
-    if (visible && !runContainer->isVisible()) {
-        runContainer->setVisible(true);
+    if (visible && !m_runContainer->isVisible()) {
+        m_runContainer->setVisible(true);
 
         sizeScaler = 1;
 
     }
-    else if (!visible && runContainer->isVisible()) {
-        runContainer->setVisible(false);
+    else if (!visible && m_runContainer->isVisible()) {
+        m_runContainer->setVisible(false);
         
         sizeScaler = -1;
     }
 
-    extrasContainer->updateLayout();
+    m_extrasContainer->updateLayout();
 
     if (sizeScaler != 0)
         this->setContentHeight(
             this->getContentHeight() +
-            runContainer->getScaledContentHeight() * sizeScaler
+            m_runContainer->getScaledContentHeight() * sizeScaler
         );
 
-    everythingParent->setPositionY(this->getContentHeight() - everythingParent->getScaledContentHeight());
-    bg->setContentSize((this->getContentSize() + ccp(0, 2.5f)) / bg->getScale());
+    m_everythingParent->setPositionY(this->getContentHeight() - m_everythingParent->getScaledContentHeight());
+    m_bg->setContentSize((this->getContentSize() + ccp(0, 2.5f)) / m_bg->getScale());
 }
 
 void GraphCell::setSectionOptionsVisible(bool visible) {
     int sizeScaler = 0;
 
-    if (visible && !sectionContainer->isVisible()) {
-        sectionContainer->setVisible(true);
+    if (visible && !m_sectionContainer->isVisible()) {
+        m_sectionContainer->setVisible(true);
         sizeScaler = 1;
     }
-    else if (!visible && sectionContainer->isVisible()) {
-        sectionContainer->setVisible(false);
+    else if (!visible && m_sectionContainer->isVisible()) {
+        m_sectionContainer->setVisible(false);
         sizeScaler = -1;
     }
 
-    extrasContainer->updateLayout();
+    m_extrasContainer->updateLayout();
 
     if (sizeScaler != 0)
         this->setContentHeight(
             this->getContentHeight() +
-            sectionContainer->getScaledContentHeight() * sizeScaler
+            m_sectionContainer->getScaledContentHeight() * sizeScaler
         );
 
-    everythingParent->setPositionY(this->getContentHeight() - everythingParent->getScaledContentHeight());
-    bg->setContentSize((this->getContentSize() + ccp(0, 2.5f)) / bg->getScale());
+    m_everythingParent->setPositionY(this->getContentHeight() - m_everythingParent->getScaledContentHeight());
+    m_bg->setContentSize((this->getContentSize() + ccp(0, 2.5f)) / m_bg->getScale());
 }
 
 void GraphCell::checkForOptVisibilityChange() {
@@ -537,26 +537,26 @@ void GraphCell::checkForOptVisibilityChange() {
     bool makeRunVisible = true;
     bool makeSectionVisible = false;
 
-    if (graphInfo.coverage == DTGraphCoverage::GeneralCover) {
+    if (m_graphInfo.m_coverage == DTGraphCoverage::GeneralCover) {
         makeSessionVisible = false;
         makeRunVisible = false;
     }
-    else if (graphInfo.coverage == DTGraphCoverage::GeneralRunsCover) {
+    else if (m_graphInfo.m_coverage == DTGraphCoverage::GeneralRunsCover) {
         makeSessionVisible = false;
     }
-    else if (graphInfo.coverage == DTGraphCoverage::SessionCover) {
+    else if (m_graphInfo.m_coverage == DTGraphCoverage::SessionCover) {
         makeRunVisible = false;
     }
-    else if (graphInfo.coverage == DTGraphCoverage::SectionContentCover) {
+    else if (m_graphInfo.m_coverage == DTGraphCoverage::SectionContentCover) {
         makeSessionVisible = false;
         makeRunVisible = false;
-        makeSectionVisible = !sections.empty();
+        makeSectionVisible = !m_sections.empty();
     }
-    else if (graphInfo.coverage == DTGraphCoverage::SectionGeneralCover) {
+    else if (m_graphInfo.m_coverage == DTGraphCoverage::SectionGeneralCover) {
         makeSessionVisible = false;
         makeRunVisible = false;
     }
-    else if (graphInfo.coverage == DTGraphCoverage::SectionSessionCover) {
+    else if (m_graphInfo.m_coverage == DTGraphCoverage::SectionSessionCover) {
         makeRunVisible = false;
     }
     setSessionOptionsVisible(makeSessionVisible);
@@ -565,36 +565,36 @@ void GraphCell::checkForOptVisibilityChange() {
 }
 
 void GraphCell::sendNewSession(int index) {
-    if (!(graphInfo.coverage == DTGraphCoverage::SessionCover ||
-        graphInfo.coverage == DTGraphCoverage::SessionRunsCover ||
-        graphInfo.coverage == DTGraphCoverage::SectionSessionCover)) return;
+    if (!(m_graphInfo.m_coverage == DTGraphCoverage::SessionCover ||
+        m_graphInfo.m_coverage == DTGraphCoverage::SessionRunsCover ||
+        m_graphInfo.m_coverage == DTGraphCoverage::SectionSessionCover)) return;
 
     auto session = DTLayer::get()->loadSessionFromSave(index);
     std::optional<Session> sessionOpt = session.isOk() ? std::make_optional(session.unwrap()) : std::nullopt;
     
-    if (onNewSession != NULL)
-        onNewSession(this, std::move(sessionOpt));
+    if (m_onNewSession != NULL)
+        m_onNewSession(this, std::move(sessionOpt));
 }
 
 void GraphCell::resendSession() {
-    sendNewSession(sessionSelector->getCurrentCount());
+    sendNewSession(m_sessionSelector->getCurrentCount());
 }
 
 void GraphCell::sendNewSection() {
-    if (graphInfo.coverage != DTGraphCoverage::SectionContentCover || sections.empty() || !onNewSection) return;
+    if (m_graphInfo.m_coverage != DTGraphCoverage::SectionContentCover || m_sections.empty() || !m_onNewSection) return;
 
-    if (selectedSectionIndex >= sections.size()) return;
+    if (m_selectedSectionIndex >= m_sections.size()) return;
 
     updateSectionSelector();
-    onNewSection(this, sections[selectedSectionIndex]);
+    m_onNewSection(this, m_sections[m_selectedSectionIndex]);
 }
 
 void GraphCell::updateSectionSelector() {
-    if (sections.empty() || selectedSectionIndex >= sections.size()) return;
+    if (m_sections.empty() || m_selectedSectionIndex >= m_sections.size()) return;
 
-    auto buttonSpr = ButtonSprite::create(sections[selectedSectionIndex].name.c_str());
-    buttonSpr->setScale(std::min(.45f, (sectionContainer->getContentWidth() - 10) / buttonSpr->getContentWidth()));
-    sectionSelectorBtn->setSprite(buttonSpr);
+    auto buttonSpr = ButtonSprite::create(m_sections[m_selectedSectionIndex].m_name.c_str());
+    buttonSpr->setScale(std::min(.45f, (m_sectionContainer->getContentWidth() - 10) / buttonSpr->getContentWidth()));
+    m_sectionSelectorBtn->setSprite(buttonSpr);
 }
 
 void GraphCell::resendSection() {
@@ -604,25 +604,25 @@ void GraphCell::resendSection() {
 void GraphCell::setEnabled(bool value) {
     //CCMenu::setEnabled(value);
 
-    runInput->setEnabled(value);
-    sessionSelector->setEnabled(value);
-    sectionSelectorBtn->setEnabled(value && !sections.empty());
+    m_runInput->setEnabled(value);
+    m_sessionSelector->setEnabled(value);
+    m_sectionSelectorBtn->setEnabled(value && !m_sections.empty());
 }
 
 void GraphCell::onRunSelectHelper(CCObject*) {
-    if (runsFloatList->isOpened()) {
-        runsFloatList->close();
+    if (m_runsFloatList->isOpened()) {
+        m_runsFloatList->close();
     }
     else {
-        runsFloatList->open();
+        m_runsFloatList->open();
     }
 }
 
 void GraphCell::onSectionSelectHelper(CCObject*) {
-    if (sectionsFloatList->isOpened()) {
-        sectionsFloatList->close();
+    if (m_sectionsFloatList->isOpened()) {
+        m_sectionsFloatList->close();
     }
     else {
-        sectionsFloatList->open();
+        m_sectionsFloatList->open();
     }
 }

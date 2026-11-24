@@ -14,13 +14,13 @@ class ImportCompletePopup : public Popup, public FLAlertLayerProtocol {
         static ImportCompletePopup* create(LevelData&& data, std::vector<Session> const& sessions);
 
     private:
-        LevelData data;
-        std::vector<Session> sessions;
+        LevelData m_data;
+        std::vector<Session> m_sessions;
 
         void update(float dt);
 
-        ScrollLayer* generalView;
-        ScrollLayer* sessionView;
+        ScrollLayer* m_generalView;
+        ScrollLayer* m_sessionView;
 
         void selectAllSessions(CCObject*);
         void deselectAllSessions(CCObject*);
@@ -30,9 +30,9 @@ class ImportCompletePopup : public Popup, public FLAlertLayerProtocol {
 
         void FLAlert_Clicked(FLAlertLayer* layer, bool btn2);
 
-        FLAlertLayer* combineAlert;
-        FLAlertLayer* overrideAlert;
+        FLAlertLayer* m_combineAlert;
+        FLAlertLayer* m_overrideAlert;
 
-        SimpleToggler* DoAddGeneralToggler;
+        SimpleToggler* m_DoAddGeneralToggler;
 
 };

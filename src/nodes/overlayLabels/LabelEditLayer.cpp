@@ -26,7 +26,6 @@ LabelEditLayer* LabelEditLayer::create() {
 
 bool LabelEditLayer::init() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-    // @geode-ignore(unknown-resource)
     if (!Popup::init(winSize.width - 50, winSize.height - 50, "geode.loader/GE_square01.png"))
         return false;
 
@@ -172,14 +171,14 @@ bool LabelEditLayer::init() {
         if (parsedValue.isErr()) return;
 
         auto offset = parsedValue.unwrap();
-        if (offset < OFFSET_SLIDER_MIN || offset > OFFSET_SLIDER_MAX) return;
+        if (offset < m_OFFSET_SLIDER_MIN || offset > m_OFFSET_SLIDER_MAX) return;
         m_updatingControls = true;
-        m_offsetSlider->setValue((offset - OFFSET_SLIDER_MIN) / (OFFSET_SLIDER_MAX - OFFSET_SLIDER_MIN));
+        m_offsetSlider->setValue((offset - m_OFFSET_SLIDER_MIN) / (m_OFFSET_SLIDER_MAX - m_OFFSET_SLIDER_MIN));
         m_updatingControls = false;
 
         auto settings = Save::getOverlayLabels();
-        if (settings.offset.x == offset && settings.offset.y == offset) return;
-        settings.offset = ccp(offset, offset);
+        if (settings.m_offset.x == offset && settings.m_offset.y == offset) return;
+        settings.m_offset = ccp(offset, offset);
         Save::setOverlayLabels(settings);
     });
 
@@ -205,29 +204,29 @@ bool LabelEditLayer::init() {
 
     auto initialSettings = Save::getOverlayLabels();
     auto initialOffset = std::clamp(
-        (initialSettings.offset.x + initialSettings.offset.y) / 2.f,
-        OFFSET_SLIDER_MIN,
-        OFFSET_SLIDER_MAX
+        (initialSettings.m_offset.x + initialSettings.m_offset.y) / 2.f,
+        m_OFFSET_SLIDER_MIN,
+        m_OFFSET_SLIDER_MAX
     );
     m_updatingControls = true;
     m_offsetInput->setString(fmt::format("{:.1f}", initialOffset));
-    m_sizeInput->setString(fmt::format("{:.2f}", initialSettings.size));
-    m_opacityInput->setString(fmt::format("{}", initialSettings.opacity));
+    m_sizeInput->setString(fmt::format("{:.2f}", initialSettings.m_size));
+    m_opacityInput->setString(fmt::format("{}", initialSettings.m_opacity));
     m_offsetSlider->setValue(
-        (initialOffset - OFFSET_SLIDER_MIN) / (OFFSET_SLIDER_MAX - OFFSET_SLIDER_MIN)
+        (initialOffset - m_OFFSET_SLIDER_MIN) / (m_OFFSET_SLIDER_MAX - m_OFFSET_SLIDER_MIN)
     );
     m_sizeSlider->setValue(
-        (initialSettings.size - OverlayLabelSettings::MIN_SIZE) /
+        (initialSettings.m_size - OverlayLabelSettings::MIN_SIZE) /
         (OverlayLabelSettings::MAX_SIZE - OverlayLabelSettings::MIN_SIZE)
     );
     m_opacitySlider->setValue(
-        static_cast<float>(initialSettings.opacity - OverlayLabelSettings::MIN_OPACITY) /
+        static_cast<float>(initialSettings.m_opacity - OverlayLabelSettings::MIN_OPACITY) /
         (OverlayLabelSettings::MAX_OPACITY - OverlayLabelSettings::MIN_OPACITY)
     );
     m_updatingControls = false;
 
-    if (initialSettings.offset.x != initialOffset || initialSettings.offset.y != initialOffset) {
-        initialSettings.offset = ccp(initialOffset, initialOffset);
+    if (initialSettings.m_offset.x != initialOffset || initialSettings.m_offset.y != initialOffset) {
+        initialSettings.m_offset = ccp(initialOffset, initialOffset);
         Save::setOverlayLabels(initialSettings);
     }
 
@@ -278,14 +277,14 @@ bool LabelEditLayer::init() {
         if (m_updatingControls || !m_currentEdit) return;
 
         auto label = m_currentEdit->getData();
-        label.freeMode = state;
+        label.m_freeMode = state;
         m_currentEdit->setData(label);
 
         m_updatingControls = true;
-        m_disabledAnchorSlidersFG->setVisible(!label.freeMode);
-        if (label.freeMode) {
-            m_xSlider->setValue(label.posX);
-            m_ySlider->setValue(label.posY);
+        m_disabledAnchorSlidersFG->setVisible(!label.m_freeMode);
+        if (label.m_freeMode) {
+            m_xSlider->setValue(label.m_posX);
+            m_ySlider->setValue(label.m_posY);
             m_xSlider->enableSlider();
             m_ySlider->enableSlider();
         }
@@ -374,7 +373,7 @@ bool LabelEditLayer::init() {
         if (m_updatingControls || !m_currentEdit) return;
 
         auto label = m_currentEdit->getData();
-        label.labelName = name;
+        label.m_labelName = name;
         m_currentEdit->setData(label);
         updateSavedLabels();
     });
@@ -421,7 +420,7 @@ bool LabelEditLayer::init() {
         if (m_updatingControls || !m_currentEdit) return;
 
         auto label = m_currentEdit->getData();
-        label.text = text;
+        label.m_text = text;
         m_currentEdit->setData(label);
         updateSavedLabels();
     });
@@ -461,7 +460,7 @@ bool LabelEditLayer::init() {
     setLabelEditEnabled(false);
 
     auto labelSettings = Save::getOverlayLabels();
-    for (auto const& label : labelSettings.labels) {
+    for (auto const& label : labelSettings.m_labels) {
         auto labelCell = OverlayLabelCell::create(m_scroll->getContentWidth(), label);
         labelCell->onEditCallback([this](auto cell) { onCellEdit(cell); });
         labelCell->onDeleteCallback([this](auto cell) { onCellDelete(cell); });
@@ -555,7 +554,7 @@ bool LabelEditLayer::init() {
 
 void LabelEditLayer::onLabelAdded(CCObject*) {
     auto newLabel = OverlayLabel{};
-    newLabel.labelName = "New Label";
+    newLabel.m_labelName = "New Label";
 
     auto newLabelCell = OverlayLabelCell::create(m_scroll->getContentWidth(), newLabel);
     newLabelCell->onEditCallback([&](auto cell){ onCellEdit(cell); });
@@ -639,14 +638,14 @@ void LabelEditLayer::onCellEdit(OverlayLabelCell* cell) {
 
     auto const& label = cell->getData();
     m_updatingControls = true;
-    m_nameInput->setString(label.labelName);
-    m_textInput->setString(label.text);
-    m_freeModeToggle->toggle(label.freeMode);
-    m_xSlider->setValue(label.posX);
-    m_ySlider->setValue(label.posY);
+    m_nameInput->setString(label.m_labelName);
+    m_textInput->setString(label.m_text);
+    m_freeModeToggle->toggle(label.m_freeMode);
+    m_xSlider->setValue(label.m_posX);
+    m_ySlider->setValue(label.m_posY);
     m_updatingControls = false;
-    m_disabledAnchorSlidersFG->setVisible(!label.freeMode);
-    if (!label.freeMode) {
+    m_disabledAnchorSlidersFG->setVisible(!label.m_freeMode);
+    if (!label.m_freeMode) {
         m_xSlider->disableSlider();
         m_ySlider->disableSlider();
     }
@@ -682,26 +681,26 @@ void LabelEditLayer::updateAnchorButtons() {
     auto label = m_currentEdit ? m_currentEdit->getData() : OverlayLabel{};
     for (const auto& [buttonObject, anchor] : m_anchorButtons) {
         auto button = static_cast<CCMenuItemSpriteExtra*>(buttonObject);
-        auto enabled = m_currentEdit && !label.freeMode && anchor != label.anchor;
+        auto enabled = m_currentEdit && !label.m_freeMode && anchor != label.m_anchor;
         button->setEnabled(enabled);
         button->setVisible(enabled);
     }
 }
 
 void LabelEditLayer::onSliderX(CCObject*) {
-    if (m_updatingControls || !m_currentEdit || !m_currentEdit->getData().freeMode) return;
+    if (m_updatingControls || !m_currentEdit || !m_currentEdit->getData().m_freeMode) return;
 
     auto label = m_currentEdit->getData();
-    label.posX = m_xSlider->getValue();
+    label.m_posX = m_xSlider->getValue();
     m_currentEdit->setData(label);
     updateSavedLabels();
 }
 
 void LabelEditLayer::onSliderY(CCObject*) {
-    if (m_updatingControls || !m_currentEdit || !m_currentEdit->getData().freeMode) return;
+    if (m_updatingControls || !m_currentEdit || !m_currentEdit->getData().m_freeMode) return;
 
     auto label = m_currentEdit->getData();
-    label.posY = m_ySlider->getValue();
+    label.m_posY = m_ySlider->getValue();
     m_currentEdit->setData(label);
     updateSavedLabels();
 }
@@ -709,14 +708,14 @@ void LabelEditLayer::onSliderY(CCObject*) {
 void LabelEditLayer::onOffsetSliderChanged(CCObject*) {
     if (m_updatingControls) return;
 
-    auto offset = OFFSET_SLIDER_MIN + (OFFSET_SLIDER_MAX - OFFSET_SLIDER_MIN) * m_offsetSlider->getValue();
+    auto offset = m_OFFSET_SLIDER_MIN + (m_OFFSET_SLIDER_MAX - m_OFFSET_SLIDER_MIN) * m_offsetSlider->getValue();
     m_updatingControls = true;
     m_offsetInput->setString(fmt::format("{:.1f}", offset));
     m_updatingControls = false;
 
     auto settings = Save::getOverlayLabels();
-    if (settings.offset.x == offset && settings.offset.y == offset) return;
-    settings.offset = ccp(offset, offset);
+    if (settings.m_offset.x == offset && settings.m_offset.y == offset) return;
+    settings.m_offset = ccp(offset, offset);
     Save::setOverlayLabels(settings);
 }
 
@@ -753,8 +752,8 @@ void LabelEditLayer::setCurrentLabelSize(float size, bool updateInput) {
 
     auto settings = Save::getOverlayLabels();
 
-    if (settings.size == size) return;
-    settings.size = size;
+    if (settings.m_size == size) return;
+    settings.m_size = size;
 
     Save::setOverlayLabels(settings);
 }
@@ -771,14 +770,13 @@ void LabelEditLayer::setCurrentLabelOpacity(int opacity, bool updateInput) {
     m_updatingControls = false;
 
     auto settings = Save::getOverlayLabels();
-    if (settings.opacity == opacity) return;
-    settings.opacity = opacity;
+    if (settings.m_opacity == opacity) return;
+    settings.m_opacity = opacity;
     Save::setOverlayLabels(settings);
 }
 
 CCMenuItemSpriteExtra* LabelEditLayer::createAnchorButton(Anchor anchor, std::string const& text) {
 
-    // @geode-ignore(unknown-resource)
     auto bg = CCScale9Sprite::create("geode.loader/white-square.png");
 
     auto btnText = geode::Label::create(text.c_str(), "bigFont.fnt");
@@ -816,9 +814,9 @@ void LabelEditLayer::onAnchorClicked(CCObject* sender) {
     m_ySlider->setValue(anchorPos.y);
     m_updatingControls = false;
 
-    label.anchor = anchorIt->second;
-    label.posX = anchorPos.x;
-    label.posY = anchorPos.y;
+    label.m_anchor = anchorIt->second;
+    label.m_posX = anchorPos.x;
+    label.m_posY = anchorPos.y;
     m_currentEdit->setData(label);
     updateAnchorButtons();
 
@@ -844,7 +842,7 @@ void LabelEditLayer::onRichTextBtn(CCObject*) {
         if (m_prevCursorPos.has_value())
             m_textInput->setCursorPos(m_prevCursorPos.value() + key.length());
         auto label = m_currentEdit->getData();
-        label.text = text;
+        label.m_text = text;
         m_currentEdit->setData(label);
         updateSavedLabels();
     })->show();
@@ -859,7 +857,7 @@ void LabelEditLayer::updateSavedLabels() {
 
     auto labelSettings = Save::getOverlayLabels();
 
-    labelSettings.labels = labelsData;
+    labelSettings.m_labels = labelsData;
     Save::setOverlayLabels(labelSettings);
 }
 
@@ -890,20 +888,20 @@ void LabelEditLayer::RefreshPreviewLabels() {
     }
 
     std::vector<std::pair<size_t, OverlayLabel>> orderedLabels;
-    orderedLabels.reserve(labelSettings.labels.size());
-    for (size_t i = 0; i < labelSettings.labels.size(); i++)
-        orderedLabels.emplace_back(i, labelSettings.labels[i]);
+    orderedLabels.reserve(labelSettings.m_labels.size());
+    for (size_t i = 0; i < labelSettings.m_labels.size(); i++)
+        orderedLabels.emplace_back(i, labelSettings.m_labels[i]);
 
     std::stable_sort(orderedLabels.begin(), orderedLabels.end(), [](const auto& a, const auto& b) {
-        return a.second.order > b.second.order;
+        return a.second.m_order > b.second.m_order;
     });
 
     std::map<Anchor, float> anchorOffsets;
     
     for (const auto& [index, label] : orderedLabels) {
-        if (!label.enabled || !label.isOverlayLabelVisibleOnLevel(currentLevel, dtLayer ? (dtLayer->m_MyLevelStats.isOk() ? dtLayer->m_MyLevelStats.unwrap().metadata : LevelMetadata{}) : LevelMetadata{})) continue;
+        if (!label.m_enabled || !label.isOverlayLabelVisibleOnLevel(currentLevel, dtLayer ? (dtLayer->m_MyLevelStats.isOk() ? dtLayer->m_MyLevelStats.unwrap().m_metadata : LevelMetadata{}) : LevelMetadata{})) continue;
 
-        auto previewLabel = RichTextArea::create(expandDeaths(label.text), labelSettings.font, labelSettings.size * previewScale);
+        auto previewLabel = RichTextArea::create(expandDeaths(label.m_text), labelSettings.m_font, labelSettings.m_size * previewScale);
         m_previewLabels.push_back(previewLabel);
 
         auto isDoner = [](){ return AuthManager::isDoner(); };
@@ -934,14 +932,14 @@ void LabelEditLayer::RefreshPreviewLabels() {
             previewLabel->addChild(background, -1);
         }
 
-        auto anchor = label.freeMode ? ccp(label.posX, label.posY) : anchorPoint(label.anchor);
+        auto anchor = label.m_freeMode ? ccp(label.m_posX, label.m_posY) : anchorPoint(label.m_anchor);
         previewLabel->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
 
-        if (!label.freeMode) {
-            auto& offset = anchorOffsets[label.anchor];
-            auto stackDirection = anchorDirection(label.anchor).y;
+        if (!label.m_freeMode) {
+            auto& offset = anchorOffsets[label.m_anchor];
+            auto stackDirection = anchorDirection(label.m_anchor).y;
             if (stackDirection == 0) stackDirection = -1;
-            m_previewArea->addChildAtPosition(previewLabel, label.anchor, ccp(0, stackDirection * offset) + labelSettings.offset * anchorDirection(anchor));
+            m_previewArea->addChildAtPosition(previewLabel, label.m_anchor, ccp(0, stackDirection * offset) + labelSettings.m_offset * anchorDirection(anchor));
             previewLabel->setAnchorPoint(anchor);
             offset += previewLabel->getScaledContentHeight();
         }
@@ -949,11 +947,11 @@ void LabelEditLayer::RefreshPreviewLabels() {
             m_previewArea->addChild(previewLabel);
 
             previewLabel->setAnchorPoint(anchor);
-            previewLabel->setPosition(m_previewArea->getContentSize() * anchor + labelSettings.offset * anchorDirection(anchor));
+            previewLabel->setPosition(m_previewArea->getContentSize() * anchor + labelSettings.m_offset * anchorDirection(anchor));
         }
 
         for (const auto& line : previewLabel->getLines())
-            line->setOpacity(labelSettings.opacity);
+            line->setOpacity(labelSettings.m_opacity);
     }
 }
 
@@ -1007,32 +1005,32 @@ Result<GeneralData> LabelEditLayer::getDeathsData(char scope) {
 
     if (scope == 'g') {
         if (layer->m_MyLevelStats.isErr()) {
-            return Err(layer->m_MyLevelStats.unwrapErr().error);
+            return Err(layer->m_MyLevelStats.unwrapErr().m_error);
         }
 
         auto levelStats = layer->m_MyLevelStats.unwrap();
-        if (levelStats.from0.isErr()) {
-            return Err(levelStats.from0.unwrapErr().error);
+        if (levelStats.m_from0.isErr()) {
+            return Err(levelStats.m_from0.unwrapErr().m_error);
         }
 
-        auto data = levelStats.from0.unwrap();
-        for (const auto& linkedLevel : layer->linkedLevelsData) {
-            if (linkedLevel.from0.isOk() && linkedLevel.levelKey != levelStats.levelKey)
-                data += linkedLevel.from0.unwrap();
+        auto data = levelStats.m_from0.unwrap();
+        for (const auto& linkedLevel : layer->m_linkedLevelsData) {
+            if (linkedLevel.m_from0.isOk() && linkedLevel.m_levelKey != levelStats.m_levelKey)
+                data += linkedLevel.m_from0.unwrap();
         }
         return Ok(data);
     }
 
     auto selectedSession = layer->loadSessionFromSave();
     if (selectedSession.isErr()) {
-        return Err(selectedSession.unwrapErr().error);
+        return Err(selectedSession.unwrapErr().m_error);
     }
 
     if (scope == 's')
-        return Ok(selectedSession.unwrap().data);
+        return Ok(selectedSession.unwrap().m_data);
 
     auto session = selectedSession.unwrap();
-    auto sessionTime = session.sessionStartDate ? session.sessionStartDate : session.groupID;
+    auto sessionTime = session.m_sessionStartDate ? session.m_sessionStartDate : session.m_groupID;
     auto time = static_cast<std::time_t>(sessionTime);
     std::tm localTime{};
 #if defined(_WIN32)
@@ -1045,21 +1043,21 @@ Result<GeneralData> LabelEditLayer::getDeathsData(char scope) {
     localTime.tm_hour = 0;
     auto dayStart = static_cast<long long>(std::mktime(&localTime));
 
-    auto day = layer->daySGroup.grouping.find(dayStart);
-    if (day == layer->daySGroup.grouping.end()) {
+    auto day = layer->m_daySGroup.m_grouping.find(dayStart);
+    if (day == layer->m_daySGroup.m_grouping.end()) {
         return Err("No saved sessions for this day");
     }
 
     GeneralData data{};
-    for (const auto& [sessionDate, levelKeys] : day->second.group) {
+    for (const auto& [sessionDate, levelKeys] : day->second.m_group) {
         for (const auto& levelKey : levelKeys) {
             auto savedSession = StatsManager::getSession(levelKey, sessionDate);
 
             if (savedSession.isErr()) {
-                return Err(savedSession.unwrapErr().error);
+                return Err(savedSession.unwrapErr().m_error);
             }
 
-            data += savedSession.unwrap().data;
+            data += savedSession.unwrap().m_data;
         }
     }
     return Ok(data);
@@ -1078,11 +1076,11 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
             auto run = runResult.unwrap();
             auto deathCount = static_cast<uint64_t>(count);
 
-            deathsByPercent[static_cast<int>(run.end)] += deathCount;
+            deathsByPercent[static_cast<int>(run.m_end)] += deathCount;
         }
     };
 
-    sumDeaths(data.deaths);
+    sumDeaths(data.m_deaths);
 
     if (match[6].matched) {
         std::vector<std::string> output;
@@ -1106,26 +1104,26 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
         std::vector<std::pair<Run, uint64_t>> bestRuns;
         std::map<int64_t, uint64_t> bestRunsByWholePercent;
         auto showDecimals = match[8].matched;
-        auto filteredRuns = data.runs.filterCheatedRuns();
-        const auto& runData = startPercent ? filteredRuns.records : data.deaths.records;
+        auto filteredRuns = data.m_runs.filterCheatedRuns();
+        const auto& runData = startPercent ? filteredRuns.m_records : data.m_deaths.m_records;
         for (const auto& entry : runData) {
             auto& death = entry.second;
-            bool matchesStart = startPercent ? death.runStartPercent.has_value() && death.runStartPercent->units == startPercent->units : !death.runStartPercent.has_value();
+            bool matchesStart = startPercent ? death.m_runStartPercent.has_value() && death.m_runStartPercent->m_units == startPercent->m_units : !death.m_runStartPercent.has_value();
             if (matchesStart) {
                 Run run{
-                    death.runStartPercent ? std::optional<double>(death.runStartPercent->asPercent()) : std::nullopt,
-                    death.runEndPercent.asPercent()
+                    death.m_runStartPercent ? std::optional<double>(death.m_runStartPercent->asPercent()) : std::nullopt,
+                    death.m_runEndPercent.asPercent()
                 };
                 if (showDecimals) {
-                    bestRuns.emplace_back(run, death.deaths);
+                    bestRuns.emplace_back(run, death.m_deaths);
                 }
                 else {
-                    auto wholePercent = static_cast<int64_t>(std::floor(run.end));
+                    auto wholePercent = static_cast<int64_t>(std::floor(run.m_end));
                     auto& count = bestRunsByWholePercent[wholePercent];
-                    if (std::numeric_limits<uint64_t>::max() - count < death.deaths)
+                    if (std::numeric_limits<uint64_t>::max() - count < death.m_deaths)
                         count = std::numeric_limits<uint64_t>::max();
                     else
-                        count += death.deaths;
+                        count += death.m_deaths;
                 }
             }
         }
@@ -1140,7 +1138,7 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
         }
 
         std::stable_sort(bestRuns.begin(), bestRuns.end(), [](const auto& a, const auto& b) {
-            return a.first.end > b.first.end;
+            return a.first.m_end > b.first.m_end;
         });
 
         for (int i = 0; i < count && i < static_cast<int>(bestRuns.size()); i++) {
@@ -1148,11 +1146,11 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
 
             std::string entry;
 
-            if (bestRuns[i].first.start.has_value()) {
-                entry = fmt::format("{:.{}f}-{:.{}f}% X{}", bestRuns[i].first.start.value(), decimalPrecision, bestRuns[i].first.end, decimalPrecision, bestRuns[i].second);
+            if (bestRuns[i].first.m_start.has_value()) {
+                entry = fmt::format("{:.{}f}-{:.{}f}% X{}", bestRuns[i].first.m_start.value(), decimalPrecision, bestRuns[i].first.m_end, decimalPrecision, bestRuns[i].second);
             }
             else {
-                entry = fmt::format("{:.{}f}% X{}", bestRuns[i].first.end, decimalPrecision, bestRuns[i].second);
+                entry = fmt::format("{:.{}f}% X{}", bestRuns[i].first.m_end, decimalPrecision, bestRuns[i].second);
             }
 
             output.push_back(entry);
@@ -1206,13 +1204,14 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
     return std::to_string(totalDeaths);
 }
 
-std::string LabelEditLayer::expandDeaths(const std::string& text) {
-    return expandDeaths(text, [](char scope) {
+std::string LabelEditLayer::expandDeaths(std::string_view textView) {
+    return expandDeaths(textView, [](char scope) {
         return getDeathsData(scope);
     });
 }
 
-std::string LabelEditLayer::expandDeaths(const std::string& text, const std::function<Result<GeneralData>(char)>& dataProvider) {
+std::string LabelEditLayer::expandDeaths(std::string_view textView, const std::function<Result<GeneralData>(char)>& dataProvider) {
+    auto text = std::string(textView);
     std::map<char, std::optional<GeneralData>> dataByScope;
     auto getData = [&](char scope) -> const std::optional<GeneralData>& {
         auto dataIt = dataByScope.find(scope);
@@ -1240,12 +1239,12 @@ std::string LabelEditLayer::expandDeaths(const std::string& text, const std::fun
         const ComplexDeath* latestDeath = nullptr;
 
         if (data) {
-            for (const auto& [key, death] : data->deaths.records) {
-                for (const auto& occurrence : death.occurrences) {
-                    if (!occurrence.runEndTimestamp)
+            for (const auto& [key, death] : data->m_deaths.m_records) {
+                for (const auto& occurrence : death.m_occurrences) {
+                    if (!occurrence.m_runEndTimestamp)
                         continue;
 
-                    auto timestamp = occurrence.runEndTimestamp.value();
+                    auto timestamp = occurrence.m_runEndTimestamp.value();
                     if (!latestTimestamp || timestamp >= latestTimestamp.value()) {
                         latestTimestamp = timestamp;
                         latestDeath = &death;
@@ -1258,19 +1257,19 @@ std::string LabelEditLayer::expandDeaths(const std::string& text, const std::fun
             if (match[2].matched) {
                 expandedCurrentDeathCount += fmt::format(
                     "{:.{}f}% X{}",
-                    latestDeath->runEndPercent.asPercent(),
+                    latestDeath->m_runEndPercent.asPercent(),
                     Settings::getDecimalPrecision(),
-                    latestDeath->deaths
+                    latestDeath->m_deaths
                 );
             }
             else {
-                auto wholePercent = static_cast<int64_t>(std::floor(latestDeath->runEndPercent.asPercent()));
-                auto legacyDeaths = data->deaths.toLegacyDeaths();
+                auto wholePercent = static_cast<int64_t>(std::floor(latestDeath->m_runEndPercent.asPercent()));
+                auto legacyDeaths = data->m_deaths.toLegacyDeaths();
                 auto count = legacyDeaths.find(std::to_string(wholePercent));
                 expandedCurrentDeathCount += fmt::format(
                     "{}% X{}",
                     wholePercent,
-                    count == legacyDeaths.end() ? latestDeath->deaths : count->second
+                    count == legacyDeaths.end() ? latestDeath->m_deaths : count->second
                 );
             }
         }
@@ -1309,7 +1308,7 @@ std::string LabelEditLayer::expandDeaths(const std::string& text, const std::fun
 bool LabelEditLayer::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) {
     auto label = m_currentEdit ? m_currentEdit->getData() : OverlayLabel{};
 
-    if (m_currentEdit && label.freeMode && m_currentPreviewLabel) {
+    if (m_currentEdit && label.m_freeMode && m_currentPreviewLabel) {
         auto touchPosition = m_previewArea->convertToNodeSpace(pTouch->getLocation());
 
         if (m_currentPreviewLabel->boundingBox().containsPoint(touchPosition)) {
@@ -1351,24 +1350,24 @@ void LabelEditLayer::ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent) {
         return (desiredMin - offset) / denominator;
     };
 
-    label.posX = dragAxis(
+    label.m_posX = dragAxis(
         touchPosition.x, m_dragTouchLocalPoint.x, labelSize.width,
-        previewSize.width, settings.offset.x, m_currentPreviewLabel->getScaleX(), label.posX
+        previewSize.width, settings.m_offset.x, m_currentPreviewLabel->getScaleX(), label.m_posX
     );
-    label.posY = dragAxis(
+    label.m_posY = dragAxis(
         touchPosition.y, m_dragTouchLocalPoint.y, labelSize.height,
-        previewSize.height, settings.offset.y, m_currentPreviewLabel->getScaleY(), label.posY
+        previewSize.height, settings.m_offset.y, m_currentPreviewLabel->getScaleY(), label.m_posY
     );
     m_currentEdit->setData(label);
 
     m_updatingControls = true;
-    m_xSlider->setValue(label.posX);
-    m_ySlider->setValue(label.posY);
+    m_xSlider->setValue(label.m_posX);
+    m_ySlider->setValue(label.m_posY);
     m_updatingControls = false;
 
-    auto anchor = ccp(label.posX, label.posY);
+    auto anchor = ccp(label.m_posX, label.m_posY);
     m_currentPreviewLabel->setAnchorPoint(anchor);
-    m_currentPreviewLabel->setPosition(previewSize * anchor + settings.offset * anchorDirection(anchor));
+    m_currentPreviewLabel->setPosition(previewSize * anchor + settings.m_offset * anchorDirection(anchor));
 }
 
 void LabelEditLayer::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent) {

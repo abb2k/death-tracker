@@ -14,7 +14,7 @@ LevelLinkCell* LevelLinkCell::create(float width, const std::string& levelKey, c
 bool LevelLinkCell::init(float width, const std::string& levelKey, const LevelMetadata& data) {
     if (!CCMenu::init()) return false;
 
-    this->levelKey = levelKey;
+    this->m_levelKey = levelKey;
 
     this->setContentSize({width, 40});
 
@@ -27,30 +27,30 @@ bool LevelLinkCell::init(float width, const std::string& levelKey, const LevelMe
 
     auto arrowBtnSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
     arrowBtnSpr->setScale(.6f);
-    arrowBtn = CCMenuItemSpriteExtra::create(
+    m_arrowBtn = CCMenuItemSpriteExtra::create(
         arrowBtnSpr,
         this,
         menu_selector(LevelLinkCell::onArrow)
     );
-    arrowBtn->setID("arrow");
-    this->addChild(arrowBtn);
+    m_arrowBtn->setID("arrow");
+    this->addChild(m_arrowBtn);
 
-    diffSpr = GJDifficultySprite::create(data.difficulty, GJDifficultyName::Long);
-    diffSpr->setScale(.5f);
-    diffSpr->setCascadeOpacityEnabled(true);
-    this->addChild(diffSpr);
+    m_diffSpr = GJDifficultySprite::create(data.m_difficulty, GJDifficultyName::Long);
+    m_diffSpr->setScale(.5f);
+    m_diffSpr->setCascadeOpacityEnabled(true);
+    this->addChild(m_diffSpr);
 
-    title = geode::Label::create(data.levelName.c_str(), "bigFont.fnt");
-    titleWidth = width - diffSpr->getScaledContentWidth() - arrowBtn->getContentWidth() - 20;
-    title->setLimitLabelWidth(titleWidth, .4f);
-    title->setCascadeOpacityEnabled(true);
-    this->addChild(title);
+    m_title = geode::Label::create(data.m_levelName.c_str(), "bigFont.fnt");
+    m_titleWidth = width - m_diffSpr->getScaledContentWidth() - m_arrowBtn->getContentWidth() - 20;
+    m_title->setLimitLabelWidth(m_titleWidth, .4f);
+    m_title->setCascadeOpacityEnabled(true);
+    this->addChild(m_title);
 
-    att = geode::Label::create(fmt::format("{} attempts | levelID: {}", data.attempts, levelKey).c_str(), "chatFont.fnt");
-    attWidth = width - diffSpr->getScaledContentWidth() - arrowBtn->getContentWidth() - 20;
-    att->setLimitLabelWidth(attWidth, .5f);
-    att->setCascadeOpacityEnabled(true);
-    this->addChild(att);
+    m_att = geode::Label::create(fmt::format("{} attempts | levelID: {}", data.m_attempts, levelKey).c_str(), "chatFont.fnt");
+    m_attWidth = width - m_diffSpr->getScaledContentWidth() - m_arrowBtn->getContentWidth() - 20;
+    m_att->setLimitLabelWidth(m_attWidth, .5f);
+    m_att->setCascadeOpacityEnabled(true);
+    this->addChild(m_att);
 
     setAlignment(false);
 
@@ -58,45 +58,45 @@ bool LevelLinkCell::init(float width, const std::string& levelKey, const LevelMe
 }
 
 void LevelLinkCell::setAlignment(bool left) {
-    isAlignedLeft = left;
+    m_isAlignedLeft = left;
 
     if (left) {
-        diffSpr->setPosition({diffSpr->getScaledContentWidth() / 2 + 5, this->getContentHeight() / 2});
-        title->setPosition({this->getContentWidth() / 2 - titleWidth / 2, this->getContentHeight() / 1.6f});
-        title->setAlignment(geode::Label::Alignment::Left);
-        title->setAnchorPoint({0, 0.5f});
-        att->setPosition({this->getContentWidth() / 2 - attWidth / 2, this->getContentHeight() / 3.5f});
-        att->setAlignment(geode::Label::Alignment::Left);
-        att->setAnchorPoint({0, 0.5f});
-        arrowBtn->setPosition({this->getContentWidth() - arrowBtn->getScaledContentWidth() / 2 - 5, this->getContentHeight() / 2});
-        arrowBtn->setRotation(180);
+        m_diffSpr->setPosition({m_diffSpr->getScaledContentWidth() / 2 + 5, this->getContentHeight() / 2});
+        m_title->setPosition({this->getContentWidth() / 2 - m_titleWidth / 2, this->getContentHeight() / 1.6f});
+        m_title->setAlignment(geode::Label::Alignment::Left);
+        m_title->setAnchorPoint({0, 0.5f});
+        m_att->setPosition({this->getContentWidth() / 2 - m_attWidth / 2, this->getContentHeight() / 3.5f});
+        m_att->setAlignment(geode::Label::Alignment::Left);
+        m_att->setAnchorPoint({0, 0.5f});
+        m_arrowBtn->setPosition({this->getContentWidth() - m_arrowBtn->getScaledContentWidth() / 2 - 5, this->getContentHeight() / 2});
+        m_arrowBtn->setRotation(180);
     }
     else {
-        arrowBtn->setPosition({arrowBtn->getScaledContentWidth() / 2 + 5, this->getContentHeight() / 2});
-        title->setPosition({this->getContentWidth() / 2 + titleWidth / 2, this->getContentHeight() / 1.6f});
-        title->setAlignment(geode::Label::Alignment::Right);
-        title->setAnchorPoint({1, 0.5f});
-        att->setPosition({this->getContentWidth() / 2 + attWidth / 2, this->getContentHeight() / 3.5f});
-        att->setAlignment(geode::Label::Alignment::Right);
-        att->setAnchorPoint({1, 0.5f});
-        diffSpr->setPosition({this->getContentWidth() - diffSpr->getScaledContentWidth() / 2 - 5, this->getContentHeight() / 2});
-        arrowBtn->setRotation(0);
+        m_arrowBtn->setPosition({m_arrowBtn->getScaledContentWidth() / 2 + 5, this->getContentHeight() / 2});
+        m_title->setPosition({this->getContentWidth() / 2 + m_titleWidth / 2, this->getContentHeight() / 1.6f});
+        m_title->setAlignment(geode::Label::Alignment::Right);
+        m_title->setAnchorPoint({1, 0.5f});
+        m_att->setPosition({this->getContentWidth() / 2 + m_attWidth / 2, this->getContentHeight() / 3.5f});
+        m_att->setAlignment(geode::Label::Alignment::Right);
+        m_att->setAnchorPoint({1, 0.5f});
+        m_diffSpr->setPosition({this->getContentWidth() - m_diffSpr->getScaledContentWidth() / 2 - 5, this->getContentHeight() / 2});
+        m_arrowBtn->setRotation(0);
     }
 }
 
 void LevelLinkCell::setCallback(Function<void(const std::string& levelKey, bool isLeftAligned)> callback) {
-    this->callback = std::move(callback);
+    this->m_callback = std::move(callback);
 }
 
 void LevelLinkCell::onArrow(CCObject*) {
-    if (callback == NULL) return;
+    if (m_callback == NULL) return;
 
-    callback(levelKey, isAlignedLeft);
+    m_callback(m_levelKey, m_isAlignedLeft);
 }
 
 void LevelLinkCell::setEnabledAndFade(bool b) {
     this->setOpacity(b ? 255 : 120);
     this->setEnabled(b);
 
-    enabledAndFade = b;
+    m_enabledAndFade = b;
 }

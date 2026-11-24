@@ -80,8 +80,8 @@ class LabelEditLayer : public Popup {
 
         CCScale9Sprite* m_disabledAnchorSlidersFG = nullptr;
 
-        float OFFSET_SLIDER_MIN = 0.f;
-        float OFFSET_SLIDER_MAX = 20.f;
+        float m_OFFSET_SLIDER_MIN = 0.f;
+        float m_OFFSET_SLIDER_MAX = 20.f;
 
         static std::string formatDeaths(const GeneralData& data, const std::smatch& match);
         static Result<GeneralData> getDeathsData(char scope);
@@ -98,8 +98,8 @@ class LabelEditLayer : public Popup {
 
     public:
         static LabelEditLayer* create();
-        static std::string expandDeaths(const std::string& text);
-        static std::string expandDeaths(const std::string& text, const std::function<Result<GeneralData>(char)>& dataProvider);
+        static std::string expandDeaths(std::string_view text);
+        static std::string expandDeaths(std::string_view text, const std::function<Result<GeneralData>(char)>& dataProvider);
 
         static Anchor invertAnchor(Anchor anchor);
         static CCPoint anchorPoint(Anchor anchor);

@@ -4,7 +4,7 @@ DialogLayer* DTDialogLayer::createWithTaggedSprites(CCArray* objects, int bg, st
     objects->insertObject(DialogObject::create("", "", 0, 1, true, {0,0,0}), 0);
     
     auto ret = DialogLayer::createWithObjects(objects, bg);
-    static_cast<DTDialogLayer*>(ret)->m_fields->doCallCreationCallback = true;
+    static_cast<DTDialogLayer*>(ret)->m_fields->m_doCallCreationCallback = true;
     static_cast<DTDialogLayer*>(ret)->useTaggedSprites(std::move(icons));
     ret->displayNextObject();
 
@@ -14,13 +14,13 @@ DialogLayer* DTDialogLayer::createWithTaggedSprites(CCArray* objects, int bg, st
 void DTDialogLayer::displayDialogObject(DialogObject* dialogue) {
     DialogLayer::displayDialogObject(dialogue);
 
-    if (m_fields->callback != NULL)
-        m_fields->callback(dialogue);
+    if (m_fields->m_callback != NULL)
+        m_fields->m_callback(dialogue);
 
     std::string dtDialogSpr = "";
     std::tuple<std::string, int, float> dtDialogSprinfo;
 
-    for (const auto& existingIcons : m_fields->icons)
+    for (const auto& existingIcons : m_fields->m_icons)
     {
         if (std::get<1>(existingIcons) != dialogue->getTag()) continue;
 
@@ -54,19 +54,19 @@ void DTDialogLayer::displayDialogObject(DialogObject* dialogue) {
 }
 
 void DTDialogLayer::useTaggedSprites(std::vector<std::tuple<std::string, int, float>> icons) {
-    m_fields->icons = std::move(icons);
+    m_fields->m_icons = std::move(icons);
 }
 
 void DTDialogLayer::setProgressCallback(Function<void(DialogObject*)> callback) {
-    m_fields->callback = std::move(callback);
+    m_fields->m_callback = std::move(callback);
 }
 
 bool DTDialogLayer::init(DialogObject* object, CCArray* objects, int background) {
     if (object != nullptr) {
-        m_fields->firstDialogue = object;
+        m_fields->m_firstDialogue = object;
     }
     else if (objects != nullptr && objects->count() != 0) {
-        m_fields->firstDialogue = static_cast<DialogObject*>(objects->firstObject());
+        m_fields->m_firstDialogue = static_cast<DialogObject*>(objects->firstObject());
     }
 
     if (!DialogLayer::init(object, objects, background)) return false;
@@ -76,7 +76,7 @@ bool DTDialogLayer::init(DialogObject* object, CCArray* objects, int background)
 
 void DTDialogLayer::addToMainScene() {
     DialogLayer::addToMainScene();
-    if (m_fields->callback != NULL && m_fields->firstDialogue != nullptr) {
-        m_fields->callback(m_fields->firstDialogue);
+    if (m_fields->m_callback != NULL && m_fields->m_firstDialogue != nullptr) {
+        m_fields->m_callback(m_fields->m_firstDialogue);
     }
 }

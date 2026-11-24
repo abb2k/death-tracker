@@ -7,10 +7,10 @@ using namespace geode::prelude;
 class $modify(DTDialogLayer, DialogLayer) {
 public:
     struct Fields {
-        std::vector<std::tuple<std::string, int, float>> icons;
-        Function<void(DialogObject*)> callback = NULL;
-        DialogObject* firstDialogue = nullptr;
-        bool doCallCreationCallback = false;
+        std::vector<std::tuple<std::string, int, float>> m_icons;
+        Function<void(DialogObject*)> m_callback = NULL;
+        DialogObject* m_firstDialogue = nullptr;
+        bool m_doCallCreationCallback = false;
     };
 
     static DialogLayer* createWithTaggedSprites(CCArray* objects, int bg, std::vector<std::tuple<std::string, int, float>> icons);

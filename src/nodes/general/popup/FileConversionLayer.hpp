@@ -1,51 +1,50 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
-struct ConversionProgress{
-    int maxAmount;
-    int convertedAmount;
-    int filesWentOverAmount;
-    std::string currentConvertingFile;
+struct ConversionProgress {
+    int m_maxAmount;
+    int m_convertedAmount;
+    int m_filesWentOverAmount;
+    std::string m_currentConvertingFile;
 };
-struct ConversionResult{
-    std::vector<std::string> failedConversions;
-    int maxAmount;
-    int convertedAmount;
+struct ConversionResult {
+    std::vector<std::string> m_failedConversions;
+    int m_maxAmount;
+    int m_convertedAmount;
 };
 
 using LookupFuture = arc::Future<std::vector<std::string>>;
 using ConversionFuture = arc::Future<ConversionResult>;
 
 class FileConversionLayer : public geode::Popup {
-    public:
-        static FileConversionLayer* create(bool exitIfNone);
-    private:
-        bool init(bool exitIfNone);
+public:
+    static FileConversionLayer* create(bool exitIfNone);
 
-        SimpleTextArea* textArea;
-        Slider* progressBar;
+private:
+    bool init(bool exitIfNone);
 
-        LookupFuture lookupFuture();
-        void lookupComplete(LookupFuture::Output event);
-        async::TaskHolder<LookupFuture::Output> lookupListener;
+    SimpleTextArea* m_textArea;
+    Slider* m_progressBar;
 
-        ConversionFuture conversionFuture(std::vector<std::string> allLevels, Function<void(ConversionProgress)> progress);
-        void conversionComplete(ConversionFuture::Output event);
-        async::TaskHolder<ConversionFuture::Output> conversionListener;
-        
-        void setTitle(const std::string& text);
+    LookupFuture lookupFuture();
+    void lookupComplete(LookupFuture::Output event);
+    async::TaskHolder<LookupFuture::Output> m_lookupListener;
 
-        void onClose(cocos2d::CCObject*) override;
+    ConversionFuture conversionFuture(std::vector<std::string> allLevels, Function<void(ConversionProgress)> progress);
+    void conversionComplete(ConversionFuture::Output event);
+    async::TaskHolder<ConversionFuture::Output> m_conversionListener;
+    
+    void setTitle(std::string_view text);
 
-        void onStart(cocos2d::CCObject*);
+    void onClose(cocos2d::CCObject*) override;
 
-        LookupFuture::Output lookupResult;
-        CCMenuItemSpriteExtra* startBtn;
+    void onStart(cocos2d::CCObject*);
 
-        bool didComplete;
+    LookupFuture::Output m_lookupResult;
+    CCMenuItemSpriteExtra* m_startBtn;
 
-        bool exitIfNone;
+    bool m_didComplete;
+
+    bool m_exitIfNone;
 };

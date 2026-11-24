@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
 template <class T>
@@ -241,10 +239,10 @@ private:
     std::shared_ptr<RichTextKeyInstanceBase> m_currentlyHeldButton = nullptr;
 
     struct PendingSpriteEffect {
-        CCFontSprite* sprite;
-        std::shared_ptr<RichTextKeyInstanceBase> instance;
-        int localIndex;
-        size_t sourceCharacterIndex;
+        CCFontSprite* m_sprite;
+        std::shared_ptr<RichTextKeyInstanceBase> m_instance;
+        int m_localIndex;
+        size_t m_sourceCharacterIndex;
     };
     std::vector<PendingSpriteEffect> m_pendingSpriteEffects;
 

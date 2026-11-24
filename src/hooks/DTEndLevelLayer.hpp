@@ -7,7 +7,7 @@ using namespace geode::prelude;
 class $modify(DTEndLevelLayer, EndLevelLayer) {
 public:
     struct Fields {
-        CCMenuItemSpriteExtra* skullBtn = nullptr;
+        CCMenuItemSpriteExtra* m_skullBtn = nullptr;
     };
     
     void customSetup();

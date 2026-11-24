@@ -14,8 +14,8 @@ class SectionOptions : public OptionsNode {
         virtual bool setup() override;
 
         void saveSections();
-        ScrollLayer* mainScroll;
-        CCScale9Sprite* scrollBG;
+        ScrollLayer* m_mainScroll;
+        CCScale9Sprite* m_scrollBG;
 
         void onStartPoses(CCObject*);
 

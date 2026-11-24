@@ -40,9 +40,9 @@ bool DecimalPopup::init(CCSize size) {
     this->addChild(m_scroll);
 
     DTLabelInfo info;
-    info.scale = .5f;
-    info.wrapping = WrappingMode::SPACE_WRAP;
-    info.isExpanded = true;
+    info.m_scale = .5f;
+    info.m_wrapping = WrappingMode::SPACE_WRAP;
+    info.m_isExpanded = true;
 
     m_label = DTLabel::create(info);
     m_label->setAnchorPoint({0, 0});
@@ -54,7 +54,7 @@ bool DecimalPopup::init(CCSize size) {
 
     m_scroll->m_contentLayer->updateLayout();
 
-    donerListenerHandle = OnDonerStateChangedEvent().listen([&](bool state) {
+    m_donerListenerHandle = OnDonerStateChangedEvent().listen([&](bool state) {
         if (m_label) {
             m_label->setDonerRichTextEnabled(state);
         }
@@ -76,10 +76,10 @@ bool DecimalPopup::init(CCSize size) {
     closeBtn->setPosition({2, size.height - 7});
     buttMenu->addChild(closeBtn);
 
-    scrollBargame = Scrollbar::create(m_scroll);
-    scrollBargame->setPosition({size.width - 2, size.height / 2});
-    scrollBargame->setAnchorPoint({1, 0.5f});
-    this->addChild(scrollBargame);
+    m_scrollBargame = Scrollbar::create(m_scroll);
+    m_scrollBargame->setPosition({size.width - 2, size.height / 2});
+    m_scrollBargame->setAnchorPoint({1, 0.5f});
+    this->addChild(m_scrollBargame);
 
     scheduleUpdate();
 
@@ -100,7 +100,7 @@ void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8
     m_scroll->setMouseEnabled(true);
     m_scroll->setTouchEnabled(true);
     m_label->setEnabled(true);
-    scrollBargame->setTouchEnabled(true);
+    m_scrollBargame->setTouchEnabled(true);
 
     auto offset = ccp(2, 3);
 
@@ -203,26 +203,26 @@ void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8
         }
     }
 
-    m_label->payload["decimalDepth"] = decimalDepth;
-    m_label->payload["decimalRun"] = run;
-    m_label->payload["decimalIsSess"] = isSess;
+    m_label->m_payload["decimalDepth"] = decimalDepth;
+    m_label->m_payload["decimalRun"] = run;
+    m_label->m_payload["decimalIsSess"] = isSess;
     if (occurrenceSelection) {
-        m_label->payload["decimalOccurrenceTimestamp"] = occurrenceSelection->first;
-        m_label->payload["decimalOccurrenceIndex"] = occurrenceSelection->second;
+        m_label->m_payload["decimalOccurrenceTimestamp"] = occurrenceSelection->first;
+        m_label->m_payload["decimalOccurrenceIndex"] = occurrenceSelection->second;
     }
     else {
-        m_label->payload.erase("decimalOccurrenceTimestamp");
-        m_label->payload.erase("decimalOccurrenceIndex");
+        m_label->m_payload.erase("decimalOccurrenceTimestamp");
+        m_label->m_payload.erase("decimalOccurrenceIndex");
     }
 
     auto runStrRes = StatsManager::createRunKey(run, occurrenceSelection.has_value());
 
     if (referenceLabel) {
-        m_label->setFontSize(referenceLabel->info.scale);
-        m_label->setFont(referenceLabel->info.font);
-        m_label->setLabelColor(referenceLabel->info.labelColor);
-        m_label->setTextColor(referenceLabel->info.textColor);
-        m_label->setTextWrapping(referenceLabel->info.wrapping);
+        m_label->setFontSize(referenceLabel->m_info.m_scale);
+        m_label->setFont(referenceLabel->m_info.m_font);
+        m_label->setLabelColor(referenceLabel->m_info.m_labelColor);
+        m_label->setTextColor(referenceLabel->m_info.m_textColor);
+        m_label->setTextWrapping(referenceLabel->m_info.m_wrapping);
     }
     else {
         m_label->setFontSize(.5f);
@@ -249,10 +249,10 @@ void DecimalPopup::update(float dt) {
 
 bool DecimalPopup::isTouchOnMe(CCTouch *pTouch, bool begin) {
     if (begin) {
-        isHolding = this->boundingBox().containsPoint(this->getParent()->convertTouchToNodeSpace(pTouch)) && this->isVisible();
+        m_isHolding = this->boundingBox().containsPoint(this->getParent()->convertTouchToNodeSpace(pTouch)) && this->isVisible();
     }
     
-    if (isHolding) {
+    if (m_isHolding) {
         return true;
     }
 
@@ -265,7 +265,7 @@ void DecimalPopup::close() {
     m_scroll->setMouseEnabled(false);
     m_scroll->setTouchEnabled(false);
     m_label->setEnabled(false);
-    scrollBargame->setTouchEnabled(false);
+    m_scrollBargame->setTouchEnabled(false);
 }
 
 void DecimalPopup::onClose(CCObject* sender) {

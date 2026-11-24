@@ -7,7 +7,7 @@ using namespace geode::prelude;
 class $modify(DTProfilePage, ProfilePage) {
 public:
     struct Fields{
-        std::unordered_map<CCObject*, std::pair<std::string, std::string>> allBadges;
+        std::unordered_map<CCObject*, std::pair<std::string, std::string>> m_allBadges;
     };
 
     void loadPageFromUserInfo(GJUserScore* a2);

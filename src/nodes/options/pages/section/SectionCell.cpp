@@ -16,29 +16,29 @@ SectionCell* SectionCell::create(float width, const Section& section) {
 bool SectionCell::init(float width, const Section& section) {
     if (!CCMenu::init()) return false;
 
-    this->section = section;
+    this->m_section = section;
 
     this->setContentSize({width, 40});
 
-    bg = CCScale9Sprite::create("GJ_square05.png");//"square01_001.png"
-    bg->setAnchorPoint({0, 0});
-    bg->setScale(.5f);
-    bg->setContentSize((this->getContentSize() - ccp(0, 2.5f)) / bg->getScale());
-    this->addChild(bg);
+    m_bg = CCScale9Sprite::create("GJ_square05.png");//"square01_001.png"
+    m_bg->setAnchorPoint({0, 0});
+    m_bg->setScale(.5f);
+    m_bg->setContentSize((this->getContentSize() - ccp(0, 2.5f)) / m_bg->getScale());
+    this->addChild(m_bg);
 
-    nameInput = TextInput::create(width / 1.75f, "Section Name", "bigFont.fnt");
-    nameInput->setString(section.name);
-    nameInput->setAnchorPoint({0, .5});
-    nameInput->setScale(.8f);
-    nameInput->setPosition({3, this->getContentHeight() / 2});
-    nameInput->setCallback([&](const std::string& newText) {
-        this->section.name = newText;
+    m_nameInput = TextInput::create(width / 1.75f, "Section Name", "bigFont.fnt");
+    m_nameInput->setString(section.m_name);
+    m_nameInput->setAnchorPoint({0, .5});
+    m_nameInput->setScale(.8f);
+    m_nameInput->setPosition({3, this->getContentHeight() / 2});
+    m_nameInput->setCallback([&](const std::string& newText) {
+        this->m_section.m_name = newText;
 
-        if (this->onChanged) this->onChanged();
+        if (this->m_onChanged) this->m_onChanged();
     });
-    nameInput->setID("name");
-    nameInput->setFilter("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_#");
-    this->addChild(nameInput);
+    m_nameInput->setID("name");
+    m_nameInput->setFilter("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_#");
+    this->addChild(m_nameInput);
 
     auto deleteSprite = CCSprite::createWithSpriteFrameName("GJ_trashBtn_001.png");
     deleteSprite->setScale(.65f);
@@ -49,68 +49,68 @@ bool SectionCell::init(float width, const Section& section) {
     deleteButton->setPosition({this->getContentWidth() - deleteButton->getContentWidth() / 2 - 2, this->getContentHeight() / 2});
     this->addChild(deleteButton);
 
-    endPercentInput = TextInput::create(width / 5, "endPer", "bigFont.fnt");
-    endPercentInput->setString(std::to_string(section.endPercent));
-    endPercentInput->setAnchorPoint({1, .5});
-    endPercentInput->setScale(.75f);
-    endPercentInput->setCommonFilter(CommonFilter::Uint);
-    endPercentInput->setPosition({this->getContentWidth() - deleteButton->getContentWidth() - 3, this->getContentHeight() / 2});
-    endPercentInput->setCallback([&](const std::string& newText) {
+    m_endPercentInput = TextInput::create(width / 5, "endPer", "bigFont.fnt");
+    m_endPercentInput->setString(std::to_string(section.m_endPercent));
+    m_endPercentInput->setAnchorPoint({1, .5});
+    m_endPercentInput->setScale(.75f);
+    m_endPercentInput->setCommonFilter(CommonFilter::Uint);
+    m_endPercentInput->setPosition({this->getContentWidth() - deleteButton->getContentWidth() - 3, this->getContentHeight() / 2});
+    m_endPercentInput->setCallback([&](const std::string& newText) {
         auto newPercentRes = utils::numFromString<int>(newText);
         if (newPercentRes.isErr()) return;
         int newPercent = newPercentRes.unwrap();
 
         if (newPercent > 100) {
             newPercent = 100;
-            endPercentInput->setString(std::to_string(newPercent));
+            m_endPercentInput->setString(std::to_string(newPercent));
         }
         if (newPercent < 0) {
             newPercent = 0;
-            endPercentInput->setString(std::to_string(newPercent));
+            m_endPercentInput->setString(std::to_string(newPercent));
         }
-        this->section.endPercent = newPercent;
+        this->m_section.m_endPercent = newPercent;
 
-        endPercentInput->setString(std::to_string(newPercent));
+        m_endPercentInput->setString(std::to_string(newPercent));
 
         checkValidity();
 
-        if (this->onChanged) this->onChanged();
+        if (this->m_onChanged) this->m_onChanged();
     });
-    endPercentInput->setID("end-per");
-    this->addChild(endPercentInput);
+    m_endPercentInput->setID("end-per");
+    this->addChild(m_endPercentInput);
 
     auto runSeperator = geode::Label::create("-", "bigFont.fnt");
-    runSeperator->setPosition({endPercentInput->getPositionX() - endPercentInput->getScaledContentWidth() - 10, this->getContentHeight() / 2});
+    runSeperator->setPosition({m_endPercentInput->getPositionX() - m_endPercentInput->getScaledContentWidth() - 10, this->getContentHeight() / 2});
     runSeperator->setScale(.75f);
     this->addChild(runSeperator);
 
-    startPercentInput = TextInput::create(width / 5, "startPer", "bigFont.fnt");
-    startPercentInput->setString(std::to_string(section.startPercent));
-    startPercentInput->setAnchorPoint({1, .5});
-    startPercentInput->setScale(.75f);
-    startPercentInput->setCommonFilter(CommonFilter::Uint);
-    startPercentInput->setPosition({runSeperator->getPositionX() - 5 - runSeperator->getScaledContentWidth() / 2, this->getContentHeight() / 2});
-    startPercentInput->setCallback([&](const std::string& newText) {
+    m_startPercentInput = TextInput::create(width / 5, "startPer", "bigFont.fnt");
+    m_startPercentInput->setString(std::to_string(section.m_startPercent));
+    m_startPercentInput->setAnchorPoint({1, .5});
+    m_startPercentInput->setScale(.75f);
+    m_startPercentInput->setCommonFilter(CommonFilter::Uint);
+    m_startPercentInput->setPosition({runSeperator->getPositionX() - 5 - runSeperator->getScaledContentWidth() / 2, this->getContentHeight() / 2});
+    m_startPercentInput->setCallback([&](const std::string& newText) {
         auto newPercentRes = utils::numFromString<int>(newText);
         if (newPercentRes.isErr()) return;
         int newPercent = newPercentRes.unwrap();
 
         if (newPercent > 100) {
             newPercent = 100;
-            startPercentInput->setString(std::to_string(newPercent));
+            m_startPercentInput->setString(std::to_string(newPercent));
         }
         if (newPercent < 0) {
             newPercent = 0;
-            startPercentInput->setString(std::to_string(newPercent));
+            m_startPercentInput->setString(std::to_string(newPercent));
         }
-        this->section.startPercent = newPercent;
+        this->m_section.m_startPercent = newPercent;
 
         checkValidity();
 
-        if (this->onChanged) this->onChanged();
+        if (this->m_onChanged) this->m_onChanged();
     });
-    startPercentInput->setID("start-per");
-    this->addChild(startPercentInput);
+    m_startPercentInput->setID("start-per");
+    this->addChild(m_startPercentInput);
 
     checkValidity();
 
@@ -119,14 +119,14 @@ bool SectionCell::init(float width, const Section& section) {
 
 void SectionCell::onDelete(CCObject* sender) {
     this->removeFromParent();
-    if (this->onDeleted) this->onDeleted();
+    if (this->m_onDeleted) this->m_onDeleted();
 }
 
 void SectionCell::checkValidity() {
-    if (section.isValid()) {
-        bg->setColor({255, 255, 255});
+    if (m_section.isValid()) {
+        m_bg->setColor({255, 255, 255});
     } else {
-        bg->setColor({255, 100, 100});
+        m_bg->setColor({255, 100, 100});
     }
 }
 
@@ -134,15 +134,15 @@ void SectionCell::fade(bool in, float time) {
     if (in) {
         this->runAction(CCFadeTo::create(time, 255));
         this->setEnabled(true);
-        Dev::fadeTextInput(startPercentInput, true, time);
-        Dev::fadeTextInput(endPercentInput, true, time);
-        Dev::fadeTextInput(nameInput, true, time);
+        Dev::fadeTextInput(m_startPercentInput, true, time);
+        Dev::fadeTextInput(m_endPercentInput, true, time);
+        Dev::fadeTextInput(m_nameInput, true, time);
     }
     else {
         this->runAction(CCFadeTo::create(time, 0));
         this->setEnabled(false);
-        Dev::fadeTextInput(startPercentInput, false, time);
-        Dev::fadeTextInput(endPercentInput, false, time);
-        Dev::fadeTextInput(nameInput, false, time);
+        Dev::fadeTextInput(m_startPercentInput, false, time);
+        Dev::fadeTextInput(m_endPercentInput, false, time);
+        Dev::fadeTextInput(m_nameInput, false, time);
     }
 }

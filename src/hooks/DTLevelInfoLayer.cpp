@@ -16,24 +16,24 @@ bool DTLevelInfoLayer::init(GJGameLevel* p0, bool p1) {
     s2->setPosition(s->getContentSize() / 2);
     s->addChild(s2);
     s->setScale(0.75f);
-    m_fields->btn = CCMenuItemSpriteExtra::create(
+    m_fields->m_btn = CCMenuItemSpriteExtra::create(
         s,
         nullptr,
         this,
         menu_selector(DTLevelInfoLayer::openDTLayer)
     );
-    m_fields->btn->setID("dt-skull-button");
-    m_fields->btn->setZOrder(1);
-    m_fields->btn->setVisible(false);
+    m_fields->m_btn->setID("dt-skull-button");
+    m_fields->m_btn->setZOrder(1);
+    m_fields->m_btn->setVisible(false);
 
     auto otherMenu = getChildByID("other-menu");
     auto settingsMenu = getChildByID("settings-menu");
 
-    otherMenu->addChild(m_fields->btn);
+    otherMenu->addChild(m_fields->m_btn);
     if (otherMenu->getChildByID("favorite-button")->isVisible())
-        m_fields->btn->setPosition({otherMenu->getChildByID("favorite-button")->getPositionX(), settingsMenu->getChildByID("settings-button")->getPositionY()});
+        m_fields->m_btn->setPosition({otherMenu->getChildByID("favorite-button")->getPositionX(), settingsMenu->getChildByID("settings-button")->getPositionY()});
     else
-        m_fields->btn->setPosition({otherMenu->getChildByID("favorite-button")->getPosition()});
+        m_fields->m_btn->setPosition({otherMenu->getChildByID("favorite-button")->getPosition()});
     otherMenu->updateLayout();
 
     schedule(schedule_selector(DTLevelInfoLayer::checkIfPlayVisible));
@@ -44,7 +44,7 @@ bool DTLevelInfoLayer::init(GJGameLevel* p0, bool p1) {
 void DTLevelInfoLayer::checkIfPlayVisible(float delta) {
     if (!this->m_playBtnMenu->isVisible()) return;
 
-    m_fields->btn->setVisible(true);
+    m_fields->m_btn->setVisible(true);
     
     unschedule(schedule_selector(DTLevelInfoLayer::checkIfPlayVisible));
 }

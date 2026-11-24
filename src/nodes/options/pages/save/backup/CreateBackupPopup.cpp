@@ -13,7 +13,6 @@ CreateBackupPopup* CreateBackupPopup::create() {
 
 bool CreateBackupPopup::init() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-    // @geode-ignore(unknown-resource)
     if (!Popup::init(250, 120, "geode.loader/GE_square01.png"))
         return false;
     setTitle("Create Backup");
@@ -34,7 +33,7 @@ bool CreateBackupPopup::init() {
     );
     saveGeneralToggler->setPosition({m_size.width - saveGeneralToggler->getScaledContentWidth() / 2 - 5, saveGeneralLabel->getPositionY() - saveGeneralLabel->getScaledContentHeight() / 2});
     saveGeneralToggler->setCallback([this](bool state) {
-        this->general = state;
+        this->m_general = state;
     });
     btnMenu->addChild(saveGeneralToggler);
 
@@ -62,20 +61,20 @@ bool CreateBackupPopup::init() {
     saveSessionsInput->setCallback([&](std::string const& str) {
         auto numRes = utils::numFromString<int>(str);
         if (numRes.isErr()) return;
-        this->sessions = numRes.unwrap();
+        this->m_sessions = numRes.unwrap();
     });
 
     saveSessionsToggler->setCallback([&, saveSessionsInput](bool state) {
         if (state) {
-            this->sessions = std::nullopt;
+            this->m_sessions = std::nullopt;
             saveSessionsInput->setString("All");
             saveSessionsInput->setEnabled(false);
-            this->sessions = -1;
+            this->m_sessions = -1;
         }
         else {
             saveSessionsInput->setString("2");
             saveSessionsInput->setEnabled(true);
-            this->sessions = 2;
+            this->m_sessions = 2;
         }
     });
 
@@ -95,8 +94,8 @@ bool CreateBackupPopup::init() {
 }
 
 void CreateBackupPopup::createBackupClicked(cocos2d::CCObject* sender) {
-    if (callback != NULL) {
-        callback(this->general, this->sessions);
+    if (m_callback != NULL) {
+        m_callback(this->m_general, this->m_sessions);
     }
 
     this->onClose(sender);

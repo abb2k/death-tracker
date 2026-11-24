@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
 enum TouchSenderState{
@@ -13,21 +11,21 @@ enum TouchSenderState{
 };
 
 class TouchSender : public CCMenu {
-    public:
-        static TouchSender* create(int prio, bool swallowTouches);
+public:
+    static TouchSender* create(int prio, bool swallowTouches);
 
-        Function<bool(cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> beginCheck = NULL;
-        Function<void(TouchSenderState, cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> onTouch = NULL;
+    Function<bool(cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> m_beginCheck = NULL;
+    Function<void(TouchSenderState, cocos2d::CCTouch* touch, cocos2d::CCEvent* event)> m_onTouch = NULL;
 
-    private:
-        bool init(int prio, bool swallowTouches);
+private:
+    bool init(int prio, bool swallowTouches);
 
-        int prio;
-        bool swallowTouches;
+    int m_prio;
+    bool m_swallowTouches;
 
-        void registerWithTouchDispatcher() override;
-        bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
-        void ccTouchMoved(CCTouch* touch, CCEvent* event) override;
-        void ccTouchEnded(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
-        void ccTouchCancelled(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+    void registerWithTouchDispatcher() override;
+    bool ccTouchBegan(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+    void ccTouchMoved(CCTouch* touch, CCEvent* event) override;
+    void ccTouchEnded(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
+    void ccTouchCancelled(cocos2d::CCTouch* touch, cocos2d::CCEvent* event) override;
 };

@@ -72,13 +72,13 @@ void DTProfilePage::createBadge(std::string_view ID, std::string_view name, std:
     bButton->setZOrder(-orderPrio);
     username_menu->addChild(bButton);
 
-    m_fields->allBadges.insert(std::make_pair(bButton, std::make_pair(name, description)));
+    m_fields->m_allBadges.insert(std::make_pair(bButton, std::make_pair(name, description)));
     username_menu->updateLayout();
 }
 
 void DTProfilePage::onBadgeClicked(CCObject* sender){
-    if (m_fields->allBadges.contains(sender)){
-        geode::createQuickPopup(m_fields->allBadges[sender].first.c_str(), m_fields->allBadges[sender].second.c_str(), "OK", nullptr, [](auto _, auto __){});
+    if (m_fields->m_allBadges.contains(sender)){
+        geode::createQuickPopup(m_fields->m_allBadges[sender].first.c_str(), m_fields->m_allBadges[sender].second.c_str(), "OK", nullptr, [](auto _, auto __){});
     }   
 }
 

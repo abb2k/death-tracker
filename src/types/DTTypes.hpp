@@ -11,42 +11,42 @@ public:
 };
 
 struct ErrorWithCode{
-    std::string error;
-    int code;
+    std::string m_error;
+    int m_code;
 
     ErrorWithCode() = default;
 
     ErrorWithCode(std::string error_, bool code_ = 0)
-        : error(std::move(error_))
-        , code(code_)
+        : m_error(std::move(error_))
+        , m_code(code_)
     {}
 
     ErrorWithCode(const char* error_, bool code_ = 0)
-        : error(error_ ? error_ : "")
-        , code(code_)
+        : m_error(error_ ? error_ : "")
+        , m_code(code_)
     {}
 
     friend std::ostream& operator<<(std::ostream& os, ErrorWithCode const& err) {
-        return os << err.error;
+        return os << err.m_error;
     }
 };
 
 struct Run_s{
-    std::optional<double> start;
-    double end = 0;
-    std::optional<long long> startTimestamp;
-    std::optional<long long> endTimestamp;
-    bool cheated = false;
+    std::optional<double> m_start;
+    double m_end = 0;
+    std::optional<long long> m_startTimestamp;
+    std::optional<long long> m_endTimestamp;
+    bool m_cheated = false;
 
-    Run_s(std::optional<double> _start, double _end) : start(_start), end(_end) {}
+    Run_s(std::optional<double> _start, double _end) : m_start(_start), m_end(_end) {}
 
     Run_s() = default;
 };
 typedef struct Run_s Run;
 
 typedef struct PlaytimePair {
-    uint64_t playtimeF0 = 0;
-    uint64_t playtimeRuns = 0;
+    uint64_t m_playtimeF0 = 0;
+    uint64_t m_playtimeRuns = 0;
 
     PlaytimePair& operator+=(const PlaytimePair& other);
     void reset();
@@ -63,7 +63,7 @@ struct ComplexPercent {
     static constexpr Units unitsPerPercent = 1000000;
     static constexpr uint8_t maxDecimalDepth = 6;
 
-    Units units = 0;
+    Units m_units = 0;
 
     static Result<ComplexPercent> fromPercent(double percent);
     double asPercent() const;
@@ -71,36 +71,36 @@ struct ComplexPercent {
 };
 
 struct ComplexDeathOccurrence {
-    std::optional<long long> runStartTimestamp;
-    std::optional<long long> runEndTimestamp;
-    bool cheated = false;
+    std::optional<long long> m_runStartTimestamp;
+    std::optional<long long> m_runEndTimestamp;
+    bool m_cheated = false;
 };
 
 struct SessionTimestampRange {
-    long long start = 0;
-    long long end = 0;
+    long long m_start = 0;
+    long long m_end = 0;
 };
 
 struct ComplexDeath {
-    std::optional<ComplexPercent> runStartPercent = std::nullopt;
-    ComplexPercent runEndPercent;
+    std::optional<ComplexPercent> m_runStartPercent = std::nullopt;
+    ComplexPercent m_runEndPercent;
 
-    uint64_t deaths = 0;
-    std::vector<ComplexDeathOccurrence> occurrences;
+    uint64_t m_deaths = 0;
+    std::vector<ComplexDeathOccurrence> m_occurrences;
 };
 
 struct ComplexDeathSummary {
-    ComplexPercent queriedPercent;
-    uint8_t decimalDepth = 0;
-    uint64_t deaths = 0;
-    std::vector<ComplexDeath> records;
+    ComplexPercent m_queriedPercent;
+    uint8_t m_decimalDepth = 0;
+    uint64_t m_deaths = 0;
+    std::vector<ComplexDeath> m_records;
 };
 
 struct ComplexDeathMap {
     using Run = std::pair<ComplexPercent::Units, std::optional<ComplexPercent::Units>>;
     using Storage = std::map<Run, ComplexDeath>;
 
-    Storage records;
+    Storage m_records;
 
     static Result<ComplexDeathMap> readDeathMap(const matjson::Value& value, bool runKeys);
     static Result<ComplexDeathMap> fromLegacy(const Deaths& deaths, bool runKeys);
@@ -153,12 +153,12 @@ struct matjson::Serialize<ComplexDeathMap> {
 };
 
 typedef struct GeneralData {
-    ComplexDeathMap deaths;
-    ComplexDeathMap runs;
-    NewBests newBests;
-    PlaytimePair playtimeGeneral;
-    PlaytimePair playtimePaused;
-    PlaytimePair playtimeDead;
+    ComplexDeathMap m_deaths;
+    ComplexDeathMap m_runs;
+    NewBests m_newBests;
+    PlaytimePair m_playtimeGeneral;
+    PlaytimePair m_playtimePaused;
+    PlaytimePair m_playtimeDead;
 
     GeneralData& operator+=(const GeneralData& other);
 } GeneralData;
@@ -170,14 +170,14 @@ struct matjson::Serialize<GeneralData> {
 };
 
 struct Session {
-    std::string ownerLevelKey;
-    long long lastPlayed;
-    long long sessionStartDate;
-    long long groupID;
-    std::vector<SessionTimestampRange> timeRanges;
-    std::optional<GeneralData> legacyData;
-    bool dataIsOverride = false;
-    GeneralData data;
+    std::string m_ownerLevelKey;
+    long long m_lastPlayed;
+    long long m_sessionStartDate;
+    long long m_groupID;
+    std::vector<SessionTimestampRange> m_timeRanges;
+    std::optional<GeneralData> m_legacyData;
+    bool m_dataIsOverride = false;
+    GeneralData m_data;
 
     void recordTimestamp(long long timestamp);
 };
@@ -195,9 +195,9 @@ struct matjson::Serialize<Session> {
 };
 
 typedef struct Section {
-    std::string name;
-    int startPercent;
-    int endPercent;
+    std::string m_name;
+    int m_startPercent;
+    int m_endPercent;
 
     bool isPercentInSection(int percent) const;
 
@@ -214,7 +214,7 @@ struct matjson::Serialize<Section> {
 };
 
 typedef struct SessionGrouping {
-    std::map<long long, std::set<std::string>, std::greater<long long>> group;
+    std::map<long long, std::set<std::string>, std::greater<long long>> m_group;
 } SessionGrouping;
 
 template <>
@@ -236,8 +236,8 @@ struct matjson::Serialize<std::map<long long, SessionGrouping, std::greater<long
 };
 
 typedef struct SessionCategory {
-    std::string groupName;
-    std::map<long long, SessionGrouping, std::greater<long long>> grouping;
+    std::string m_groupName;
+    std::map<long long, SessionGrouping, std::greater<long long>> m_grouping;
 } SessionCategory;
 
 template <>
@@ -247,27 +247,27 @@ struct matjson::Serialize<SessionCategory> {
 };
 
 typedef struct GradientData {
-    ccColor4B colorA = {255, 255, 255, 255};
-    ccColor4B colorB = {255, 255, 255, 255};
-    float duration = 1;
-    float stagger = 0.2f;
+    ccColor4B m_colorA = {255, 255, 255, 255};
+    ccColor4B m_colorB = {255, 255, 255, 255};
+    float m_duration = 1;
+    float m_stagger = 0.2f;
 } GradientData;
 
 typedef struct WaveData {
-    float speed = 1;
-    float distanceY = 5;
-    float distanceX = 0;
-    float offsetPerIndex = .3f;
+    float m_speed = 1;
+    float m_distanceY = 5;
+    float m_distanceX = 0;
+    float m_offsetPerIndex = .3f;
 } WaveData;
 
 typedef struct CustomizationData {
-    ccColor4B color;
+    ccColor4B m_color;
 
-    bool gradientEnabled;
-    GradientData gradient;
+    bool m_gradientEnabled;
+    GradientData m_gradient;
 
-    bool waveEnabled;
-    WaveData wave;
+    bool m_waveEnabled;
+    WaveData m_wave;
 } CustomizationData;
 
 template <>
@@ -290,20 +290,20 @@ struct matjson::Serialize<CustomizationData> {
 
 
 typedef struct LevelMetadata {
-    std::map<int, int> runsToShow{};
-    int sharedRunToShow = 0;
-    bool showAnyRun = true;
-    std::set<std::string> linkedLevels{};
-    std::string levelName = "Unknown name";
-    int attempts = 0;
-    int difficulty = 0;
-    int hideUpto = 0;
-    int realEndPercent = 100;
-    bool resetAsDeath = true;
-    bool autoBackup = true;
-    std::vector<Section> sections{};
-    bool hasGottenDataFromPT = false;
-    std::vector<SessionCategory> sessionGroups;
+    std::map<int, int> m_runsToShow{};
+    int m_sharedRunToShow = 0;
+    bool m_showAnyRun = true;
+    std::set<std::string> m_linkedLevels{};
+    std::string m_levelName = "Unknown name";
+    int m_attempts = 0;
+    int m_difficulty = 0;
+    int m_hideUpto = 0;
+    int m_realEndPercent = 100;
+    bool m_resetAsDeath = true;
+    bool m_autoBackup = true;
+    std::vector<Section> m_sections{};
+    bool m_hasGottenDataFromPT = false;
+    std::vector<SessionCategory> m_sessionGroups;
 } LevelMetadata;
 
 template <>
@@ -321,39 +321,39 @@ struct matjson::Serialize<LevelMetadata> {
             auto oldRunsToSave = value["RunsToSave"].as<std::set<int>>().unwrapOr(std::set<int>{});
 
             for (const auto& runToSave : oldRunsToSave)
-                stats.runsToShow.insert({runToSave, runToSave});
+                stats.m_runsToShow.insert({runToSave, runToSave});
         }
         else {
-            GEODE_UNWRAP_INTO(stats.runsToShow, value["RunsToShow"].as<std::map<int, int>>());
+            GEODE_UNWRAP_INTO(stats.m_runsToShow, value["RunsToShow"].as<std::map<int, int>>());
         }
         if (value.contains("trackAnyRun")) {
-            GEODE_UNWRAP_INTO(stats.showAnyRun, value["trackAnyRun"].asBool());
+            GEODE_UNWRAP_INTO(stats.m_showAnyRun, value["trackAnyRun"].asBool());
         }
         else {
-            GEODE_UNWRAP_INTO(stats.showAnyRun, value["showAnyRun"].asBool());
+            GEODE_UNWRAP_INTO(stats.m_showAnyRun, value["showAnyRun"].asBool());
         }
 
-        GEODE_UNWRAP_INTO(stats.linkedLevels, value["LinkedLevels"].as<std::set<std::string>>());
-        GEODE_UNWRAP_INTO(stats.levelName, value["levelName"].asString());
-        GEODE_UNWRAP_INTO(stats.attempts, value["attempts"].asInt());
-        GEODE_UNWRAP_INTO(stats.difficulty, value["difficulty"].asInt());
-        GEODE_UNWRAP_INTO(stats.hideUpto, value["hideUpto"].asInt());
-        GEODE_UNWRAP_INTO(stats.realEndPercent, value["realEndPercent"].asInt());
-        GEODE_UNWRAP_INTO(stats.resetAsDeath, value["resetAsDeath"].asBool());
+        GEODE_UNWRAP_INTO(stats.m_linkedLevels, value["LinkedLevels"].as<std::set<std::string>>());
+        GEODE_UNWRAP_INTO(stats.m_levelName, value["levelName"].asString());
+        GEODE_UNWRAP_INTO(stats.m_attempts, value["attempts"].asInt());
+        GEODE_UNWRAP_INTO(stats.m_difficulty, value["difficulty"].asInt());
+        GEODE_UNWRAP_INTO(stats.m_hideUpto, value["hideUpto"].asInt());
+        GEODE_UNWRAP_INTO(stats.m_realEndPercent, value["realEndPercent"].asInt());
+        GEODE_UNWRAP_INTO(stats.m_resetAsDeath, value["resetAsDeath"].asBool());
         if (value.contains("autoBackup")) {
-            GEODE_UNWRAP_INTO(stats.autoBackup, value["autoBackup"].asBool());
+            GEODE_UNWRAP_INTO(stats.m_autoBackup, value["autoBackup"].asBool());
         }
         if (value.contains("sections")) {
-            GEODE_UNWRAP_INTO(stats.sections, value["sections"].as<std::vector<Section>>());
+            GEODE_UNWRAP_INTO(stats.m_sections, value["sections"].as<std::vector<Section>>());
         }
         if (value.contains("hasGottenDataFromPT")) {
-            GEODE_UNWRAP_INTO(stats.hasGottenDataFromPT, value["hasGottenDataFromPT"].asBool());
+            GEODE_UNWRAP_INTO(stats.m_hasGottenDataFromPT, value["hasGottenDataFromPT"].asBool());
         }
         if (value.contains("sessionGroups")) {
-            GEODE_UNWRAP_INTO(stats.sessionGroups, value["sessionGroups"].as<std::vector<SessionCategory>>());
+            GEODE_UNWRAP_INTO(stats.m_sessionGroups, value["sessionGroups"].as<std::vector<SessionCategory>>());
         }
         if (value.contains("sharedRunToShow")) {
-            GEODE_UNWRAP_INTO(stats.sharedRunToShow, value["sharedRunToShow"].asInt());
+            GEODE_UNWRAP_INTO(stats.m_sharedRunToShow, value["sharedRunToShow"].asInt());
         }
 
         return Ok(stats);
@@ -361,57 +361,57 @@ struct matjson::Serialize<LevelMetadata> {
 
     static matjson::Value toJson(const LevelMetadata& value) {
         matjson::Value obj = matjson::makeObject({
-            { "RunsToShow", value.runsToShow },
-            { "showAnyRun", value.showAnyRun },
-            { "LinkedLevels", value.linkedLevels },
-            { "levelName", value.levelName },
-            { "attempts", value.attempts },
-            { "difficulty", value.difficulty },
-            { "hideUpto", value.hideUpto },
-            { "realEndPercent", value.realEndPercent },
-            { "resetAsDeath", value.resetAsDeath },
-            { "autoBackup", value.autoBackup },
-            { "sections", value.sections },
-            { "hasGottenDataFromPT", value.hasGottenDataFromPT },
-            { "sessionGroups", value.sessionGroups },
-            { "sharedRunToShow", value.sharedRunToShow }
+            { "RunsToShow", value.m_runsToShow },
+            { "showAnyRun", value.m_showAnyRun },
+            { "LinkedLevels", value.m_linkedLevels },
+            { "levelName", value.m_levelName },
+            { "attempts", value.m_attempts },
+            { "difficulty", value.m_difficulty },
+            { "hideUpto", value.m_hideUpto },
+            { "realEndPercent", value.m_realEndPercent },
+            { "resetAsDeath", value.m_resetAsDeath },
+            { "autoBackup", value.m_autoBackup },
+            { "sections", value.m_sections },
+            { "hasGottenDataFromPT", value.m_hasGottenDataFromPT },
+            { "sessionGroups", value.m_sessionGroups },
+            { "sharedRunToShow", value.m_sharedRunToShow }
         });
         return obj;
     }
 };
 
 struct LevelData {
-    std::string levelKey;
-    LevelMetadata metadata;
-    Result<GeneralData, ErrorWithCode> from0 = Err(ErrorWithCode("Not loaded", 1));
-    std::set<long long> sessionNames;
+    std::string m_levelKey;
+    LevelMetadata m_metadata;
+    Result<GeneralData, ErrorWithCode> m_from0 = Err(ErrorWithCode("Not loaded", 1));
+    std::set<long long> m_sessionNames;
 
     LevelData() = default;
 };
 
 struct BackupLevelData {
-    std::optional<LevelMetadata> meta;
-    std::optional<GeneralData> from0 = std::nullopt;
-    std::optional<std::set<long long>> sessionNames = std::nullopt;
-    long long backupDate;
+    std::optional<LevelMetadata> m_meta;
+    std::optional<GeneralData> m_from0 = std::nullopt;
+    std::optional<std::set<long long>> m_sessionNames = std::nullopt;
+    long long m_backupDate;
 };
 
 struct DTLabelInfo_s {
-    int minPlacementRange;
-    int maxPlacementRange;
-    int layer;
-    std::string labelName = "new label";
-    std::string text = "";
-    std::string font = "bigFont.fnt";
-    CCTextAlignment horizontalAlignment = CCTextAlignment::kCCTextAlignmentCenter;
-    ccColor4B labelColor = {170, 170, 170, 255};
-    ccColor4B textColor = {255, 255, 255, 255};
-    float scale = 1;
-    bool isExpanded = false;
-    WrappingMode wrapping = WrappingMode::CUTOFF_WRAP;
-    bool hideHeader = false;
+    int m_minPlacementRange;
+    int m_maxPlacementRange;
+    int m_layer;
+    std::string m_labelName = "new label";
+    std::string m_text = "";
+    std::string m_font = "bigFont.fnt";
+    CCTextAlignment m_horizontalAlignment = CCTextAlignment::kCCTextAlignmentCenter;
+    ccColor4B m_labelColor = {170, 170, 170, 255};
+    ccColor4B m_textColor = {255, 255, 255, 255};
+    float m_scale = 1;
+    bool m_isExpanded = false;
+    WrappingMode m_wrapping = WrappingMode::CUTOFF_WRAP;
+    bool m_hideHeader = false;
 
-    static inline const CCPoint MIN_MAX_SCALE = ccp(0.01f, 2);
+    static constexpr CCPoint MIN_MAX_SCALE = { 0.01f, 2.f };
 };
 typedef struct DTLabelInfo_s DTLabelInfo;
 
@@ -424,9 +424,9 @@ struct matjson::Serialize<DTLabelInfo> {
 struct DTColumnInfo_s {
     static float minWidth;
 
-    int orderPos = 0;
-    float currentWidth = minWidth;
-    ccColor3B color = {255, 255, 255};
+    int m_orderPos = 0;
+    float m_currentWidth = minWidth;
+    ccColor3B m_color = {255, 255, 255};
 };
 typedef struct DTColumnInfo_s DTColumnInfo;
 
@@ -437,8 +437,8 @@ struct matjson::Serialize<DTColumnInfo> {
 };
 
 struct DTLayoutV3_s {
-    std::vector<DTColumnInfo> columns;
-    std::vector<DTLabelInfo> labels;
+    std::vector<DTColumnInfo> m_columns;
+    std::vector<DTLabelInfo> m_labels;
 
     bool isEmpty() const;
 };
@@ -451,11 +451,11 @@ struct matjson::Serialize<DTLayoutV3> {
 };
 
 struct DTLayoutPreset {
-    std::string name;
-    DTLayoutV3 layout;
+    std::string m_name;
+    DTLayoutV3 m_layout;
 
-    CustomizationData newBestCustomization;
-    CustomizationData sessionBestCustomization;
+    CustomizationData m_newBestCustomization;
+    CustomizationData m_sessionBestCustomization;
 };
 
 template <>
@@ -465,17 +465,17 @@ struct matjson::Serialize<DTLayoutPreset> {
 };
 
 struct OverlayLabel_s {
-    std::string labelName = "Label";
-    std::string text = "New Label";
+    std::string m_labelName = "Label";
+    std::string m_text = "New Label";
 
-    float posX = .5f;
-    float posY = .5f;
-    geode::Anchor anchor = geode::Anchor::TopLeft;
-    bool freeMode = false;
-    int order = 0;
-    bool enabled = true;
+    float m_posX = .5f;
+    float m_posY = .5f;
+    geode::Anchor m_anchor = geode::Anchor::TopLeft;
+    bool m_freeMode = false;
+    int m_order = 0;
+    bool m_enabled = true;
 
-    std::optional<std::string> levelSpecific = std::nullopt;
+    std::optional<std::string> m_levelSpecific = std::nullopt;
 
     bool isOverlayLabelVisibleOnLevel(GJGameLevel* level, LevelMetadata const& meta) const;
 };
@@ -493,12 +493,12 @@ struct OverlayLabelSettings_s {
     static constexpr int MIN_OPACITY = 0;
     static constexpr int MAX_OPACITY = 255;
 
-    std::vector<OverlayLabel> labels;
+    std::vector<OverlayLabel> m_labels;
 
-    float size = 0.35f;
-    int opacity = 125;
-    CCPoint offset = ccp(1, 1) * 5;
-    std::string font = "bigFont.fnt";
+    float m_size = 0.35f;
+    int m_opacity = 125;
+    CCPoint m_offset = ccp(1, 1) * 5;
+    std::string m_font = "bigFont.fnt";
 };
 typedef struct OverlayLabelSettings_s OverlayLabelSettings;
 
@@ -509,14 +509,14 @@ struct matjson::Serialize<OverlayLabelSettings> {
 };
 
 typedef struct V2LabelLayout {
-    std::string labelName;
-    std::string text;
-    int line;
-    int position;
-    ccColor4B color;
-    CCTextAlignment alignment;
-    int font;
-    float fontSize;
+    std::string m_labelName;
+    std::string m_text;
+    int m_line;
+    int m_position;
+    ccColor4B m_color;
+    CCTextAlignment m_alignment;
+    int m_font;
+    float m_fontSize;
 } V2LabelLayout;
 
 template <>
@@ -526,9 +526,9 @@ struct matjson::Serialize<V2LabelLayout> {
 };
 
 struct stringCustomazations{
-    std::string seperator = "{nl}";
-    std::string format = "{per}% X{d}";
-    int alternateStrength = 25;
+    std::string m_seperator = "{nl}";
+    std::string m_format = "{per}% X{d}";
+    int m_alternateStrength = 25;
 };
 
 template <>
@@ -538,12 +538,12 @@ struct matjson::Serialize<stringCustomazations> {
 };
 
 typedef struct V2Session {
-    long long lastPlayed;
-    Deaths deaths;
-    Deaths runs;
-    NewBests newBests;
-    int currentBest;
-    long long sessionStartDate;
+    long long m_lastPlayed;
+    Deaths m_deaths;
+    Deaths m_runs;
+    NewBests m_newBests;
+    int m_currentBest;
+    long long m_sessionStartDate;
 } V2Session;
 
 template <>
@@ -553,18 +553,18 @@ struct matjson::Serialize<V2Session> {
 };
 
 struct V2LevelStats_s {
-    Deaths deaths;
-    Deaths runs;
-    NewBests newBests;
-    int currentBest;
-    std::vector<V2Session> sessions;
-    std::vector<int> RunsToSave{-1};
-    std::vector<std::string> LinkedLevels;
-    std::string levelName = "Unknown name";
-    int attempts;
-    int difficulty;
-    int hideUpto;
-    int hideRunLength;
+    Deaths m_deaths;
+    Deaths m_runs;
+    NewBests m_newBests;
+    int m_currentBest;
+    std::vector<V2Session> m_sessions;
+    std::vector<int> m_RunsToSave{-1};
+    std::vector<std::string> m_LinkedLevels;
+    std::string m_levelName = "Unknown name";
+    int m_attempts;
+    int m_difficulty;
+    int m_hideUpto;
+    int m_hideRunLength;
 };
 typedef struct V2LevelStats_s V2LevelStats;
 
@@ -590,22 +590,22 @@ enum DTGraphType{
 };
 
 struct DTGraphInfo {
-    bool isEnabled = true;
+    bool m_isEnabled = true;
 
-    DTGraphCoverage coverage = DTGraphCoverage::GeneralCover;
-    DTGraphType type = DTGraphType::Passrate;
+    DTGraphCoverage m_coverage = DTGraphCoverage::GeneralCover;
+    DTGraphType m_type = DTGraphType::Passrate;
 
-    int orderPos;
+    int m_orderPos;
 
-    float thickness = 1.0f;
-    float outlineThickness = 0.75f;
-    float pointScale = 0.1f;
+    float m_thickness = 1.0f;
+    float m_outlineThickness = 0.75f;
+    float m_pointScale = 0.1f;
 
-    ccColor4B color = {255, 255, 255, 255};
-    ccColor4B outlineColor = { 113, 113, 113, 255 };
-    ccColor4B pointColor = { 113, 113, 113, 255 };
+    ccColor4B m_color = {255, 255, 255, 255};
+    ccColor4B m_outlineColor = { 113, 113, 113, 255 };
+    ccColor4B m_pointColor = { 113, 113, 113, 255 };
 
-    std::string name;
+    std::string m_name;
 };
 
 template <>

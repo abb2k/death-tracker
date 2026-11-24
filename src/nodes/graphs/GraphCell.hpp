@@ -15,24 +15,24 @@ class GraphCell : public CCNode {
         static GraphCell* create(float width, const DTGraphInfo& graphInfo);
 
         DTGraphInfo getinfo() const{
-            return graphInfo;
+            return m_graphInfo;
         };
 
-        Function<void(GraphCell* cell, bool up)> onArrowCallback = NULL;
-        Function<void(GraphCell* cell)> onOptionsCallback = NULL;
-        Function<void(GraphCell* cell)> onEnabledChanged = NULL;
-        Function<void(GraphCell* cell)> onInfoChangedCallback = NULL;
+        Function<void(GraphCell* cell, bool up)> m_onArrowCallback = NULL;
+        Function<void(GraphCell* cell)> m_onOptionsCallback = NULL;
+        Function<void(GraphCell* cell)> m_onEnabledChanged = NULL;
+        Function<void(GraphCell* cell)> m_onInfoChangedCallback = NULL;
 
-        Function<bool(const std::string&, GraphCell*)> canChangeNameTo;
+        Function<bool(const std::string&, GraphCell*)> m_canChangeNameTo;
 
-        Function<void(DTGraphInfo, GraphCell*)> beforeDeletion;
-        Function<void(DTGraphInfo)> onDeleted;
+        Function<void(DTGraphInfo, GraphCell*)> m_beforeDeletion;
+        Function<void(DTGraphInfo)> m_onDeleted;
         
-        Function<void(GraphCell* cell, std::optional<Session>)> onNewSession = NULL;
-        Function<void(GraphCell* cell, int)> onNewRun = NULL;
-        Function<void(GraphCell* cell, Section)> onNewSection = NULL;
+        Function<void(GraphCell* cell, std::optional<Session>)> m_onNewSession = NULL;
+        Function<void(GraphCell* cell, int)> m_onNewRun = NULL;
+        Function<void(GraphCell* cell, Section)> m_onNewSection = NULL;
 
-        std::string oldName;
+        std::string m_oldName;
 
         bool setName(const std::string& name);
         void setCoverage(DTGraphCoverage coverage);
@@ -55,25 +55,25 @@ class GraphCell : public CCNode {
         void resendSession();
         void resendSection();
         
-        CCNode* everythingParent;
-        CCMenu* mainMenu;
-        geode::Label* sessionSelectorLabel;
-        SessionSelector* sessionSelector;
-        geode::Label* runLabel;
-        TextInput* runInput;
-        CCMenuItemSpriteExtra* runSelectHelperBtn;
+        CCNode* m_everythingParent;
+        CCMenu* m_mainMenu;
+        geode::Label* m_sessionSelectorLabel;
+        SessionSelector* m_sessionSelector;
+        geode::Label* m_runLabel;
+        TextInput* m_runInput;
+        CCMenuItemSpriteExtra* m_runSelectHelperBtn;
     private:
         bool init(float width, const DTGraphInfo& graphInfo);
         
-        DTGraphInfo graphInfo; 
+        DTGraphInfo m_graphInfo;
         
-        CCScale9Sprite* bg;
+        CCScale9Sprite* m_bg;
 
-        OptionSwitcher<DTGraphType>* typeSwitcher;
-        SimpleToggler* enableToggleBtn;
-        SimpleTextArea* label;
-        CCSprite* outerColor;
-        CCSprite* innerColor;
+        OptionSwitcher<DTGraphType>* m_typeSwitcher;
+        SimpleToggler* m_enableToggleBtn;
+        SimpleTextArea* m_label;
+        CCSprite* m_outerColor;
+        CCSprite* m_innerColor;
 
         void onArrowUp(CCObject*);
         void onArrowDown(CCObject*);
@@ -85,24 +85,24 @@ class GraphCell : public CCNode {
         void setRunOptionsVisible(bool visible);
         void setSectionOptionsVisible(bool visible);
 
-        CCNode* sessionContainer;
-        CCMenu* sectionContainer;
-        CCMenu* runContainer;
+        CCNode* m_sessionContainer;
+        CCMenu* m_sectionContainer;
+        CCMenu* m_runContainer;
         
         
 
-        CCNode* extrasContainer;
-        geode::Label* sectionSelectorLabel;
-        CCMenuItemSpriteExtra* sectionSelectorBtn;
-        FloatingList* sectionsFloatList;
-        std::vector<Section> sections;
-        size_t selectedSectionIndex = 0;
+        CCNode* m_extrasContainer;
+        geode::Label* m_sectionSelectorLabel;
+        CCMenuItemSpriteExtra* m_sectionSelectorBtn;
+        FloatingList* m_sectionsFloatList;
+        std::vector<Section> m_sections;
+        size_t m_selectedSectionIndex = 0;
 
         void sendNewSession(int index);
         void sendNewSection();
         void updateSectionSelector();
 
-        FloatingList* runsFloatList;
+        FloatingList* m_runsFloatList;
 
         void onRunSelectHelper(CCObject*);
         void onSectionSelectHelper(CCObject*);

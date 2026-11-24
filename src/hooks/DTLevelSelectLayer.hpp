@@ -7,8 +7,8 @@ using namespace geode::prelude;
 class $modify(DTLevelSelectLayer, LevelSelectLayer) {
 public:
     struct Fields {
-        CCMenuItemSpriteExtra* dtButton;
-        CCMenuItemSpriteExtra* robDTButton;
+        CCMenuItemSpriteExtra* m_dtButton;
+        CCMenuItemSpriteExtra* m_robDTButton;
     };
     
     bool init(int page);

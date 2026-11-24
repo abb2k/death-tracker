@@ -32,9 +32,9 @@ GetLevelsFuture LinkedLevelsCacheManager::getLevelsFuture(
     auto allLevels = StatsManager::allV3FileLevelKeys();
     if (allLevels.empty()) co_return std::vector<LinkData>{};
 
-    progresObject.message = "Getting level data...";
-    progresObject.current = 0;
-    progresObject.max = static_cast<int>(allLevels.size());
+    progresObject.m_message = "Getting level data...";
+    progresObject.m_current = 0;
+    progresObject.m_max = static_cast<int>(allLevels.size());
 
     progressCallback(progresObject);
 
@@ -47,8 +47,8 @@ GetLevelsFuture LinkedLevelsCacheManager::getLevelsFuture(
         auto meta = StatsManager::getMetadata(levelKey);
         if (meta.isOk()) {
             LinkData ldata{};
-            ldata.metadata = meta.unwrap();
-            ldata.levelKey = levelKey;
+            ldata.m_metadata = meta.unwrap();
+            ldata.m_levelKey = levelKey;
 
             metadatas.emplace_back(std::move(ldata));
         }
@@ -56,7 +56,7 @@ GetLevelsFuture LinkedLevelsCacheManager::getLevelsFuture(
         co_await arc::yield();
 
         i++;
-        progresObject.current = i;
+        progresObject.m_current = i;
         progressCallback(progresObject);
     }
     

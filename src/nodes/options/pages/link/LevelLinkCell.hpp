@@ -14,25 +14,25 @@ class LevelLinkCell : public CCMenu {
         void setCallback(Function<void(const std::string& levelKey, bool isLeftAligned)> callback);
 
         void setEnabledAndFade(bool b);
-        bool isEnabledAndFade() const { return enabledAndFade; }
+        bool isEnabledAndFade() const { return m_enabledAndFade; }
 
     private:
         bool init(float width, const std::string& levelKey, const LevelMetadata& data);
 
-        std::string levelKey;
+        std::string m_levelKey;
 
-        Function<void(const std::string& levelKey, bool isLeftAligned)> callback = NULL;
+        Function<void(const std::string& levelKey, bool isLeftAligned)> m_callback = NULL;
 
-        bool isAlignedLeft;
+        bool m_isAlignedLeft;
 
         void onArrow(CCObject*);
 
-        CCMenuItemSpriteExtra* arrowBtn;
-        GJDifficultySprite* diffSpr;
-        geode::Label* title;
-        float titleWidth;
-        geode::Label* att;
-        float attWidth;
+        CCMenuItemSpriteExtra* m_arrowBtn;
+        GJDifficultySprite* m_diffSpr;
+        geode::Label* m_title;
+        float m_titleWidth;
+        geode::Label* m_att;
+        float m_attWidth;
 
-        bool enabledAndFade = true;
+        bool m_enabledAndFade = true;
 };

@@ -16,8 +16,8 @@ BackupCell* BackupCell::create(float width, const std::string& levelKey, const l
 bool BackupCell::init(float width, const std::string& levelKey, const long long backupTime) {
     if (!CCMenu::init()) return false;
 
-    this->levelKey = levelKey;
-    this->backupTime = backupTime;
+    this->m_levelKey = levelKey;
+    this->m_backupTime = backupTime;
 
     this->setContentSize({width, 40});
 
@@ -60,17 +60,17 @@ bool BackupCell::init(float width, const std::string& levelKey, const long long 
     deleteBackupBtn->setPosition({revertBtn->getPositionX(), this->getContentHeight() / 3.0f - 1});
     this->addChild(deleteBackupBtn);
 
-    titleLabel = geode::Label::create("Loading data...", "bigFont.fnt");
-    titleLabel->setAnchorPoint({0, 1});
-    titleLabel->setLimitLabelWidth(width - folderIcon->getScaledContentWidth() - 10 - revertBtn->getContentWidth() / 2 - 5, .3f);
-    titleLabel->setPosition({folderIcon->getScaledContentWidth() + 10, this->getContentHeight() / 1.5f + titleLabel->getScaledContentHeight() / 2});
-    this->addChild(titleLabel);
+    m_titleLabel = geode::Label::create("Loading data...", "bigFont.fnt");
+    m_titleLabel->setAnchorPoint({0, 1});
+    m_titleLabel->setLimitLabelWidth(width - folderIcon->getScaledContentWidth() - 10 - revertBtn->getContentWidth() / 2 - 5, .3f);
+    m_titleLabel->setPosition({folderIcon->getScaledContentWidth() + 10, this->getContentHeight() / 1.5f + m_titleLabel->getScaledContentHeight() / 2});
+    this->addChild(m_titleLabel);
 
-    descriptionLabel = geode::Label::create("...", "chatFont.fnt");
-    descriptionLabel->setAnchorPoint({0, .5f});
-    descriptionLabel->setLimitLabelWidth(width - folderIcon->getScaledContentWidth() - 10 - revertBtn->getContentWidth() / 2 - 5, .4f);
-    descriptionLabel->setPosition({folderIcon->getScaledContentWidth() + 10, this->getContentHeight() / 3.0f});
-    this->addChild(descriptionLabel);
+    m_descriptionLabel = geode::Label::create("...", "chatFont.fnt");
+    m_descriptionLabel->setAnchorPoint({0, .5f});
+    m_descriptionLabel->setLimitLabelWidth(width - folderIcon->getScaledContentWidth() - 10 - revertBtn->getContentWidth() / 2 - 5, .4f);
+    m_descriptionLabel->setPosition({folderIcon->getScaledContentWidth() + 10, this->getContentHeight() / 3.0f});
+    this->addChild(m_descriptionLabel);
 
     LoadBackupData();
 
@@ -78,7 +78,7 @@ bool BackupCell::init(float width, const std::string& levelKey, const long long 
 }
 
 void BackupCell::LoadBackupData() {
-    getBackupListener.spawn(
+    m_getBackupListener.spawn(
         "DT-load-backups-data-task",
         LoadBackupDataFuture(),
         [&](GetBackupFuture::Output val) {
@@ -88,34 +88,34 @@ void BackupCell::LoadBackupData() {
 }
 
 GetBackupFuture BackupCell::LoadBackupDataFuture() {
-    auto backup = StatsManager::getBackupData(this->levelKey, this->backupTime);
+    auto backup = StatsManager::getBackupData(this->m_levelKey, this->m_backupTime);
 
     int deathCount = -1;
-    if (backup.isOk() && backup.unwrap().from0.has_value()) {
-        auto deaths = backup.unwrap().from0.value();
+    if (backup.isOk() && backup.unwrap().m_from0.has_value()) {
+        auto deaths = backup.unwrap().m_from0.value();
 
-        deathCount += static_cast<int>(deaths.deaths.totalDeaths());
-        deathCount += static_cast<int>(deaths.runs.totalDeaths());
+        deathCount += static_cast<int>(deaths.m_deaths.totalDeaths());
+        deathCount += static_cast<int>(deaths.m_runs.totalDeaths());
     }
 
-    auto backupFileSizeInKB = StatsManager::getBackupFileSize(this->levelKey, this->backupTime) / 1024.0;
+    auto backupFileSizeInKB = StatsManager::getBackupFileSize(this->m_levelKey, this->m_backupTime) / 1024.0;
 
     co_return GetBackupTaskResult{
-        .backup = backup,
-        .deathCount = deathCount,
-        .backupFileSizeInKB = backupFileSizeInKB
+        .m_backup = backup,
+        .m_deathCount = deathCount,
+        .m_backupFileSizeInKB = backupFileSizeInKB
     };
 }
 
 void BackupCell::onBackupLoaded(GetBackupFuture::Output out) {
-    if (out.backup.isErr()) {
-        titleLabel->setString("Failed to load backup data.");
+    if (out.m_backup.isErr()) {
+        m_titleLabel->setString("Failed to load backup data.");
         return;
     }
 
-    backupData = out.backup.unwrap();
+    m_backupData = out.m_backup.unwrap();
 
-    auto timeTDate = static_cast<time_t>(backupData.value().backupDate);
+    auto timeTDate = static_cast<time_t>(m_backupData.value().m_backupDate);
 
     tm timeInfo = {};
 #if defined(_WIN32)
@@ -124,23 +124,23 @@ void BackupCell::onBackupLoaded(GetBackupFuture::Output out) {
     gmtime_r(&timeTDate, &timeInfo);
 #endif
 
-    titleLabel->setString(DateFormatter::timeFormat(timeInfo).c_str());
-    descriptionLabel->setString(
+    m_titleLabel->setString(DateFormatter::timeFormat(timeInfo).c_str());
+    m_descriptionLabel->setString(
         fmt::format(
             "Attempts: {}, Sessions: {}, Size: {:.2f} KB", 
-            out.deathCount,
-            backupData->sessionNames.has_value() ? std::to_string(backupData->sessionNames.value().size()) : "None",
-            out.backupFileSizeInKB
+            out.m_deathCount,
+            m_backupData->m_sessionNames.has_value() ? std::to_string(m_backupData->m_sessionNames.value().size()) : "None",
+            out.m_backupFileSizeInKB
         ).c_str()
     );
 }
 
 void BackupCell::onRevert(CCObject* sender) {
-    if (onRevertCallback != NULL)
-        onRevertCallback(this);
+    if (m_onRevertCallback != NULL)
+        m_onRevertCallback(this);
 }
 
 void BackupCell::onDelete(CCObject* sender) {
-    if (onDeleteCallback != NULL)
-        onDeleteCallback(this);
+    if (m_onDeleteCallback != NULL)
+        m_onDeleteCallback(this);
 }

@@ -12,22 +12,22 @@ class PercentCell : public CCMenu, public SliderDelegate {
         static PercentCell* create(float width, int Percent, int maxToHide, CCNode* sideButtonSprite, Function<void(PercentCell*)> callback = NULL);
         
         int getPercent() const {
-            return percent;
+            return m_percent;
         }
         int getMaxToHide() const {
-            return maxToHide;
+            return m_maxToHide;
         }
 
         CCSprite* getSilderBG() const {
-            return MTHScroll->m_sliderBar;
+            return m_MTHScroll->m_sliderBar;
         }
 
         CCSprite* getSilderHandle() const {
-            return MTHScroll->m_groove;
+            return m_MTHScroll->m_groove;
         }
 
-        CCScale9Sprite* BGSprite;
-        Function<void(PercentCell*)> onMaxToHideChanged = NULL;
+        CCScale9Sprite* m_BGSprite;
+        Function<void(PercentCell*)> m_onMaxToHideChanged = NULL;
 
         void hide();
         void hideInstant();
@@ -40,10 +40,10 @@ class PercentCell : public CCMenu, public SliderDelegate {
         void RunCallback(CCObject*);
         void mthScroll(CCObject*);
 
-        Slider* MTHScroll;
-        TextInput* MTHInput;
+        Slider* m_MTHScroll;
+        TextInput* m_MTHInput;
 
-        int percent;
-        int maxToHide;
-        Function<void(PercentCell*)> callback;
+        int m_percent;
+        int m_maxToHide;
+        Function<void(PercentCell*)> m_callback;
 };

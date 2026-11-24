@@ -1,11 +1,13 @@
-#include <nodes/general/SimpleToggler.hpp>
+#include "SimpleToggler.hpp"
 
 SimpleToggler* SimpleToggler::create(CCNode* offSprite, CCNode* onSprite, float scale, bool startState) {
     auto ret = new SimpleToggler();
+    
     if (ret && ret->init(offSprite, onSprite, scale, startState)) {
         ret->autorelease();
         return ret;
     }
+
     CC_SAFE_DELETE(ret);
     return nullptr;
 }
@@ -20,8 +22,8 @@ SimpleToggler* SimpleToggler::createWithDefaults(float scale, bool startState) {
 }
 
 bool SimpleToggler::init(CCNode* offSprite, CCNode* onSprite, float scale, bool startState) {
-    this->offSprite = offSprite;
-    this->onSprite = onSprite;
+    this->m_offSprite = offSprite;
+    this->m_onSprite = onSprite;
 
     offSprite->setScale(scale);
     onSprite->setScale(scale);
@@ -37,18 +39,18 @@ bool SimpleToggler::init(CCNode* offSprite, CCNode* onSprite, float scale, bool 
 }
 
 void SimpleToggler::setCallback(Function<void(bool)> callback) {
-    this->callback = std::move(callback);
+    this->m_callback = std::move(callback);
 }
 
 void SimpleToggler::onToggled(CCObject* sender) {
-    if (this->callback != NULL)
-        this->callback(!static_cast<CCMenuItemToggler*>(sender)->isToggled());
+    if (this->m_callback != NULL)
+        this->m_callback(!static_cast<CCMenuItemToggler*>(sender)->isToggled());
 }
 
 void SimpleToggler::setOpacity(GLubyte opacity) {
-    if (auto rgba = typeinfo_cast<CCRGBAProtocol*>(offSprite))
+    if (auto rgba = typeinfo_cast<CCRGBAProtocol*>(m_offSprite))
         rgba->setOpacity(opacity);
     
-    if (auto rgba = typeinfo_cast<CCRGBAProtocol*>(onSprite))
+    if (auto rgba = typeinfo_cast<CCRGBAProtocol*>(m_onSprite))
         rgba->setOpacity(opacity);
 }

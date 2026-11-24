@@ -7,22 +7,22 @@
 using namespace geode::prelude;
 
 struct UpdateFutureError{
-    std::string error = "";
-    bool displayAsError = true;
+    std::string m_error = "";
+    bool m_displayAsError = true;
 
     UpdateFutureError() = default;
     UpdateFutureError(std::string error_, bool displayAsError_ = true)
-        : error(std::move(error_))
-        , displayAsError(displayAsError_)
+        : m_error(std::move(error_))
+        , m_displayAsError(displayAsError_)
     {}
 
     UpdateFutureError(const char* error_, bool displayAsError_ = true)
-        : error(error_ ? error_ : "")
-        , displayAsError(displayAsError_)
+        : m_error(error_ ? error_ : "")
+        , m_displayAsError(displayAsError_)
     {}
 
     friend std::ostream& operator<<(std::ostream& os, UpdateFutureError const& err) {
-        return os << err.error;
+        return os << err.m_error;
     }
 };
 
@@ -37,25 +37,25 @@ using UpdateFuture = GetTFuture<std::string>;
 
 class SpecialKey : public CCObject, public std::enable_shared_from_this<SpecialKey> {
     private:
-        std::string currentContent;
+        std::string m_currentContent;
 
-        std::string key;
-        std::string description;
-        bool showInAddList;
+        std::string m_key;
+        std::string m_description;
+        bool m_showInAddList;
 
-        std::optional<Function<UpdateFuture(std::map<std::string, std::any>)>> updateFunction = std::nullopt;
+        std::optional<Function<UpdateFuture(std::map<std::string, std::any>)>> m_updateFunction = std::nullopt;
 
-        Function<void(const std::shared_ptr<SpecialKey>&)> updateCompletedCallback = nullptr;
-        Function<void(const std::shared_ptr<SpecialKey>&)> updateStartedCallback = nullptr;
+        Function<void(const std::shared_ptr<SpecialKey>&)> m_updateCompletedCallback = nullptr;
+        Function<void(const std::shared_ptr<SpecialKey>&)> m_updateStartedCallback = nullptr;
 
-        async::TaskHolder<UpdateFuture::Output> updateListener;
+        async::TaskHolder<UpdateFuture::Output> m_updateListener;
 
         UpdateFuture updateFutureRunner(std::map<std::string, std::any> payload);
         void onUpdateCompleted(UpdateFuture::Output val);
 
-        bool updateOngoing = false;
+        bool m_updateOngoing = false;
 
-        std::set<std::string> toRefreshWith{};
+        std::set<std::string> m_toRefreshWith{};
 
     public:
         SpecialKey(const std::string& key, const std::string& description, bool showInAddList = true);
@@ -64,7 +64,7 @@ class SpecialKey : public CCObject, public std::enable_shared_from_this<SpecialK
             cancel();
         }
 
-        bool compareToKey(const std::string& otherKey);
+        bool compareToKey(std::string_view otherKey);
 
         void setUpdateFunction(Function<UpdateFuture(std::map<std::string, std::any>)> task);
 
@@ -72,16 +72,16 @@ class SpecialKey : public CCObject, public std::enable_shared_from_this<SpecialK
         UpdateFuture getUpdatedContentAsync(std::map<std::string, std::any> payload);
 
         std::string getContent() const{
-            return this->currentContent;
+            return this->m_currentContent;
         }
         std::string getKey() const{
-            return this->key;
+            return this->m_key;
         }
         std::string getDescription() const{
-            return this->description;
+            return this->m_description;
         }
         bool shouldShowInAddList() const {
-            return this->showInAddList;
+            return this->m_showInAddList;
         }
 
         void setUpdateCompletedCallback(Function<void(const std::shared_ptr<SpecialKey>&)> callback);

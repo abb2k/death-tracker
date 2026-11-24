@@ -26,16 +26,16 @@ Result<ComplexPercent> ComplexPercent::fromPercent(double percent) {
         return Err("Percent outside range");
 
     return Ok(ComplexPercent{
-        .units = static_cast<Units>(std::llround(scaled))
+        .m_units = static_cast<Units>(std::llround(scaled))
     });
 }
 
 double ComplexPercent::asPercent() const {
-    return static_cast<double>(units) / unitsPerPercent;
+    return static_cast<double>(m_units) / unitsPerPercent;
 }
 
 bool ComplexPercent::isValid() const {
-    return units >= std::numeric_limits<Units>::min() + unitsPerPercent && units <= std::numeric_limits<Units>::max() - unitsPerPercent;
+    return m_units >= std::numeric_limits<Units>::min() + unitsPerPercent && m_units <= std::numeric_limits<Units>::max() - unitsPerPercent;
 }
 
 Result<ComplexDeathMap> ComplexDeathMap::fromLegacy(const Deaths& deaths, bool runKeys) {
@@ -57,8 +57,8 @@ Result<ComplexDeathMap> ComplexDeathMap::fromLegacy(const Deaths& deaths, bool r
             
             auto run = std::move(splitResult).unwrap();
 
-            start = run.start;
-            end = run.end;
+            start = run.m_start;
+            end = run.m_end;
         }
         else {
             auto runNum = geode::utils::numFromString<int>(key);
@@ -83,9 +83,9 @@ Result<ComplexDeathMap> ComplexDeathMap::fromLegacy(const Deaths& deaths, bool r
         }
 
         ComplexDeath entry{
-            .runStartPercent = startPercent,
-            .runEndPercent = endPercent.unwrap(),
-            .deaths = static_cast<uint64_t>(count)
+            .m_runStartPercent = startPercent,
+            .m_runEndPercent = endPercent.unwrap(),
+            .m_deaths = static_cast<uint64_t>(count)
         };
 
         auto insertResult = result.insert(std::move(entry));
@@ -97,18 +97,18 @@ Result<ComplexDeathMap> ComplexDeathMap::fromLegacy(const Deaths& deaths, bool r
 }
 
 Result<> ComplexDeathMap::insert(ComplexDeath death) {
-    if (!death.runEndPercent.isValid() || (death.runStartPercent.has_value() && !death.runStartPercent->isValid()))
+    if (!death.m_runEndPercent.isValid() || (death.m_runStartPercent.has_value() && !death.m_runStartPercent->isValid()))
         return Err("Cannot insert an invalid percentage");
 
-    if (death.deaths == 0)
+    if (death.m_deaths == 0)
         return Ok();
 
     Run key {
-        death.runEndPercent.units,
-        death.runStartPercent.has_value() ? std::optional<ComplexPercent::Units>(death.runStartPercent->units) : std::nullopt
+        death.m_runEndPercent.m_units,
+        death.m_runStartPercent.has_value() ? std::optional<ComplexPercent::Units>(death.m_runStartPercent->m_units) : std::nullopt
     };
 
-    auto [it, inserted] = records.try_emplace(key, std::move(death));
+    auto [it, inserted] = m_records.try_emplace(key, std::move(death));
 
     if (inserted)
         return Ok();
@@ -116,27 +116,27 @@ Result<> ComplexDeathMap::insert(ComplexDeath death) {
     auto& stored = it->second;
     auto& incoming = death;
 
-    if (std::numeric_limits<uint64_t>::max() - stored.deaths < incoming.deaths)
+    if (std::numeric_limits<uint64_t>::max() - stored.m_deaths < incoming.m_deaths)
         return Err("Death overflow");
     
-    stored.deaths += incoming.deaths;
-    stored.occurrences.insert(
-        stored.occurrences.end(),
-        std::make_move_iterator(incoming.occurrences.begin()),
-        std::make_move_iterator(incoming.occurrences.end())
+    stored.m_deaths += incoming.m_deaths;
+    stored.m_occurrences.insert(
+        stored.m_occurrences.end(),
+        std::make_move_iterator(incoming.m_occurrences.begin()),
+        std::make_move_iterator(incoming.m_occurrences.end())
     );
     return Ok();
 }
 
 Result<> ComplexDeathMap::recordDeath(ComplexPercent endPercent, std::optional<ComplexPercent> startPercent, ComplexDeathOccurrence occurrence) {
     ComplexDeath death{
-        .runStartPercent = startPercent,
-        .runEndPercent = endPercent,
-        .deaths = 1
+        .m_runStartPercent = startPercent,
+        .m_runEndPercent = endPercent,
+        .m_deaths = 1
     };
 
-    if (occurrence.runStartTimestamp.has_value() || occurrence.runEndTimestamp.has_value())
-        death.occurrences.push_back(std::move(occurrence));
+    if (occurrence.m_runStartTimestamp.has_value() || occurrence.m_runEndTimestamp.has_value())
+        death.m_occurrences.push_back(std::move(occurrence));
     
     return insert(std::move(death));
 }
@@ -169,7 +169,7 @@ Result<ComplexDeathSummary> ComplexDeathMap::getComplexDeath(double percent, uin
     for (auto depth = decimalDepth; depth < ComplexPercent::maxDecimalDepth; ++depth)
         factor *= 10;
 
-    auto units = parsedPercent.unwrap().units;
+    auto units = parsedPercent.unwrap().m_units;
     auto quotient = units / factor;
 
     if (units < 0 && units % factor != 0) quotient--;
@@ -178,17 +178,17 @@ Result<ComplexDeathSummary> ComplexDeathMap::getComplexDeath(double percent, uin
     auto upper = lower + factor;
 
     ComplexDeathSummary summary;
-    summary.queriedPercent.units = lower;
-    summary.decimalDepth = decimalDepth;
+    summary.m_queriedPercent.m_units = lower;
+    summary.m_decimalDepth = decimalDepth;
 
     auto eligibleRuns = filterCheatedRuns();
-    for (auto it = eligibleRuns.records.lower_bound({lower, std::nullopt}); it != eligibleRuns.records.end() && it->first.first < upper; ++it) {
+    for (auto it = eligibleRuns.m_records.lower_bound({lower, std::nullopt}); it != eligibleRuns.m_records.end() && it->first.first < upper; ++it) {
 
-        summary.records.push_back(it->second);
-        if (std::numeric_limits<uint64_t>::max() - summary.deaths < it->second.deaths)
+        summary.m_records.push_back(it->second);
+        if (std::numeric_limits<uint64_t>::max() - summary.m_deaths < it->second.m_deaths)
             return Err("death count overflow");
 
-        summary.deaths += it->second.deaths;
+        summary.m_deaths += it->second.m_deaths;
     }
 
     return Ok(std::move(summary));
@@ -217,27 +217,27 @@ bool ComplexDeathMap::adjust(double endPercent, std::optional<double> startPerce
 
     if (amount > 0) {
         return insert(ComplexDeath{
-            .runStartPercent = start,
-            .runEndPercent = end,
-            .deaths = static_cast<uint64_t>(amount)
+            .m_runStartPercent = start,
+            .m_runEndPercent = end,
+            .m_deaths = static_cast<uint64_t>(amount)
         }).isOk();
     }
 
     auto required = static_cast<uint64_t>(-static_cast<int64_t>(amount));
     Run key{
-        end.units,
-        start ? std::optional<ComplexPercent::Units>(start->units) : std::nullopt
+        end.m_units,
+        start ? std::optional<ComplexPercent::Units>(start->m_units) : std::nullopt
     };
-    auto it = records.find(key);
-    if (it == records.end() || it->second.deaths < required)
+    auto it = m_records.find(key);
+    if (it == m_records.end() || it->second.m_deaths < required)
         return false;
 
-    it->second.deaths -= required;
-    auto occurrencesToRemove = std::min<uint64_t>(required, it->second.occurrences.size());
-    it->second.occurrences.resize(it->second.occurrences.size() - occurrencesToRemove);
+    it->second.m_deaths -= required;
+    auto occurrencesToRemove = std::min<uint64_t>(required, it->second.m_occurrences.size());
+    it->second.m_occurrences.resize(it->second.m_occurrences.size() - occurrencesToRemove);
 
-    if (it->second.deaths == 0)
-        records.erase(it);
+    if (it->second.m_deaths == 0)
+        m_records.erase(it);
 
     return true;
 }
@@ -256,18 +256,18 @@ bool ComplexDeathMap::contains(double endPercent, std::optional<double> startPer
         auto start = ComplexPercent::fromPercent(*startPercent);
         if (start.isErr())
             return false;
-        startUnits = start.unwrap().units;
+        startUnits = start.unwrap().m_units;
     }
 
-    return records.contains({end.unwrap().units, startUnits});
+    return m_records.contains({end.unwrap().m_units, startUnits});
 }
 
 uint64_t ComplexDeathMap::totalDeaths() const {
     uint64_t total = 0;
-    for (const auto& [key, death] : filterCheatedRuns().records) {
-        if (std::numeric_limits<uint64_t>::max() - total < death.deaths)
+    for (const auto& [key, death] : filterCheatedRuns().m_records) {
+        if (std::numeric_limits<uint64_t>::max() - total < death.m_deaths)
             return std::numeric_limits<uint64_t>::max();
-        total += death.deaths;
+        total += death.m_deaths;
     }
     return total;
 }
@@ -276,14 +276,14 @@ Deaths ComplexDeathMap::toLegacyDeaths(bool includeCheated) const {
     Deaths result;
     auto eligibleRuns = includeCheated ? *this : filterCheatedRuns();
     
-    for (const auto& [key, death] : eligibleRuns.records) {
-        const auto end = static_cast<int64_t>(std::floor(static_cast<double>(death.runEndPercent.units) / ComplexPercent::unitsPerPercent));
+    for (const auto& [key, death] : eligibleRuns.m_records) {
+        const auto end = static_cast<int64_t>(std::floor(static_cast<double>(death.m_runEndPercent.m_units) / ComplexPercent::unitsPerPercent));
 
         auto legacyKey = std::to_string(end);
 
-        if (death.runStartPercent.has_value()) {
+        if (death.m_runStartPercent.has_value()) {
             const auto start = static_cast<int64_t>(std::floor(
-                static_cast<double>(death.runStartPercent.value().units) / ComplexPercent::unitsPerPercent
+                static_cast<double>(death.m_runStartPercent.value().m_units) / ComplexPercent::unitsPerPercent
             ));
 
             legacyKey = fmt::format("{}-{}", start, end);
@@ -291,14 +291,14 @@ Deaths ComplexDeathMap::toLegacyDeaths(bool includeCheated) const {
 
         auto& count = result[legacyKey];
         const auto available = static_cast<uint64_t>(std::numeric_limits<int>::max() - count);
-        count += static_cast<int>(std::min(available, death.deaths));
+        count += static_cast<int>(std::min(available, death.m_deaths));
     }
 
     return result;
 }
 
 Result<> ComplexDeathMap::merge(const ComplexDeathMap& other) {
-    for (const auto& [key, death] : other.records) {
+    for (const auto& [key, death] : other.m_records) {
         auto result = insert(death);
         if (result.isErr())
             return Err("Failed merging death record: {}", result.unwrapErr());
@@ -310,26 +310,26 @@ Result<> ComplexDeathMap::merge(const ComplexDeathMap& other) {
 ComplexDeathMap ComplexDeathMap::filterOccurrences(const std::vector<SessionTimestampRange>& ranges) const {
     ComplexDeathMap filtered;
 
-    for (const auto& [key, death] : records) {
+    for (const auto& [key, death] : m_records) {
         ComplexDeath matching = death;
-        matching.deaths = 0;
-        matching.occurrences.clear();
+        matching.m_deaths = 0;
+        matching.m_occurrences.clear();
 
-        for (const auto& occurrence : death.occurrences) {
-            auto timestamp = occurrence.runEndTimestamp ? occurrence.runEndTimestamp : occurrence.runStartTimestamp;
+        for (const auto& occurrence : death.m_occurrences) {
+            auto timestamp = occurrence.m_runEndTimestamp ? occurrence.m_runEndTimestamp : occurrence.m_runStartTimestamp;
             if (!timestamp.has_value())
                 continue;
 
             auto inRange = std::any_of(ranges.begin(), ranges.end(), [&](const SessionTimestampRange& range) {
-                return timestamp.value() >= range.start && timestamp.value() <= range.end;
+                return timestamp.value() >= range.m_start && timestamp.value() <= range.m_end;
             });
             if (inRange)
-                matching.occurrences.push_back(occurrence);
+                matching.m_occurrences.push_back(occurrence);
         }
 
-        matching.deaths = matching.occurrences.size();
-        if (matching.deaths != 0)
-            filtered.records.emplace(key, std::move(matching));
+        matching.m_deaths = matching.m_occurrences.size();
+        if (matching.m_deaths != 0)
+            filtered.m_records.emplace(key, std::move(matching));
     }
 
     return filtered;
@@ -338,21 +338,21 @@ ComplexDeathMap ComplexDeathMap::filterOccurrences(const std::vector<SessionTime
 ComplexDeathMap ComplexDeathMap::filterCheatedRuns() const {
     ComplexDeathMap filtered;
 
-    for (const auto& [key, death] : records) {
+    for (const auto& [key, death] : m_records) {
         ComplexDeath eligible = death;
-        eligible.occurrences.clear();
+        eligible.m_occurrences.clear();
 
-        auto untrackedDeaths = death.deaths > death.occurrences.size()
-            ? death.deaths - death.occurrences.size()
+        auto untrackedDeaths = death.m_deaths > death.m_occurrences.size()
+            ? death.m_deaths - death.m_occurrences.size()
             : 0;
-        for (const auto& occurrence : death.occurrences) {
-            if (!occurrence.cheated)
-                eligible.occurrences.push_back(occurrence);
+        for (const auto& occurrence : death.m_occurrences) {
+            if (!occurrence.m_cheated)
+                eligible.m_occurrences.push_back(occurrence);
         }
 
-        eligible.deaths = untrackedDeaths + eligible.occurrences.size();
-        if (eligible.deaths != 0)
-            filtered.records.emplace(key, std::move(eligible));
+        eligible.m_deaths = untrackedDeaths + eligible.m_occurrences.size();
+        if (eligible.m_deaths != 0)
+            filtered.m_records.emplace(key, std::move(eligible));
     }
 
     return filtered;
@@ -361,155 +361,155 @@ ComplexDeathMap ComplexDeathMap::filterCheatedRuns() const {
 ComplexDeathMap ComplexDeathMap::filterOnlyCheatedRuns() const {
     ComplexDeathMap filtered;
 
-    for (const auto& [key, death] : records) {
+    for (const auto& [key, death] : m_records) {
         ComplexDeath cheated = death;
-        cheated.occurrences.clear();
+        cheated.m_occurrences.clear();
 
-        for (const auto& occurrence : death.occurrences) {
-            if (occurrence.cheated)
-                cheated.occurrences.push_back(occurrence);
+        for (const auto& occurrence : death.m_occurrences) {
+            if (occurrence.m_cheated)
+                cheated.m_occurrences.push_back(occurrence);
         }
 
-        cheated.deaths = cheated.occurrences.size();
-        if (cheated.deaths != 0)
-            filtered.records.emplace(key, std::move(cheated));
+        cheated.m_deaths = cheated.m_occurrences.size();
+        if (cheated.m_deaths != 0)
+            filtered.m_records.emplace(key, std::move(cheated));
     }
 
     return filtered;
 }
 
 void Session::recordTimestamp(long long timestamp) {
-    auto latestRange = timeRanges.end();
-    for (auto it = timeRanges.begin(); it != timeRanges.end(); ++it) {
-        if (timestamp >= it->start && (latestRange == timeRanges.end() || it->start > latestRange->start))
+    auto latestRange = m_timeRanges.end();
+    for (auto it = m_timeRanges.begin(); it != m_timeRanges.end(); ++it) {
+        if (timestamp >= it->m_start && (latestRange == m_timeRanges.end() || it->m_start > latestRange->m_start))
             latestRange = it;
     }
 
-    if (latestRange != timeRanges.end()) {
-        latestRange->end = std::max(latestRange->end, timestamp);
+    if (latestRange != m_timeRanges.end()) {
+        latestRange->m_end = std::max(latestRange->m_end, timestamp);
         return;
     }
 
-    auto start = !legacyData.has_value() && sessionStartDate > 0 && timestamp >= sessionStartDate ? sessionStartDate : timestamp;
-    timeRanges.push_back({ start, std::max(start, timestamp) });
+    auto start = !m_legacyData.has_value() && m_sessionStartDate > 0 && timestamp >= m_sessionStartDate ? m_sessionStartDate : timestamp;
+    m_timeRanges.push_back({ start, std::max(start, timestamp) });
 }
 
 PlaytimePair& PlaytimePair::operator+=(const PlaytimePair& other) {
-    playtimeF0 += other.playtimeF0;
-    playtimeRuns += other.playtimeRuns;
+    m_playtimeF0 += other.m_playtimeF0;
+    m_playtimeRuns += other.m_playtimeRuns;
     return *this;
 }
 
 void PlaytimePair::reset() {
-    playtimeF0 = 0;
-    playtimeRuns = 0;
+    m_playtimeF0 = 0;
+    m_playtimeRuns = 0;
 }
 
 GeneralData& GeneralData::operator+=(const GeneralData& other) {
-    auto deathsResult = deaths.merge(other.deaths);
+    auto deathsResult = m_deaths.merge(other.m_deaths);
     if (deathsResult.isErr())
         log::error("Failed to merge death records: {}", deathsResult.unwrapErr());
-    auto runsResult = runs.merge(other.runs);
+    auto runsResult = m_runs.merge(other.m_runs);
     if (runsResult.isErr())
         log::error("Failed to merge run records: {}", runsResult.unwrapErr());
-    newBests.insert(other.newBests.begin(), other.newBests.end());
-    playtimeGeneral += other.playtimeGeneral;
-    playtimePaused += other.playtimePaused;
-    playtimeDead += other.playtimeDead;
+    m_newBests.insert(other.m_newBests.begin(), other.m_newBests.end());
+    m_playtimeGeneral += other.m_playtimeGeneral;
+    m_playtimePaused += other.m_playtimePaused;
+    m_playtimeDead += other.m_playtimeDead;
     return *this;
 }
 
 bool Section::isPercentInSection(int percent) const {
-    return percent >= startPercent && percent < endPercent ||
-        percent >= startPercent && endPercent == 100;
+    return percent >= m_startPercent && percent < m_endPercent ||
+        percent >= m_startPercent && m_endPercent == 100;
 }
 
 bool Section::isValid() const {
-    return !(startPercent > endPercent);
+    return !(m_startPercent > m_endPercent);
 }
 
 bool Section::operator==(const Section& other) const {
-    return startPercent == other.startPercent && endPercent == other.endPercent;
+    return m_startPercent == other.m_startPercent && m_endPercent == other.m_endPercent;
 }
 
 bool DTLayoutV3::isEmpty() const {
-    return columns.empty() && labels.empty();
+    return m_columns.empty() && m_labels.empty();
 }
 
 Result<PlaytimePair> matjson::Serialize<PlaytimePair>::fromJson(const matjson::Value& value) {
     PlaytimePair pair;
-    GEODE_UNWRAP_INTO(pair.playtimeF0, value["playtimeF0"].as<uint64_t>());
-    GEODE_UNWRAP_INTO(pair.playtimeRuns, value["playtimeRuns"].as<uint64_t>());
+    GEODE_UNWRAP_INTO(pair.m_playtimeF0, value["playtimeF0"].as<uint64_t>());
+    GEODE_UNWRAP_INTO(pair.m_playtimeRuns, value["playtimeRuns"].as<uint64_t>());
     return Ok(pair);
 }
 
 matjson::Value matjson::Serialize<PlaytimePair>::toJson(const PlaytimePair& value) {
     return matjson::makeObject({
-        { "playtimeF0", value.playtimeF0 },
-        { "playtimeRuns", value.playtimeRuns }
+        { "playtimeF0", value.m_playtimeF0 },
+        { "playtimeRuns", value.m_playtimeRuns }
     });
 }
 
 Result<ComplexPercent> matjson::Serialize<ComplexPercent>::fromJson(const matjson::Value& value) {
     ComplexPercent percent;
-    GEODE_UNWRAP_INTO(percent.units, value.as<ComplexPercent::Units>());
+    GEODE_UNWRAP_INTO(percent.m_units, value.as<ComplexPercent::Units>());
     if (!percent.isValid())
         return Err("Invalid fixed-point percent");
     return Ok(percent);
 }
 
 matjson::Value matjson::Serialize<ComplexPercent>::toJson(const ComplexPercent& value) {
-    return value.units;
+    return value.m_units;
 }
 
 Result<ComplexDeathOccurrence> matjson::Serialize<ComplexDeathOccurrence>::fromJson(const matjson::Value& value) {
     ComplexDeathOccurrence occurrence;
     if (value.contains("runStartTimestamp")) {
-        GEODE_UNWRAP_INTO(occurrence.runStartTimestamp, value["runStartTimestamp"].as<time_t>());
+        GEODE_UNWRAP_INTO(occurrence.m_runStartTimestamp, value["runStartTimestamp"].as<time_t>());
     }
     if (value.contains("runEndTimestamp")) {
-        GEODE_UNWRAP_INTO(occurrence.runEndTimestamp, value["runEndTimestamp"].as<time_t>());
+        GEODE_UNWRAP_INTO(occurrence.m_runEndTimestamp, value["runEndTimestamp"].as<time_t>());
     }
     if (value.contains("cheated")) {
-        GEODE_UNWRAP_INTO(occurrence.cheated, value["cheated"].asBool());
+        GEODE_UNWRAP_INTO(occurrence.m_cheated, value["cheated"].asBool());
     }
     return Ok(occurrence);
 }
 
 matjson::Value matjson::Serialize<ComplexDeathOccurrence>::toJson(const ComplexDeathOccurrence& value) {
     matjson::Value json = matjson::makeObject({});
-    if (value.runStartTimestamp.has_value())
-        json["runStartTimestamp"] = value.runStartTimestamp.value();
-    if (value.runEndTimestamp.has_value())
-        json["runEndTimestamp"] = value.runEndTimestamp.value();
-    json["cheated"] = value.cheated;
+    if (value.m_runStartTimestamp.has_value())
+        json["runStartTimestamp"] = value.m_runStartTimestamp.value();
+    if (value.m_runEndTimestamp.has_value())
+        json["runEndTimestamp"] = value.m_runEndTimestamp.value();
+    json["cheated"] = value.m_cheated;
     return json;
 }
 
 Result<ComplexDeath> matjson::Serialize<ComplexDeath>::fromJson(const matjson::Value& value) {
     ComplexDeath death;
-    GEODE_UNWRAP_INTO(death.runEndPercent, value["endUnits"].as<ComplexPercent>());
-    GEODE_UNWRAP_INTO(death.deaths, value["deaths"].as<uint64_t>());
+    GEODE_UNWRAP_INTO(death.m_runEndPercent, value["endUnits"].as<ComplexPercent>());
+    GEODE_UNWRAP_INTO(death.m_deaths, value["deaths"].as<uint64_t>());
 
     if (value.contains("startUnits")) {
         ComplexPercent start;
         GEODE_UNWRAP_INTO(start, value["startUnits"].as<ComplexPercent>());
-        death.runStartPercent = start;
+        death.m_runStartPercent = start;
     }
     if (value.contains("occurrences")) {
-        GEODE_UNWRAP_INTO(death.occurrences, value["occurrences"].as<std::vector<ComplexDeathOccurrence>>());
+        GEODE_UNWRAP_INTO(death.m_occurrences, value["occurrences"].as<std::vector<ComplexDeathOccurrence>>());
     }
     return Ok(death);
 }
 
 matjson::Value matjson::Serialize<ComplexDeath>::toJson(const ComplexDeath& value) {
     matjson::Value json = matjson::makeObject({
-        { "endUnits", value.runEndPercent },
-        { "deaths", value.deaths },
-        { "occurrences", value.occurrences }
+        { "endUnits", value.m_runEndPercent },
+        { "deaths", value.m_deaths },
+        { "occurrences", value.m_occurrences }
     });
-    if (value.runStartPercent.has_value())
-        json["startUnits"] = value.runStartPercent.value();
+    if (value.m_runStartPercent.has_value())
+        json["startUnits"] = value.m_runStartPercent.value();
     return json;
 }
 
@@ -531,8 +531,8 @@ Result<ComplexDeathMap> matjson::Serialize<ComplexDeathMap>::fromJson(const matj
 
 matjson::Value matjson::Serialize<ComplexDeathMap>::toJson(const ComplexDeathMap& value) {
     std::vector<ComplexDeath> entries;
-    entries.reserve(value.records.size());
-    for (const auto& [key, entry] : value.records)
+    entries.reserve(value.m_records.size());
+    for (const auto& [key, entry] : value.m_records)
         entries.push_back(entry);
     return matjson::makeObject({ { "entries", entries } });
 }
@@ -541,64 +541,64 @@ Result<GeneralData> matjson::Serialize<GeneralData>::fromJson(const matjson::Val
     GeneralData stats;
 
     if (value.contains("deaths")) {
-        GEODE_UNWRAP_INTO(stats.deaths, ComplexDeathMap::readDeathMap(value["deaths"], false));
+        GEODE_UNWRAP_INTO(stats.m_deaths, ComplexDeathMap::readDeathMap(value["deaths"], false));
     }
 
     if (value.contains("runs")) {
-        GEODE_UNWRAP_INTO(stats.runs, ComplexDeathMap::readDeathMap(value["runs"], true));
+        GEODE_UNWRAP_INTO(stats.m_runs, ComplexDeathMap::readDeathMap(value["runs"], true));
     }
 
     if (value.contains("newBests")) {
-        GEODE_UNWRAP_INTO(stats.newBests, value["newBests"].as<NewBests>());
+        GEODE_UNWRAP_INTO(stats.m_newBests, value["newBests"].as<NewBests>());
     }
     if (value.contains("playtimeGeneral")) {
-        GEODE_UNWRAP_INTO(stats.playtimeGeneral, value["playtimeGeneral"].as<PlaytimePair>());
+        GEODE_UNWRAP_INTO(stats.m_playtimeGeneral, value["playtimeGeneral"].as<PlaytimePair>());
     }
     if (value.contains("playtimePaused")) {
-        GEODE_UNWRAP_INTO(stats.playtimePaused, value["playtimePaused"].as<PlaytimePair>());
+        GEODE_UNWRAP_INTO(stats.m_playtimePaused, value["playtimePaused"].as<PlaytimePair>());
     }
     if (value.contains("playtimeDead")) {
-        GEODE_UNWRAP_INTO(stats.playtimeDead, value["playtimeDead"].as<PlaytimePair>());
+        GEODE_UNWRAP_INTO(stats.m_playtimeDead, value["playtimeDead"].as<PlaytimePair>());
     }
     return Ok(stats);
 }
 
 matjson::Value matjson::Serialize<GeneralData>::toJson(const GeneralData& value) {
     return matjson::makeObject({
-        { "deaths", value.deaths },
-        { "runs", value.runs },
-        { "newBests", value.newBests },
-        { "playtimeGeneral", value.playtimeGeneral },
-        { "playtimePaused", value.playtimePaused },
-        { "playtimeDead", value.playtimeDead }
+        { "deaths", value.m_deaths },
+        { "runs", value.m_runs },
+        { "newBests", value.m_newBests },
+        { "playtimeGeneral", value.m_playtimeGeneral },
+        { "playtimePaused", value.m_playtimePaused },
+        { "playtimeDead", value.m_playtimeDead }
     });
 }
 
 Result<SessionTimestampRange> matjson::Serialize<SessionTimestampRange>::fromJson(const matjson::Value& value) {
     SessionTimestampRange range;
-    GEODE_UNWRAP_INTO(range.start, value["start"].as<long long>());
-    GEODE_UNWRAP_INTO(range.end, value["end"].as<long long>());
-    if (range.end < range.start)
+    GEODE_UNWRAP_INTO(range.m_start, value["start"].as<long long>());
+    GEODE_UNWRAP_INTO(range.m_end, value["end"].as<long long>());
+    if (range.m_end < range.m_start)
         return Err("Session timestamp range ends before it starts");
     return Ok(range);
 }
 
 matjson::Value matjson::Serialize<SessionTimestampRange>::toJson(const SessionTimestampRange& value) {
     return matjson::makeObject({
-        { "start", value.start },
-        { "end", value.end }
+        { "start", value.m_start },
+        { "end", value.m_end }
     });
 }
 
 Result<Session> matjson::Serialize<Session>::fromJson(const matjson::Value& value) {
     Session session;
-    GEODE_UNWRAP_INTO(session.lastPlayed, value["lastPlayed"].as<long long>());
-    GEODE_UNWRAP_INTO(session.sessionStartDate, value["sessionStartDate"].as<long long>());
+    GEODE_UNWRAP_INTO(session.m_lastPlayed, value["lastPlayed"].as<long long>());
+    GEODE_UNWRAP_INTO(session.m_sessionStartDate, value["sessionStartDate"].as<long long>());
     if (value.contains("timeRanges")) {
-        GEODE_UNWRAP_INTO(session.timeRanges, value["timeRanges"].as<std::vector<SessionTimestampRange>>());
+        GEODE_UNWRAP_INTO(session.m_timeRanges, value["timeRanges"].as<std::vector<SessionTimestampRange>>());
     }
     if (value.contains("dataIsOverride")) {
-        GEODE_UNWRAP_INTO(session.dataIsOverride, value["dataIsOverride"].asBool());
+        GEODE_UNWRAP_INTO(session.m_dataIsOverride, value["dataIsOverride"].asBool());
     }
 
     GeneralData savedData;
@@ -607,23 +607,23 @@ Result<Session> matjson::Serialize<Session>::fromJson(const matjson::Value& valu
     }
 
     if (value.contains("legacyData")) {
-        GEODE_UNWRAP_INTO(session.legacyData, value["legacyData"].as<GeneralData>());
+        GEODE_UNWRAP_INTO(session.m_legacyData, value["legacyData"].as<GeneralData>());
     }
 
-    if (session.dataIsOverride) {
-        session.data = std::move(savedData);
+    if (session.m_dataIsOverride) {
+        session.m_data = std::move(savedData);
     }
-    else if (session.legacyData.has_value()) {
-        session.data = session.legacyData.value();
-        session.data.newBests = std::move(savedData.newBests);
-        session.data.playtimeGeneral = savedData.playtimeGeneral;
-        session.data.playtimePaused = savedData.playtimePaused;
-        session.data.playtimeDead = savedData.playtimeDead;
+    else if (session.m_legacyData.has_value()) {
+        session.m_data = session.m_legacyData.value();
+        session.m_data.m_newBests = std::move(savedData.m_newBests);
+        session.m_data.m_playtimeGeneral = savedData.m_playtimeGeneral;
+        session.m_data.m_playtimePaused = savedData.m_playtimePaused;
+        session.m_data.m_playtimeDead = savedData.m_playtimeDead;
     }
     else {
-        session.data = std::move(savedData);
-        if (session.timeRanges.empty() && value.contains("data"))
-            session.legacyData = session.data;
+        session.m_data = std::move(savedData);
+        if (session.m_timeRanges.empty() && value.contains("data"))
+            session.m_legacyData = session.m_data;
     }
 
     return Ok(session);
@@ -631,22 +631,22 @@ Result<Session> matjson::Serialize<Session>::fromJson(const matjson::Value& valu
 
 matjson::Value matjson::Serialize<Session>::toJson(const Session& value) {
     auto json = matjson::makeObject({
-        { "lastPlayed", value.lastPlayed },
-        { "sessionStartDate", value.sessionStartDate },
-        { "timeRanges", value.timeRanges }
+        { "lastPlayed", value.m_lastPlayed },
+        { "sessionStartDate", value.m_sessionStartDate },
+        { "timeRanges", value.m_timeRanges }
     });
 
-    if (value.dataIsOverride) {
-        json["data"] = value.data;
+    if (value.m_dataIsOverride) {
+        json["data"] = value.m_data;
         json["dataIsOverride"] = true;
     }
     else {
-        if (value.legacyData.has_value())
-            json["legacyData"] = value.legacyData.value();
+        if (value.m_legacyData.has_value())
+            json["legacyData"] = value.m_legacyData.value();
 
-        auto sessionData = value.data;
-        sessionData.deaths = {};
-        sessionData.runs = {};
+        auto sessionData = value.m_data;
+        sessionData.m_deaths = {};
+        sessionData.m_runs = {};
         json["data"] = sessionData;
     }
 
@@ -655,17 +655,17 @@ matjson::Value matjson::Serialize<Session>::toJson(const Session& value) {
 
 Result<Section> matjson::Serialize<Section>::fromJson(const matjson::Value& value) {
     Section section;
-    GEODE_UNWRAP_INTO(section.name, value["name"].asString());
-    GEODE_UNWRAP_INTO(section.startPercent, value["start"].asInt());
-    GEODE_UNWRAP_INTO(section.endPercent, value["end"].asInt());
+    GEODE_UNWRAP_INTO(section.m_name, value["name"].asString());
+    GEODE_UNWRAP_INTO(section.m_startPercent, value["start"].asInt());
+    GEODE_UNWRAP_INTO(section.m_endPercent, value["end"].asInt());
     return Ok(section);
 }
 
 matjson::Value matjson::Serialize<Section>::toJson(const Section& value) {
     return matjson::makeObject({
-        { "name", value.name },
-        { "start", value.startPercent },
-        { "end", value.endPercent }
+        { "name", value.m_name },
+        { "start", value.m_startPercent },
+        { "end", value.m_endPercent }
     });
 }
 
@@ -690,13 +690,13 @@ matjson::Value matjson::Serialize<std::map<long long, std::set<std::string>, std
 
 Result<SessionGrouping> matjson::Serialize<SessionGrouping>::fromJson(const matjson::Value& value) {
     SessionGrouping grouping;
-    GEODE_UNWRAP_INTO(grouping.group, value["group"].as<std::map<long long, std::set<std::string>, std::greater<long long>>>());
+    GEODE_UNWRAP_INTO(grouping.m_group, value["group"].as<std::map<long long, std::set<std::string>, std::greater<long long>>>());
     return Ok(grouping);
 }
 
 matjson::Value matjson::Serialize<SessionGrouping>::toJson(const SessionGrouping& value) {
     return matjson::makeObject({
-        { "group", value.group }
+        { "group", value.m_group }
     });
 }
 
@@ -721,74 +721,74 @@ matjson::Value matjson::Serialize<std::map<long long, SessionGrouping, std::grea
 
 Result<SessionCategory> matjson::Serialize<SessionCategory>::fromJson(const matjson::Value& value) {
     SessionCategory category;
-    GEODE_UNWRAP_INTO(category.groupName, value["groupName"].asString());
-    GEODE_UNWRAP_INTO(category.grouping, value["grouping"].as<std::map<long long, SessionGrouping, std::greater<long long>>>());
+    GEODE_UNWRAP_INTO(category.m_groupName, value["groupName"].asString());
+    GEODE_UNWRAP_INTO(category.m_grouping, value["grouping"].as<std::map<long long, SessionGrouping, std::greater<long long>>>());
     return Ok(category);
 }
 
 matjson::Value matjson::Serialize<SessionCategory>::toJson(const SessionCategory& value) {
     return matjson::makeObject({
-        { "groupName", value.groupName },
-        { "grouping", value.grouping }
+        { "groupName", value.m_groupName },
+        { "grouping", value.m_grouping }
     });
 }
 
 Result<GradientData> matjson::Serialize<GradientData>::fromJson(const matjson::Value& value) {
     GradientData data;
-    GEODE_UNWRAP_INTO(data.colorA, value["colorA"].as<ccColor4B>());
-    GEODE_UNWRAP_INTO(data.colorB, value["colorB"].as<ccColor4B>());
-    GEODE_UNWRAP_INTO(data.duration, value["duration"].asDouble());
-    GEODE_UNWRAP_INTO(data.stagger, value["stagger"].asDouble());
+    GEODE_UNWRAP_INTO(data.m_colorA, value["colorA"].as<ccColor4B>());
+    GEODE_UNWRAP_INTO(data.m_colorB, value["colorB"].as<ccColor4B>());
+    GEODE_UNWRAP_INTO(data.m_duration, value["duration"].asDouble());
+    GEODE_UNWRAP_INTO(data.m_stagger, value["stagger"].asDouble());
     return Ok(data);
 }
 
 matjson::Value matjson::Serialize<GradientData>::toJson(const GradientData& value) {
     return matjson::makeObject({
-        { "colorA", value.colorA },
-        { "colorB", value.colorB },
-        { "duration", value.duration },
-        { "stagger", value.stagger }
+        { "colorA", value.m_colorA },
+        { "colorB", value.m_colorB },
+        { "duration", value.m_duration },
+        { "stagger", value.m_stagger }
     });
 }
 
 Result<WaveData> matjson::Serialize<WaveData>::fromJson(const matjson::Value& value) {
     WaveData data;
-    GEODE_UNWRAP_INTO(data.speed, value["speed"].asDouble());
-    GEODE_UNWRAP_INTO(data.distanceY, value["distanceY"].asDouble());
-    GEODE_UNWRAP_INTO(data.distanceX, value["distanceX"].asDouble());
-    GEODE_UNWRAP_INTO(data.offsetPerIndex, value["offsetPerIndex"].asDouble());
+    GEODE_UNWRAP_INTO(data.m_speed, value["speed"].asDouble());
+    GEODE_UNWRAP_INTO(data.m_distanceY, value["distanceY"].asDouble());
+    GEODE_UNWRAP_INTO(data.m_distanceX, value["distanceX"].asDouble());
+    GEODE_UNWRAP_INTO(data.m_offsetPerIndex, value["offsetPerIndex"].asDouble());
     return Ok(data);
 }
 
 matjson::Value matjson::Serialize<WaveData>::toJson(const WaveData& value) {
     return matjson::makeObject({
-        { "speed", value.speed },
-        { "distanceY", value.distanceY },
-        { "distanceX", value.distanceX },
-        { "offsetPerIndex", value.offsetPerIndex }
+        { "speed", value.m_speed },
+        { "distanceY", value.m_distanceY },
+        { "distanceX", value.m_distanceX },
+        { "offsetPerIndex", value.m_offsetPerIndex }
     });
 }
 
 Result<CustomizationData> matjson::Serialize<CustomizationData>::fromJson(const matjson::Value& value) {
     CustomizationData data;
-    GEODE_UNWRAP_INTO(data.color, value["color"].as<ccColor4B>());
+    GEODE_UNWRAP_INTO(data.m_color, value["color"].as<ccColor4B>());
 
-    GEODE_UNWRAP_INTO(data.gradientEnabled, value["gradientEnabled"].asBool());
-    GEODE_UNWRAP_INTO(data.gradient, value["gradient"].as<GradientData>());
+    GEODE_UNWRAP_INTO(data.m_gradientEnabled, value["gradientEnabled"].asBool());
+    GEODE_UNWRAP_INTO(data.m_gradient, value["gradient"].as<GradientData>());
 
-    GEODE_UNWRAP_INTO(data.waveEnabled, value["waveEnabled"].asBool());
-    GEODE_UNWRAP_INTO(data.wave, value["wave"].as<WaveData>());
+    GEODE_UNWRAP_INTO(data.m_waveEnabled, value["waveEnabled"].asBool());
+    GEODE_UNWRAP_INTO(data.m_wave, value["wave"].as<WaveData>());
 
     return Ok(data);
 }
 
 matjson::Value matjson::Serialize<CustomizationData>::toJson(const CustomizationData& value) {
     return matjson::makeObject({
-        { "color", value.color },
-        { "gradientEnabled", value.gradientEnabled },
-        { "gradient", value.gradient },
-        { "waveEnabled", value.waveEnabled },
-        { "wave", value.wave }
+        { "color", value.m_color },
+        { "gradientEnabled", value.m_gradientEnabled },
+        { "gradient", value.m_gradient },
+        { "waveEnabled", value.m_waveEnabled },
+        { "wave", value.m_wave }
     });
 }
 
@@ -813,214 +813,214 @@ matjson::Value matjson::Serialize<std::map<int, int>>::toJson(const std::map<int
 
 Result<DTLabelInfo> matjson::Serialize<DTLabelInfo>::fromJson(const matjson::Value& value) {
     DTLabelInfo info;
-    GEODE_UNWRAP_INTO(info.minPlacementRange, value["minPlacementRange"].asInt());
-    GEODE_UNWRAP_INTO(info.maxPlacementRange, value["maxPlacementRange"].asInt());
-    GEODE_UNWRAP_INTO(info.layer, value["layer"].asInt());
-    GEODE_UNWRAP_INTO(info.labelName, value["labelName"].asString());
-    GEODE_UNWRAP_INTO(info.text, value["text"].asString());
-    GEODE_UNWRAP_INTO(info.font, value["font"].asString());
+    GEODE_UNWRAP_INTO(info.m_minPlacementRange, value["minPlacementRange"].asInt());
+    GEODE_UNWRAP_INTO(info.m_maxPlacementRange, value["maxPlacementRange"].asInt());
+    GEODE_UNWRAP_INTO(info.m_layer, value["layer"].asInt());
+    GEODE_UNWRAP_INTO(info.m_labelName, value["labelName"].asString());
+    GEODE_UNWRAP_INTO(info.m_text, value["text"].asString());
+    GEODE_UNWRAP_INTO(info.m_font, value["font"].asString());
     GEODE_UNWRAP_INTO(auto horizontalAlignment, value["horizontalAlignment"].asInt());
-    info.horizontalAlignment = static_cast<CCTextAlignment>(horizontalAlignment);
-    GEODE_UNWRAP_INTO(info.labelColor, value["labelColor"].as<ccColor4B>());
-    GEODE_UNWRAP_INTO(info.textColor, value["color"].as<ccColor4B>());
-    GEODE_UNWRAP_INTO(info.scale, value["scale"].asDouble());
-    GEODE_UNWRAP_INTO(info.isExpanded, value["isExpanded"].asBool());
+    info.m_horizontalAlignment = static_cast<CCTextAlignment>(horizontalAlignment);
+    GEODE_UNWRAP_INTO(info.m_labelColor, value["labelColor"].as<ccColor4B>());
+    GEODE_UNWRAP_INTO(info.m_textColor, value["color"].as<ccColor4B>());
+    GEODE_UNWRAP_INTO(info.m_scale, value["scale"].asDouble());
+    GEODE_UNWRAP_INTO(info.m_isExpanded, value["isExpanded"].asBool());
     if (value.contains("wrapping")) {
         GEODE_UNWRAP_INTO(auto wrapping, value["wrapping"].asInt());
-        info.wrapping = static_cast<WrappingMode>(wrapping);
+        info.m_wrapping = static_cast<WrappingMode>(wrapping);
     }
     if (value.contains("hideHeader")) {
-        GEODE_UNWRAP_INTO(info.hideHeader, value["hideHeader"].asBool());
+        GEODE_UNWRAP_INTO(info.m_hideHeader, value["hideHeader"].asBool());
     }
     return Ok(info);
 }
 
 matjson::Value matjson::Serialize<DTLabelInfo>::toJson(const DTLabelInfo& value) {
     return matjson::makeObject({
-        { "minPlacementRange", value.minPlacementRange },
-        { "maxPlacementRange", value.maxPlacementRange },
-        { "layer", value.layer },
-        { "labelName", value.labelName },
-        { "text", value.text },
-        { "font", value.font },
-        { "horizontalAlignment", static_cast<int>(value.horizontalAlignment) },
-        { "color", value.textColor },
-        { "labelColor", value.labelColor },
-        { "scale", value.scale },
-        { "isExpanded", value.isExpanded },
-        { "wrapping", static_cast<int>(value.wrapping) },
-        { "hideHeader", value.hideHeader }
+        { "minPlacementRange", value.m_minPlacementRange },
+        { "maxPlacementRange", value.m_maxPlacementRange },
+        { "layer", value.m_layer },
+        { "labelName", value.m_labelName },
+        { "text", value.m_text },
+        { "font", value.m_font },
+        { "horizontalAlignment", static_cast<int>(value.m_horizontalAlignment) },
+        { "color", value.m_textColor },
+        { "labelColor", value.m_labelColor },
+        { "scale", value.m_scale },
+        { "isExpanded", value.m_isExpanded },
+        { "wrapping", static_cast<int>(value.m_wrapping) },
+        { "hideHeader", value.m_hideHeader }
     });
 }
 
 Result<DTColumnInfo> matjson::Serialize<DTColumnInfo>::fromJson(const matjson::Value& value) {
     DTColumnInfo info;
-    GEODE_UNWRAP_INTO(info.orderPos, value["orderPos"].asInt());
-    GEODE_UNWRAP_INTO(info.currentWidth, value["currentWidth"].asDouble());
-    GEODE_UNWRAP_INTO(info.color, value["color"].as<ccColor3B>());
+    GEODE_UNWRAP_INTO(info.m_orderPos, value["orderPos"].asInt());
+    GEODE_UNWRAP_INTO(info.m_currentWidth, value["currentWidth"].asDouble());
+    GEODE_UNWRAP_INTO(info.m_color, value["color"].as<ccColor3B>());
     return Ok(info);
 }
 
 matjson::Value matjson::Serialize<DTColumnInfo>::toJson(const DTColumnInfo& value) {
     return matjson::makeObject({
-        { "orderPos", value.orderPos },
-        { "currentWidth", value.currentWidth },
-        { "color", value.color }
+        { "orderPos", value.m_orderPos },
+        { "currentWidth", value.m_currentWidth },
+        { "color", value.m_color }
     });
 }
 
 Result<DTLayoutV3> matjson::Serialize<DTLayoutV3>::fromJson(const matjson::Value& value) {
     DTLayoutV3 info;
-    GEODE_UNWRAP_INTO(info.columns, value["columns"].as<std::vector<DTColumnInfo>>());
-    GEODE_UNWRAP_INTO(info.labels, value["labels"].as<std::vector<DTLabelInfo>>());
+    GEODE_UNWRAP_INTO(info.m_columns, value["columns"].as<std::vector<DTColumnInfo>>());
+    GEODE_UNWRAP_INTO(info.m_labels, value["labels"].as<std::vector<DTLabelInfo>>());
     return Ok(info);
 }
 
 matjson::Value matjson::Serialize<DTLayoutV3>::toJson(const DTLayoutV3& value) {
     return matjson::makeObject({
-        { "columns", value.columns },
-        { "labels", value.labels }
+        { "columns", value.m_columns },
+        { "labels", value.m_labels }
     });
 }
 
 Result<DTLayoutPreset> matjson::Serialize<DTLayoutPreset>::fromJson(const matjson::Value& value) {
     DTLayoutPreset preset;
-    GEODE_UNWRAP_INTO(preset.name, value["name"].asString());
-    GEODE_UNWRAP_INTO(preset.layout, value["layout"].as<DTLayoutV3>());
+    GEODE_UNWRAP_INTO(preset.m_name, value["name"].asString());
+    GEODE_UNWRAP_INTO(preset.m_layout, value["layout"].as<DTLayoutV3>());
     if (value.contains("newBestCustomization")) {
-        GEODE_UNWRAP_INTO(preset.newBestCustomization, value["newBestCustomization"].as<CustomizationData>());
+        GEODE_UNWRAP_INTO(preset.m_newBestCustomization, value["newBestCustomization"].as<CustomizationData>());
     }
     else if (value.contains("newBestColor")) {
         GEODE_UNWRAP_INTO(auto nbColor, value["newBestColor"].as<ccColor3B>());
-        preset.newBestCustomization.color = to4B(nbColor);
-        preset.newBestCustomization.gradient.colorA = to4B(nbColor);
-        preset.newBestCustomization.gradient.colorB = to4B(nbColor);
+        preset.m_newBestCustomization.m_color = to4B(nbColor);
+        preset.m_newBestCustomization.m_gradient.m_colorA = to4B(nbColor);
+        preset.m_newBestCustomization.m_gradient.m_colorB = to4B(nbColor);
     }
     if (value.contains("sessionBestCustomization")) {
-        GEODE_UNWRAP_INTO(preset.sessionBestCustomization, value["sessionBestCustomization"].as<CustomizationData>());
+        GEODE_UNWRAP_INTO(preset.m_sessionBestCustomization, value["sessionBestCustomization"].as<CustomizationData>());
     }
     else if (value.contains("sessionBestColor")) {
         GEODE_UNWRAP_INTO(auto sbColor, value["sessionBestColor"].as<ccColor3B>());
-        preset.sessionBestCustomization.color = to4B(sbColor);
-        preset.sessionBestCustomization.gradient.colorA = to4B(sbColor);
-        preset.sessionBestCustomization.gradient.colorB = to4B(sbColor);
+        preset.m_sessionBestCustomization.m_color = to4B(sbColor);
+        preset.m_sessionBestCustomization.m_gradient.m_colorA = to4B(sbColor);
+        preset.m_sessionBestCustomization.m_gradient.m_colorB = to4B(sbColor);
     }
     return Ok(preset);
 }
 matjson::Value matjson::Serialize<DTLayoutPreset>::toJson(const DTLayoutPreset& value) {
     return matjson::makeObject({
-        { "name", value.name },
-        { "layout", value.layout },
-        { "newBestCustomization", value.newBestCustomization },
-        { "sessionBestCustomization", value.sessionBestCustomization }
+        { "name", value.m_name },
+        { "layout", value.m_layout },
+        { "newBestCustomization", value.m_newBestCustomization },
+        { "sessionBestCustomization", value.m_sessionBestCustomization }
     });
 }
 
 bool OverlayLabel::isOverlayLabelVisibleOnLevel(GJGameLevel* level, LevelMetadata const& meta) const {
-    if (!this->levelSpecific.has_value()) return true;
+    if (!this->m_levelSpecific.has_value()) return true;
 
     auto levelKeyRes = StatsManager::getLevelKey(level);
     if (levelKeyRes.isErr()) return false;
 
-    std::set<std::string> levelKeys = meta.linkedLevels;
+    std::set<std::string> levelKeys = meta.m_linkedLevels;
     levelKeys.insert(levelKeyRes.unwrap());
 
-    return levelKeys.contains(this->levelSpecific.value());
+    return levelKeys.contains(this->m_levelSpecific.value());
 }
 
 Result<OverlayLabel> matjson::Serialize<OverlayLabel>::fromJson(const matjson::Value& value) {
     OverlayLabel label;
-    GEODE_UNWRAP_INTO(label.labelName, value["labelName"].asString());
-    GEODE_UNWRAP_INTO(label.text, value["text"].asString());
+    GEODE_UNWRAP_INTO(label.m_labelName, value["labelName"].asString());
+    GEODE_UNWRAP_INTO(label.m_text, value["text"].asString());
 
-    GEODE_UNWRAP_INTO(label.posX, value["posX"].asDouble());
-    GEODE_UNWRAP_INTO(label.posY, value["posY"].asDouble());
+    GEODE_UNWRAP_INTO(label.m_posX, value["posX"].asDouble());
+    GEODE_UNWRAP_INTO(label.m_posY, value["posY"].asDouble());
 
     GEODE_UNWRAP_INTO(auto anchorEnumInt, value["anchor"].asInt());
-    label.anchor = static_cast<geode::Anchor>(anchorEnumInt);
+    label.m_anchor = static_cast<geode::Anchor>(anchorEnumInt);
 
-    GEODE_UNWRAP_INTO(label.freeMode, value["freeMode"].asBool());
-    GEODE_UNWRAP_INTO(label.order, value["order"].asInt());
-    GEODE_UNWRAP_INTO(label.enabled, value["enabled"].asBool());
+    GEODE_UNWRAP_INTO(label.m_freeMode, value["freeMode"].asBool());
+    GEODE_UNWRAP_INTO(label.m_order, value["order"].asInt());
+    GEODE_UNWRAP_INTO(label.m_enabled, value["enabled"].asBool());
     if (value.contains("levelSpecificKey")) {
-        GEODE_UNWRAP_INTO(label.levelSpecific, value["levelSpecificKey"].as<std::optional<std::string>>());
+        GEODE_UNWRAP_INTO(label.m_levelSpecific, value["levelSpecificKey"].as<std::optional<std::string>>());
     }
     return Ok(label);
 }
 
 matjson::Value matjson::Serialize<OverlayLabel>::toJson(const OverlayLabel& value) {
     return matjson::makeObject({
-        { "labelName", value.labelName },
-        { "text", value.text },
-        { "posX", value.posX },
-        { "posY", value.posY },
-        { "anchor", static_cast<int>(value.anchor) },
-        { "freeMode", value.freeMode },
-        { "order", value.order },
-        { "enabled", value.enabled },
-        { "levelSpecificKey", value.levelSpecific }
+        { "labelName", value.m_labelName },
+        { "text", value.m_text },
+        { "posX", value.m_posX },
+        { "posY", value.m_posY },
+        { "anchor", static_cast<int>(value.m_anchor) },
+        { "freeMode", value.m_freeMode },
+        { "order", value.m_order },
+        { "enabled", value.m_enabled },
+        { "levelSpecificKey", value.m_levelSpecific }
     });
 }
 
 Result<OverlayLabelSettings> matjson::Serialize<OverlayLabelSettings>::fromJson(const matjson::Value& value) {
     OverlayLabelSettings settings;
-    GEODE_UNWRAP_INTO(settings.labels, value["labels"].as<std::vector<OverlayLabel>>());
-    GEODE_UNWRAP_INTO(settings.size, value["size"].asDouble());
-    settings.size = std::clamp(settings.size, OverlayLabelSettings::MIN_SIZE, OverlayLabelSettings::MAX_SIZE);
+    GEODE_UNWRAP_INTO(settings.m_labels, value["labels"].as<std::vector<OverlayLabel>>());
+    GEODE_UNWRAP_INTO(settings.m_size, value["size"].asDouble());
+    settings.m_size = std::clamp(settings.m_size, OverlayLabelSettings::MIN_SIZE, OverlayLabelSettings::MAX_SIZE);
     if (value.contains("opacity")) {
-        GEODE_UNWRAP_INTO(settings.opacity, value["opacity"].asInt());
-        settings.opacity = std::clamp(settings.opacity, OverlayLabelSettings::MIN_OPACITY, OverlayLabelSettings::MAX_OPACITY);
+        GEODE_UNWRAP_INTO(settings.m_opacity, value["opacity"].asInt());
+        settings.m_opacity = std::clamp(settings.m_opacity, OverlayLabelSettings::MIN_OPACITY, OverlayLabelSettings::MAX_OPACITY);
     }
-    GEODE_UNWRAP_INTO(settings.offset.x, value["offsetX"].asDouble());
-    GEODE_UNWRAP_INTO(settings.offset.y, value["offsetY"].asDouble());
-    GEODE_UNWRAP_INTO(settings.font, value["font"].asString());
+    GEODE_UNWRAP_INTO(settings.m_offset.x, value["offsetX"].asDouble());
+    GEODE_UNWRAP_INTO(settings.m_offset.y, value["offsetY"].asDouble());
+    GEODE_UNWRAP_INTO(settings.m_font, value["font"].asString());
     return Ok(settings);
 }
 
 matjson::Value matjson::Serialize<OverlayLabelSettings>::toJson(const OverlayLabelSettings& value) {
     return matjson::makeObject({
-        { "labels", value.labels },
-        { "size", value.size },
-        { "opacity", value.opacity },
-        { "offsetX", value.offset.x },
-        { "offsetY", value.offset.y },
-        { "font", value.font }
+        { "labels", value.m_labels },
+        { "size", value.m_size },
+        { "opacity", value.m_opacity },
+        { "offsetX", value.m_offset.x },
+        { "offsetY", value.m_offset.y },
+        { "font", value.m_font }
     });
 }
 
 Result<V2LabelLayout> matjson::Serialize<V2LabelLayout>::fromJson(const matjson::Value& value) {
     V2LabelLayout layout;
-    GEODE_UNWRAP_INTO(layout.labelName, value["labelName"].asString());
-    GEODE_UNWRAP_INTO(layout.text, value["text"].asString());
-    GEODE_UNWRAP_INTO(layout.line, value["line"].asInt());
-    GEODE_UNWRAP_INTO(layout.position, value["position"].asInt());
-    GEODE_UNWRAP_INTO(layout.color, value["color"].as<ccColor4B>());
+    GEODE_UNWRAP_INTO(layout.m_labelName, value["labelName"].asString());
+    GEODE_UNWRAP_INTO(layout.m_text, value["text"].asString());
+    GEODE_UNWRAP_INTO(layout.m_line, value["line"].asInt());
+    GEODE_UNWRAP_INTO(layout.m_position, value["position"].asInt());
+    GEODE_UNWRAP_INTO(layout.m_color, value["color"].as<ccColor4B>());
     GEODE_UNWRAP_INTO(auto alignment, value["alignment"].asInt());
-    layout.alignment = static_cast<CCTextAlignment>(alignment);
-    GEODE_UNWRAP_INTO(layout.font, value["font"].asInt());
-    GEODE_UNWRAP_INTO(layout.fontSize, value["fontSize"].asDouble());
+    layout.m_alignment = static_cast<CCTextAlignment>(alignment);
+    GEODE_UNWRAP_INTO(layout.m_font, value["font"].asInt());
+    GEODE_UNWRAP_INTO(layout.m_fontSize, value["fontSize"].asDouble());
     return Ok(layout);
 }
 
 matjson::Value matjson::Serialize<V2LabelLayout>::toJson(const V2LabelLayout& value) {
     return matjson::makeObject({
-        { "labelName", value.labelName },
-        { "text", value.text },
-        { "line", value.line },
-        { "position", value.position },
-        { "color", value.color },
-        { "alignment", static_cast<int>(value.alignment) },
-        { "font", value.font },
-        { "fontSize", value.fontSize }
+        { "labelName", value.m_labelName },
+        { "text", value.m_text },
+        { "line", value.m_line },
+        { "position", value.m_position },
+        { "color", value.m_color },
+        { "alignment", static_cast<int>(value.m_alignment) },
+        { "font", value.m_font },
+        { "fontSize", value.m_fontSize }
     });
 }
 
 Result<stringCustomazations> matjson::Serialize<stringCustomazations>::fromJson(const matjson::Value& value) {
     stringCustomazations sc;
-    GEODE_UNWRAP_INTO(sc.seperator, value["seperator"].asString());
-    GEODE_UNWRAP_INTO(sc.format, value["format"].asString());
+    GEODE_UNWRAP_INTO(sc.m_seperator, value["seperator"].asString());
+    GEODE_UNWRAP_INTO(sc.m_format, value["format"].asString());
     if (value.contains("alternateStrength")) {
-        GEODE_UNWRAP_INTO(sc.alternateStrength, value["alternateStrength"].asInt());
+        GEODE_UNWRAP_INTO(sc.m_alternateStrength, value["alternateStrength"].asInt());
     }
 
     return Ok(sc);
@@ -1028,95 +1028,95 @@ Result<stringCustomazations> matjson::Serialize<stringCustomazations>::fromJson(
 
 matjson::Value matjson::Serialize<stringCustomazations>::toJson(const stringCustomazations& value) {
     return matjson::makeObject({
-        { "seperator", value.seperator },
-        { "format", value.format },
-        { "alternateStrength", value.alternateStrength }
+        { "seperator", value.m_seperator },
+        { "format", value.m_format },
+        { "alternateStrength", value.m_alternateStrength }
     });
 }
 
 Result<V2Session> matjson::Serialize<V2Session>::fromJson(const matjson::Value& value) {
     V2Session session;
-    GEODE_UNWRAP_INTO(session.lastPlayed, value["lastPlayed"].as<long long>());
-    GEODE_UNWRAP_INTO(session.deaths, value["deaths"].as<Deaths>());
-    GEODE_UNWRAP_INTO(session.runs, value["runs"].as<Deaths>());
-    GEODE_UNWRAP_INTO(session.newBests, value["newBests"].as<NewBests>());
-    GEODE_UNWRAP_INTO(session.currentBest, value["currentBest"].asInt());
+    GEODE_UNWRAP_INTO(session.m_lastPlayed, value["lastPlayed"].as<long long>());
+    GEODE_UNWRAP_INTO(session.m_deaths, value["deaths"].as<Deaths>());
+    GEODE_UNWRAP_INTO(session.m_runs, value["runs"].as<Deaths>());
+    GEODE_UNWRAP_INTO(session.m_newBests, value["newBests"].as<NewBests>());
+    GEODE_UNWRAP_INTO(session.m_currentBest, value["currentBest"].asInt());
     if (value.contains("sessionStartDate")) {
-        GEODE_UNWRAP_INTO(session.sessionStartDate, value["sessionStartDate"].as<long long>());
+        GEODE_UNWRAP_INTO(session.m_sessionStartDate, value["sessionStartDate"].as<long long>());
     } else {
-        session.sessionStartDate = -1;
+        session.m_sessionStartDate = -1;
     }
     return Ok(session);
 }
 
 matjson::Value matjson::Serialize<V2Session>::toJson(const V2Session& value) {
     return matjson::makeObject({
-        { "lastPlayed", value.lastPlayed },
-        { "deaths", value.deaths },
-        { "runs", value.runs },
-        { "newBests", value.newBests },
-        { "currentBest", value.currentBest },
-        { "sessionStartDate", value.sessionStartDate }
+        { "lastPlayed", value.m_lastPlayed },
+        { "deaths", value.m_deaths },
+        { "runs", value.m_runs },
+        { "newBests", value.m_newBests },
+        { "currentBest", value.m_currentBest },
+        { "sessionStartDate", value.m_sessionStartDate }
     });
 }
 
 Result<V2LevelStats> matjson::Serialize<V2LevelStats>::fromJson(const matjson::Value& value) {
     V2LevelStats stats;
-    GEODE_UNWRAP_INTO(stats.deaths, value["deaths"].as<Deaths>());
-    GEODE_UNWRAP_INTO(stats.runs, value["runs"].as<Deaths>());
-    GEODE_UNWRAP_INTO(stats.newBests, value["newBests"].as<NewBests>());
-    GEODE_UNWRAP_INTO(stats.currentBest, value["currentBest"].asInt());
-    GEODE_UNWRAP_INTO(stats.sessions, value["sessions"].as<std::vector<V2Session>>());
+    GEODE_UNWRAP_INTO(stats.m_deaths, value["deaths"].as<Deaths>());
+    GEODE_UNWRAP_INTO(stats.m_runs, value["runs"].as<Deaths>());
+    GEODE_UNWRAP_INTO(stats.m_newBests, value["newBests"].as<NewBests>());
+    GEODE_UNWRAP_INTO(stats.m_currentBest, value["currentBest"].asInt());
+    GEODE_UNWRAP_INTO(stats.m_sessions, value["sessions"].as<std::vector<V2Session>>());
     if (value.contains("RunsToSave")) {
-        GEODE_UNWRAP_INTO(stats.RunsToSave, value["RunsToSave"].as<std::vector<int>>());
+        GEODE_UNWRAP_INTO(stats.m_RunsToSave, value["RunsToSave"].as<std::vector<int>>());
     }
     if (value.contains("LinkedLevels")) {
-        GEODE_UNWRAP_INTO(stats.LinkedLevels, value["LinkedLevels"].as<std::vector<std::string>>());
+        GEODE_UNWRAP_INTO(stats.m_LinkedLevels, value["LinkedLevels"].as<std::vector<std::string>>());
     } else {
-        stats.LinkedLevels = value["LinkedLevels"].as<std::vector<std::string>>().unwrapOr(std::vector<std::string>{});
+        stats.m_LinkedLevels = value["LinkedLevels"].as<std::vector<std::string>>().unwrapOr(std::vector<std::string>{});
     }
     if (value.contains("levelName")) {
-        GEODE_UNWRAP_INTO(stats.levelName, value["levelName"].asString());
+        GEODE_UNWRAP_INTO(stats.m_levelName, value["levelName"].asString());
     } else {
-        stats.levelName = "-1";
+        stats.m_levelName = "-1";
     }
     if (value.contains("attempts")) {
-        GEODE_UNWRAP_INTO(stats.attempts, value["attempts"].asInt());
+        GEODE_UNWRAP_INTO(stats.m_attempts, value["attempts"].asInt());
     } else {
-        stats.attempts = -1;
+        stats.m_attempts = -1;
     }
     if (value.contains("difficulty")) {
-        GEODE_UNWRAP_INTO(stats.difficulty, value["difficulty"].asInt());
+        GEODE_UNWRAP_INTO(stats.m_difficulty, value["difficulty"].asInt());
     } else {
-        stats.difficulty = 0;
+        stats.m_difficulty = 0;
     }
     if (value.contains("hideRunLength")) {
-        GEODE_UNWRAP_INTO(stats.hideRunLength, value["hideRunLength"].asInt());
+        GEODE_UNWRAP_INTO(stats.m_hideRunLength, value["hideRunLength"].asInt());
     } else {
-        stats.hideRunLength = 0;
+        stats.m_hideRunLength = 0;
     }
     if (value.contains("hideUpto")) {
-        GEODE_UNWRAP_INTO(stats.hideUpto, value["hideUpto"].asInt());
+        GEODE_UNWRAP_INTO(stats.m_hideUpto, value["hideUpto"].asInt());
     } else {
-        stats.hideUpto = 0;
+        stats.m_hideUpto = 0;
     }
     return Ok(stats);
 }
 
 matjson::Value matjson::Serialize<V2LevelStats>::toJson(const V2LevelStats& value) {
     return matjson::makeObject({
-        { "deaths", value.deaths },
-        { "runs", value.runs },
-        { "newBests", value.newBests },
-        { "currentBest", value.currentBest },
-        { "sessions", value.sessions },
-        { "RunsToSave", value.RunsToSave },
-        { "LinkedLevels", value.LinkedLevels },
-        { "levelName", value.levelName },
-        { "attempts", value.attempts },
-        { "difficulty", value.difficulty },
-        { "hideRunLength", value.hideRunLength },
-        { "hideUpto", value.hideUpto }
+        { "deaths", value.m_deaths },
+        { "runs", value.m_runs },
+        { "newBests", value.m_newBests },
+        { "currentBest", value.m_currentBest },
+        { "sessions", value.m_sessions },
+        { "RunsToSave", value.m_RunsToSave },
+        { "LinkedLevels", value.m_LinkedLevels },
+        { "levelName", value.m_levelName },
+        { "attempts", value.m_attempts },
+        { "difficulty", value.m_difficulty },
+        { "hideRunLength", value.m_hideRunLength },
+        { "hideUpto", value.m_hideUpto }
     });
 }
 
@@ -1124,40 +1124,40 @@ Result<DTGraphInfo> matjson::Serialize<DTGraphInfo>::fromJson(const matjson::Val
     DTGraphInfo info;
     GEODE_UNWRAP_INTO(auto coverageInt, value["coverage"].asInt());
     if (coverageInt == 7) {
-        info.coverage = DTGraphCoverage::GeneralRunsCover;
+        info.m_coverage = DTGraphCoverage::GeneralRunsCover;
     }
     else if (coverageInt == 8) {
-        info.coverage = DTGraphCoverage::SessionRunsCover;
+        info.m_coverage = DTGraphCoverage::SessionRunsCover;
     }
     else {
-        info.coverage = static_cast<DTGraphCoverage>(coverageInt);
+        info.m_coverage = static_cast<DTGraphCoverage>(coverageInt);
     }
     GEODE_UNWRAP_INTO(auto typeInt, value["type"].asInt());
-    info.type = static_cast<DTGraphType>(typeInt);
-    GEODE_UNWRAP_INTO(info.thickness, value["thickness"].asDouble());
-    GEODE_UNWRAP_INTO(info.outlineThickness, value["outlineThickness"].asDouble());
-    GEODE_UNWRAP_INTO(info.color, value["color"].as<ccColor4B>());
-    GEODE_UNWRAP_INTO(info.outlineColor, value["outlineColor"].as<ccColor4B>());
-    GEODE_UNWRAP_INTO(info.pointColor, value["pointColor"].as<ccColor4B>());
-    GEODE_UNWRAP_INTO(info.pointScale, value["pointScale"].asDouble());
-    GEODE_UNWRAP_INTO(info.name, value["name"].asString());
-    GEODE_UNWRAP_INTO(info.orderPos, value["orderPos"].asInt());
-    GEODE_UNWRAP_INTO(info.isEnabled, value["isEnabled"].asBool());
+    info.m_type = static_cast<DTGraphType>(typeInt);
+    GEODE_UNWRAP_INTO(info.m_thickness, value["thickness"].asDouble());
+    GEODE_UNWRAP_INTO(info.m_outlineThickness, value["outlineThickness"].asDouble());
+    GEODE_UNWRAP_INTO(info.m_color, value["color"].as<ccColor4B>());
+    GEODE_UNWRAP_INTO(info.m_outlineColor, value["outlineColor"].as<ccColor4B>());
+    GEODE_UNWRAP_INTO(info.m_pointColor, value["pointColor"].as<ccColor4B>());
+    GEODE_UNWRAP_INTO(info.m_pointScale, value["pointScale"].asDouble());
+    GEODE_UNWRAP_INTO(info.m_name, value["name"].asString());
+    GEODE_UNWRAP_INTO(info.m_orderPos, value["orderPos"].asInt());
+    GEODE_UNWRAP_INTO(info.m_isEnabled, value["isEnabled"].asBool());
     return Ok(info);
 }
 
 matjson::Value matjson::Serialize<DTGraphInfo>::toJson(const DTGraphInfo& value) {
     return matjson::makeObject({
-        { "coverage", static_cast<int>(value.coverage) },
-        { "type", static_cast<int>(value.type) },
-        { "thickness", value.thickness },
-        { "outlineThickness", value.outlineThickness },
-        { "outlineColor", value.outlineColor },
-        { "color", value.color },
-        { "pointScale", value.pointScale },
-        { "pointColor", value.pointColor },
-        { "name", value.name },
-        { "orderPos", value.orderPos },
-        { "isEnabled", value.isEnabled }
+        { "coverage", static_cast<int>(value.m_coverage) },
+        { "type", static_cast<int>(value.m_type) },
+        { "thickness", value.m_thickness },
+        { "outlineThickness", value.m_outlineThickness },
+        { "outlineColor", value.m_outlineColor },
+        { "color", value.m_color },
+        { "pointScale", value.m_pointScale },
+        { "pointColor", value.m_pointColor },
+        { "name", value.m_name },
+        { "orderPos", value.m_orderPos },
+        { "isEnabled", value.m_isEnabled }
     });
 }

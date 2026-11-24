@@ -21,7 +21,6 @@ DTLevelSpecificSettingsLayer* DTLevelSpecificSettingsLayer::create() {
 
 bool DTLevelSpecificSettingsLayer::init() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-    // @geode-ignore(unknown-resource)
     if (!Popup::init(winSize.width - 30, winSize.height - 30, "geode.loader/GE_square01.png"))
         return false;
 
@@ -44,10 +43,10 @@ bool DTLevelSpecificSettingsLayer::init() {
     seperator->setAnchorPoint({.5f, 1});
     m_mainLayer->addChild(seperator);
 
-    optionUnderline = CCScale9Sprite::create("square.png");
-    optionUnderline->setScaleY(.5f);
-    optionUnderline->setContentHeight(1);
-    m_mainLayer->addChild(optionUnderline);
+    m_optionUnderline = CCScale9Sprite::create("square.png");
+    m_optionUnderline->setScaleY(.5f);
+    m_optionUnderline->setContentHeight(1);
+    m_mainLayer->addChild(m_optionUnderline);
 
     auto firstOption = DTLevelSpecificSettingsLayer::createPageBtn("Run", RunOptions::create(ccp(m_size.width - 10, seperator->getPositionY() - 10)));
 
@@ -71,9 +70,10 @@ bool DTLevelSpecificSettingsLayer::init() {
     return true;
 }
 
-CCNode* DTLevelSpecificSettingsLayer::createPageBtn(const std::string& text, OptionsNode* page) {
+CCNode* DTLevelSpecificSettingsLayer::createPageBtn(std::string_view text, OptionsNode* page) {
 
-    auto spr = geode::Label::create(text.c_str(), "gjFont17.fnt");
+    auto ownedText = std::string(text);
+    auto spr = geode::Label::create(ownedText.c_str(), "gjFont17.fnt");
     spr->setScale(.85f);
     auto button = CCMenuItemSpriteExtra::create(
         spr,
@@ -81,7 +81,7 @@ CCNode* DTLevelSpecificSettingsLayer::createPageBtn(const std::string& text, Opt
         menu_selector(DTLevelSpecificSettingsLayer::switchPage)
     );
     page->setSettingsLayer(this);
-    pages.insert({button, page});
+    m_pages.insert({button, page});
 
     if (page != nullptr) {
         page->setZOrder(2);
@@ -98,19 +98,19 @@ CCNode* DTLevelSpecificSettingsLayer::createSeperator() {
 }
 
 void DTLevelSpecificSettingsLayer::sendUnderlineTo(CCNode* node, bool instant) {
-    optionUnderline->stopAllActions();
+    m_optionUnderline->stopAllActions();
 
     float movementTime = instant ? 0 : .2f;
 
-    CCPoint nodePosInSpace = optionUnderline->getParent()->convertToNodeSpace(node->getParent()->convertToWorldSpace(node->getPosition()));
+    CCPoint nodePosInSpace = m_optionUnderline->getParent()->convertToNodeSpace(node->getParent()->convertToWorldSpace(node->getPosition()));
 
-    CCPoint leftSide = optionUnderline->getParent()->convertToNodeSpace(node->getParent()->convertToWorldSpace(node->getPosition() - node->getScaledContentSize() * node->getAnchorPoint()));
-    CCPoint rightSide = optionUnderline->getParent()->convertToNodeSpace(node->getParent()->convertToWorldSpace(node->getPosition() + node->getScaledContentSize() * node->getAnchorPoint()));
+    CCPoint leftSide = m_optionUnderline->getParent()->convertToNodeSpace(node->getParent()->convertToWorldSpace(node->getPosition() - node->getScaledContentSize() * node->getAnchorPoint()));
+    CCPoint rightSide = m_optionUnderline->getParent()->convertToNodeSpace(node->getParent()->convertToWorldSpace(node->getPosition() + node->getScaledContentSize() * node->getAnchorPoint()));
 
     float localWidth = rightSide.x - leftSide.x;
     float localHeight = rightSide.y - leftSide.y;
 
-    optionUnderline->runAction(
+    m_optionUnderline->runAction(
         CCEaseExponentialOut::create(
             CCMoveTo::create(
                 movementTime,
@@ -118,19 +118,19 @@ void DTLevelSpecificSettingsLayer::sendUnderlineTo(CCNode* node, bool instant) {
             )
         )
     );
-    optionUnderline->runAction(
+    m_optionUnderline->runAction(
         CCSequence::create(
             CCEaseInOut::create(
                 CCResizeTo::create(
                     movementTime,
-                    {localWidth, optionUnderline->getContentHeight()}
+                    {localWidth, m_optionUnderline->getContentHeight()}
                 ),
                 2
             ),
             CCCallFuncO::create(
                 this,
                 callfuncO_selector(DTLevelSpecificSettingsLayer::makeUnderlineIdle),
-                optionUnderline
+                m_optionUnderline
             ),
             nullptr
         )
@@ -142,20 +142,20 @@ void DTLevelSpecificSettingsLayer::makeUnderlineIdle(CCObject* sender) {
 
     float scaleAmount = 2;
 
-    optionUnderline->runAction(
+    m_optionUnderline->runAction(
         CCRepeatForever::create(
             CCSequence::create(
                 CCEaseInOut::create(
                     CCResizeTo::create(
                         1,
-                        {node->getContentWidth() + scaleAmount, optionUnderline->getContentHeight()}
+                        {node->getContentWidth() + scaleAmount, m_optionUnderline->getContentHeight()}
                     ),
                     2
                 ),
                 CCEaseInOut::create(
                     CCResizeTo::create(
                         1,
-                        {node->getContentWidth() - scaleAmount, optionUnderline->getContentHeight()}
+                        {node->getContentWidth() - scaleAmount, m_optionUnderline->getContentHeight()}
                     ),
                     2
                 ),
@@ -166,21 +166,21 @@ void DTLevelSpecificSettingsLayer::makeUnderlineIdle(CCObject* sender) {
 }
 
 void DTLevelSpecificSettingsLayer::switchPage(CCObject* sender) {
-    if (!pages.contains(sender)) return;
+    if (!m_pages.contains(sender)) return;
 
     auto senderNode = static_cast<CCNode*>(sender);
 
-    if (currentPage == pages[sender]) return;
+    if (m_currentPage == m_pages[sender]) return;
 
     DTLevelSpecificSettingsLayer::sendUnderlineTo(senderNode);
 
-    if (currentPage != nullptr)
-        currentPage->onClosed();
+    if (m_currentPage != nullptr)
+        m_currentPage->onClosed();
 
-    currentPage = pages[sender];
+    m_currentPage = m_pages[sender];
 
-    if (currentPage != nullptr)
-        currentPage->onOpened();
+    if (m_currentPage != nullptr)
+        m_currentPage->onOpened();
 }
 
 void DTLevelSpecificSettingsLayer::onClose(CCObject*) {

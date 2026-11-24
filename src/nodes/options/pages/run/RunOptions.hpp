@@ -18,11 +18,11 @@ class RunOptions : public OptionsNode, public SliderDelegate {
         void onAddNewRun(CCObject*);
         bool addNewRun(int percent);
 
-        TextInput* runAdditionInput;
-        TextInput* RealEndPerInput;
-        TextInput* HidUpToInput;
+        TextInput* m_runAdditionInput;
+        TextInput* m_RealEndPerInput;
+        TextInput* m_HidUpToInput;
 
-        ScrollLayer* runsScrollLayer;
+        ScrollLayer* m_runsScrollLayer;
 
         void PercentCellClicked(PercentCell* cell);
         void PercentMaxHideValChanged(PercentCell* cell);
@@ -32,11 +32,11 @@ class RunOptions : public OptionsNode, public SliderDelegate {
         void onStartPoses(CCObject*);
         void onSharedHideScroll(CCObject*);
 
-        Slider* sharedHideScroll;
+        Slider* m_sharedHideScroll;
         void sliderEnded(Slider* slider) override;
-        TextInput* sharedRunsToShowInput;
+        TextInput* m_sharedRunsToShowInput;
 
-        Scrollbar* runsScrollBar;
+        Scrollbar* m_runsScrollBar;
 
     public:
         virtual void onOpened() override;

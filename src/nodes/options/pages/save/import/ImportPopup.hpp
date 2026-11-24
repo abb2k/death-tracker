@@ -15,5 +15,5 @@ class ImportPopup : public Popup {
         void onFromDT(CCObject*);
         void onFromText(CCObject*);
 
-        async::TaskHolder<file::PickResult> fileListener;
+        async::TaskHolder<file::PickResult> m_fileListener;
 };

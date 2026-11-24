@@ -17,7 +17,7 @@ void Save::setLayout(const DTLayoutV3& layout) {
 }
 
 CustomizationData Save::getNewBestCustomizations() {
-    return Mod::get()->getSavedValue<CustomizationData>("NewBestCustomizations", CustomizationData{.color = to4B(Mod::get()->getSavedValue<ccColor3B>("NewBestColor"))});
+    return Mod::get()->getSavedValue<CustomizationData>("NewBestCustomizations", CustomizationData{.m_color = to4B(Mod::get()->getSavedValue<ccColor3B>("NewBestColor"))});
 }
 
 void Save::setNewBestCustomizations(const CustomizationData& data) {
@@ -25,7 +25,7 @@ void Save::setNewBestCustomizations(const CustomizationData& data) {
 }
 
 CustomizationData Save::getSessionBestCustomizations() {
-    return Mod::get()->getSavedValue<CustomizationData>("SessionBestCustomizations", CustomizationData{.color = to4B(Mod::get()->getSavedValue<ccColor3B>("SessionBestColor"))});
+    return Mod::get()->getSavedValue<CustomizationData>("SessionBestCustomizations", CustomizationData{.m_color = to4B(Mod::get()->getSavedValue<ccColor3B>("SessionBestColor"))});
 }
 
 void Save::setSessionBestCustomizations(const CustomizationData& data) {
@@ -148,270 +148,270 @@ void Save::setDidInitLayout(const bool& b) {
 
 DTLayoutV3 Save::getDefaultLayout() {
     return DTLayoutV3{
-        .columns = std::vector<DTColumnInfo>{
-            DTColumnInfo{ .orderPos = 0, .currentWidth = 120.0f, .color = {255, 255, 255} },
-            DTColumnInfo{ .orderPos = 1, .currentWidth = 100.0f, .color = {255, 255, 255} },
-            DTColumnInfo{ .orderPos = 2, .currentWidth = 100.0f, .color = {255, 255, 255} },
-            DTColumnInfo{ .orderPos = 3, .currentWidth = 129.430908203125f, .color = {255, 255, 255} },
-            DTColumnInfo{ .orderPos = 4, .currentWidth = 125.6539306640625f, .color = {255, 255, 255} },
-            DTColumnInfo{ .orderPos = 5, .currentWidth = 116.2230224609375f, .color = {255, 255, 255} },
-            DTColumnInfo{ .orderPos = 6, .currentWidth = 99.3603515625f, .color = {255, 255, 255} },
-            DTColumnInfo{ .orderPos = 7, .currentWidth = 257.3111572265625f, .color = {255, 255, 255} },
-            DTColumnInfo{ .orderPos = 8, .currentWidth = 114.939208984375f, .color = {255, 255, 255} },
-            DTColumnInfo{ .orderPos = 9, .currentWidth = 131.4425048828125f, .color = {255, 255, 255} },
+        .m_columns = std::vector<DTColumnInfo>{
+            DTColumnInfo{ .m_orderPos = 0, .m_currentWidth = 120.0f, .m_color = {255, 255, 255} },
+            DTColumnInfo{ .m_orderPos = 1, .m_currentWidth = 100.0f, .m_color = {255, 255, 255} },
+            DTColumnInfo{ .m_orderPos = 2, .m_currentWidth = 100.0f, .m_color = {255, 255, 255} },
+            DTColumnInfo{ .m_orderPos = 3, .m_currentWidth = 129.430908203125f, .m_color = {255, 255, 255} },
+            DTColumnInfo{ .m_orderPos = 4, .m_currentWidth = 125.6539306640625f, .m_color = {255, 255, 255} },
+            DTColumnInfo{ .m_orderPos = 5, .m_currentWidth = 116.2230224609375f, .m_color = {255, 255, 255} },
+            DTColumnInfo{ .m_orderPos = 6, .m_currentWidth = 99.3603515625f, .m_color = {255, 255, 255} },
+            DTColumnInfo{ .m_orderPos = 7, .m_currentWidth = 257.3111572265625f, .m_color = {255, 255, 255} },
+            DTColumnInfo{ .m_orderPos = 8, .m_currentWidth = 114.939208984375f, .m_color = {255, 255, 255} },
+            DTColumnInfo{ .m_orderPos = 9, .m_currentWidth = 131.4425048828125f, .m_color = {255, 255, 255} },
         },
-        .labels = std::vector<DTLabelInfo>{
+        .m_labels = std::vector<DTLabelInfo>{
             DTLabelInfo{
-                .minPlacementRange = 0,
-                .maxPlacementRange = 2,
-                .layer = 0,
-                .labelName = "level name",
-                .text = "{lvln}:",
-                .font = "goldFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(1),
-                .labelColor = {255, 213, 118, 255},
-                .textColor = {255, 255, 255, 255},
-                .scale = 0.5f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(2)
+                .m_minPlacementRange = 0,
+                .m_maxPlacementRange = 2,
+                .m_layer = 0,
+                .m_labelName = "level name",
+                .m_text = "{lvln}:",
+                .m_font = "goldFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(1),
+                .m_labelColor = {255, 213, 118, 255},
+                .m_textColor = {255, 255, 255, 255},
+                .m_scale = 0.5f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(2)
             },
             DTLabelInfo{
-                .minPlacementRange = 0,
-                .maxPlacementRange = 0,
-                .layer = 1,
-                .labelName = "attempts",
-                .text = "gd - {att}{nl}death tracker - {dtatt}",
-                .font = "chatFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {170, 170, 170, 255},
-                .textColor = {255, 255, 255, 255},
-                .scale = 0.6499999761581421f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(2)
+                .m_minPlacementRange = 0,
+                .m_maxPlacementRange = 0,
+                .m_layer = 1,
+                .m_labelName = "attempts",
+                .m_text = "gd - {att}{nl}death tracker - {dtatt}",
+                .m_font = "chatFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {170, 170, 170, 255},
+                .m_textColor = {255, 255, 255, 255},
+                .m_scale = 0.6499999761581421f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(2)
             },
             DTLabelInfo{
-                .minPlacementRange = 0,
-                .maxPlacementRange = 0,
-                .layer = 2,
-                .labelName = "playtime",
-                .text = "overall - {ptgen}{nl}from 0: {ptf0}{nl}runs: {ptruns}{nl} {nl}paused time: {pptgen}{nl}dead time: {dptgen}",
-                .font = "gjFont17.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {170, 170, 170, 255},
-                .textColor = {255, 255, 255, 255},
-                .scale = 0.2800000309944153f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(2)
+                .m_minPlacementRange = 0,
+                .m_maxPlacementRange = 0,
+                .m_layer = 2,
+                .m_labelName = "playtime",
+                .m_text = "overall - {ptgen}{nl}from 0: {ptf0}{nl}runs: {ptruns}{nl} {nl}paused time: {pptgen}{nl}dead time: {dptgen}",
+                .m_font = "gjFont17.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {170, 170, 170, 255},
+                .m_textColor = {255, 255, 255, 255},
+                .m_scale = 0.2800000309944153f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(2)
             },
             DTLabelInfo{
-                .minPlacementRange = 0,
-                .maxPlacementRange = 0,
-                .layer = 3,
-                .labelName = "legacy playtime",
-                .text = "calculated playtime{nl} {nl}overall: {aptgen}{nl}from 0: {aptf0}{nl}runs: {aptruns}",
-                .font = "gjFont17.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {121, 119, 119, 255},
-                .textColor = {99, 98, 98, 255},
-                .scale = 0.2500000298023224f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(3)
+                .m_minPlacementRange = 0,
+                .m_maxPlacementRange = 0,
+                .m_layer = 3,
+                .m_labelName = "legacy playtime",
+                .m_text = "calculated playtime{nl} {nl}overall: {aptgen}{nl}from 0: {aptf0}{nl}runs: {aptruns}",
+                .m_font = "gjFont17.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {121, 119, 119, 255},
+                .m_textColor = {99, 98, 98, 255},
+                .m_scale = 0.2500000298023224f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(3)
             },
             DTLabelInfo{
-                .minPlacementRange = 1,
-                .maxPlacementRange = 1,
-                .layer = 1,
-                .labelName = "from 0",
-                .text = "{general}",
-                .font = "bigFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {64, 138, 98, 255},
-                .textColor = {123, 255, 184, 255},
-                .scale = 0.3499999940395355f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(2)
+                .m_minPlacementRange = 1,
+                .m_maxPlacementRange = 1,
+                .m_layer = 1,
+                .m_labelName = "from 0",
+                .m_text = "{general}",
+                .m_font = "bigFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {64, 138, 98, 255},
+                .m_textColor = {123, 255, 184, 255},
+                .m_scale = 0.3499999940395355f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(2)
             },
             DTLabelInfo{
-                .minPlacementRange = 2,
-                .maxPlacementRange = 2,
-                .layer = 1,
-                .labelName = "runs",
-                .text = "{runs}",
-                .font = "bigFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {37, 86, 70, 255},
-                .textColor = {42, 167, 102, 255},
-                .scale = 0.3499999940395355f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(2)
+                .m_minPlacementRange = 2,
+                .m_maxPlacementRange = 2,
+                .m_layer = 1,
+                .m_labelName = "runs",
+                .m_text = "{runs}",
+                .m_font = "bigFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {37, 86, 70, 255},
+                .m_textColor = {42, 167, 102, 255},
+                .m_scale = 0.3499999940395355f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(2)
             },
             DTLabelInfo{
-                .minPlacementRange = 3,
-                .maxPlacementRange = 4,
-                .layer = 0,
-                .labelName = "Session Date",
-                .text = "{sdate}",
-                .font = "bigFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(1),
-                .labelColor = {255, 147, 44, 255},
-                .textColor = {160, 74, 16, 255},
-                .scale = 0.3499999940395355f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(3)
+                .m_minPlacementRange = 3,
+                .m_maxPlacementRange = 4,
+                .m_layer = 0,
+                .m_labelName = "Session Date",
+                .m_text = "{sdate}",
+                .m_font = "bigFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(1),
+                .m_labelColor = {255, 147, 44, 255},
+                .m_textColor = {160, 74, 16, 255},
+                .m_scale = 0.3499999940395355f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(3)
             },
             DTLabelInfo{
-                .minPlacementRange = 3,
-                .maxPlacementRange = 3,
-                .layer = 1,
-                .labelName = "session playtime",
-                .text = "overall: {ptsgen}{nl}from 0: {ptsf0}{nl}runs: {ptsruns}{nl}paused time: {pptsgen}{nl}dead time: {dptsgen}",
-                .font = "gjFont17.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {176, 150, 110, 255},
-                .textColor = {255, 255, 255, 255},
-                .scale = 0.30000001192092896f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(2)
+                .m_minPlacementRange = 3,
+                .m_maxPlacementRange = 3,
+                .m_layer = 1,
+                .m_labelName = "session playtime",
+                .m_text = "overall: {ptsgen}{nl}from 0: {ptsf0}{nl}runs: {ptsruns}{nl}paused time: {pptsgen}{nl}dead time: {dptsgen}",
+                .m_font = "gjFont17.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {176, 150, 110, 255},
+                .m_textColor = {255, 255, 255, 255},
+                .m_scale = 0.30000001192092896f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(2)
             },
             DTLabelInfo{
-                .minPlacementRange = 3,
-                .maxPlacementRange = 3,
-                .layer = 2,
-                .labelName = "session from 0",
-                .text = "{s0}",
-                .font = "bigFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {160, 109, 60, 255},
-                .textColor = {255, 174, 77, 255},
-                .scale = 0.3499999940395355f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(2)
+                .m_minPlacementRange = 3,
+                .m_maxPlacementRange = 3,
+                .m_layer = 2,
+                .m_labelName = "session from 0",
+                .m_text = "{s0}",
+                .m_font = "bigFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {160, 109, 60, 255},
+                .m_textColor = {255, 174, 77, 255},
+                .m_scale = 0.3499999940395355f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(2)
             },
             DTLabelInfo{
-                .minPlacementRange = 4,
-                .maxPlacementRange = 4,
-                .layer = 1,
-                .labelName = "session attempts",
-                .text = "attempts: {satt}",
-                .font = "chatFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(1),
-                .labelColor = {156, 96, 46, 255},
-                .textColor = {255, 149, 66, 255},
-                .scale = 0.699999988079071f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(3)
+                .m_minPlacementRange = 4,
+                .m_maxPlacementRange = 4,
+                .m_layer = 1,
+                .m_labelName = "session attempts",
+                .m_text = "attempts: {satt}",
+                .m_font = "chatFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(1),
+                .m_labelColor = {156, 96, 46, 255},
+                .m_textColor = {255, 149, 66, 255},
+                .m_scale = 0.699999988079071f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(3)
             },
             DTLabelInfo{
-                .minPlacementRange = 4,
-                .maxPlacementRange = 4,
-                .layer = 2,
-                .labelName = "session runs",
-                .text = "{sruns}",
-                .font = "bigFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {102, 68, 31, 255},
-                .textColor = {206, 127, 42, 255},
-                .scale = 0.3499999940395355f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(2)
+                .m_minPlacementRange = 4,
+                .m_maxPlacementRange = 4,
+                .m_layer = 2,
+                .m_labelName = "session runs",
+                .m_text = "{sruns}",
+                .m_font = "bigFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {102, 68, 31, 255},
+                .m_textColor = {206, 127, 42, 255},
+                .m_scale = 0.3499999940395355f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(2)
             },
             DTLabelInfo{
-                .minPlacementRange = 5,
-                .maxPlacementRange = 5,
-                .layer = 0,
-                .labelName = "to 100",
-                .text = "{rt100}",
-                .font = "bigFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {24, 125, 115, 255},
-                .textColor = {36, 225, 255, 255},
-                .scale = 0.3499999940395355f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(2)
+                .m_minPlacementRange = 5,
+                .m_maxPlacementRange = 5,
+                .m_layer = 0,
+                .m_labelName = "to 100",
+                .m_text = "{rt100}",
+                .m_font = "bigFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {24, 125, 115, 255},
+                .m_textColor = {36, 225, 255, 255},
+                .m_scale = 0.3499999940395355f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(2)
             },
             DTLabelInfo{
-                .minPlacementRange = 5,
-                .maxPlacementRange = 5,
-                .layer = 1,
-                .labelName = "level in runs",
-                .text = "{lvlruns}",
-                .font = "gjFont11.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {73, 87, 170, 255},
-                .textColor = {113, 124, 255, 255},
-                .scale = 0.3999999761581421f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(3)
+                .m_minPlacementRange = 5,
+                .m_maxPlacementRange = 5,
+                .m_layer = 1,
+                .m_labelName = "level in runs",
+                .m_text = "{lvlruns}",
+                .m_font = "gjFont11.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {73, 87, 170, 255},
+                .m_textColor = {113, 124, 255, 255},
+                .m_scale = 0.3999999761581421f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(3)
             },
             DTLabelInfo{
-                .minPlacementRange = 6,
-                .maxPlacementRange = 6,
-                .layer = 0,
-                .labelName = "best runs",
-                .text = "{bruns}",
-                .font = "bigFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {0, 63, 109, 255},
-                .textColor = {80, 160, 255, 255},
-                .scale = 0.3499999940395355f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(2)
+                .m_minPlacementRange = 6,
+                .m_maxPlacementRange = 6,
+                .m_layer = 0,
+                .m_labelName = "best runs",
+                .m_text = "{bruns}",
+                .m_font = "bigFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {0, 63, 109, 255},
+                .m_textColor = {80, 160, 255, 255},
+                .m_scale = 0.3499999940395355f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(2)
             },
             DTLabelInfo{
-                .minPlacementRange = 7,
-                .maxPlacementRange = 7,
-                .layer = 0,
-                .labelName = "section",
-                .text = "{section}",
-                .font = "bigFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {64, 29, 92, 255},
-                .textColor = {198, 125, 255, 255},
-                .scale = 0.3499999940395355f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(2)
+                .m_minPlacementRange = 7,
+                .m_maxPlacementRange = 7,
+                .m_layer = 0,
+                .m_labelName = "section",
+                .m_text = "{section}",
+                .m_font = "bigFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {64, 29, 92, 255},
+                .m_textColor = {198, 125, 255, 255},
+                .m_scale = 0.3499999940395355f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(2)
             },
             DTLabelInfo{
-                .minPlacementRange = 8,
-                .maxPlacementRange = 8,
-                .layer = 0,
-                .labelName = "session to 100",
-                .text = "{srt100}",
-                .font = "bigFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {137, 72, 31, 255},
-                .textColor = {248, 130, 43, 255},
-                .scale = 0.3499999940395355f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(3)
+                .m_minPlacementRange = 8,
+                .m_maxPlacementRange = 8,
+                .m_layer = 0,
+                .m_labelName = "session to 100",
+                .m_text = "{srt100}",
+                .m_font = "bigFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {137, 72, 31, 255},
+                .m_textColor = {248, 130, 43, 255},
+                .m_scale = 0.3499999940395355f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(3)
             },
             DTLabelInfo{
-                .minPlacementRange = 9,
-                .maxPlacementRange = 9,
-                .layer = 0,
-                .labelName = "session best runs",
-                .text = "{sbruns}",
-                .font = "bigFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {168, 83, 46, 255},
-                .textColor = {255, 110, 44, 255},
-                .scale = 0.3499999940395355f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(3)
+                .m_minPlacementRange = 9,
+                .m_maxPlacementRange = 9,
+                .m_layer = 0,
+                .m_labelName = "session best runs",
+                .m_text = "{sbruns}",
+                .m_font = "bigFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {168, 83, 46, 255},
+                .m_textColor = {255, 110, 44, 255},
+                .m_scale = 0.3499999940395355f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(3)
             },
             DTLabelInfo{
-                .minPlacementRange = 0,
-                .maxPlacementRange = 0,
-                .layer = 4,
-                .labelName = "Run Attempts",
-                .text = "{runatt}",
-                .font = "chatFont.fnt",
-                .horizontalAlignment = static_cast<CCTextAlignment>(0),
-                .labelColor = {170, 170, 170, 255},
-                .textColor = {255, 255, 255, 255},
-                .scale = 0.6499999761581421f,
-                .isExpanded = true,
-                .wrapping = static_cast<WrappingMode>(2)
+                .m_minPlacementRange = 0,
+                .m_maxPlacementRange = 0,
+                .m_layer = 4,
+                .m_labelName = "Run Attempts",
+                .m_text = "{runatt}",
+                .m_font = "chatFont.fnt",
+                .m_horizontalAlignment = static_cast<CCTextAlignment>(0),
+                .m_labelColor = {170, 170, 170, 255},
+                .m_textColor = {255, 255, 255, 255},
+                .m_scale = 0.6499999761581421f,
+                .m_isExpanded = true,
+                .m_wrapping = static_cast<WrappingMode>(2)
             },
         }
     };
@@ -419,40 +419,40 @@ DTLayoutV3 Save::getDefaultLayout() {
 
 CustomizationData Save::getDefaultNewBestCustomizations() {
     return CustomizationData{
-        .color = {255, 255, 0, 255},
-        .gradientEnabled = true,
-        .gradient = {
-            .colorA = {255, 244, 123, 255},
-            .colorB = {255, 255, 0, 255},
-            .duration = 1,
-            .stagger = 0.2
+        .m_color = {255, 255, 0, 255},
+        .m_gradientEnabled = true,
+        .m_gradient = {
+            .m_colorA = {255, 244, 123, 255},
+            .m_colorB = {255, 255, 0, 255},
+            .m_duration = 1,
+            .m_stagger = 0.2
         },
-        .waveEnabled = true,
-        .wave = {
-            .speed = 1.2,
-            .distanceY = 1.5,
-            .distanceX = 0.2,
-            .offsetPerIndex = 0.17
+        .m_waveEnabled = true,
+        .m_wave = {
+            .m_speed = 1.2,
+            .m_distanceY = 1.5,
+            .m_distanceX = 0.2,
+            .m_offsetPerIndex = 0.17
         }
     };
 }
 
 CustomizationData Save::getDefaultSessionBestCustomizations() {
     return CustomizationData{
-        .color = {255, 136, 0, 255},
-        .gradientEnabled = true,
-        .gradient = {
-            .colorA = {255, 175, 85, 255},
-            .colorB = {255, 136, 0, 255},
-            .duration = 1,
-            .stagger = 0.2
+        .m_color = {255, 136, 0, 255},
+        .m_gradientEnabled = true,
+        .m_gradient = {
+            .m_colorA = {255, 175, 85, 255},
+            .m_colorB = {255, 136, 0, 255},
+            .m_duration = 1,
+            .m_stagger = 0.2
         },
-        .waveEnabled = true,
-        .wave = {
-            .speed = 1.16,
-            .distanceY = 0.5,
-            .distanceX = 0,
-            .offsetPerIndex = 2
+        .m_waveEnabled = true,
+        .m_wave = {
+            .m_speed = 1.16,
+            .m_distanceY = 0.5,
+            .m_distanceX = 0,
+            .m_offsetPerIndex = 2
         }
     };
 }
@@ -460,89 +460,89 @@ CustomizationData Save::getDefaultSessionBestCustomizations() {
 std::vector<DTGraphInfo> Save::getDefaultGraphs() {
     return std::vector<DTGraphInfo> {
         DTGraphInfo {
-            .isEnabled = false,
-            .coverage = static_cast<DTGraphCoverage>(3),
-            .type = static_cast<DTGraphType>(0),
-            .orderPos = 0,
-            .thickness = 1.0f,
-            .outlineThickness = 0.75f,
+            .m_isEnabled = false,
+            .m_coverage = static_cast<DTGraphCoverage>(3),
+            .m_type = static_cast<DTGraphType>(0),
+            .m_orderPos = 0,
+            .m_thickness = 1.0f,
+            .m_outlineThickness = 0.75f,
 #if defined(GEODE_IS_MOBILE)
-            .pointScale = 0.175,
+            .m_pointScale = 0.175,
 #else
-            .pointScale = 0.1,
+            .m_pointScale = 0.1,
 #endif
-            .color = {122, 74, 0, 255},
-            .outlineColor = {101, 50, 0, 255},
-            .pointColor = {164, 76, 0, 255},
-            .name = "session runs"
+            .m_color = {122, 74, 0, 255},
+            .m_outlineColor = {101, 50, 0, 255},
+            .m_pointColor = {164, 76, 0, 255},
+            .m_name = "session runs"
         },
         DTGraphInfo {
-            .isEnabled = false,
-            .coverage = static_cast<DTGraphCoverage>(2),
-            .type = static_cast<DTGraphType>(0),
-            .orderPos = 1,
-            .thickness = 1.0f,
-            .outlineThickness = 0.75f,
+            .m_isEnabled = false,
+            .m_coverage = static_cast<DTGraphCoverage>(2),
+            .m_type = static_cast<DTGraphType>(0),
+            .m_orderPos = 1,
+            .m_thickness = 1.0f,
+            .m_outlineThickness = 0.75f,
 #if defined(GEODE_IS_MOBILE)
-            .pointScale = 0.175,
+            .m_pointScale = 0.175,
 #else
-            .pointScale = 0.1,
+            .m_pointScale = 0.1,
 #endif
-            .color = {255, 145, 0, 255},
-            .outlineColor = {170, 104, 16, 255},
-            .pointColor = {114, 66, 3, 255},
-            .name = "sess from0"
+            .m_color = {255, 145, 0, 255},
+            .m_outlineColor = {170, 104, 16, 255},
+            .m_pointColor = {114, 66, 3, 255},
+            .m_name = "sess from0"
         },
         DTGraphInfo{
-            .isEnabled = false,
-            .coverage = static_cast<DTGraphCoverage>(1),
-            .type = static_cast<DTGraphType>(0),
-            .orderPos = 2,
-            .thickness = 0.75f,
-            .outlineThickness = 0.5f,
+            .m_isEnabled = false,
+            .m_coverage = static_cast<DTGraphCoverage>(1),
+            .m_type = static_cast<DTGraphType>(0),
+            .m_orderPos = 2,
+            .m_thickness = 0.75f,
+            .m_outlineThickness = 0.5f,
 #if defined(GEODE_IS_MOBILE)
-            .pointScale = 0.175,
+            .m_pointScale = 0.175,
 #else
-            .pointScale = 0.1,
+            .m_pointScale = 0.1,
 #endif
-            .color = {14, 138, 37, 253},
-            .outlineColor = {11, 96, 32, 255},
-            .pointColor = {5, 181, 48, 255},
-            .name = "general runs"
+            .m_color = {14, 138, 37, 253},
+            .m_outlineColor = {11, 96, 32, 255},
+            .m_pointColor = {5, 181, 48, 255},
+            .m_name = "general runs"
         },
         DTGraphInfo {
-            .isEnabled = true,
-            .coverage = static_cast<DTGraphCoverage>(0),
-            .type = static_cast<DTGraphType>(0),
-            .orderPos = 3,
-            .thickness = 1.0f,
-            .outlineThickness = 0.75f,
+            .m_isEnabled = true,
+            .m_coverage = static_cast<DTGraphCoverage>(0),
+            .m_type = static_cast<DTGraphType>(0),
+            .m_orderPos = 3,
+            .m_thickness = 1.0f,
+            .m_outlineThickness = 0.75f,
 #if defined(GEODE_IS_MOBILE)
-            .pointScale = 0.175,
+            .m_pointScale = 0.175,
 #else
-            .pointScale = 0.1,
+            .m_pointScale = 0.1,
 #endif
-            .color = {0, 255, 55, 255},
-            .outlineColor = {18, 162, 53, 255},
-            .pointColor = {15, 105, 41, 255},
-            .name = "general from0"
+            .m_color = {0, 255, 55, 255},
+            .m_outlineColor = {18, 162, 53, 255},
+            .m_pointColor = {15, 105, 41, 255},
+            .m_name = "general from0"
         }
     };
 }
 
 OverlayLabelSettings Save::getDefaultOverlayLabels() {
     return OverlayLabelSettings {
-        .labels = {
+        .m_labels = {
             OverlayLabel{
-                .labelName = "latest death",
-                .text = "Latest Death: {(g)cd}",
-                .enabled = false
+                .m_labelName = "latest death",
+                .m_text = "Latest Death: {(g)cd}",
+                .m_enabled = false
             },
             OverlayLabel{
-                .labelName = "best runs",
-                .text = "Best Runs Today: {(d)3b}",
-                .order = 1,
-                .enabled = false
+                .m_labelName = "best runs",
+                .m_text = "Best Runs Today: {(d)3b}",
+                .m_order = 1,
+                .m_enabled = false
             }
         }
     };

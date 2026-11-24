@@ -1,103 +1,101 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-#include <nodes/layout/usage/DTLabel.hpp>
-#include <nodes/layout/usage/LayoutColumn.hpp>
-#include <nodes/layout/layoutEditing/FontSelectionCell.hpp>
-#include <nodes/general/ScrollableTextInput.hpp>
-#include <nodes/general/SimpleToggler.hpp>
-
 using namespace geode::prelude;
 
+class DTLabel;
+class LayoutColumn;
+class FontSelectionCell;
+class SimpleToggler;
+
 class LayoutOptionsLayer : public CCLayer, public SliderDelegate {
-    public:
-        static LayoutOptionsLayer* create(const CCSize& size);
+public:
+    static LayoutOptionsLayer* create(CCSize size);
 
-        void setEditedNodeTo(DTLabel* label);
-        void setEditedNodeTo(LayoutColumn* column);
+    void setEditedNodeTo(DTLabel* label);
+    void setEditedNodeTo(LayoutColumn* column);
 
-        void close();
+    void close();
 
-        bool isEditingNode() const {
-            return editedLabel.has_value() || editedColumn.has_value();
-        }
+    bool isEditingNode() const {
+        return m_editedLabel.has_value() || m_editedColumn.has_value();
+    }
 
-        Function<void()> onBackedOut = NULL;
-        Function<void()> onEnter = NULL;
+    Function<void()> m_onBackedOut = NULL;
+    Function<void()> m_onEnter = NULL;
 
-        void keyBackClicked() override;
+    void keyBackClicked() override;
 
-    private:
-        bool init(const CCSize& size);
+private:
+    bool init(CCSize size);
 
-        CCSize size;
+    CCSize m_size;
 
-        std::optional<DTLabel*> editedLabel = std::nullopt;
-        std::optional<LayoutColumn*> editedColumn = std::nullopt;
+    std::optional<DTLabel*> m_editedLabel = std::nullopt;
+    std::optional<LayoutColumn*> m_editedColumn = std::nullopt;
 
-        void switchToMenu(uint8_t menuID);
+    void switchToMenu(uint8_t menuID);
 
-        CCMenu* labelSettingsNode = nullptr;
-        CCMenu* columnSettingsNode = nullptr;
-        CCMenu* fontSelectionNode = nullptr;
-        CCMenu* specialKeysNode = nullptr;
+    CCMenu* m_labelSettingsNode = nullptr;
+    CCMenu* m_columnSettingsNode = nullptr;
+    CCMenu* m_fontSelectionNode = nullptr;
+    CCMenu* m_specialKeysNode = nullptr;
 
-        uint8_t currentPage = 0;
+    uint8_t m_currentPage = 0;
 
-        TextInput* labelNameInput;
-        TextInput* labelTextInput;
-        TextInput* fontSizeInput;
-        
-        void onTextColorBtnClicked(CCObject*);
-        void onLabelColorBtnClicked(CCObject*);
-        
-        void updateColor(cocos2d::ccColor4B const& color);
-        
-        CCSprite* textColorBtnSprite;
-        CCSprite* labelColorBtnSprite;
-        
-        void scaleSliderChanged(CCObject*);
-        Slider* scaleSlider;
-        
-        Function<void(cocos2d::ccColor4B const&)> colorChangeFunc = NULL;
-        
-        void onAlignmentChanged(CCObject* sender);
-        CCMenu* alignmentMenu;
-        
-        void onWrappingBtn(CCObject*);
-        void updateWrapModeBtnVisuals();
-        CCMenuItemSpriteExtra* wrappingModeBtn;
-        
-        void onFontSelection(CCObject*);
-        TextInput* fontSelectedIndicatorLabel;
-        
-        void onBack(CCObject*);
-        void onDelete(CCObject*);
-        
-        std::map<std::string, FontSelectionCell*> allFontCells{};
-        FontSelectionCell* currentlySelectedFontCell = nullptr;
-        void onFontSelected(FontSelectionCell* cell);
-        ScrollLayer* fontsScroll;
+    TextInput* m_labelNameInput;
+    TextInput* m_labelTextInput;
+    TextInput* m_fontSizeInput;
+    
+    void onTextColorBtnClicked(CCObject*);
+    void onLabelColorBtnClicked(CCObject*);
+    
+    void updateColor(cocos2d::ccColor4B const& color);
+    
+    CCSprite* m_textColorBtnSprite;
+    CCSprite* m_labelColorBtnSprite;
+    
+    void scaleSliderChanged(CCObject*);
+    Slider* m_scaleSlider;
+    
+    Function<void(cocos2d::ccColor4B const&)> m_colorChangeFunc = NULL;
+    
+    void onAlignmentChanged(CCObject* sender);
+    CCMenu* m_alignmentMenu;
+    
+    void onWrappingBtn(CCObject*);
+    void updateWrapModeBtnVisuals();
+    CCMenuItemSpriteExtra* m_wrappingModeBtn;
+    
+    void onFontSelection(CCObject*);
+    TextInput* m_fontSelectedIndicatorLabel;
+    
+    void onBack(CCObject*);
+    void onDelete(CCObject*);
+    
+    std::map<std::string, FontSelectionCell*> m_allFontCells{};
+    FontSelectionCell* m_currentlySelectedFontCell = nullptr;
+    void onFontSelected(FontSelectionCell* cell);
+    ScrollLayer* m_fontsScroll;
 
-        void onSpecialKeysClicked(CCObject*);
+    void onSpecialKeysClicked(CCObject*);
 
-        TextInput* labelTextSpecialKeysInput;
-        ScrollLayer* specialKeysScroll;
+    TextInput* m_labelTextSpecialKeysInput;
+    ScrollLayer* m_specialKeysScroll;
 
-        void onSpecialKeyAdded(const std::string& str);
+    void onSpecialKeyAdded(std::string_view str);
 
-        void setAllInputs(CCNode* node, bool enabled);
+    void setAllInputs(CCNode* node, bool enabled);
 
-        TextInput* columnWidthInput;
-        bool ignoreNextOrganization;
+    TextInput* m_columnWidthInput;
+    bool m_ignoreNextOrganization;
 
-        void sliderEnded(Slider* slider) override;
-        void sliderUpdate();
+    void sliderEnded(Slider* slider) override;
+    void sliderUpdate();
 
-        void updateFontSelectFont();
+    void updateFontSelectFont();
 
-        SimpleToggler* hideHeaderToggler;
+    SimpleToggler* m_hideHeaderToggler;
 
-        void onAddColumnToLeft(CCObject*);
-        void onAddColumnToRight(CCObject*);
-    };
+    void onAddColumnToLeft(CCObject*);
+    void onAddColumnToRight(CCObject*);
+};

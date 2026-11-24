@@ -11,18 +11,18 @@ class SessionCell : public CCMenu {
         static SessionCell* create(float width, Session const& session);
 
         Session getSession() const { 
-            return session; 
+            return m_session;
         }
 
-        bool isSelected() const { return selected; };
+        bool isSelected() const { return m_selected; };
         void setSelected(bool b);
 
     private:
         bool init(float width, Session const& session);
 
-        Session session;
+        Session m_session;
 
-        bool selected = true;
-        SimpleToggler* toggler;
+        bool m_selected = true;
+        SimpleToggler* m_toggler;
 
 };

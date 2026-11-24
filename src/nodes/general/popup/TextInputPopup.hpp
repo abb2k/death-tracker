@@ -1,18 +1,16 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
 class TextInputPopup : public Popup {
-    protected:
-        bool init(const std::string& title, const std::string& placeholder, const std::string& bottomBtnText, const std::string& presetValue, Function<void(const std::string&)> callback);
-        Function<void(const std::string&)> m_callback;
+public:
+    static TextInputPopup* create(std::string_view title, std::string_view placeholder, std::string_view bottomBtnText, std::string_view presetValue, Function<void(const std::string&)> callback);
 
-        void onOk(CCObject* sender);
+private:
+    bool init(std::string_view title, std::string_view placeholder, std::string_view bottomBtnText, std::string_view presetValue, Function<void(const std::string&)> callback);
+    Function<void(const std::string&)> m_callback;
 
-        TextInput* input;
+    void onOk(CCObject* sender);
 
-    public:
-        static TextInputPopup* create(const std::string& title, const std::string& placeholder, const std::string& bottomBtnText, const std::string& presetValue, Function<void(const std::string&)> callback);
+    TextInput* m_input;
 };

@@ -20,17 +20,17 @@ class SaveOptions : public OptionsNode, public FLAlertLayerProtocol {
 
         void FLAlert_Clicked(FLAlertLayer* layer, bool btn2) override;
 
-        void createChoiceAlert(const std::string& title, const std::string& desc, const std::string& btn1, const std::string& btn2, Function<void(bool)> callback);
-        std::map<FLAlertLayer*, Function<void(bool)>> choiceAlertsMap{};
+        void createChoiceAlert(std::string_view title, std::string_view desc, std::string_view btn1, std::string_view btn2, Function<void(bool)> callback);
+        std::map<FLAlertLayer*, Function<void(bool)>> m_choiceAlertsMap{};
 
-        ScrollLayer* backupsScrollLayer;
+        ScrollLayer* m_backupsScrollLayer;
 
         void onBackupRevert(BackupCell* cell);
         void onBackupDelete(BackupCell* cell);
 
         void updateBackupsList();
 
-        async::TaskHolder<file::PickResult> filepicklistener;
+        async::TaskHolder<file::PickResult> m_filepicklistener;
         void saveToDT(asp::fs::Path const& pick, asp::fs::Path const& source);
 
         void openSaveDir(CCObject*);

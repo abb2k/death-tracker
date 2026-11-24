@@ -18,21 +18,21 @@ class DTGraphNode : public CCNode {
         void setScaling(const CCSize& scaling);
 
         std::optional<DTGraphInfo> getInfo() const{
-            return info;
+            return m_info;
         };
         std::optional<std::pair<float, float>> getCoverageRange();
 
-        std::optional<Session> sessionToShow = std::nullopt;
-        std::optional<Section> sectionToShow = std::nullopt;
+        std::optional<Session> m_sessionToShow = std::nullopt;
+        std::optional<Section> m_sectionToShow = std::nullopt;
 
-        int runPercent = 0;
+        int m_runPercent = 0;
 
         void updateDeaths();
         void setSectionToShow(const Section& section);
 
-        GraphPointDelegate* delegate;
+        GraphPointDelegate* m_delegate;
 
-        CCNode* pointHolder;
+        CCNode* m_pointHolder;
 
     private:
 
@@ -48,16 +48,16 @@ class DTGraphNode : public CCNode {
 
         void getDeathsAsync(Function<Deaths(GeneralData const&)>&& dataGetter, bool session);
 
-        std::optional<DTGraphInfo> info = std::nullopt;
-        Deaths deaths{};
+        std::optional<DTGraphInfo> m_info = std::nullopt;
+        Deaths m_deaths{};
 
-        CCSize scaling;
+        CCSize m_scaling;
 
-        CCDrawNode* lineNode = nullptr;
+        CCDrawNode* m_lineNode = nullptr;
 
-        std::vector<CCPoint> points{};
+        std::vector<CCPoint> m_points{};
 
-        async::TaskHolder<GetTFuture<Deaths>::Output> getDeathsListener;
+        async::TaskHolder<GetTFuture<Deaths>::Output> m_getDeathsListener;
 
         bool isRunCoverage(DTGraphCoverage coverage);
 

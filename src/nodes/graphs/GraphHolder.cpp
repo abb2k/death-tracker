@@ -21,42 +21,42 @@ bool GraphHolder::init(CCSize scaling) {
     this->setContentSize(scaling);
     this->setAnchorPoint({.5f, .5f});
 
-    labelEvery = labelEveryBase;
+    m_labelEvery = m_labelEveryBase;
 
-    scrollLayer = AdvancedScrollLayer::create(scaling, scaling + ccp(.01f,.01f));
-    scrollLayer->setHorizontalScrollbarPosition(true);
-    scrollLayer->minZoom = 5;
-    this->addChild(scrollLayer);
+    m_scrollLayer = AdvancedScrollLayer::create(scaling, scaling + ccp(.01f,.01f));
+    m_scrollLayer->setHorizontalScrollbarPosition(true);
+    m_scrollLayer->m_minZoom = 5;
+    this->addChild(m_scrollLayer);
 
-    LabelsContainer = CCNode::create();
-    LabelsContainer->setID("labels-container");
-    this->addChild(LabelsContainer);
+    m_LabelsContainer = CCNode::create();
+    m_LabelsContainer->setID("labels-container");
+    this->addChild(m_LabelsContainer);
 
     CCPoint LabelsVerticalMaskShape[4] = {
         ccp(0, 0),
         ccp(40, 0),
-        ccp(40, scaling.height + labelMaskOffset),
-        ccp(0, scaling.height + labelMaskOffset)
+        ccp(40, scaling.height + m_labelMaskOffset),
+        ccp(0, scaling.height + m_labelMaskOffset)
     };
 
     auto LabelsVerticalMask = CCClippingNode::create();
     auto verticalStencil = CCDrawNode::create();
     verticalStencil->drawPolygon(LabelsVerticalMaskShape, 4, ccc4FFromccc4B({0, 0, 0, 0}), .01f, ccc4FFromccc4B({0,0,0,0}));
     LabelsVerticalMask->setStencil(verticalStencil);
-    LabelsVerticalMask->setContentSize({40, scaling.height + labelMaskOffset});
+    LabelsVerticalMask->setContentSize({40, scaling.height + m_labelMaskOffset});
     LabelsVerticalMask->setAnchorPoint({1,0});
-    LabelsVerticalMask->setPositionY(-labelMaskOffset / 2);
-    LabelsContainer->addChild(LabelsVerticalMask);
+    LabelsVerticalMask->setPositionY(-m_labelMaskOffset / 2);
+    m_LabelsContainer->addChild(LabelsVerticalMask);
 
-    LabelsVerticalContainer = CCNode::create();
-    LabelsVerticalContainer->setID("labels-vertical-container");
-    LabelsVerticalContainer->setPositionX(LabelsVerticalMask->getContentWidth());
-    LabelsVerticalMask->addChild(LabelsVerticalContainer);
+    m_LabelsVerticalContainer = CCNode::create();
+    m_LabelsVerticalContainer->setID("labels-vertical-container");
+    m_LabelsVerticalContainer->setPositionX(LabelsVerticalMask->getContentWidth());
+    LabelsVerticalMask->addChild(m_LabelsVerticalContainer);
 
     CCPoint LabelsHorizontalMaskShape[4] = {
         ccp(0, 0),
-        ccp(scaling.width + labelMaskOffset, 0),
-        ccp(scaling.width + labelMaskOffset, 40),
+        ccp(scaling.width + m_labelMaskOffset, 0),
+        ccp(scaling.width + m_labelMaskOffset, 40),
         ccp(0, 40)
     };
 
@@ -64,17 +64,17 @@ bool GraphHolder::init(CCSize scaling) {
     auto horizontalStencil = CCDrawNode::create();
     horizontalStencil->drawPolygon(LabelsHorizontalMaskShape, 4, ccc4FFromccc4B({0, 0, 0, 0}), .01f, ccc4FFromccc4B({0,0,0,0}));
     LabelsHorizontalMask->setStencil(horizontalStencil);
-    LabelsHorizontalMask->setContentSize({scaling.width + labelMaskOffset, 40});
+    LabelsHorizontalMask->setContentSize({scaling.width + m_labelMaskOffset, 40});
     LabelsHorizontalMask->setAnchorPoint({0,1});
-    LabelsHorizontalMask->setPositionX(-labelMaskOffset / 2);
-    LabelsContainer->addChild(LabelsHorizontalMask);
+    LabelsHorizontalMask->setPositionX(-m_labelMaskOffset / 2);
+    m_LabelsContainer->addChild(LabelsHorizontalMask);
 
-    LabelsHorizontalContainer = CCNode::create();
-    LabelsHorizontalContainer->setID("labels-horizontal-container");
-    LabelsHorizontalContainer->setPositionY(LabelsHorizontalMask->getContentHeight());
-    LabelsHorizontalMask->addChild(LabelsHorizontalContainer);
+    m_LabelsHorizontalContainer = CCNode::create();
+    m_LabelsHorizontalContainer->setID("labels-horizontal-container");
+    m_LabelsHorizontalContainer->setPositionY(LabelsHorizontalMask->getContentHeight());
+    LabelsHorizontalMask->addChild(m_LabelsHorizontalContainer);
 
-    GraphHolder::refreshBackground(fillColor, outlineThickness, outlineColor);
+    GraphHolder::refreshBackground(m_fillColor, m_outlineThickness, m_outlineColor);
 
     scheduleUpdate();
 
@@ -82,29 +82,29 @@ bool GraphHolder::init(CCSize scaling) {
 }
 
 void GraphHolder::setBGFillColor(ccColor4B color) {
-    GraphHolder::refreshBackground(std::move(color), std::move(outlineThickness), std::move(outlineColor));
+    GraphHolder::refreshBackground(std::move(color), std::move(m_outlineThickness), std::move(m_outlineColor));
 }
 
 void GraphHolder::setOutlineThickness(float thickness) {
-    GraphHolder::refreshBackground(std::move(fillColor), std::move(thickness), std::move(outlineColor));
+    GraphHolder::refreshBackground(std::move(m_fillColor), std::move(thickness), std::move(m_outlineColor));
 }
 
 void GraphHolder::setOutlineColor(ccColor4B color) {
-    GraphHolder::refreshBackground(std::move(fillColor), std::move(outlineThickness), std::move(color));
+    GraphHolder::refreshBackground(std::move(m_fillColor), std::move(m_outlineThickness), std::move(color));
 }
 
 void GraphHolder::refreshBackground(ccColor4B newFillColor, float newOutlineThickness, ccColor4B newOutlineColor) {
-    if (fillNode) fillNode->clear();
-    else fillNode = CCDrawNode::create();
+    if (m_fillNode) m_fillNode->clear();
+    else m_fillNode = CCDrawNode::create();
 
-    if (outlineNode) outlineNode->clear();
-    else outlineNode = CCDrawNode::create();
+    if (m_outlineNode) m_outlineNode->clear();
+    else m_outlineNode = CCDrawNode::create();
 
-    fillColor = std::move(newFillColor);
-    outlineThickness = std::move(newOutlineThickness);
-    outlineColor = std::move(newOutlineColor);
+    m_fillColor = std::move(newFillColor);
+    m_outlineThickness = std::move(newOutlineThickness);
+    m_outlineColor = std::move(newOutlineColor);
 
-    auto size = scrollLayer->content->getContentSize() * scrollLayer->getCurrentZoom();
+    auto size = m_scrollLayer->m_content->getContentSize() * m_scrollLayer->getCurrentZoom();
     
     CCPoint MaskShape[4] = {
         ccp(0, 0),
@@ -113,58 +113,58 @@ void GraphHolder::refreshBackground(ccColor4B newFillColor, float newOutlineThic
         ccp(0, size.height)
     };
 
-    if (!mask) {
-        mask = CCClippingNode::create();
-        mask->setID("mask");
-        this->addChild(mask);
+    if (!m_mask) {
+        m_mask = CCClippingNode::create();
+        m_mask->setID("mask");
+        this->addChild(m_mask);
 
-        graphContainer = CCNode::create();
-        mask->addChild(graphContainer);
+        m_graphContainer = CCNode::create();
+        m_mask->addChild(m_graphContainer);
 
-        coverageShadeNode = CCDrawNode::create();
-        coverageShadeNode->setID("coverage-shade");
-        coverageShadeNode->setZOrder(-2);
-        graphContainer->addChild(coverageShadeNode);
+        m_coverageShadeNode = CCDrawNode::create();
+        m_coverageShadeNode->setID("coverage-shade");
+        m_coverageShadeNode->setZOrder(-2);
+        m_graphContainer->addChild(m_coverageShadeNode);
 
-        coverageLineNode = CCDrawNode::create();
-        coverageLineNode->setID("coverage-boundaries");
-        coverageLineNode->setZOrder(-1);
-        coverageLineNode->m_bUseArea = false;
-        graphContainer->addChild(coverageLineNode);
+        m_coverageLineNode = CCDrawNode::create();
+        m_coverageLineNode->setID("coverage-boundaries");
+        m_coverageLineNode->setZOrder(-1);
+        m_coverageLineNode->m_bUseArea = false;
+        m_graphContainer->addChild(m_coverageLineNode);
     }
 
-    fillNode->drawPolygon(MaskShape, 4, ccc4FFromccc4B(fillColor), outlineThickness, ccc4FFromccc4B(outlineColor));
-    fillNode->setID("fill");
-    fillNode->setZOrder(-1);
-    mask->setStencil(fillNode);
-    mask->addChild(fillNode);
+    m_fillNode->drawPolygon(MaskShape, 4, ccc4FFromccc4B(m_fillColor), m_outlineThickness, ccc4FFromccc4B(m_outlineColor));
+    m_fillNode->setID("fill");
+    m_fillNode->setZOrder(-1);
+    m_mask->setStencil(m_fillNode);
+    m_mask->addChild(m_fillNode);
 
-    outlineNode->drawPolygon(MaskShape, 4, ccc4FFromccc4B({0, 0, 0, 0}), outlineThickness, ccc4FFromccc4B(outlineColor));
-    outlineNode->setID("outline");
-    outlineNode->setZOrder(2);
-    mask->addChild(outlineNode);
+    m_outlineNode->drawPolygon(MaskShape, 4, ccc4FFromccc4B({0, 0, 0, 0}), m_outlineThickness, ccc4FFromccc4B(m_outlineColor));
+    m_outlineNode->setID("outline");
+    m_outlineNode->setZOrder(2);
+    m_mask->addChild(m_outlineNode);
 }
 
 
 void GraphHolder::refreshGrid() {
 
-    if (boldGridNode) boldGridNode->clear();
+    if (m_boldGridNode) m_boldGridNode->clear();
     else {
-        boldGridNode = CCDrawNode::create();
-        boldGridNode->setZOrder(-1);
-        boldGridNode->m_bUseArea = false;
-        mask->addChild(boldGridNode);
+        m_boldGridNode = CCDrawNode::create();
+        m_boldGridNode->setZOrder(-1);
+        m_boldGridNode->m_bUseArea = false;
+        m_mask->addChild(m_boldGridNode);
     }
 
-    auto lowerCorner = this->convertToNodeSpace(scrollLayer->content->convertToWorldSpace({0, 0}));
-    auto heigherCorner = this->convertToNodeSpace(scrollLayer->content->convertToWorldSpace(scrollLayer->content->getContentSize()));
+    auto lowerCorner = this->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace({0, 0}));
+    auto heigherCorner = this->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace(m_scrollLayer->m_content->getContentSize()));
 
-    CCSize devidedSize = (heigherCorner - lowerCorner - inGraphOffset) / 100;
+    CCSize devidedSize = (heigherCorner - lowerCorner - m_inGraphOffset) / 100;
 
     for (int i = 0; i <= 100; i++) {
-        if (floor(static_cast<float>(i) / labelEvery) == static_cast<float>(i) / labelEvery) {
-            boldGridNode->drawSegment(ccp(0, i * devidedSize.height), ccp(100 * devidedSize.width, i * devidedSize.height), 0.2f, ccc4FFromccc4B(boldGridColor));
-            boldGridNode->drawSegment(ccp(i * devidedSize.width, 0), ccp(i * devidedSize.width, 100 * devidedSize.height), 0.2f, ccc4FFromccc4B(boldGridColor));
+        if (floor(static_cast<float>(i) / m_labelEvery) == static_cast<float>(i) / m_labelEvery) {
+            m_boldGridNode->drawSegment(ccp(0, i * devidedSize.height), ccp(100 * devidedSize.width, i * devidedSize.height), 0.2f, ccc4FFromccc4B(m_boldGridColor));
+            m_boldGridNode->drawSegment(ccp(i * devidedSize.width, 0), ccp(i * devidedSize.width, 100 * devidedSize.height), 0.2f, ccc4FFromccc4B(m_boldGridColor));
         }
     }
 }
@@ -174,56 +174,56 @@ void GraphHolder::updateLabels() {
     tempT->setScale(0.4f);
     float XForPr = tempT->getScaledContentSize().width;
 
-    smallLines.clear();
-    boldLines.clear();
-    labels.clear();
+    m_smallLines.clear();
+    m_boldLines.clear();
+    m_labels.clear();
 
-    LabelsHorizontalContainer->removeAllChildrenWithCleanup(true);
-    LabelsVerticalContainer->removeAllChildrenWithCleanup(true);
+    m_LabelsHorizontalContainer->removeAllChildrenWithCleanup(true);
+    m_LabelsVerticalContainer->removeAllChildrenWithCleanup(true);
 
-    auto HlowerCorner = LabelsHorizontalContainer->getParent()->convertToNodeSpace(scrollLayer->content->convertToWorldSpace({0, 0}));
-    auto HheigherCorner = LabelsHorizontalContainer->getParent()->convertToNodeSpace(scrollLayer->content->convertToWorldSpace(scrollLayer->content->getContentSize()));
+    auto HlowerCorner = m_LabelsHorizontalContainer->getParent()->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace({0, 0}));
+    auto HheigherCorner = m_LabelsHorizontalContainer->getParent()->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace(m_scrollLayer->m_content->getContentSize()));
 
-    CCSize devidedHSize = (HheigherCorner - HlowerCorner - inGraphOffset) / 100;
+    CCSize devidedHSize = (HheigherCorner - HlowerCorner - m_inGraphOffset) / 100;
 
-    auto VlowerCorner = LabelsVerticalContainer->getParent()->convertToNodeSpace(scrollLayer->content->convertToWorldSpace({0, 0}));
-    auto VheigherCorner = LabelsVerticalContainer->getParent()->convertToNodeSpace(scrollLayer->content->convertToWorldSpace(scrollLayer->content->getContentSize()));
+    auto VlowerCorner = m_LabelsVerticalContainer->getParent()->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace({0, 0}));
+    auto VheigherCorner = m_LabelsVerticalContainer->getParent()->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace(m_scrollLayer->m_content->getContentSize()));
 
-    CCSize devidedVSize = (VheigherCorner - VlowerCorner - inGraphOffset) / 100;
+    CCSize devidedVSize = (VheigherCorner - VlowerCorner - m_inGraphOffset) / 100;
 
     for (int i = 0; i <= 100; i++)
     {
         auto labelPr = CCSprite::createWithSpriteFrameName("gridLine01_001.png");
         labelPr->setPositionX(i * devidedHSize.width);
         labelPr->setRotation(90);
-        labelPr->setColor({smallLineColor.r, smallLineColor.g, smallLineColor.b});
-        labelPr->setOpacity(smallLineColor.a);
-        LabelsHorizontalContainer->addChild(labelPr);
+        labelPr->setColor({m_smallLineColor.r, m_smallLineColor.g, m_smallLineColor.b});
+        labelPr->setOpacity(m_smallLineColor.a);
+        m_LabelsHorizontalContainer->addChild(labelPr);
 
-        float closestBigLabel = static_cast<float>(i) / labelEvery;
+        float closestBigLabel = static_cast<float>(i) / m_labelEvery;
         
         if (floor(closestBigLabel) == closestBigLabel) {
             labelPr->setScaleX(0.2f);
 
-            labelPr->setColor({boldLineColor.r, boldLineColor.g, boldLineColor.b});
-            labelPr->setOpacity(boldLineColor.a);
+            labelPr->setColor({m_boldLineColor.r, m_boldLineColor.g, m_boldLineColor.b});
+            labelPr->setOpacity(m_boldLineColor.a);
 
             auto labelPrText = geode::Label::create(std::to_string(i).c_str(), "chatFont.fnt");
             labelPrText->setPositionX(i * devidedHSize.width);
             labelPrText->setScale(0.4f);
             labelPrText->setPositionY(-labelPr->getScaledContentSize().width - labelPrText->getScaledContentSize().height);
-            labelPrText->setColor({labelColor.r, labelColor.g, labelColor.b});
-            labelPrText->setOpacity(labelColor.a);
-            LabelsHorizontalContainer->addChild(labelPrText);
+            labelPrText->setColor({m_labelColor.r, m_labelColor.g, m_labelColor.b});
+            labelPrText->setOpacity(m_labelColor.a);
+            m_LabelsHorizontalContainer->addChild(labelPrText);
 
-            boldLines.insert(labelPr);
-            labels.insert(labelPrText);
+            m_boldLines.insert(labelPr);
+            m_labels.insert(labelPrText);
         }
         else {
             labelPr->setScaleX(0.1f);
             labelPr->setScaleY(0.8f);
 
-            smallLines.insert(labelPr);
+            m_smallLines.insert(labelPr);
         }
         labelPr->setPositionY(-labelPr->getScaledContentSize().width);
 
@@ -231,32 +231,32 @@ void GraphHolder::updateLabels() {
 
         auto labelPS = CCSprite::createWithSpriteFrameName("gridLine01_001.png");
         labelPS->setPositionY(i * devidedVSize.height);
-        labelPS->setColor({smallLineColor.r, smallLineColor.g, smallLineColor.b});
-        labelPS->setOpacity(smallLineColor.a);
-        LabelsVerticalContainer->addChild(labelPS);
+        labelPS->setColor({m_smallLineColor.r, m_smallLineColor.g, m_smallLineColor.b});
+        labelPS->setOpacity(m_smallLineColor.a);
+        m_LabelsVerticalContainer->addChild(labelPS);
 
         if (floor(closestBigLabel) == closestBigLabel) {
             labelPS->setScaleX(0.2f);
 
-            labelPS->setColor({boldLineColor.r, boldLineColor.g, boldLineColor.b});
-            labelPS->setOpacity(boldLineColor.a);
+            labelPS->setColor({m_boldLineColor.r, m_boldLineColor.g, m_boldLineColor.b});
+            labelPS->setOpacity(m_boldLineColor.a);
 
             auto labelPSText = geode::Label::create(std::to_string(i).c_str(), "chatFont.fnt");
             labelPSText->setPositionY(i * devidedVSize.height);
             labelPSText->setScale(0.4f);
             labelPSText->setPositionX(-labelPS->getScaledContentSize().width - XForPr);
-            labelPSText->setColor({labelColor.r, labelColor.g, labelColor.b});
-            labelPSText->setOpacity(labelColor.a);
-            LabelsVerticalContainer->addChild(labelPSText);
+            labelPSText->setColor({m_labelColor.r, m_labelColor.g, m_labelColor.b});
+            labelPSText->setOpacity(m_labelColor.a);
+            m_LabelsVerticalContainer->addChild(labelPSText);
 
-            boldLines.insert(labelPS);
-            labels.insert(labelPSText);
+            m_boldLines.insert(labelPS);
+            m_labels.insert(labelPSText);
         }
         else {
             labelPS->setScaleX(0.1f);
             labelPS->setScaleY(0.8f);
 
-            smallLines.insert(labelPS);
+            m_smallLines.insert(labelPS);
         }
 
         labelPS->setPositionX(-labelPS->getScaledContentSize().width);
@@ -266,7 +266,7 @@ void GraphHolder::updateLabels() {
 void GraphHolder::refreshCoverageIndicators(const CCSize& graphSize) {
     std::optional<std::pair<float, float>> newBounds;
 
-    for (const auto& [_, graph] : allGraphs) {
+    for (const auto& [_, graph] : m_allGraphs) {
         auto range = graph->getCoverageRange();
         if (!range.has_value()) continue;
 
@@ -279,14 +279,14 @@ void GraphHolder::refreshCoverageIndicators(const CCSize& graphSize) {
         }
     }
 
-    if (newBounds == coverageBounds &&
-        graphSize.width == coverageGraphSize.width &&
-        graphSize.height == coverageGraphSize.height) return;
+    if (newBounds == m_coverageBounds &&
+        graphSize.width == m_coverageGraphSize.width &&
+        graphSize.height == m_coverageGraphSize.height) return;
 
-    coverageBounds = newBounds;
-    coverageGraphSize = graphSize;
-    coverageShadeNode->clear();
-    coverageLineNode->clear();
+    m_coverageBounds = newBounds;
+    m_coverageGraphSize = graphSize;
+    m_coverageShadeNode->clear();
+    m_coverageLineNode->clear();
 
     if (!newBounds.has_value() ||
         (newBounds->first <= 0 && newBounds->second >= 100)) return;
@@ -303,7 +303,7 @@ void GraphHolder::refreshCoverageIndicators(const CCSize& graphSize) {
             ccp(startX, graphSize.height),
             ccp(0, graphSize.height)
         };
-        coverageShadeNode->drawPolygon(leftShade, 4, shadeColor, 0, clearColor);
+        m_coverageShadeNode->drawPolygon(leftShade, 4, shadeColor, 0, clearColor);
     }
 
     if (endX < graphSize.width) {
@@ -313,13 +313,13 @@ void GraphHolder::refreshCoverageIndicators(const CCSize& graphSize) {
             ccp(graphSize.width, graphSize.height),
             ccp(endX, graphSize.height)
         };
-        coverageShadeNode->drawPolygon(rightShade, 4, shadeColor, 0, clearColor);
+        m_coverageShadeNode->drawPolygon(rightShade, 4, shadeColor, 0, clearColor);
     }
 
     ccColor4F lineColor = ccc4FFromccc4B({220, 220, 220, 190});
     auto drawDottedLine = [&](float x) {
         for (float y = 0; y < graphSize.height; y += 6) {
-            coverageLineNode->drawSegment(
+            m_coverageLineNode->drawSegment(
                 ccp(x, y),
                 ccp(x, std::min(y + 3, graphSize.height)),
                 .75f,
@@ -333,41 +333,41 @@ void GraphHolder::refreshCoverageIndicators(const CCSize& graphSize) {
 }
 
 void GraphHolder::setSmallLinesColor(ccColor4B newColor) {
-    smallLineColor = std::move(newColor);
-    for (auto line : smallLines) {
-        line->setColor({smallLineColor.r, smallLineColor.g, smallLineColor.b});
-        line->setOpacity(smallLineColor.a);
+    m_smallLineColor = std::move(newColor);
+    for (auto line : m_smallLines) {
+        line->setColor({m_smallLineColor.r, m_smallLineColor.g, m_smallLineColor.b});
+        line->setOpacity(m_smallLineColor.a);
     }
 }
 
 void GraphHolder::setBoldLinesColor(ccColor4B newColor) {
-    boldLineColor = std::move(newColor);
-    for (auto line : boldLines) {
-        line->setColor({boldLineColor.r, boldLineColor.g, boldLineColor.b});
-        line->setOpacity(boldLineColor.a);
+    m_boldLineColor = std::move(newColor);
+    for (auto line : m_boldLines) {
+        line->setColor({m_boldLineColor.r, m_boldLineColor.g, m_boldLineColor.b});
+        line->setOpacity(m_boldLineColor.a);
     }
 }
 
 void GraphHolder::setLabelsColor(ccColor4B newColor) {
-    labelColor = std::move(newColor);
-    for (auto label : labels) {
-        label->setColor({labelColor.r, labelColor.g, labelColor.b});
-        label->setOpacity(labelColor.a);
+    m_labelColor = std::move(newColor);
+    for (auto label : m_labels) {
+        label->setColor({m_labelColor.r, m_labelColor.g, m_labelColor.b});
+        label->setOpacity(m_labelColor.a);
     }
 }
 
 void GraphHolder::update(float dt) {
-    if (prevZoom != scrollLayer->getCurrentZoom()) {
-        prevZoom = scrollLayer->getCurrentZoom();
+    if (m_prevZoom != m_scrollLayer->getCurrentZoom()) {
+        m_prevZoom = m_scrollLayer->getCurrentZoom();
 
-        labelEvery = labelEveryBase / scrollLayer->getCurrentZoom();
+        m_labelEvery = m_labelEveryBase / m_scrollLayer->getCurrentZoom();
 
-        auto lowerCorner = this->convertToNodeSpace(scrollLayer->content->convertToWorldSpace({0, 0}));
-        auto heigherCorner = this->convertToNodeSpace(scrollLayer->content->convertToWorldSpace(scrollLayer->content->getContentSize()));
+        auto lowerCorner = this->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace({0, 0}));
+        auto heigherCorner = this->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace(m_scrollLayer->m_content->getContentSize()));
 
-        CCSize size = (heigherCorner - lowerCorner - inGraphOffset);
+        CCSize size = (heigherCorner - lowerCorner - m_inGraphOffset);
 
-        for (const auto& [_, graph] : allGraphs)
+        for (const auto& [_, graph] : m_allGraphs)
         {
             graph->setScaling(size);
         }
@@ -376,81 +376,81 @@ void GraphHolder::update(float dt) {
         GraphHolder::updateLabels();
     }
 
-    auto posInSpaceH = LabelsHorizontalContainer->getParent()->convertToNodeSpace(scrollLayer->content->convertToWorldSpace({0,0}));
-    auto posInSpaceV = LabelsVerticalContainer->getParent()->convertToNodeSpace(scrollLayer->content->convertToWorldSpace({0,0}));
+    auto posInSpaceH = m_LabelsHorizontalContainer->getParent()->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace({0,0}));
+    auto posInSpaceV = m_LabelsVerticalContainer->getParent()->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace({0,0}));
 
-    LabelsHorizontalContainer->setPositionX(posInSpaceH.x + inGraphOffset / 2);
-    LabelsVerticalContainer->setPositionY(posInSpaceV.y + inGraphOffset / 2);
-    boldGridNode->setPosition({posInSpaceH.x - labelMaskOffset / 2 + inGraphOffset / 2, posInSpaceV.y - labelMaskOffset / 2 + inGraphOffset / 2});
-    graphContainer->setPosition({posInSpaceH.x - labelMaskOffset / 2 + inGraphOffset / 2, posInSpaceV.y - labelMaskOffset / 2 + inGraphOffset / 2});
+    m_LabelsHorizontalContainer->setPositionX(posInSpaceH.x + m_inGraphOffset / 2);
+    m_LabelsVerticalContainer->setPositionY(posInSpaceV.y + m_inGraphOffset / 2);
+    m_boldGridNode->setPosition({posInSpaceH.x - m_labelMaskOffset / 2 + m_inGraphOffset / 2, posInSpaceV.y - m_labelMaskOffset / 2 + m_inGraphOffset / 2});
+    m_graphContainer->setPosition({posInSpaceH.x - m_labelMaskOffset / 2 + m_inGraphOffset / 2, posInSpaceV.y - m_labelMaskOffset / 2 + m_inGraphOffset / 2});
 
-    auto graphLowerCorner = this->convertToNodeSpace(scrollLayer->content->convertToWorldSpace({0, 0}));
-    auto graphHigherCorner = this->convertToNodeSpace(scrollLayer->content->convertToWorldSpace(scrollLayer->content->getContentSize()));
-    GraphHolder::refreshCoverageIndicators(graphHigherCorner - graphLowerCorner - inGraphOffset);
+    auto graphLowerCorner = this->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace({0, 0}));
+    auto graphHigherCorner = this->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace(m_scrollLayer->m_content->getContentSize()));
+    GraphHolder::refreshCoverageIndicators(graphHigherCorner - graphLowerCorner - m_inGraphOffset);
 }
 
 void GraphHolder::addGraph(const DTGraphInfo& graph) {
-    if (allGraphs.contains(graph.name)) return;
+    if (m_allGraphs.contains(graph.m_name)) return;
 
-    auto lowerCorner = this->convertToNodeSpace(scrollLayer->content->convertToWorldSpace({0, 0}));
-    auto heigherCorner = this->convertToNodeSpace(scrollLayer->content->convertToWorldSpace(scrollLayer->content->getContentSize()));
+    auto lowerCorner = this->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace({0, 0}));
+    auto heigherCorner = this->convertToNodeSpace(m_scrollLayer->m_content->convertToWorldSpace(m_scrollLayer->m_content->getContentSize()));
 
-    CCSize size = (heigherCorner - lowerCorner - inGraphOffset);
+    CCSize size = (heigherCorner - lowerCorner - m_inGraphOffset);
 
     auto graphNode = DTGraphNode::create();
     graphNode->setInfo(graph);
-    graphNode->delegate = delegate;
+    graphNode->m_delegate = m_delegate;
     graphNode->setScaling(size);
-    graphContainer->addChild(graphNode);
-    allGraphs.insert({graph.name, graphNode});
+    m_graphContainer->addChild(graphNode);
+    m_allGraphs.insert({graph.m_name, graphNode});
 }
 
 DTGraphNode* GraphHolder::getGraphNode(const std::string& graphName) {
-    if (!allGraphs.contains(graphName)) return nullptr;
+    if (!m_allGraphs.contains(graphName)) return nullptr;
 
-    return allGraphs[graphName];
+    return m_allGraphs[graphName];
 }
 
 void GraphHolder::removeGraph(const std::string& graphName) {
-    if (!allGraphs.contains(graphName)) return;
+    if (!m_allGraphs.contains(graphName)) return;
 
-    allGraphs[graphName]->removeMeAndCleanup();
-    allGraphs.erase(graphName);
+    m_allGraphs[graphName]->removeMeAndCleanup();
+    m_allGraphs.erase(graphName);
 }
 
 void GraphHolder::sendKeyStuff(bool up, enumKeyCodes key) {
     if (up)
-        scrollLayer->keyUp(key, 0);
+        m_scrollLayer->keyUp(key, 0);
     else
-        scrollLayer->keyDown(key, 0);
+        m_scrollLayer->keyDown(key, 0);
 }
 
 std::vector<DTGraphNode*> GraphHolder::getAllGraphNodes() const {
     std::vector<DTGraphNode*> toReturn{};
-    for (const auto& [_, graph] : allGraphs)
+    for (const auto& [_, graph] : m_allGraphs)
         toReturn.push_back(graph);
 
     return toReturn;
 }
 
 void GraphHolder::changeGraphName(const std::string& oldName, const std::string& newName) {
-    if (!allGraphs.contains(oldName) || allGraphs.contains(newName)) return;
+    if (!m_allGraphs.contains(oldName) || m_allGraphs.contains(newName)) return;
 
-    auto saveTemp = allGraphs[oldName];
-    allGraphs.erase(oldName);
-    allGraphs.insert({newName, saveTemp});
+    auto saveTemp = m_allGraphs[oldName];
+    m_allGraphs.erase(oldName);
+    m_allGraphs.insert({newName, saveTemp});
 }
 
 void GraphHolder::setToAllGraphs(Function<void(DTGraphNode*)> graphSetFunction) {
-    for (const auto& [name, graph] : allGraphs) {
+    for (const auto& [name, graph] : m_allGraphs) {
         graphSetFunction(graph);
     }
 }
 
 void GraphHolder::sendUpdateToGraphOfType(DTGraphCoverage const& coverage) {
-    for (const auto& [name, graph] : allGraphs)
+    for (const auto& [name, graph] : m_allGraphs)
     {
-        if (graph->getInfo().has_value() && graph->getInfo().value().coverage == coverage) {
+        if (graph->getInfo().has_value() && graph->getInfo().value().m_coverage == coverage) {
             graph->updateDeaths();
         }
     }

@@ -1,14 +1,17 @@
 #include "SpecialKeyCell.hpp"
 
+#include <nodes/layout/usage/SpecialKey.hpp>
+
 SpecialKeyCell* SpecialKeyCell::create(std::shared_ptr<SpecialKey> key, Function<void(const std::string&)> onSelected) {
     auto ret = new SpecialKeyCell();
+    
     if (ret && ret->init(key, std::move(onSelected))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+
+    CC_SAFE_DELETE(ret);
+    return nullptr;
 }
 
 bool SpecialKeyCell::init(std::shared_ptr<SpecialKey> key, Function<void(const std::string&)> onSelected) {
@@ -52,13 +55,13 @@ bool SpecialKeyCell::init(std::shared_ptr<SpecialKey> key, Function<void(const s
     addBtn->setPosition({15, 2});
     this->addChild(addBtn);
 
-    this->key = key;
-    this->onSelected = std::move(onSelected);
+    this->m_key = key;
+    this->m_onSelected = std::move(onSelected);
 
     return true;
 }
 
 void SpecialKeyCell::onAddClicked(CCObject*) {
-    if (onSelected != NULL)
-        onSelected(key->getKey());
+    if (m_onSelected != NULL)
+        m_onSelected(m_key->getKey());
 }

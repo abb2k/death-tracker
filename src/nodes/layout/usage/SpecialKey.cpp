@@ -1,34 +1,34 @@
 #include "SpecialKey.hpp"
 
 SpecialKey::SpecialKey(const std::string& key, const std::string& description, bool showInAddList) {
-    this->key = key;
-    this->description = description;
-    this->showInAddList = showInAddList;
+    this->m_key = key;
+    this->m_description = description;
+    this->m_showInAddList = showInAddList;
 }
 
-bool SpecialKey::compareToKey(const std::string& otherKey) {
-    return this->key == otherKey;
+bool SpecialKey::compareToKey(std::string_view otherKey) {
+    return this->m_key == otherKey;
 }
 
 void SpecialKey::setUpdateFunction(Function<UpdateFuture(std::map<std::string, std::any>)> task) {
-    this->updateFunction = std::move(task);
+    this->m_updateFunction = std::move(task);
 }
 
 void SpecialKey::updateContent() {
-    if (!this->updateFunction.has_value()) return;
+    if (!this->m_updateFunction.has_value()) return;
 
     // log::info("Starting update for special key {}, {}", this->key, updateListener.isPending());
 
-    if (!updateListener.isPending()) {
-        if (this->updateStartedCallback)
-            this->updateStartedCallback(this->shared_from_this());
+    if (!m_updateListener.isPending()) {
+        if (this->m_updateStartedCallback)
+            this->m_updateStartedCallback(this->shared_from_this());
     }
     else {
         cancel();
     }
 
-    updateListener.spawn(
-        "DT-update-key:" + key + "-task",
+    m_updateListener.spawn(
+        "DT-update-key:" + m_key + "-task",
         updateFutureRunner({}),
         [&](UpdateFuture::Output val) {
             // log::info("completed update for {}", val);
@@ -42,46 +42,46 @@ UpdateFuture SpecialKey::getUpdatedContentAsync(std::map<std::string, std::any> 
 }
 
 UpdateFuture SpecialKey::updateFutureRunner(std::map<std::string, std::any> payload) {
-    auto value = co_await this->updateFunction.value()(payload);
+    auto value = co_await this->m_updateFunction.value()(payload);
 
     co_return value;
 }
 
 void SpecialKey::setUpdateCompletedCallback(Function<void(const std::shared_ptr<SpecialKey>&)> callback) {
-    this->updateCompletedCallback = std::move(callback);
+    this->m_updateCompletedCallback = std::move(callback);
 }
 
 void SpecialKey::setUpdateStartedCallback(Function<void(const std::shared_ptr<SpecialKey>&)> callback) {
-    this->updateStartedCallback = std::move(callback);
+    this->m_updateStartedCallback = std::move(callback);
 }
 
 void SpecialKey::onUpdateCompleted(UpdateFuture::Output val) {
     if (val.isErr()) {
         auto errData = val.unwrapErr();
-        if (errData.displayAsError)
-            this->currentContent = fmt::format("Error: {}", errData.error);
+        if (errData.m_displayAsError)
+            this->m_currentContent = fmt::format("Error: {}", errData.m_error);
         else
-            this->currentContent = errData.error;
+            this->m_currentContent = errData.m_error;
     }
     else
-        this->currentContent = val.unwrap();
+        this->m_currentContent = val.unwrap();
 
-    if (this->updateCompletedCallback)
-        this->updateCompletedCallback(this->shared_from_this());
+    if (this->m_updateCompletedCallback)
+        this->m_updateCompletedCallback(this->shared_from_this());
 }
 
 void SpecialKey::cancel() {
-    updateListener.cancel();
+    m_updateListener.cancel();
 }
 
 bool SpecialKey::doesRefreshWith(const std::string& other) {
-    return toRefreshWith.contains(other);
+    return m_toRefreshWith.contains(other);
 }
 
 void SpecialKey::refreshWith(const std::string& other) {
-    if (toRefreshWith.contains(other)) return;
+    if (m_toRefreshWith.contains(other)) return;
 
-    toRefreshWith.insert(other);
+    m_toRefreshWith.insert(other);
 }
 
 void SpecialKey::refreshWith(const std::set<std::string>& others) {

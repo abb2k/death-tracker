@@ -6,9 +6,9 @@
 using namespace geode::prelude;
 
 struct GetBackupTaskResult {
-    Result<BackupLevelData> backup;
-    int deathCount;
-    double backupFileSizeInKB;
+    Result<BackupLevelData> m_backup;
+    int m_deathCount;
+    double m_backupFileSizeInKB;
 };
 
 using GetBackupFuture = arc::Future<GetBackupTaskResult>;
@@ -17,34 +17,34 @@ class BackupCell : public CCMenu {
     public:
         static BackupCell* create(float width, const std::string& levelKey, const long long backupTime);
 
-        Function<void(BackupCell*)> onRevertCallback = NULL;
-        Function<void(BackupCell*)> onDeleteCallback = NULL;
+        Function<void(BackupCell*)> m_onRevertCallback = NULL;
+        Function<void(BackupCell*)> m_onDeleteCallback = NULL;
 
         std::string getLevelKey() const {
-            return levelKey;
+            return m_levelKey;
         }
         long long getBackupTime() const {
-            return backupTime;
+            return m_backupTime;
         }
         BackupLevelData* getBackupData() {
-            return backupData ? &backupData.value() : nullptr;
+            return m_backupData ? &m_backupData.value() : nullptr;
         }
 
     private:
         bool init(float width, const std::string& levelKey, const long long backupTime);
 
-        std::string levelKey;
-        long long backupTime;
+        std::string m_levelKey;
+        long long m_backupTime;
 
         void LoadBackupData();
         GetBackupFuture LoadBackupDataFuture();
-        async::TaskHolder<GetBackupFuture::Output> getBackupListener;
+        async::TaskHolder<GetBackupFuture::Output> m_getBackupListener;
         void onBackupLoaded(GetBackupFuture::Output out);
 
-        std::optional<BackupLevelData> backupData = std::nullopt;
+        std::optional<BackupLevelData> m_backupData = std::nullopt;
 
-        geode::Label* titleLabel;
-        geode::Label* descriptionLabel;
+        geode::Label* m_titleLabel;
+        geode::Label* m_descriptionLabel;
 
         void onRevert(CCObject* sender);
         void onDelete(CCObject* sender);

@@ -28,129 +28,129 @@ bool ModifyOptions::setup() {
     auto previewBGHolder = CCNode::create();
     this->addChild(previewBGHolder);
 
-    previewBG = CCScale9Sprite::create("square02_001.png");
-    previewBG->setContentSize({
-        size.width / 2.5f - previewBGMargin,
-        size.height - previewBGMargin
+    m_previewBG = CCScale9Sprite::create("square02_001.png");
+    m_previewBG->setContentSize({
+        m_size.width / 2.5f - previewBGMargin,
+        m_size.height - previewBGMargin
     });
-    previewBG->setPosition({
-        size.width - previewBG->getScaledContentWidth() / 2 - previewBGMargin / 2,
+    m_previewBG->setPosition({
+        m_size.width - m_previewBG->getScaledContentWidth() / 2 - previewBGMargin / 2,
         0 + previewBGMargin / 2
     });
-    previewBG->setAnchorPoint({0.5f, 0});
-    previewBG->setOpacity(0);
-    previewBGHolder->addChild(previewBG);
+    m_previewBG->setAnchorPoint({0.5f, 0});
+    m_previewBG->setOpacity(0);
+    previewBGHolder->addChild(m_previewBG);
 
-    previewScroll = ScrollLayer::create(previewBG->getContentSize() - ccp(5, 5));
-    previewScroll->setPosition(previewBG->getPosition() + ccp(0, 2.5f));
-    previewScroll->ignoreAnchorPointForPosition(false);
-    previewScroll->setAnchorPoint({.5f, 0});
-    previewScroll->m_contentLayer->setLayout(ColumnLayout::create()
-        ->setAutoGrowAxis(previewScroll->getContentHeight())
+    m_previewScroll = ScrollLayer::create(m_previewBG->getContentSize() - ccp(5, 5));
+    m_previewScroll->setPosition(m_previewBG->getPosition() + ccp(0, 2.5f));
+    m_previewScroll->ignoreAnchorPointForPosition(false);
+    m_previewScroll->setAnchorPoint({.5f, 0});
+    m_previewScroll->m_contentLayer->setLayout(ColumnLayout::create()
+        ->setAutoGrowAxis(m_previewScroll->getContentHeight())
         ->setAxisAlignment(AxisAlignment::End)
         ->setCrossAxisAlignment(AxisAlignment::Center)
         ->setCrossAxisOverflow(false)
     );
-    previewScroll->setMouseEnabled(false);
-    this->addChild(previewScroll);
+    m_previewScroll->setMouseEnabled(false);
+    this->addChild(m_previewScroll);
 
-    scrollbar = Scrollbar::create(previewScroll);
-    scrollbar->ignoreAnchorPointForPosition(false);
-    scrollbar->setPosition(previewScroll->getPosition() + previewScroll->getContentSize() / 2);
-    this->addChild(scrollbar);
+    m_scrollbar = Scrollbar::create(m_previewScroll);
+    m_scrollbar->ignoreAnchorPointForPosition(false);
+    m_scrollbar->setPosition(m_previewScroll->getPosition() + m_previewScroll->getContentSize() / 2);
+    this->addChild(m_scrollbar);
 
     DTLabelInfo info;
-    info.scale = .5f;
-    info.wrapping = WrappingMode::SPACE_WRAP;
-    info.isExpanded = true;
+    info.m_scale = .5f;
+    info.m_wrapping = WrappingMode::SPACE_WRAP;
+    info.m_isExpanded = true;
 
-    myLabel = DTLabel::create(info);
-    myLabel->ignoreExtraSettings = true;
-    myLabel->setExpandable(false);
-    myLabel->setContentWidth(previewScroll->getContentWidth());
-    previewScroll->m_contentLayer->addChild(myLabel);
+    m_myLabel = DTLabel::create(info);
+    m_myLabel->m_ignoreExtraSettings = true;
+    m_myLabel->setExpandable(false);
+    m_myLabel->setContentWidth(m_previewScroll->getContentWidth());
+    m_previewScroll->m_contentLayer->addChild(m_myLabel);
 
-    previewScroll->m_contentLayer->updateLayout();
-    previewScroll->moveToTop();
+    m_previewScroll->m_contentLayer->updateLayout();
+    m_previewScroll->moveToTop();
 
-    selectionBG = CCScale9Sprite::create("square02_small.png");
-    selectionBG->setContentWidth(size.width - previewScroll->getScaledContentWidth() - previewBGMargin - 10);
-    selectionBG->setContentHeight(35);
-    selectionBG->setAnchorPoint({0, 1});
-    selectionBG->setCascadeColorEnabled(false);
-    selectionBG->setPosition({
+    m_selectionBG = CCScale9Sprite::create("square02_small.png");
+    m_selectionBG->setContentWidth(m_size.width - m_previewScroll->getScaledContentWidth() - previewBGMargin - 10);
+    m_selectionBG->setContentHeight(35);
+    m_selectionBG->setAnchorPoint({0, 1});
+    m_selectionBG->setCascadeColorEnabled(false);
+    m_selectionBG->setPosition({
         previewBGMargin / 2,
-        size.height - previewBGMargin / 2
+        m_size.height - previewBGMargin / 2
     });
-    this->addChild(selectionBG);
+    this->addChild(m_selectionBG);
 
-    sessLvlSwitcher = SwitcherButton::create({
+    m_sessLvlSwitcher = SwitcherButton::create({
         65,
-        selectionBG->getContentHeight() - 15
+        m_selectionBG->getContentHeight() - 15
     }, "GJ_button_01.png", {
         "Level",
         "Session"
     });
-    sessLvlSwitcher->setPosition(selectionBG->getPosition() + ccp(
-        sessLvlSwitcher->getScaledContentWidth() / 2 + 5,
-        -sessLvlSwitcher->getScaledContentHeight() / 2 - 15 / 2
+    m_sessLvlSwitcher->setPosition(m_selectionBG->getPosition() + ccp(
+        m_sessLvlSwitcher->getScaledContentWidth() / 2 + 5,
+        -m_sessLvlSwitcher->getScaledContentHeight() / 2 - 15 / 2
     ));
-    this->addChild(sessLvlSwitcher);
+    this->addChild(m_sessLvlSwitcher);
 
-    runF0Toggler = SimpleToggler::create(
+    m_runF0Toggler = SimpleToggler::create(
         CCSprite::createWithSpriteFrameName("from-zero.png"_spr),
         CCSprite::createWithSpriteFrameName("run.png"_spr),
         .75f
     );
-    runF0Toggler->setPosition(selectionBG->getPosition() + selectionBG->getScaledContentSize() + ccp(
-        -runF0Toggler->getScaledContentWidth() / 2 - 5,
-        -selectionBG->getScaledContentHeight() * 1.5
+    m_runF0Toggler->setPosition(m_selectionBG->getPosition() + m_selectionBG->getScaledContentSize() + ccp(
+        -m_runF0Toggler->getScaledContentWidth() / 2 - 5,
+        -m_selectionBG->getScaledContentHeight() * 1.5
     ));
-    this->addChild(runF0Toggler);
+    this->addChild(m_runF0Toggler);
 
     auto currentRunModeLabel = geode::Label::create("From 0", "bigFont.fnt");
     currentRunModeLabel->setAlignment(geode::Label::Alignment::Right);
     currentRunModeLabel->setAnchorPoint({1, .5f});
-    currentRunModeLabel->setPosition(runF0Toggler->getPosition() + ccp(
-        -5 - runF0Toggler->getScaledContentWidth() / 2,
+    currentRunModeLabel->setPosition(m_runF0Toggler->getPosition() + ccp(
+        -5 - m_runF0Toggler->getScaledContentWidth() / 2,
         0
     ));
     currentRunModeLabel->setScale(.5f);
     this->addChild(currentRunModeLabel);
 
-    runF0Toggler->setCallback([&, currentRunModeLabel](auto state) {
+    m_runF0Toggler->setCallback([&, currentRunModeLabel](auto state) {
         currentRunModeLabel->setString(
             state ?
                 "Runs" :
                 "From 0"
         );
 
-        updatePreviewName(sessLvlSwitcher->getCurrentOptionIndex() == 1, !state);
+        updatePreviewName(m_sessLvlSwitcher->getCurrentOptionIndex() == 1, !state);
     });
 
-    sessLvlSwitcher->setOptionChangedCallback([&](auto option) {
-        updatePreviewName(option == 1, !runF0Toggler->isToggled());
+    m_sessLvlSwitcher->setOptionChangedCallback([&](auto option) {
+        updatePreviewName(option == 1, !m_runF0Toggler->isToggled());
     });
 
     int sessionAmount = 1;
     if  (dtLayer != nullptr) {
-        sessionAmount = dtLayer->getCurrentGrouping().grouping.size();
+        sessionAmount = dtLayer->getCurrentGrouping().m_grouping.size();
     }
 
-    sessionSelector = SessionSelector::create(sessionAmount);
-    sessionSelector->setCallback([&](int newSession) {
+    m_sessionSelector = SessionSelector::create(sessionAmount);
+    m_sessionSelector->setCallback([&](int newSession) {
         DTLayer::get()->onSessionSelected(newSession, true);
-        if (!runF0Toggler->isToggled())
-            updatePreviewName(sessLvlSwitcher->getCurrentOptionIndex() == 1, !runF0Toggler->isToggled());
+        if (!m_runF0Toggler->isToggled())
+            updatePreviewName(m_sessLvlSwitcher->getCurrentOptionIndex() == 1, !m_runF0Toggler->isToggled());
     });
-    sessionSelector->setScale(.5f);
-    sessionSelector->ignoreAnchorPointForPosition(false);
-    sessionSelector->setCurrentCount(DTLayer::get()->getCurrentSelectedSession(), true);
-    sessionSelector->setPosition(currentRunModeLabel->getPosition() + ccp(
-        -currentRunModeLabel->getScaledContentWidth() - 5 - sessionSelector->getScaledContentWidth() / 2,
+    m_sessionSelector->setScale(.5f);
+    m_sessionSelector->ignoreAnchorPointForPosition(false);
+    m_sessionSelector->setCurrentCount(DTLayer::get()->getCurrentSelectedSession(), true);
+    m_sessionSelector->setPosition(currentRunModeLabel->getPosition() + ccp(
+        -currentRunModeLabel->getScaledContentWidth() - 5 - m_sessionSelector->getScaledContentWidth() / 2,
         0
     ));
-    this->addChild(sessionSelector);
+    this->addChild(m_sessionSelector);
 
     auto removeInvalidRunsBtnSpr = ButtonSprite::create(
         "Remove Invalid Runs",
@@ -165,70 +165,70 @@ bool ModifyOptions::setup() {
         menu_selector(ModifyOptions::removeInvalidRuns)
     );
     removeInvalidRunsBtn->setAnchorPoint({0, .5f});
-    removeInvalidRunsBtn->setPosition(selectionBG->getPosition() + ccp(
+    removeInvalidRunsBtn->setPosition(m_selectionBG->getPosition() + ccp(
         0,
-        -selectionBG->getScaledContentHeight() - removeInvalidRunsBtn->getScaledContentHeight() / 2 - 10
+        -m_selectionBG->getScaledContentHeight() - removeInvalidRunsBtn->getScaledContentHeight() / 2 - 10
     ));
     this->addChild(removeInvalidRunsBtn);
 
     float diffBetweenSquares = 5;
     float squaresHeight = 135;
 
-    runsBG = CCScale9Sprite::create("square02_001.png");
-    runsBG->setContentWidth(selectionBG->getScaledContentWidth() / 3 - diffBetweenSquares);
-    runsBG->setContentHeight(squaresHeight);
-    runsBG->setCascadeColorEnabled(false);
-    runsBG->setAnchorPoint({0, 0});
-    runsBG->setPosition({
+    m_runsBG = CCScale9Sprite::create("square02_001.png");
+    m_runsBG->setContentWidth(m_selectionBG->getScaledContentWidth() / 3 - diffBetweenSquares);
+    m_runsBG->setContentHeight(squaresHeight);
+    m_runsBG->setCascadeColorEnabled(false);
+    m_runsBG->setAnchorPoint({0, 0});
+    m_runsBG->setPosition({
         previewBGMargin / 2,
         previewBGMargin / 2
     });
-    this->addChild(runsBG);
+    this->addChild(m_runsBG);
 
-    runAmountInput = TextInput::create(runsBG->getContentWidth() / 1.2f, "amount", "gjFont17.fnt");
-    runAmountInput->setPosition({
-        runsBG->getContentWidth() / 2,
-        runAmountInput->getContentHeight() / 2 + 2
+    m_runAmountInput = TextInput::create(m_runsBG->getContentWidth() / 1.2f, "amount", "gjFont17.fnt");
+    m_runAmountInput->setPosition({
+        m_runsBG->getContentWidth() / 2,
+        m_runAmountInput->getContentHeight() / 2 + 2
     });
-    runAmountInput->setCallback([&](auto newstr) {
+    m_runAmountInput->setCallback([&](auto newstr) {
         auto numRes = geode::utils::numFromString<int>(newstr);
         if (numRes.isErr()) return;
         int num = numRes.unwrap();
 
         if (num > 100) {
             num = 100;
-            runAmountInput->setString("100");
+            m_runAmountInput->setString("100");
         }
 
-        currRunsAmount = num;
+        m_currRunsAmount = num;
     });
-    runAmountInput->setString(std::to_string(currRunsAmount));
-    runAmountInput->setCommonFilter(CommonFilter::Uint);
-    runsBG->addChild(runAmountInput);
+    m_runAmountInput->setString(std::to_string(m_currRunsAmount));
+    m_runAmountInput->setCommonFilter(CommonFilter::Uint);
+    m_runsBG->addChild(m_runAmountInput);
 
-    runAmountLabel = geode::Label::create("Amount", "bigFont.fnt");
-    runAmountLabel->setScale(.5f);
-    runAmountLabel->setAnchorPoint({0.5f, 1});
-    runAmountLabel->setPosition(runAmountInput->getPosition() + ccp(
+    m_runAmountLabel = geode::Label::create("Amount", "bigFont.fnt");
+    m_runAmountLabel->setScale(.5f);
+    m_runAmountLabel->setAnchorPoint({0.5f, 1});
+    m_runAmountLabel->setPosition(m_runAmountInput->getPosition() + ccp(
         0,
-        runAmountLabel->getScaledContentHeight() + runAmountInput->getScaledContentHeight() / 2
+        m_runAmountLabel->getScaledContentHeight() + m_runAmountInput->getScaledContentHeight() / 2
     ));
-    runsBG->addChild(runAmountLabel);
+    m_runsBG->addChild(m_runAmountLabel);
 
     auto runPMAlignNode = CCNode::create();
     runPMAlignNode->setContentSize({
-        runsBG->getContentWidth() / 10.f,
+        m_runsBG->getContentWidth() / 10.f,
         25
     });
     runPMAlignNode->setAnchorPoint({.5f, .5f});
-    runPMAlignNode->setPosition(runAmountLabel->getPosition() + ccp(
+    runPMAlignNode->setPosition(m_runAmountLabel->getPosition() + ccp(
         0,
         runPMAlignNode->getScaledContentHeight() / 2
     ));
-    runsBG->addChild(runPMAlignNode);
+    m_runsBG->addChild(runPMAlignNode);
 
     addPlusMinusBtns(runPMAlignNode, false, [&](bool isPlus) {
-        if (currentStartRunToAdd > currentEndRunToAdd) {
+        if (m_currentStartRunToAdd > m_currentEndRunToAdd) {
             auto tint = CCTintTo::create(.2f, 255, 0, 0);
             auto seq = CCSequence::create(
                 CCTintTo::create(.2f, 255, 0, 0),
@@ -236,47 +236,50 @@ bool ModifyOptions::setup() {
                 nullptr
             );
             seq->setTag(8);
-            addRunStartInput->getContentLabel()->stopActionByTag(8);
-            addRunStartInput->getContentLabel()->runAction(seq);
+            m_addRunStartInput->getContentLabel()->stopActionByTag(8);
+            m_addRunStartInput->getContentLabel()->runAction(seq);
             return;
         }
 
         std::optional<int> sessionNum = std::nullopt;
-        if (sessLvlSwitcher->getCurrentOptionIndex() == 1)
-            sessionNum = sessionSelector->getCurrentCount();
+        if (
+            m_sessLvlSwitcher->getCurrentOptionIndex() == 1
+        ) {
+            sessionNum = m_sessionSelector->getCurrentCount();
+        }
 
-        DTLayer::get()->modifyRun(currentStartRunToAdd, currentEndRunToAdd, currRunsAmount * (isPlus ? 1 : -1), sessionNum);
+        DTLayer::get()->modifyRun(m_currentStartRunToAdd, m_currentEndRunToAdd, m_currRunsAmount * (isPlus ? 1 : -1), sessionNum);
         
-        if (sessionNum == std::nullopt) DTLayer::get()->specialStrings["runs"]->updateContent();
-        else DTLayer::get()->specialStrings["sruns"]->updateContent();
+        if (sessionNum == std::nullopt) DTLayer::get()->m_specialStrings["runs"]->updateContent();
+        else DTLayer::get()->m_specialStrings["sruns"]->updateContent();
     }, .9f);
 
-    addRunSeperator = geode::Label::create("-", "bigFont.fnt");
-    addRunSeperator->setPosition(runPMAlignNode->getPosition() + ccp(
+    m_addRunSeperator = geode::Label::create("-", "bigFont.fnt");
+    m_addRunSeperator->setPosition(runPMAlignNode->getPosition() + ccp(
         0,
-        runPMAlignNode->getScaledContentHeight() / 2 + addRunSeperator->getScaledContentHeight() / 2
+        runPMAlignNode->getScaledContentHeight() / 2 + m_addRunSeperator->getScaledContentHeight() / 2
     ));
-    addRunSeperator->setScale(.35f);
-    runsBG->addChild(addRunSeperator);
+    m_addRunSeperator->setScale(.35f);
+    m_runsBG->addChild(m_addRunSeperator);
 
-    addRunStartInput = TextInput::create(35, "S%", "gjFont17.fnt");
-    addRunStartInput->setPosition(addRunSeperator->getPosition() + ccp(-addRunSeperator->getScaledContentWidth() / 2 - addRunStartInput->getContentWidth() / 2 - 5, 0));
-    addRunStartInput->setCommonFilter(CommonFilter::Float);
-    runsBG->addChild(addRunStartInput);
+    m_addRunStartInput = TextInput::create(35, "S%", "gjFont17.fnt");
+    m_addRunStartInput->setPosition(m_addRunSeperator->getPosition() + ccp(-m_addRunSeperator->getScaledContentWidth() / 2 - m_addRunStartInput->getContentWidth() / 2 - 5, 0));
+    m_addRunStartInput->setCommonFilter(CommonFilter::Float);
+    m_runsBG->addChild(m_addRunStartInput);
 
-    addRunEndInput = TextInput::create(35, "E%", "gjFont17.fnt");
-    addRunEndInput->setPosition(addRunSeperator->getPosition() + ccp(addRunSeperator->getScaledContentWidth() / 2 + addRunEndInput->getContentWidth() / 2 + 5, 0));
-    addRunEndInput->setCommonFilter(CommonFilter::Float);
-    runsBG->addChild(addRunEndInput);
+    m_addRunEndInput = TextInput::create(35, "E%", "gjFont17.fnt");
+    m_addRunEndInput->setPosition(m_addRunSeperator->getPosition() + ccp(m_addRunSeperator->getScaledContentWidth() / 2 + m_addRunEndInput->getContentWidth() / 2 + 5, 0));
+    m_addRunEndInput->setCommonFilter(CommonFilter::Float);
+    m_runsBG->addChild(m_addRunEndInput);
 
-    addRunStartInput->setCallback([&](std::string const& newstr) {
-        if (newstr.contains("-") && addRunStartInput->isFocused()) {
-            addRunStartInput->unfocus();
-            addRunEndInput->focus();
-            addRunEndInput->setString("");
-            addRunSeperator->setColor({ 0, 255, 0 });
-            addRunSeperator->runAction(CCTintTo::create(.5f, 255, 255, 255));
-            addRunStartInput->setString(newstr.substr(0, newstr.find("-")));
+    m_addRunStartInput->setCallback([&](std::string const& newstr) {
+        if (newstr.contains("-") && m_addRunStartInput->isFocused()) {
+            m_addRunStartInput->unfocus();
+            m_addRunEndInput->focus();
+            m_addRunEndInput->setString("");
+            m_addRunSeperator->setColor({ 0, 255, 0 });
+            m_addRunSeperator->runAction(CCTintTo::create(.5f, 255, 255, 255));
+            m_addRunStartInput->setString(newstr.substr(0, newstr.find("-")));
             return;
         }
 
@@ -287,20 +290,20 @@ bool ModifyOptions::setup() {
 
         if (numStart > 100) {
             numStart = 100;
-            addRunStartInput->setString("100");
+            m_addRunStartInput->setString("100");
         }
 
-        currentStartRunToAdd = numStart;
+        m_currentStartRunToAdd = numStart;
     });
 
-    addRunEndInput->setCallback([&](auto newstr) {
-        if (newstr.contains("-") && addRunEndInput->isFocused()) {
-            addRunEndInput->unfocus();
-            addRunStartInput->focus();
-            addRunStartInput->setString("");
-            addRunSeperator->setColor({ 0, 255, 0 });
-            addRunSeperator->runAction(CCTintTo::create(.5f, 255, 255, 255));
-            addRunEndInput->setString(newstr.substr(0, newstr.find("-")));
+    m_addRunEndInput->setCallback([&](auto newstr) {
+        if (newstr.contains("-") && m_addRunEndInput->isFocused()) {
+            m_addRunEndInput->unfocus();
+            m_addRunStartInput->focus();
+            m_addRunStartInput->setString("");
+            m_addRunSeperator->setColor({ 0, 255, 0 });
+            m_addRunSeperator->runAction(CCTintTo::create(.5f, 255, 255, 255));
+            m_addRunEndInput->setString(newstr.substr(0, newstr.find("-")));
             return;
         }
 
@@ -311,87 +314,88 @@ bool ModifyOptions::setup() {
 
         if (numEnd > 100) {
             numEnd = 100;
-            addRunEndInput->setString("100");
+            m_addRunEndInput->setString("100");
         }
 
-        currentEndRunToAdd = numEnd;
+        m_currentEndRunToAdd = numEnd;
     });
 
-    runLabel = geode::Label::create("Runs", "bigFont.fnt");
-    runLabel->setScale(.5f);
-    runLabel->setAnchorPoint({0, 1});
-    runLabel->setPosition({
+    m_runLabel = geode::Label::create("Runs", "bigFont.fnt");
+    m_runLabel->setScale(.5f);
+    m_runLabel->setAnchorPoint({0, 1});
+    m_runLabel->setPosition({
         5,
-        runsBG->getContentHeight() - 5
+        m_runsBG->getContentHeight() - 5
     });
-    runsBG->addChild(runLabel);
+    m_runsBG->addChild(m_runLabel);
 
-    f0BG = CCScale9Sprite::create("square02_001.png");
-    f0BG->setContentWidth(runsBG->getContentWidth());
-    f0BG->setContentHeight(squaresHeight);
-    f0BG->setAnchorPoint({0, 0});
-    f0BG->setCascadeColorEnabled(false);
-    f0BG->setPosition(runsBG->getPosition() + ccp(
-        runsBG->getContentWidth() + diffBetweenSquares,
+    m_f0BG = CCScale9Sprite::create("square02_001.png");
+    m_f0BG->setContentWidth(m_runsBG->getContentWidth());
+    m_f0BG->setContentHeight(squaresHeight);
+    m_f0BG->setAnchorPoint({0, 0});
+    m_f0BG->setCascadeColorEnabled(false);
+    m_f0BG->setPosition(m_runsBG->getPosition() + ccp(
+        m_runsBG->getContentWidth() + diffBetweenSquares,
         0
     ));
-    this->addChild(f0BG);
+    this->addChild(m_f0BG);
 
-    f0AmountInput = TextInput::create(f0BG->getContentWidth() / 1.2f, "amount", "gjFont17.fnt");
-    f0AmountInput->setPosition({
-        f0BG->getContentWidth() / 2,
-        f0AmountInput->getContentHeight() / 2 + 2
+    m_f0AmountInput = TextInput::create(m_f0BG->getContentWidth() / 1.2f, "amount", "gjFont17.fnt");
+    m_f0AmountInput->setPosition({
+        m_f0BG->getContentWidth() / 2,
+        m_f0AmountInput->getContentHeight() / 2 + 2
     });
-    f0AmountInput->setCallback([&](auto newstr) {
+    m_f0AmountInput->setCallback([&](auto newstr) {
         auto numRes = geode::utils::numFromString<int>(newstr);
         if (numRes.isErr()) return;
         int num = numRes.unwrap();
 
         if (num > 100) {
             num = 100;
-            f0AmountInput->setString("100");
+            m_f0AmountInput->setString("100");
         }
 
-        currF0Amount = num;
+        m_currF0Amount = num;
     });
-    f0AmountInput->setString(std::to_string(currF0Amount));
-    f0AmountInput->setCommonFilter(CommonFilter::Uint);
-    f0BG->addChild(f0AmountInput);
+    m_f0AmountInput->setString(std::to_string(m_currF0Amount));
+    m_f0AmountInput->setCommonFilter(CommonFilter::Uint);
+    m_f0BG->addChild(m_f0AmountInput);
 
-    f0AmountLabel = geode::Label::create("Amount", "bigFont.fnt");
-    f0AmountLabel->setScale(.5f);
-    f0AmountLabel->setAnchorPoint({0.5f, 1});
-    f0AmountLabel->setPosition(f0AmountInput->getPosition() + ccp(
+    m_f0AmountLabel = geode::Label::create("Amount", "bigFont.fnt");
+    m_f0AmountLabel->setScale(.5f);
+    m_f0AmountLabel->setAnchorPoint({0.5f, 1});
+    m_f0AmountLabel->setPosition(m_f0AmountInput->getPosition() + ccp(
         0,
-        f0AmountLabel->getScaledContentHeight() + f0AmountInput->getScaledContentHeight() / 2
+        m_f0AmountLabel->getScaledContentHeight() + m_f0AmountInput->getScaledContentHeight() / 2
     ));
-    f0BG->addChild(f0AmountLabel);
+    m_f0BG->addChild(m_f0AmountLabel);
 
     auto f0PMAlignNode = CCNode::create();
     f0PMAlignNode->setContentSize({
-        f0BG->getContentWidth() / 10.f,
+        m_f0BG->getContentWidth() / 10.f,
         25
     });
     f0PMAlignNode->setAnchorPoint({.5f, .5f});
-    f0PMAlignNode->setPosition(f0AmountLabel->getPosition() + ccp(
+    f0PMAlignNode->setPosition(m_f0AmountLabel->getPosition() + ccp(
         0,
         f0PMAlignNode->getScaledContentHeight() / 2
     ));
-    f0BG->addChild(f0PMAlignNode);
+    m_f0BG->addChild(f0PMAlignNode);
 
     addPlusMinusBtns(f0PMAlignNode, false, [&](bool isPlus) {
         std::optional<int> sessionNum = std::nullopt;
-        if (sessLvlSwitcher->getCurrentOptionIndex() == 1) 
-            sessionNum = sessionSelector->getCurrentCount();
+        if (m_sessLvlSwitcher->getCurrentOptionIndex() == 1) {
+            sessionNum = m_sessionSelector->getCurrentCount();
+        }
 
-        DTLayer::get()->modifyRun(currentF0ToAdd, currF0Amount * (isPlus ? 1 : -1), sessionNum);
+        DTLayer::get()->modifyRun(m_currentF0ToAdd, m_currF0Amount * (isPlus ? 1 : -1), sessionNum);
         
-        if (sessionNum == std::nullopt) DTLayer::get()->specialStrings["general"]->updateContent();
-        else DTLayer::get()->specialStrings["s0"]->updateContent();
+        if (sessionNum == std::nullopt) DTLayer::get()->m_specialStrings["general"]->updateContent();
+        else DTLayer::get()->m_specialStrings["s0"]->updateContent();
     }, .9f);
 
-    addPercentInput = TextInput::create(75, "percent", "gjFont17.fnt");
-    addPercentInput->setCallback([&](auto newstr) {
+    m_addPercentInput = TextInput::create(75, "percent", "gjFont17.fnt");
+    m_addPercentInput->setCallback([&](auto newstr) {
         auto numRes = geode::utils::numFromString<double>(newstr);
         if (numRes.isErr()) return;
         double num = numRes.unwrap();
@@ -399,42 +403,42 @@ bool ModifyOptions::setup() {
 
         if (num > 100) {
             num = 100;
-            addPercentInput->setString("100");
+            m_addPercentInput->setString("100");
         }
 
-        currentF0ToAdd = num;
+        m_currentF0ToAdd = num;
     });
-    addPercentInput->setPosition(f0PMAlignNode->getPosition() + ccp(
+    m_addPercentInput->setPosition(f0PMAlignNode->getPosition() + ccp(
         0,
-        f0PMAlignNode->getScaledContentHeight() / 2 + addPercentInput->getScaledContentHeight() / 2
+        f0PMAlignNode->getScaledContentHeight() / 2 + m_addPercentInput->getScaledContentHeight() / 2
     ));
-    addPercentInput->setCommonFilter(CommonFilter::Float);
-    f0BG->addChild(addPercentInput);
+    m_addPercentInput->setCommonFilter(CommonFilter::Float);
+    m_f0BG->addChild(m_addPercentInput);
 
-    f0Label = geode::Label::create("From 0", "bigFont.fnt");
-    f0Label->setScale(.5f);
-    f0Label->setAnchorPoint({0, 1});
-    f0Label->setPosition({
+    m_f0Label = geode::Label::create("From 0", "bigFont.fnt");
+    m_f0Label->setScale(.5f);
+    m_f0Label->setAnchorPoint({0, 1});
+    m_f0Label->setPosition({
         5,
-        f0BG->getContentHeight() - 5
+        m_f0BG->getContentHeight() - 5
     });
-    f0BG->addChild(f0Label);
+    m_f0BG->addChild(m_f0Label);
 
-    nbBG = CCScale9Sprite::create("square02_001.png");
-    nbBG->setContentWidth(f0BG->getContentWidth());
-    nbBG->setContentHeight(squaresHeight);
-    nbBG->setAnchorPoint({0, 0});
-    nbBG->setCascadeColorEnabled(false);
-    nbBG->setPosition(f0BG->getPosition() + ccp(
-        f0BG->getContentWidth() + diffBetweenSquares,
+    m_nbBG = CCScale9Sprite::create("square02_001.png");
+    m_nbBG->setContentWidth(m_f0BG->getContentWidth());
+    m_nbBG->setContentHeight(squaresHeight);
+    m_nbBG->setAnchorPoint({0, 0});
+    m_nbBG->setCascadeColorEnabled(false);
+    m_nbBG->setPosition(m_f0BG->getPosition() + ccp(
+        m_f0BG->getContentWidth() + diffBetweenSquares,
         0
     ));
-    this->addChild(nbBG);
+    this->addChild(m_nbBG);
 
     auto removeBtnSpr = ButtonSprite::create(
         "Remove",
-        nbBG->getScaledContentWidth() / 1.4f,
-        nbBG->getScaledContentWidth() / 1.4f,
+        m_nbBG->getScaledContentWidth() / 1.4f,
+        m_nbBG->getScaledContentWidth() / 1.4f,
         1,
         false,
         "bigFont.fnt",
@@ -447,16 +451,16 @@ bool ModifyOptions::setup() {
         this,
         menu_selector(ModifyOptions::removeNB)
     );
-    removeBtn->setPosition(nbBG->getPosition() + ccp(
-        nbBG->getScaledContentWidth() / 2,
+    removeBtn->setPosition(m_nbBG->getPosition() + ccp(
+        m_nbBG->getScaledContentWidth() / 2,
         removeBtn->getScaledContentHeight() / 2 + 5
     ));
     this->addChild(removeBtn);
     
     auto addBtnSpr = ButtonSprite::create(
         "  Add  ",
-        nbBG->getScaledContentWidth() / 1.4f,
-        nbBG->getScaledContentWidth() / 1.4f,
+        m_nbBG->getScaledContentWidth() / 1.4f,
+        m_nbBG->getScaledContentWidth() / 1.4f,
         1,
         false,
         "bigFont.fnt",
@@ -475,12 +479,12 @@ bool ModifyOptions::setup() {
     ));
     this->addChild(addBtn);
 
-    addNewBestInput = TextInput::create(75, "New B %", "gjFont17.fnt");
-    addNewBestInput->setPosition(addBtn->getPosition() + ccp(
+    m_addNewBestInput = TextInput::create(75, "New B %", "gjFont17.fnt");
+    m_addNewBestInput->setPosition(addBtn->getPosition() + ccp(
         0,
-        addNewBestInput->getScaledContentHeight() / 2 + addBtn->getScaledContentHeight() / 2 + 5
+        m_addNewBestInput->getScaledContentHeight() / 2 + addBtn->getScaledContentHeight() / 2 + 5
     ));
-    addNewBestInput->setCallback([&](auto newstr) {
+    m_addNewBestInput->setCallback([&](auto newstr) {
         auto numRes = geode::utils::numFromString<double>(newstr);
         if (numRes.isErr()) return;
         double num = numRes.unwrap();
@@ -488,22 +492,22 @@ bool ModifyOptions::setup() {
 
         if (num > 100) {
             num = 100;
-            addNewBestInput->setString("100");
+            m_addNewBestInput->setString("100");
         }
 
-        currentNBToAdd = num;
+        m_currentNBToAdd = num;
     });
-    addNewBestInput->setCommonFilter(CommonFilter::Float);
-    this->addChild(addNewBestInput);
+    m_addNewBestInput->setCommonFilter(CommonFilter::Float);
+    this->addChild(m_addNewBestInput);
 
-    NBLabel = geode::Label::create("New Bests", "bigFont.fnt");
-    NBLabel->setScale(.4f);
-    NBLabel->setAnchorPoint({0, 1});
-    NBLabel->setPosition({
+    m_NBLabel = geode::Label::create("New Bests", "bigFont.fnt");
+    m_NBLabel->setScale(.4f);
+    m_NBLabel->setAnchorPoint({0, 1});
+    m_NBLabel->setPosition({
         5,
-        nbBG->getContentHeight() - 5
+        m_nbBG->getContentHeight() - 5
     });
-    nbBG->addChild(NBLabel);
+    m_nbBG->addChild(m_NBLabel);
 
     scheduleUpdate();
 
@@ -511,64 +515,64 @@ bool ModifyOptions::setup() {
         tutorialLayer->appendDialogue("Here you are able to <cy>modify</c> your save file!", TutorialCharacterFace::TCFHappy)
             ->appendDialogue("Here you have a <cf>preview</c> of how your save file <cy>currently</c> looks", TutorialCharacterFace::TCFNormal)
             ->joinTransform(TutorialBoxPlacement::TBPLeft, .75f)
-            ->joinHighlight(previewBG)
+            ->joinHighlight(m_previewBG)
 
             ->appendDialogue("You can see <cs>what data</c> it currently displays in the <cl>labels title</c>", TutorialCharacterFace::TCFNormalTilted)
             ->joinTransform(TutorialBoxPlacement::TBPTopLeft, .75f)
-            ->joinHighlight(myLabel->labelTitleBG)
+            ->joinHighlight(m_myLabel->m_labelTitleBG)
 
             ->appendDialogue("At the top you can <cy>edit what data you are going to edit!</c>", TutorialCharacterFace::TCFHappy)
             ->joinTransform(TutorialBoxPlacement::TBPLeft, .75f)
-            ->joinHighlight(selectionBG)
+            ->joinHighlight(m_selectionBG)
 
             ->appendDialogue("You can choose between <cy>general</c> level stats or <cy>session</c> stats", TutorialCharacterFace::TCFNormal)
-            ->joinHighlight(sessLvlSwitcher)
+            ->joinHighlight(m_sessLvlSwitcher)
 
             ->appendDialogue("You can choose between editing <cc>runs</c> or <cc>from 0</c> stats", TutorialCharacterFace::TCFNormalTilted)
-            ->joinHighlight(runF0Toggler)
+            ->joinHighlight(m_runF0Toggler)
             ->joinHighlight(currentRunModeLabel)
 
             ->appendDialogue("And you can switch between <co>sessions</c> using the session selector", TutorialCharacterFace::TCFNormal)
-            ->joinHighlight(sessionSelector)
+            ->joinHighlight(m_sessionSelector)
             ->joinTextToHighlight("Session Selector", .35f)
 
             ->appendDialogue("The <cf>preview</c> will change according to your selection!", TutorialCharacterFace::TCFHappy)
             ->joinTransform(TutorialBoxPlacement::TBPLeft, .75f)
-            ->joinHighlight(previewBG)
+            ->joinHighlight(m_previewBG)
 
             ->appendDialogue("At the bottom you have fields to <cg>add</c>/<cr>remove</c> data from your save!", TutorialCharacterFace::TCFHappy)
             ->joinTransform(TutorialBoxPlacement::TBPTopLeft, .75f)
-            ->joinHighlight(runsBG)
-            ->joinHighlight(f0BG)
-            ->joinHighlight(nbBG)
+            ->joinHighlight(m_runsBG)
+            ->joinHighlight(m_f0BG)
+            ->joinHighlight(m_nbBG)
 
             ->appendDialogue("One for <cy>runs</c>", TutorialCharacterFace::TCFNormal)
-            ->joinHighlight(runsBG)
+            ->joinHighlight(m_runsBG)
 
             ->appendDialogue("One for <cy>from 0</c> progress", TutorialCharacterFace::TCFNormal)
-            ->joinHighlight(f0BG)
+            ->joinHighlight(m_f0BG)
 
             ->appendDialogue("And one for <cy>new bests</c>", TutorialCharacterFace::TCFNormal)
-            ->joinHighlight(nbBG)
+            ->joinHighlight(m_nbBG)
 
             ->appendDialogue("They all have <cc>input fields</c> to input percentages", TutorialCharacterFace::TCFNormal)
-            ->joinHighlight(addRunStartInput)
-            ->joinHighlight(addRunEndInput)
-            ->joinHighlight(addPercentInput)
-            ->joinHighlight(addNewBestInput)
+            ->joinHighlight(m_addRunStartInput)
+            ->joinHighlight(m_addRunEndInput)
+            ->joinHighlight(m_addPercentInput)
+            ->joinHighlight(m_addNewBestInput)
             
             ->appendDialogue("And buttons for <cg>adding</c>/<cr>removing</c> the inputted data from the save file!", TutorialCharacterFace::TCFHappy)
             ->joinHighlight(addBtn)
             ->joinHighlight(removeBtn);
 
-        for (const auto& [btn, _] : plusMinusCallbacks)
+        for (const auto& [btn, _] : m_plusMinusCallbacks)
         {
             tutorialLayer->joinHighlight(btn);
         }
         
         tutorialLayer->appendDialogue("Some have an <cy>amount field</c> for inputting <cy>how any of x runs</c> to add at a time", TutorialCharacterFace::TCFNormal)
-            ->joinHighlight(f0AmountInput)
-            ->joinHighlight(runAmountInput)
+            ->joinHighlight(m_f0AmountInput)
+            ->joinHighlight(m_runAmountInput)
             
             ->appendDialogue("Theres is also the <cr>\"Remove Invalid Runs\"</c> button", TutorialCharacterFace::TCFNormal)
             ->joinHighlight(removeInvalidRunsBtn)
@@ -579,29 +583,29 @@ bool ModifyOptions::setup() {
             ->appendDialogue("Enjoy editing your save file!", TutorialCharacterFace::TCFHappy)
             ->joinTransform(TutorialBoxPlacement::TBPCenter, 1);
     });
-    modiftyInfo->setPosition(size - modiftyInfo->getScaledContentSize() / 2 + ccp(2, 2));
+    modiftyInfo->setPosition(m_size - modiftyInfo->getScaledContentSize() / 2 + ccp(2, 2));
     this->addChild(modiftyInfo);
 
     this->setOpacity(0);
 
-    Dev::fadeTextInput(addNewBestInput, false, 0);
-    Dev::fadeTextInput(addPercentInput, false, 0);
-    Dev::fadeTextInput(f0AmountInput, false, 0);
-    Dev::fadeTextInput(addRunEndInput, false, 0);
-    Dev::fadeTextInput(addRunStartInput, false, 0);
-    Dev::fadeTextInput(runAmountInput, false, 0);
+    Dev::fadeTextInput(m_addNewBestInput, false, 0);
+    Dev::fadeTextInput(m_addPercentInput, false, 0);
+    Dev::fadeTextInput(m_f0AmountInput, false, 0);
+    Dev::fadeTextInput(m_addRunEndInput, false, 0);
+    Dev::fadeTextInput(m_addRunStartInput, false, 0);
+    Dev::fadeTextInput(m_runAmountInput, false, 0);
 
-    myLabel->setOpacity(0);
-    myLabel->setTextColor({255, 255, 255, 0});
-    myLabel->fadeTitleColorTo({255, 255, 255, 0}, 0);
-    myLabel->setRunMoreButtonsVisible(false, 0);
-    Dev::fadeTextInput(sessionSelector->getTextInput(), false, 0);
+    m_myLabel->setOpacity(0);
+    m_myLabel->setTextColor({255, 255, 255, 0});
+    m_myLabel->fadeTitleColorTo({255, 255, 255, 0}, 0);
+    m_myLabel->setRunMoreButtonsVisible(false, 0);
+    Dev::fadeTextInput(m_sessionSelector->getTextInput(), false, 0);
 
-    static_cast<CCScale9Sprite*>(scrollbar->getChildren()->objectAtIndex(0))->setOpacity(0);
-    static_cast<CCScale9Sprite*>(scrollbar->getChildren()->objectAtIndex(1))->setOpacity(0);
-    scrollbar->setTouchEnabled(false);
+    static_cast<CCScale9Sprite*>(m_scrollbar->getChildren()->objectAtIndex(0))->setOpacity(0);
+    static_cast<CCScale9Sprite*>(m_scrollbar->getChildren()->objectAtIndex(1))->setOpacity(0);
+    m_scrollbar->setTouchEnabled(false);
 
-    sessionSelector->setEnabled(false);
+    m_sessionSelector->setEnabled(false);
 
     this->addEventListener(
         KeybindSettingPressedEvent(
@@ -610,16 +614,16 @@ bool ModifyOptions::setup() {
         ),
         [&, f0PMAlignNode, runPMAlignNode](const Keybind& keybind, bool down, bool repeat, double) {
             if (down) {
-                if (addNewBestInput->isFocused()) {
+                if (m_addNewBestInput->isFocused()) {
                     addNB(nullptr);
                     return ListenerResult::Stop;
                 }
-                else if (addRunStartInput->isFocused() || addRunEndInput->isFocused()) {
-                    (*plusMinusCallbacks[holdersOfPlusMinusBtns[runPMAlignNode].first])(true);
+                else if (m_addRunStartInput->isFocused() || m_addRunEndInput->isFocused()) {
+                    (*m_plusMinusCallbacks[m_holdersOfPlusMinusBtns[runPMAlignNode].first])(true);
                     return ListenerResult::Stop;
                 }
-                else if (addPercentInput->isFocused()) {
-                    (*plusMinusCallbacks[holdersOfPlusMinusBtns[f0PMAlignNode].first])(true);
+                else if (m_addPercentInput->isFocused()) {
+                    (*m_plusMinusCallbacks[m_holdersOfPlusMinusBtns[f0PMAlignNode].first])(true);
                     return ListenerResult::Stop;
                 }
             }
@@ -633,16 +637,16 @@ bool ModifyOptions::setup() {
         ),
         [&, f0PMAlignNode, runPMAlignNode](const Keybind& keybind, bool down, bool repeat, double) {
             if (down) {
-                if (addNewBestInput->isFocused()) {
+                if (m_addNewBestInput->isFocused()) {
                     removeNB(nullptr);
                     return ListenerResult::Stop;
                 }
-                else if (addRunStartInput->isFocused() || addRunEndInput->isFocused()) {
-                    (*plusMinusCallbacks[holdersOfPlusMinusBtns[runPMAlignNode].second])(false);
+                else if (m_addRunStartInput->isFocused() || m_addRunEndInput->isFocused()) {
+                    (*m_plusMinusCallbacks[m_holdersOfPlusMinusBtns[runPMAlignNode].second])(false);
                     return ListenerResult::Stop;
                 }
-                else if (addPercentInput->isFocused()) {
-                    (*plusMinusCallbacks[holdersOfPlusMinusBtns[f0PMAlignNode].second])(false);
+                else if (m_addPercentInput->isFocused()) {
+                    (*m_plusMinusCallbacks[m_holdersOfPlusMinusBtns[f0PMAlignNode].second])(false);
                     return ListenerResult::Stop;
                 }
             }
@@ -652,21 +656,21 @@ bool ModifyOptions::setup() {
 
     updatePreviewName(false, true);
 
-    selectionBG->setOpacity(0);
-    runsBG->setOpacity(0);
-    f0BG->setOpacity(0);
-    nbBG->setOpacity(0);
+    m_selectionBG->setOpacity(0);
+    m_runsBG->setOpacity(0);
+    m_f0BG->setOpacity(0);
+    m_nbBG->setOpacity(0);
 
-    runLabel->setOpacity(0);
-    addRunSeperator->setOpacity(0);
-    runAmountLabel->setOpacity(0);
-    NBLabel->setOpacity(0);
-    f0AmountLabel->setOpacity(0);
-    f0Label->setOpacity(0);
+    m_runLabel->setOpacity(0);
+    m_addRunSeperator->setOpacity(0);
+    m_runAmountLabel->setOpacity(0);
+    m_NBLabel->setOpacity(0);
+    m_f0AmountLabel->setOpacity(0);
+    m_f0Label->setOpacity(0);
 
-    decimalPopup = DecimalPopup::create({200, size.height / 2.f});
-    myLabel->attachedDecimalPopup(decimalPopup);
-    this->addChild(decimalPopup);
+    m_decimalPopup = DecimalPopup::create({200, m_size.height / 2.f});
+    m_myLabel->attachedDecimalPopup(m_decimalPopup);
+    this->addChild(m_decimalPopup);
 
     return true;
 }
@@ -674,87 +678,87 @@ bool ModifyOptions::setup() {
 void ModifyOptions::onOpened() {
     float fadeTime = .2f;
     this->runAction(CCFadeIn::create(fadeTime));
-    previewBG->runAction(CCFadeTo::create(fadeTime, 150));
-    selectionBG->runAction(CCFadeTo::create(fadeTime, 150));
-    runsBG->runAction(CCFadeTo::create(fadeTime, 150));
-    f0BG->runAction(CCFadeTo::create(fadeTime, 150));
-    nbBG->runAction(CCFadeTo::create(fadeTime, 150));
+    m_previewBG->runAction(CCFadeTo::create(fadeTime, 150));
+    m_selectionBG->runAction(CCFadeTo::create(fadeTime, 150));
+    m_runsBG->runAction(CCFadeTo::create(fadeTime, 150));
+    m_f0BG->runAction(CCFadeTo::create(fadeTime, 150));
+    m_nbBG->runAction(CCFadeTo::create(fadeTime, 150));
 
-    runLabel->runAction(CCFadeTo::create(fadeTime, 255));
-    addRunSeperator->runAction(CCFadeTo::create(fadeTime, 255));
-    runAmountLabel->runAction(CCFadeTo::create(fadeTime, 255));
-    NBLabel->runAction(CCFadeTo::create(fadeTime, 255));
-    f0AmountLabel->runAction(CCFadeTo::create(fadeTime, 255));
-    f0Label->runAction(CCFadeTo::create(fadeTime, 255));
+    m_runLabel->runAction(CCFadeTo::create(fadeTime, 255));
+    m_addRunSeperator->runAction(CCFadeTo::create(fadeTime, 255));
+    m_runAmountLabel->runAction(CCFadeTo::create(fadeTime, 255));
+    m_NBLabel->runAction(CCFadeTo::create(fadeTime, 255));
+    m_f0AmountLabel->runAction(CCFadeTo::create(fadeTime, 255));
+    m_f0Label->runAction(CCFadeTo::create(fadeTime, 255));
 
-    Dev::fadeTextInput(addNewBestInput, true, fadeTime);
-    Dev::fadeTextInput(addPercentInput, true, fadeTime);
-    Dev::fadeTextInput(f0AmountInput, true, fadeTime);
-    Dev::fadeTextInput(addRunEndInput, true, fadeTime);
-    Dev::fadeTextInput(addRunStartInput, true, fadeTime);
-    Dev::fadeTextInput(runAmountInput, true, fadeTime);
+    Dev::fadeTextInput(m_addNewBestInput, true, fadeTime);
+    Dev::fadeTextInput(m_addPercentInput, true, fadeTime);
+    Dev::fadeTextInput(m_f0AmountInput, true, fadeTime);
+    Dev::fadeTextInput(m_addRunEndInput, true, fadeTime);
+    Dev::fadeTextInput(m_addRunStartInput, true, fadeTime);
+    Dev::fadeTextInput(m_runAmountInput, true, fadeTime);
 
-    sessionSelector->setMaximumCount(DTLayer::get()->sessionSelector->getMaximumCount(), false);
+    m_sessionSelector->setMaximumCount(DTLayer::get()->m_sessionSelector->getMaximumCount(), false);
 
-    myLabel->runAction(CCFadeIn::create(fadeTime));
-    myLabel->fadeTextColorTo({255, 255, 255, 255}, fadeTime);
-    myLabel->fadeTitleColorTo({255, 255, 255, 255}, fadeTime);
-    myLabel->setRunMoreButtonsVisible(true, fadeTime);
-    Dev::fadeTextInput(sessionSelector->getTextInput(), true, fadeTime);
-    sessionSelector->setEnabled(true);
+    m_myLabel->runAction(CCFadeIn::create(fadeTime));
+    m_myLabel->fadeTextColorTo({255, 255, 255, 255}, fadeTime);
+    m_myLabel->fadeTitleColorTo({255, 255, 255, 255}, fadeTime);
+    m_myLabel->setRunMoreButtonsVisible(true, fadeTime);
+    Dev::fadeTextInput(m_sessionSelector->getTextInput(), true, fadeTime);
+    m_sessionSelector->setEnabled(true);
 
-    static_cast<CCScale9Sprite*>(scrollbar->getChildren()->objectAtIndex(0))->runAction(CCFadeTo::create(fadeTime, 150));
-    static_cast<CCScale9Sprite*>(scrollbar->getChildren()->objectAtIndex(1))->runAction(CCFadeTo::create(fadeTime, 255));
-    scrollbar->setTouchEnabled(true);
+    static_cast<CCScale9Sprite*>(m_scrollbar->getChildren()->objectAtIndex(0))->runAction(CCFadeTo::create(fadeTime, 150));
+    static_cast<CCScale9Sprite*>(m_scrollbar->getChildren()->objectAtIndex(1))->runAction(CCFadeTo::create(fadeTime, 255));
+    m_scrollbar->setTouchEnabled(true);
 
     this->setEnabled(true);
-    previewScroll->setMouseEnabled(true);  
+    m_previewScroll->setMouseEnabled(true);
 }
 void ModifyOptions::onClosed() {
     float fadeTime = .2f;
     this->runAction(CCFadeOut::create(fadeTime));
-    previewBG->runAction(CCFadeTo::create(fadeTime, 0));
-    selectionBG->runAction(CCFadeTo::create(fadeTime, 0));
-    runsBG->runAction(CCFadeTo::create(fadeTime, 0));
-    f0BG->runAction(CCFadeTo::create(fadeTime, 0));
-    nbBG->runAction(CCFadeTo::create(fadeTime, 0));
+    m_previewBG->runAction(CCFadeTo::create(fadeTime, 0));
+    m_selectionBG->runAction(CCFadeTo::create(fadeTime, 0));
+    m_runsBG->runAction(CCFadeTo::create(fadeTime, 0));
+    m_f0BG->runAction(CCFadeTo::create(fadeTime, 0));
+    m_nbBG->runAction(CCFadeTo::create(fadeTime, 0));
 
-    runLabel->runAction(CCFadeTo::create(fadeTime, 0));
-    addRunSeperator->runAction(CCFadeTo::create(fadeTime, 0));
-    runAmountLabel->runAction(CCFadeTo::create(fadeTime, 0));
-    NBLabel->runAction(CCFadeTo::create(fadeTime, 0));
-    f0AmountLabel->runAction(CCFadeTo::create(fadeTime, 0));
-    f0Label->runAction(CCFadeTo::create(fadeTime, 0));
+    m_runLabel->runAction(CCFadeTo::create(fadeTime, 0));
+    m_addRunSeperator->runAction(CCFadeTo::create(fadeTime, 0));
+    m_runAmountLabel->runAction(CCFadeTo::create(fadeTime, 0));
+    m_NBLabel->runAction(CCFadeTo::create(fadeTime, 0));
+    m_f0AmountLabel->runAction(CCFadeTo::create(fadeTime, 0));
+    m_f0Label->runAction(CCFadeTo::create(fadeTime, 0));
 
-    Dev::fadeTextInput(addNewBestInput, false, fadeTime);
-    Dev::fadeTextInput(addPercentInput, false, fadeTime);
-    Dev::fadeTextInput(f0AmountInput, false, fadeTime);
-    Dev::fadeTextInput(addRunEndInput, false, fadeTime);
-    Dev::fadeTextInput(addRunStartInput, false, fadeTime);
-    Dev::fadeTextInput(runAmountInput, false, fadeTime);
+    Dev::fadeTextInput(m_addNewBestInput, false, fadeTime);
+    Dev::fadeTextInput(m_addPercentInput, false, fadeTime);
+    Dev::fadeTextInput(m_f0AmountInput, false, fadeTime);
+    Dev::fadeTextInput(m_addRunEndInput, false, fadeTime);
+    Dev::fadeTextInput(m_addRunStartInput, false, fadeTime);
+    Dev::fadeTextInput(m_runAmountInput, false, fadeTime);
 
-    myLabel->runAction(CCFadeOut::create(fadeTime));
-    myLabel->fadeTextColorTo({255, 255, 255, 0}, fadeTime);
-    myLabel->fadeTitleColorTo({255, 255, 255, 0}, fadeTime);
-    myLabel->setRunMoreButtonsVisible(false, fadeTime);
-    Dev::fadeTextInput(sessionSelector->getTextInput(), false, fadeTime);
-    sessionSelector->setEnabled(false);
+    m_myLabel->runAction(CCFadeOut::create(fadeTime));
+    m_myLabel->fadeTextColorTo({255, 255, 255, 0}, fadeTime);
+    m_myLabel->fadeTitleColorTo({255, 255, 255, 0}, fadeTime);
+    m_myLabel->setRunMoreButtonsVisible(false, fadeTime);
+    Dev::fadeTextInput(m_sessionSelector->getTextInput(), false, fadeTime);
+    m_sessionSelector->setEnabled(false);
 
-    static_cast<CCScale9Sprite*>(scrollbar->getChildren()->objectAtIndex(0))->runAction(CCFadeTo::create(fadeTime, 0));
-    static_cast<CCScale9Sprite*>(scrollbar->getChildren()->objectAtIndex(1))->runAction(CCFadeTo::create(fadeTime, 0));
-    scrollbar->setTouchEnabled(false);
+    static_cast<CCScale9Sprite*>(m_scrollbar->getChildren()->objectAtIndex(0))->runAction(CCFadeTo::create(fadeTime, 0));
+    static_cast<CCScale9Sprite*>(m_scrollbar->getChildren()->objectAtIndex(1))->runAction(CCFadeTo::create(fadeTime, 0));
+    m_scrollbar->setTouchEnabled(false);
 
     this->setEnabled(false);
-    previewScroll->setMouseEnabled(false);
+    m_previewScroll->setMouseEnabled(false);
 
-    decimalPopup->close();
+    m_decimalPopup->close();
 }
 
 void ModifyOptions::update(float dt) {
-    float prevHeight = previewScroll->m_contentLayer->getContentHeight();
-    previewScroll->m_contentLayer->updateLayout();
-    if (previewScroll->m_contentLayer->getContentHeight() != prevHeight)
-        previewScroll->moveToTop();
+    float prevHeight = m_previewScroll->m_contentLayer->getContentHeight();
+    m_previewScroll->m_contentLayer->updateLayout();
+    if (m_previewScroll->m_contentLayer->getContentHeight() != prevHeight)
+        m_previewScroll->moveToTop();
 }
 
 void ModifyOptions::updatePreviewName(bool categotyIsSession, bool f0State) {
@@ -765,7 +769,7 @@ void ModifyOptions::updatePreviewName(bool categotyIsSession, bool f0State) {
         "from 0" :
         "runs";
 
-    myLabel->setLabelName(fmt::format("preview ({}, {})", category, type));
+    m_myLabel->setLabelName(fmt::format("preview ({}, {})", category, type));
 
     std::string text;
 
@@ -778,7 +782,7 @@ void ModifyOptions::updatePreviewName(bool categotyIsSession, bool f0State) {
         else text = "sruns";
     }
 
-    myLabel->setLabelText(fmt::format("{{{}}}", text));
+    m_myLabel->setLabelText(fmt::format("{{{}}}", text));
 }
 
 void ModifyOptions::addPlusMinusBtns(CCNode* around, bool flip, Function<void(bool isPlus)> callback, float scale) {
@@ -816,49 +820,49 @@ void ModifyOptions::addPlusMinusBtns(CCNode* around, bool flip, Function<void(bo
 
     auto sharedCb = std::make_shared<Function<void(bool)>>(std::move(callback));
 
-    plusMinusCallbacks.emplace(plusBtn, sharedCb);
-    plusMinusCallbacks.emplace(minusBtn, sharedCb);
+    m_plusMinusCallbacks.emplace(plusBtn, sharedCb);
+    m_plusMinusCallbacks.emplace(minusBtn, sharedCb);
 
-    holdersOfPlusMinusBtns.insert({around, std::make_pair(plusBtn, minusBtn)});
+    m_holdersOfPlusMinusBtns.insert({around, std::make_pair(plusBtn, minusBtn)});
 }
 void ModifyOptions::onPlusMinusBtn(CCObject* sender) {
     if (auto btnSender = typeinfo_cast<CCMenuItemSpriteExtra*>(sender)) {
-        if (!plusMinusCallbacks.contains(btnSender)) return;
+        if (!m_plusMinusCallbacks.contains(btnSender)) return;
 
-        (*plusMinusCallbacks[btnSender])(btnSender->getTag() == 1);
+        (*m_plusMinusCallbacks[btnSender])(btnSender->getTag() == 1);
     }
 }
 
 void ModifyOptions::removeNB(CCObject*) {
     std::optional<int> sessionNum = std::nullopt;
-    if (sessLvlSwitcher->getCurrentOptionIndex() == 1)
-        sessionNum = sessionSelector->getCurrentCount();
+    if (m_sessLvlSwitcher->getCurrentOptionIndex() == 1)
+        sessionNum = m_sessionSelector->getCurrentCount();
 
-    DTLayer::get()->modifyNewBest(currentNBToAdd, false, sessionNum);
+    DTLayer::get()->modifyNewBest(m_currentNBToAdd, false, sessionNum);
 
-    if (sessionNum == std::nullopt) DTLayer::get()->specialStrings["general"]->updateContent();
-    else DTLayer::get()->specialStrings["s0"]->updateContent();
+    if (sessionNum == std::nullopt) DTLayer::get()->m_specialStrings["general"]->updateContent();
+    else DTLayer::get()->m_specialStrings["s0"]->updateContent();
 }
 void ModifyOptions::addNB(CCObject*) {
     std::optional<int> sessionNum = std::nullopt;
-    if (sessLvlSwitcher->getCurrentOptionIndex() == 1)
-        sessionNum = sessionSelector->getCurrentCount();
+    if (m_sessLvlSwitcher->getCurrentOptionIndex() == 1)
+        sessionNum = m_sessionSelector->getCurrentCount();
 
-    DTLayer::get()->modifyNewBest(currentNBToAdd, true, sessionNum);
+    DTLayer::get()->modifyNewBest(m_currentNBToAdd, true, sessionNum);
 
-    if (sessionNum == std::nullopt) DTLayer::get()->specialStrings["general"]->updateContent();
-    else DTLayer::get()->specialStrings["s0"]->updateContent();
+    if (sessionNum == std::nullopt) DTLayer::get()->m_specialStrings["general"]->updateContent();
+    else DTLayer::get()->m_specialStrings["s0"]->updateContent();
 }
 
 void ModifyOptions::removeInvalidRuns(CCObject*) {
     std::optional<int> sessionNum = std::nullopt;
-    if (sessLvlSwitcher->getCurrentOptionIndex() == 1)
-        sessionNum = sessionSelector->getCurrentCount();
+    if (m_sessLvlSwitcher->getCurrentOptionIndex() == 1)
+        sessionNum = m_sessionSelector->getCurrentCount();
 
-    auto togglerState = runF0Toggler->isToggled();
+    auto togglerState = m_runF0Toggler->isToggled();
 
     auto task = arc::spawn(DTLayer::get()->getTFor<Deaths>([togglerState](GeneralData const& data) {
-        return togglerState ? data.runs.toLegacyDeaths() : data.deaths.toLegacyDeaths();
+        return togglerState ? data.m_runs.toLegacyDeaths() : data.m_deaths.toLegacyDeaths();
     },
     [](auto const& a, auto const& b) {
         auto map = a;
@@ -880,14 +884,14 @@ void ModifyOptions::removeInvalidRuns(CCObject*) {
         if (splitRes.isErr()) continue;
         auto split = splitRes.unwrap();
 
-        if (split.start == std::nullopt) from0Maybe = true;
+        if (split.m_start == std::nullopt) from0Maybe = true;
 
 
-        if (split.start.has_value() && ((split.start.value() < 0 || split.start.value() > 100) || (split.end < 0 || split.end > 100))) {
+        if (split.m_start.has_value() && ((split.m_start.value() < 0 || split.m_start.value() > 100) || (split.m_end < 0 || split.m_end > 100))) {
             runs.push_back({split, count});
             continue;
         }
-        else if (!split.start.has_value() && split.end < 0 || split.end > 100) {
+        else if (!split.m_start.has_value() && split.m_end < 0 || split.m_end > 100) {
             runs.push_back({split, count});
             continue;
         }
@@ -896,15 +900,15 @@ void ModifyOptions::removeInvalidRuns(CCObject*) {
     for (const auto& [run, deathCount] : runs)
     {
         if (from0Maybe) {
-            DTLayer::get()->modifyRun(run.end, -deathCount, sessionNum);
+            DTLayer::get()->modifyRun(run.m_end, -deathCount, sessionNum);
         }
         else {
-            DTLayer::get()->modifyRun(run.start.value_or(-1), run.end, -deathCount, sessionNum);
+            DTLayer::get()->modifyRun(run.m_start.value_or(-1), run.m_end, -deathCount, sessionNum);
         }
     }
     
-    if (sessionNum == std::nullopt) DTLayer::get()->specialStrings["runs"]->updateContent();
-    else DTLayer::get()->specialStrings["sruns"]->updateContent();
-    if (sessionNum == std::nullopt) DTLayer::get()->specialStrings["general"]->updateContent();
-    else DTLayer::get()->specialStrings["s0"]->updateContent();
+    if (sessionNum == std::nullopt) DTLayer::get()->m_specialStrings["runs"]->updateContent();
+    else DTLayer::get()->m_specialStrings["sruns"]->updateContent();
+    if (sessionNum == std::nullopt) DTLayer::get()->m_specialStrings["general"]->updateContent();
+    else DTLayer::get()->m_specialStrings["s0"]->updateContent();
 }

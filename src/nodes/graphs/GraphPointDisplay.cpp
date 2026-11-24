@@ -40,8 +40,9 @@ bool GraphPointDisplay::init() {
 }
 
 void GraphPointDisplay::setContent(std::string run, float ratePercent, DTGraphType type, ccColor3B graphInner, ccColor3B graphOuter) {
-    auto setFittedText = [this](geode::Label* label, const std::string& text, float baseScale) {
-        label->setString(text.c_str());
+    auto setFittedText = [this](geode::Label* label, std::string_view text, float baseScale) {
+        auto ownedText = std::string(text);
+        label->setString(ownedText.c_str());
         label->setScale(baseScale);
         const float maxWidth = this->getContentWidth() - 8;
         if (label->getScaledContentWidth() > maxWidth) {
@@ -53,10 +54,10 @@ void GraphPointDisplay::setContent(std::string run, float ratePercent, DTGraphTy
     auto runInfo = StatsManager::splitRunKey(run);
     if (runInfo.isErr())
         runSprFormatted = run;
-    else if (runInfo.unwrap().start == std::nullopt)
-        runSprFormatted = fmt::format("{}%", runInfo.unwrap().end);
+    else if (runInfo.unwrap().m_start == std::nullopt)
+        runSprFormatted = fmt::format("{}%", runInfo.unwrap().m_end);
     else
-        runSprFormatted = fmt::format("{}%-{}%", runInfo.unwrap().start.value(), runInfo.unwrap().end);
+        runSprFormatted = fmt::format("{}%-{}%", runInfo.unwrap().m_start.value(), runInfo.unwrap().m_end);
 
     setFittedText(m_percentLabel, runSprFormatted, .4f);
     m_percentLabel->setColor(graphOuter);

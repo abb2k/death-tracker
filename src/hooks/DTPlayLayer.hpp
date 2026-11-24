@@ -8,52 +8,52 @@ using namespace geode::prelude;
 class $modify(DTPlayLayer, PlayLayer) {
 public:
     struct Fields {
-        Session* prevSession = nullptr;
-        bool isSessionExpired = false;
-        bool hasRespawned = false;
-        Run currentRun;
+        Session* m_prevSession = nullptr;
+        bool m_isSessionExpired = false;
+        bool m_hasRespawned = false;
+        Run m_currentRun;
 
-        bool lastOneDied = false;
+        bool m_lastOneDied = false;
         
-        bool nolcip = false;
-        bool speedhack = false;
-        CCObject* disabledCheat = nullptr;
+        bool m_nolcip = false;
+        bool m_speedhack = false;
+        CCObject* m_disabledCheat = nullptr;
         
-        std::optional<std::chrono::steady_clock::time_point> speedhackCompare;
-        std::deque<double> realTimeHistory;
-        std::deque<double> gameTimeHistory;
-        double rollingRealSum = 0;
-        double rollingGameSum = 0;
-        double currentTimeWarp = 1;
+        std::optional<std::chrono::steady_clock::time_point> m_speedhackCompare;
+        std::deque<double> m_realTimeHistory;
+        std::deque<double> m_gameTimeHistory;
+        double m_rollingRealSum = 0;
+        double m_rollingGameSum = 0;
+        double m_currentTimeWarp = 1;
         
 
-        bool didJustPause = false;
-        PlaytimePair timePassedGeneral;
-        PlaytimePair timePassedDead;
-        PlaytimePair timePassedPaused;
-        std::optional<std::chrono::steady_clock::time_point> startTime;
+        bool m_didJustPause = false;
+        PlaytimePair m_timePassedGeneral;
+        PlaytimePair m_timePassedDead;
+        PlaytimePair m_timePassedPaused;
+        std::optional<std::chrono::steady_clock::time_point> m_startTime;
 
-        std::vector<double> fzeroToSave{};
-        std::vector<long long> fzeroEndTimestamps{};
-        std::vector<Run> runsToSave{};
+        std::vector<double> m_fzeroToSave{};
+        std::vector<long long> m_fzeroEndTimestamps{};
+        std::vector<Run> m_runsToSave{};
         
-        bool levelBeaten = false;
+        bool m_levelBeaten = false;
 
-        geode::comm::ListenerHandle gameExitListener;
+        geode::comm::ListenerHandle m_gameExitListener;
 
-        bool didGameStartThisFrame;
+        bool m_didGameStartThisFrame;
 
-        ListenerHandle saveDeleteHandle;
-        std::vector<CCNode*> overlayLabels;
-        ListenerHandle overlayLabelsChangedListener;
-        CCNode* overlayLabelsParent = nullptr;
-        std::string overlayLevelKey;
-        std::set<std::string> overlayLevelKeys;
-        GeneralData overlayLinkedData;
-        GeneralData overlaySessionData;
-        std::optional<LevelMetadata> preloadedMetadata = std::nullopt;
-        long long overlaySessionDate = 0;
-        bool overlayDataLoaded = false;
+        ListenerHandle m_saveDeleteHandle;
+        std::vector<CCNode*> m_overlayLabels;
+        ListenerHandle m_overlayLabelsChangedListener;
+        CCNode* m_overlayLabelsParent = nullptr;
+        std::string m_overlayLevelKey;
+        std::set<std::string> m_overlayLevelKeys;
+        GeneralData m_overlayLinkedData;
+        GeneralData m_overlaySessionData;
+        std::optional<LevelMetadata> m_preloadedMetadata = std::nullopt;
+        long long m_overlaySessionDate = 0;
+        bool m_overlayDataLoaded = false;
     };
 
 

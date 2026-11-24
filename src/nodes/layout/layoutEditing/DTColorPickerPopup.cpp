@@ -1,8 +1,14 @@
 #include "DTColorPickerPopup.hpp"
+
 #include <actions/CCGradientAction.hpp>
 
 #include <managers/AuthManager.hpp>
 #include <utils/RichTextKeys.hpp>
+
+#include <nodes/general/FloatingList.hpp>
+#include <nodes/general/SimpleToggler.hpp>
+
+#include <nodes/general/RichTextArea.hpp>
 
 DTColorPickerPopup* DTColorPickerPopup::create(CustomizationData const& data, bool isRGBA) {
     auto ret = new DTColorPickerPopup();
@@ -16,19 +22,19 @@ DTColorPickerPopup* DTColorPickerPopup::create(CustomizationData const& data, bo
 
 DTColorPickerPopup* DTColorPickerPopup::create(bool isRGBA) {
     CustomizationData data{};
-    data.color = cocos2d::ccColor4B{255, 255, 255, 255};
+    data.m_color = cocos2d::ccColor4B{255, 255, 255, 255};
     return DTColorPickerPopup::create(data, isRGBA);
 }
 
-DTColorPickerPopup* DTColorPickerPopup::create(cocos2d::ccColor3B const& color) {
+DTColorPickerPopup* DTColorPickerPopup::create(ccColor3B const& color) {
     CustomizationData data{};
-    data.color = cocos2d::ccColor4B{color.r, color.g, color.b, 255};
+    data.m_color = cocos2d::ccColor4B{color.r, color.g, color.b, 255};
     return DTColorPickerPopup::create(data, true);
 }
 
-DTColorPickerPopup* DTColorPickerPopup::create(cocos2d::ccColor4B const& color) {
+DTColorPickerPopup* DTColorPickerPopup::create(ccColor4B const& color) {
     CustomizationData data{};
-    data.color = color;
+    data.m_color = color;
     return DTColorPickerPopup::create(data, true);
 }
 
@@ -38,7 +44,7 @@ DTColorPickerPopup* DTColorPickerPopup::create(CustomizationData const& data) {
 
 bool DTColorPickerPopup::init(CustomizationData const& data, bool isRGBA) {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
-    if (!ColorPickPopup::init(data.color, isRGBA))
+    if (!ColorPickPopup::init(data.m_color, isRGBA))
         return false;
     
     m_normalContent = m_mainLayer->getChildByID("opacity-column");
@@ -48,10 +54,10 @@ bool DTColorPickerPopup::init(CustomizationData const& data, bool isRGBA) {
     m_normalContent->setTag(0);
 
     m_currentPage = static_cast<int>(Pages::Color);
-    m_gradientEnabled = data.gradientEnabled;
-    m_waveEnabled = data.waveEnabled;
-    createGradientPage(isRGBA, data.gradient);
-    createWavePage(data.wave);
+    m_gradientEnabled = data.m_gradientEnabled;
+    m_waveEnabled = data.m_waveEnabled;
+    createGradientPage(isRGBA, data.m_gradient);
+    createWavePage(data.m_wave);
 
     auto switcherBtnSpr = ButtonSprite::create("Color");
     switcherBtnSpr->setScale(.5f);
@@ -68,9 +74,9 @@ bool DTColorPickerPopup::init(CustomizationData const& data, bool isRGBA) {
     m_floatingList->setListOpenAnchor(ccp(.5f, 1));
     m_floatingList->setPositionY(-switcherBtn->getScaledContentHeight() / 2);
 
-    m_floatingList->addItem(FloatingListItem{.id = static_cast<int>(Pages::Color), .text = "Color"});
-    m_floatingList->addItem(FloatingListItem{.id = static_cast<int>(Pages::Gradient), .text = "Gradient"});
-    m_floatingList->addItem(FloatingListItem{.id = static_cast<int>(Pages::Wave), .text = "Wave"});
+    m_floatingList->addItem(FloatingListItem{.m_id = static_cast<int>(Pages::Color), .m_text = "Color"});
+    m_floatingList->addItem(FloatingListItem{.m_id = static_cast<int>(Pages::Gradient), .m_text = "Gradient"});
+    m_floatingList->addItem(FloatingListItem{.m_id = static_cast<int>(Pages::Wave), .m_text = "Wave"});
 
     this->setTitle("Modify Color");
 
@@ -79,7 +85,7 @@ bool DTColorPickerPopup::init(CustomizationData const& data, bool isRGBA) {
     m_floatingList->setCallback([&, switcherBtn](const int& id) {
         auto item = m_floatingList->getItemForID(id);
 
-        std::string newText = item.has_value() ? item.value().text : "Unknown Page";
+        std::string newText = item.has_value() ? item.value().m_text : "Unknown Page";
 
         auto switcherBtnSpr = ButtonSprite::create(newText.c_str());
         switcherBtnSpr->setScale(.5f);
@@ -115,7 +121,7 @@ bool DTColorPickerPopup::init(CustomizationData const& data, bool isRGBA) {
             }
         }
 
-        this->setTitle(item.has_value() ? fmt::format("Modify {}", item.value().text) : "Unknown Page");
+        this->setTitle(item.has_value() ? fmt::format("Modify {}", item.value().m_text) : "Unknown Page");
         m_gradientEnabledMenu->setVisible(id == static_cast<int>(Pages::Gradient));
         m_waveEnabledMenu->setVisible(id == static_cast<int>(Pages::Wave));
         updateGradientEnabledPosition();
@@ -163,10 +169,10 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
     if (!popupBg)
         return;
 
-    m_gradientColorA = data.colorA;
-    m_gradientColorB = data.colorB;
-    m_stagger = data.stagger;
-    m_duration = data.duration;
+    m_gradientColorA = data.m_colorA;
+    m_gradientColorB = data.m_colorB;
+    m_stagger = data.m_stagger;
+    m_duration = data.m_duration;
 
     m_originalGradientColorA = m_gradientColorA;
     m_originalGradientColorB = m_gradientColorB;
@@ -410,8 +416,8 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
     // picker
 
     m_gradientPickerA = CCControlColourPicker::colourPicker();
-    m_gradientPickerADelegate.popup = this;
-    m_gradientPickerADelegate.updatesColorA = true;
+    m_gradientPickerADelegate.m_popup = this;
+    m_gradientPickerADelegate.m_updatesColorA = true;
     m_gradientPickerA->setDelegate(&m_gradientPickerADelegate);
     m_gradientPickerA->setColorValue(to3B(m_gradientColorA));
     m_gradientPickerA->setScale(.6f);
@@ -421,8 +427,8 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
     m_gradientPage->addChildAtPosition(m_gradientPickerA, Anchor::TopRight, -m_gradientPickerA->getScaledContentSize() / 2 - ccp(15, 5));
 
     m_gradientPickerB = CCControlColourPicker::colourPicker();
-    m_gradientPickerBDelegate.popup = this;
-    m_gradientPickerBDelegate.updatesColorA = false;
+    m_gradientPickerBDelegate.m_popup = this;
+    m_gradientPickerBDelegate.m_updatesColorA = false;
     m_gradientPickerB->setDelegate(&m_gradientPickerBDelegate);
     m_gradientPickerB->setColorValue(to3B(m_gradientColorB));
     m_gradientPickerB->setScale(.6f);
@@ -432,11 +438,11 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
     m_gradientPickerB->setPosition(m_gradientPickerA->getPosition() - ccp(m_gradientPickerA->getScaledContentWidth() / 2 + m_gradientPickerB->getScaledContentWidth() / 2 + 25, 0));
     m_gradientPage->addChild(m_gradientPickerB);
 
-    auto rgbaNodeA = makeRGBA(m_gradientColorA, isRGBA, TAG_GRADIENT_A_COLOR_R_INPUT);
+    auto rgbaNodeA = makeRGBA(m_gradientColorA, isRGBA, m_TAG_GRADIENT_A_COLOR_R_INPUT);
     rgbaNodeA->setPosition(m_gradientPickerA->getPosition() - ccp(0, m_gradientPickerA->getScaledContentHeight() / 2 + rgbaNodeA->getScaledContentHeight() / 2));
     m_gradientPage->addChild(rgbaNodeA);
 
-    auto rgbaNodeB = makeRGBA(m_gradientColorB, isRGBA, TAG_GRADIENT_B_COLOR_R_INPUT);
+    auto rgbaNodeB = makeRGBA(m_gradientColorB, isRGBA, m_TAG_GRADIENT_B_COLOR_R_INPUT);
     rgbaNodeB->setPosition(m_gradientPickerB->getPosition() - ccp(0, m_gradientPickerB->getScaledContentHeight() / 2 + rgbaNodeB->getScaledContentHeight() / 2));
     m_gradientPage->addChild(rgbaNodeB);
 
@@ -470,17 +476,17 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
 
         auto num = numRes.unwrap();
 
-        m_duration = std::clamp(num, DURATION_LIMITS.x, DURATION_LIMITS.y);
+        m_duration = std::clamp(num, m_DURATION_LIMITS.x, m_DURATION_LIMITS.y);
 
         setGradient(m_gradientNewSquares, m_gradientColorA, m_gradientColorB);
         updateWavePreview();
 
         if (m_gradientChangedCallback) {
             GradientData data;
-            data.colorA = m_gradientColorA;
-            data.colorB = m_gradientColorB;
-            data.duration = m_duration;
-            data.stagger = m_stagger;
+            data.m_colorA = m_gradientColorA;
+            data.m_colorB = m_gradientColorB;
+            data.m_duration = m_duration;
+            data.m_stagger = m_stagger;
 
             m_gradientChangedCallback(data);
         }
@@ -519,17 +525,17 @@ void DTColorPickerPopup::createGradientPage(bool isRGBA, GradientData const& dat
             return;
 
         auto num = numRes.unwrap();
-        m_stagger = std::clamp(num, STAGGER_LIMITS.x, STAGGER_LIMITS.y);
+        m_stagger = std::clamp(num, m_STAGGER_LIMITS.x, m_STAGGER_LIMITS.y);
 
         setGradient(m_gradientNewSquares, m_gradientColorA, m_gradientColorB);
         updateWavePreview();
 
         if (m_gradientChangedCallback) {
             GradientData data;
-            data.colorA = m_gradientColorA;
-            data.colorB = m_gradientColorB;
-            data.duration = m_duration;
-            data.stagger = m_stagger;
+            data.m_colorA = m_gradientColorA;
+            data.m_colorB = m_gradientColorB;
+            data.m_duration = m_duration;
+            data.m_stagger = m_stagger;
 
             m_gradientChangedCallback(data);
         }
@@ -578,31 +584,31 @@ void DTColorPickerPopup::updateGradientColorA(cocos2d::ccColor3B color, bool doU
     }
     setGradient(m_gradientNewSquares, m_gradientColorA, m_gradientColorB);
 
-    if (m_gradientInputs.count(TAG_GRADIENT_A_COLOR_R_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_A_COLOR_R_INPUT])->setString(std::to_string(m_gradientColorA.r));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_A_COLOR_R_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_A_COLOR_R_INPUT])->setString(std::to_string(m_gradientColorA.r));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_A_COLOR_G_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_A_COLOR_G_INPUT])->setString(std::to_string(m_gradientColorA.g));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_A_COLOR_G_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_A_COLOR_G_INPUT])->setString(std::to_string(m_gradientColorA.g));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_A_COLOR_B_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_A_COLOR_B_INPUT])->setString(std::to_string(m_gradientColorA.b));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_A_COLOR_B_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_A_COLOR_B_INPUT])->setString(std::to_string(m_gradientColorA.b));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_A_COLOR_A_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_A_COLOR_A_INPUT])->setString(std::to_string(m_gradientColorA.a));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_A_COLOR_A_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_A_COLOR_A_INPUT])->setString(std::to_string(m_gradientColorA.a));
     }
-    if (m_gradientOpacitySliders.count(TAG_GRADIENT_A_COLOR_A_INPUT)) {
-        m_gradientOpacitySliders[TAG_GRADIENT_A_COLOR_A_INPUT]->setValue(m_gradientColorA.a / 255.f);
+    if (m_gradientOpacitySliders.count(m_TAG_GRADIENT_A_COLOR_A_INPUT)) {
+        m_gradientOpacitySliders[m_TAG_GRADIENT_A_COLOR_A_INPUT]->setValue(m_gradientColorA.a / 255.f);
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_A_COLOR_HEX_INPUT) && doUpdateHexInput) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_A_COLOR_HEX_INPUT])->setString(cc3bToHexString(to3B(m_gradientColorA)));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_A_COLOR_HEX_INPUT) && doUpdateHexInput) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_A_COLOR_HEX_INPUT])->setString(cc3bToHexString(to3B(m_gradientColorA)));
     }
 
     if (m_gradientChangedCallback) {
         GradientData data;
-        data.colorA = m_gradientColorA;
-        data.colorB = m_gradientColorB;
-        data.duration = m_duration;
-        data.stagger = m_stagger;
+        data.m_colorA = m_gradientColorA;
+        data.m_colorB = m_gradientColorB;
+        data.m_duration = m_duration;
+        data.m_stagger = m_stagger;
 
         m_gradientChangedCallback(data);
     }
@@ -626,31 +632,31 @@ void DTColorPickerPopup::updateGradientColorB(cocos2d::ccColor3B color, bool doU
     }
     setGradient(m_gradientNewSquares, m_gradientColorA, m_gradientColorB);
 
-    if (m_gradientInputs.count(TAG_GRADIENT_B_COLOR_R_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_B_COLOR_R_INPUT])->setString(std::to_string(m_gradientColorB.r));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_B_COLOR_R_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_B_COLOR_R_INPUT])->setString(std::to_string(m_gradientColorB.r));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_B_COLOR_G_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_B_COLOR_G_INPUT])->setString(std::to_string(m_gradientColorB.g));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_B_COLOR_G_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_B_COLOR_G_INPUT])->setString(std::to_string(m_gradientColorB.g));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_B_COLOR_B_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_B_COLOR_B_INPUT])->setString(std::to_string(m_gradientColorB.b));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_B_COLOR_B_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_B_COLOR_B_INPUT])->setString(std::to_string(m_gradientColorB.b));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_B_COLOR_A_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_B_COLOR_A_INPUT])->setString(std::to_string(m_gradientColorB.a));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_B_COLOR_A_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_B_COLOR_A_INPUT])->setString(std::to_string(m_gradientColorB.a));
     }
-    if (m_gradientOpacitySliders.count(TAG_GRADIENT_B_COLOR_A_INPUT)) {
-        m_gradientOpacitySliders[TAG_GRADIENT_B_COLOR_A_INPUT]->setValue(m_gradientColorB.a / 255.f);
+    if (m_gradientOpacitySliders.count(m_TAG_GRADIENT_B_COLOR_A_INPUT)) {
+        m_gradientOpacitySliders[m_TAG_GRADIENT_B_COLOR_A_INPUT]->setValue(m_gradientColorB.a / 255.f);
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_B_COLOR_HEX_INPUT) && doUpdateHexInput) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_B_COLOR_HEX_INPUT])->setString(cc3bToHexString(to3B(m_gradientColorB)));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_B_COLOR_HEX_INPUT) && doUpdateHexInput) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_B_COLOR_HEX_INPUT])->setString(cc3bToHexString(to3B(m_gradientColorB)));
     }
 
     if (m_gradientChangedCallback) {
         GradientData data;
-        data.colorA = m_gradientColorA;
-        data.colorB = m_gradientColorB;
-        data.duration = m_duration;
-        data.stagger = m_stagger;
+        data.m_colorA = m_gradientColorA;
+        data.m_colorB = m_gradientColorB;
+        data.m_duration = m_duration;
+        data.m_stagger = m_stagger;
 
         m_gradientChangedCallback(data);
     }
@@ -665,20 +671,20 @@ void DTColorPickerPopup::onGradientResetA(cocos2d::CCObject*) {
         m_gradientPickerA->setColorValue(to3B(m_originalGradientColorA));
     }
 
-    if (m_gradientInputs.count(TAG_GRADIENT_A_COLOR_R_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_A_COLOR_R_INPUT])->setString(std::to_string(m_originalGradientColorA.r));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_A_COLOR_R_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_A_COLOR_R_INPUT])->setString(std::to_string(m_originalGradientColorA.r));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_A_COLOR_G_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_A_COLOR_G_INPUT])->setString(std::to_string(m_originalGradientColorA.g));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_A_COLOR_G_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_A_COLOR_G_INPUT])->setString(std::to_string(m_originalGradientColorA.g));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_A_COLOR_B_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_A_COLOR_B_INPUT])->setString(std::to_string(m_originalGradientColorA.b));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_A_COLOR_B_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_A_COLOR_B_INPUT])->setString(std::to_string(m_originalGradientColorA.b));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_A_COLOR_A_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_A_COLOR_A_INPUT])->setString(std::to_string(m_originalGradientColorA.a));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_A_COLOR_A_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_A_COLOR_A_INPUT])->setString(std::to_string(m_originalGradientColorA.a));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_A_COLOR_HEX_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_A_COLOR_HEX_INPUT])->setString(cc3bToHexString(to3B(m_originalGradientColorA)));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_A_COLOR_HEX_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_A_COLOR_HEX_INPUT])->setString(cc3bToHexString(to3B(m_originalGradientColorA)));
     }
 }
 
@@ -689,20 +695,20 @@ void DTColorPickerPopup::onGradientResetB(cocos2d::CCObject*) {
         m_gradientPickerB->setColorValue(to3B(m_originalGradientColorB));
     }
 
-    if (m_gradientInputs.count(TAG_GRADIENT_B_COLOR_R_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_B_COLOR_R_INPUT])->setString(std::to_string(m_originalGradientColorB.r));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_B_COLOR_R_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_B_COLOR_R_INPUT])->setString(std::to_string(m_originalGradientColorB.r));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_B_COLOR_G_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_B_COLOR_G_INPUT])->setString(std::to_string(m_originalGradientColorB.g));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_B_COLOR_G_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_B_COLOR_G_INPUT])->setString(std::to_string(m_originalGradientColorB.g));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_B_COLOR_B_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_B_COLOR_B_INPUT])->setString(std::to_string(m_originalGradientColorB.b));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_B_COLOR_B_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_B_COLOR_B_INPUT])->setString(std::to_string(m_originalGradientColorB.b));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_B_COLOR_A_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_B_COLOR_A_INPUT])->setString(std::to_string(m_originalGradientColorB.a));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_B_COLOR_A_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_B_COLOR_A_INPUT])->setString(std::to_string(m_originalGradientColorB.a));
     }
-    if (m_gradientInputs.count(TAG_GRADIENT_B_COLOR_HEX_INPUT)) {
-        std::get<0>(m_gradientInputs[TAG_GRADIENT_B_COLOR_HEX_INPUT])->setString(cc3bToHexString(to3B(m_originalGradientColorB)));
+    if (m_gradientInputs.count(m_TAG_GRADIENT_B_COLOR_HEX_INPUT)) {
+        std::get<0>(m_gradientInputs[m_TAG_GRADIENT_B_COLOR_HEX_INPUT])->setString(cc3bToHexString(to3B(m_originalGradientColorB)));
     }
 }
 
@@ -711,11 +717,11 @@ void DTColorPickerPopup::colorValueChanged(cocos2d::ccColor3B color) {
 }
 
 void DTColorPickerPopup::opacitySliderAChanged(cocos2d::CCObject*) {
-    updateGradientOpacity(TAG_GRADIENT_A_COLOR_A_INPUT);
+    updateGradientOpacity(m_TAG_GRADIENT_A_COLOR_A_INPUT);
 }
 
 void DTColorPickerPopup::opacitySliderBChanged(cocos2d::CCObject*) {
-    updateGradientOpacity(TAG_GRADIENT_B_COLOR_A_INPUT);
+    updateGradientOpacity(m_TAG_GRADIENT_B_COLOR_A_INPUT);
 }
 
 void DTColorPickerPopup::updateGradientOpacity(int tag) {
@@ -726,20 +732,20 @@ void DTColorPickerPopup::updateGradientOpacity(int tag) {
     auto color = std::get<1>(input->second);
     color->a = static_cast<GLubyte>(std::lround(slider->second->getValue() * 255.f));
 
-    if (tag == TAG_GRADIENT_A_COLOR_A_INPUT) {
+    if (tag == m_TAG_GRADIENT_A_COLOR_A_INPUT) {
         updateGradientColorA(to3B(*color));
-    } else if (tag == TAG_GRADIENT_B_COLOR_A_INPUT) {
+    } else if (tag == m_TAG_GRADIENT_B_COLOR_A_INPUT) {
         updateGradientColorB(to3B(*color));
     }
 }
 
 void DTColorPickerPopup::GradientColorPickerDelegate::colorValueChanged(cocos2d::ccColor3B color) {
-    if (!popup) return;
+    if (!m_popup) return;
 
-    if (updatesColorA) {
-        popup->updateGradientColorA(color);
+    if (m_updatesColorA) {
+        m_popup->updateGradientColorA(color);
     } else {
-        popup->updateGradientColorB(color);
+        m_popup->updateGradientColorB(color);
     }
 }
 
@@ -956,7 +962,7 @@ CCNode* DTColorPickerPopup::makeRGBA(ccColor4B& color, bool isRGBA, int tag) {
 
         auto opacitySlider = Slider::create(
             this,
-            tag == TAG_GRADIENT_A_COLOR_R_INPUT
+            tag == m_TAG_GRADIENT_A_COLOR_R_INPUT
                 ? menu_selector(DTColorPickerPopup::opacitySliderAChanged)
                 : menu_selector(DTColorPickerPopup::opacitySliderBChanged),
             .3f
@@ -1011,9 +1017,9 @@ void DTColorPickerPopup::textChanged(TextInput* input) {
                 colorPtr->g = color.unwrap().g;
                 colorPtr->b = color.unwrap().b;
 
-                if (input->getTag() >= TAG_GRADIENT_A_COLOR_R_INPUT && input->getTag() <= TAG_GRADIENT_A_COLOR_A_INPUT) {
+                if (input->getTag() >= m_TAG_GRADIENT_A_COLOR_R_INPUT && input->getTag() <= m_TAG_GRADIENT_A_COLOR_A_INPUT) {
                     updateGradientColorA(to3B(*colorPtr), false);
-                } else if (input->getTag() >= TAG_GRADIENT_B_COLOR_R_INPUT && input->getTag() <= TAG_GRADIENT_B_COLOR_A_INPUT) {
+                } else if (input->getTag() >= m_TAG_GRADIENT_B_COLOR_R_INPUT && input->getTag() <= m_TAG_GRADIENT_B_COLOR_A_INPUT) {
                     updateGradientColorB(to3B(*colorPtr), false);
                 }
             }
@@ -1037,9 +1043,9 @@ void DTColorPickerPopup::textChanged(TextInput* input) {
             if (res) colorPtr->b = std::clamp(res.unwrap(), 0u, 255u);
         }
 
-        if (input->getTag() >= TAG_GRADIENT_A_COLOR_R_INPUT && input->getTag() <= TAG_GRADIENT_A_COLOR_A_INPUT) {
+        if (input->getTag() >= m_TAG_GRADIENT_A_COLOR_R_INPUT && input->getTag() <= m_TAG_GRADIENT_A_COLOR_A_INPUT) {
             updateGradientColorA(to3B(*colorPtr));
-        } else if (input->getTag() >= TAG_GRADIENT_B_COLOR_R_INPUT && input->getTag() <= TAG_GRADIENT_B_COLOR_A_INPUT) {
+        } else if (input->getTag() >= m_TAG_GRADIENT_B_COLOR_R_INPUT && input->getTag() <= m_TAG_GRADIENT_B_COLOR_A_INPUT) {
             updateGradientColorB(to3B(*colorPtr));
         }
     }
@@ -1090,10 +1096,10 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
         return;
 
     m_waveData = data;
-    m_waveData.speed = std::clamp(m_waveData.speed, WAVE_SPEED_LIMITS.x, WAVE_SPEED_LIMITS.y);
-    m_waveData.distanceY = std::clamp(m_waveData.distanceY, WAVE_DISTANCE_LIMITS.x, WAVE_DISTANCE_LIMITS.y);
-    m_waveData.distanceX = std::clamp(m_waveData.distanceX, WAVE_DISTANCE_LIMITS.x, WAVE_DISTANCE_LIMITS.y);
-    m_waveData.offsetPerIndex = std::clamp(m_waveData.offsetPerIndex, WAVE_OFFSET_LIMITS.x, WAVE_OFFSET_LIMITS.y);
+    m_waveData.m_speed = std::clamp(m_waveData.m_speed, m_WAVE_SPEED_LIMITS.x, m_WAVE_SPEED_LIMITS.y);
+    m_waveData.m_distanceY = std::clamp(m_waveData.m_distanceY, m_WAVE_DISTANCE_LIMITS.x, m_WAVE_DISTANCE_LIMITS.y);
+    m_waveData.m_distanceX = std::clamp(m_waveData.m_distanceX, m_WAVE_DISTANCE_LIMITS.x, m_WAVE_DISTANCE_LIMITS.y);
+    m_waveData.m_offsetPerIndex = std::clamp(m_waveData.m_offsetPerIndex, m_WAVE_OFFSET_LIMITS.x, m_WAVE_OFFSET_LIMITS.y);
 
     m_wavePage = CCNode::create();
     m_wavePage->setID("wave-page");
@@ -1238,19 +1244,19 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
     auto timeInput = TextInput::create(120.f, "time");
     timeInput->setScale(.7f);
     timeInput->setCallback([&](std::string const& value) {
-        waveInputChanged(TAG_WAVE_SPEED, value);
+        waveInputChanged(m_TAG_WAVE_SPEED, value);
     });
-    timeInput->setString(fmt::format("{:.2f}", m_waveData.speed));
+    timeInput->setString(fmt::format("{:.2f}", m_waveData.m_speed));
     timeInput->setCommonFilter(CommonFilter::Float);
     timeInput->setID("time-input");
-    m_waveInputs[TAG_WAVE_SPEED] = timeInput;
+    m_waveInputs[m_TAG_WAVE_SPEED] = timeInput;
     timeColumn->addChild(timeInput);
 
     auto timeSlider = Slider::create(this, menu_selector(DTColorPickerPopup::waveSliderChanged), .5f);
     timeSlider->setContentSize({0, 0});
     timeSlider->setID("time-slider");
-    timeSlider->setTag(TAG_WAVE_SPEED);
-    timeSlider->setValue((m_waveData.speed - WAVE_SPEED_LIMITS.x) / (WAVE_SPEED_LIMITS.y - WAVE_SPEED_LIMITS.x));
+    timeSlider->setTag(m_TAG_WAVE_SPEED);
+    timeSlider->setValue((m_waveData.m_speed - m_WAVE_SPEED_LIMITS.x) / (m_WAVE_SPEED_LIMITS.y - m_WAVE_SPEED_LIMITS.x));
 
     auto timeSliderWrapper = CCNode::create();
     timeSliderWrapper->setContentSize(sliderWrapperSize);
@@ -1258,7 +1264,7 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
     timeSliderWrapper->addChild(timeSlider);
     timeColumn->addChild(timeSliderWrapper);
 
-    m_waveSliders[TAG_WAVE_SPEED] = timeSlider;
+    m_waveSliders[m_TAG_WAVE_SPEED] = timeSlider;
 
     timeColumn->updateLayout();
 
@@ -1286,19 +1292,19 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
     auto distanceYInput = TextInput::create(120.f, "distance-y");
     distanceYInput->setScale(.7f);
     distanceYInput->setCallback([&](std::string const& value) {
-        waveInputChanged(TAG_WAVE_DISTANCE_Y, value);
+        waveInputChanged(m_TAG_WAVE_DISTANCE_Y, value);
     });
-    distanceYInput->setString(fmt::format("{:.2f}", m_waveData.distanceY));
+    distanceYInput->setString(fmt::format("{:.2f}", m_waveData.m_distanceY));
     distanceYInput->setCommonFilter(CommonFilter::Float);
     distanceYInput->setID("distance-y-input");
-    m_waveInputs[TAG_WAVE_DISTANCE_Y] = distanceYInput;
+    m_waveInputs[m_TAG_WAVE_DISTANCE_Y] = distanceYInput;
     distanceYColumn->addChild(distanceYInput);
 
     auto distanceYSlider = Slider::create(this, menu_selector(DTColorPickerPopup::waveSliderChanged), .5f);
     distanceYSlider->setContentSize({0, 0});
     distanceYSlider->setID("distance-y-slider");
-    distanceYSlider->setTag(TAG_WAVE_DISTANCE_Y);
-    distanceYSlider->setValue((m_waveData.distanceY - WAVE_DISTANCE_LIMITS.x) / (WAVE_DISTANCE_LIMITS.y - WAVE_DISTANCE_LIMITS.x));
+    distanceYSlider->setTag(m_TAG_WAVE_DISTANCE_Y);
+    distanceYSlider->setValue((m_waveData.m_distanceY - m_WAVE_DISTANCE_LIMITS.x) / (m_WAVE_DISTANCE_LIMITS.y - m_WAVE_DISTANCE_LIMITS.x));
     
     auto distanceYSliderWrapper = CCNode::create();
     distanceYSliderWrapper->setContentSize(sliderWrapperSize);
@@ -1306,7 +1312,7 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
     distanceYSlider->setPosition(distanceYSliderWrapper->getContentSize() / 2);
     distanceYColumn->addChild(distanceYSliderWrapper);
 
-    m_waveSliders[TAG_WAVE_DISTANCE_Y] = distanceYSlider;
+    m_waveSliders[m_TAG_WAVE_DISTANCE_Y] = distanceYSlider;
 
     distanceYColumn->updateLayout();
 
@@ -1334,19 +1340,19 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
     auto distanceXInput = TextInput::create(120.f, "distance-x");
     distanceXInput->setScale(.7f);
     distanceXInput->setCallback([&](std::string const& value) {
-        waveInputChanged(TAG_WAVE_DISTANCE_X, value);
+        waveInputChanged(m_TAG_WAVE_DISTANCE_X, value);
     });
-    distanceXInput->setString(fmt::format("{:.2f}", m_waveData.distanceX));
+    distanceXInput->setString(fmt::format("{:.2f}", m_waveData.m_distanceX));
     distanceXInput->setCommonFilter(CommonFilter::Float);
     distanceXInput->setID("distance-x-input");
-    m_waveInputs[TAG_WAVE_DISTANCE_X] = distanceXInput;
+    m_waveInputs[m_TAG_WAVE_DISTANCE_X] = distanceXInput;
     distanceXColumn->addChild(distanceXInput);
 
     auto distanceXSlider = Slider::create(this, menu_selector(DTColorPickerPopup::waveSliderChanged), .5f);
     distanceXSlider->setContentSize({0, 0});
     distanceXSlider->setID("distance-x-slider");
-    distanceXSlider->setTag(TAG_WAVE_DISTANCE_X);
-    distanceXSlider->setValue((m_waveData.distanceX - WAVE_DISTANCE_LIMITS.x) / (WAVE_DISTANCE_LIMITS.y - WAVE_DISTANCE_LIMITS.x));
+    distanceXSlider->setTag(m_TAG_WAVE_DISTANCE_X);
+    distanceXSlider->setValue((m_waveData.m_distanceX - m_WAVE_DISTANCE_LIMITS.x) / (m_WAVE_DISTANCE_LIMITS.y - m_WAVE_DISTANCE_LIMITS.x));
 
     auto distanceXSliderWrapper = CCNode::create();
     distanceXSliderWrapper->setContentSize(sliderWrapperSize);
@@ -1354,7 +1360,7 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
     distanceXSlider->setPosition(distanceXSliderWrapper->getContentSize() / 2);
     distanceXColumn->addChild(distanceXSliderWrapper);
 
-    m_waveSliders[TAG_WAVE_DISTANCE_X] = distanceXSlider;
+    m_waveSliders[m_TAG_WAVE_DISTANCE_X] = distanceXSlider;
 
     distanceXColumn->updateLayout();
 
@@ -1382,18 +1388,18 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
     auto offsetInput = TextInput::create(120.f, "offset");
     offsetInput->setScale(.7f);
     offsetInput->setCallback([&](std::string const& value) {
-        waveInputChanged(TAG_WAVE_OFFSET, value);
+        waveInputChanged(m_TAG_WAVE_OFFSET, value);
     });
-    offsetInput->setString(fmt::format("{:.2f}", m_waveData.offsetPerIndex));
+    offsetInput->setString(fmt::format("{:.2f}", m_waveData.m_offsetPerIndex));
     offsetInput->setCommonFilter(CommonFilter::Float);
     offsetInput->setID("offset-input");
-    m_waveInputs[TAG_WAVE_OFFSET] = offsetInput;
+    m_waveInputs[m_TAG_WAVE_OFFSET] = offsetInput;
     offsetColumn->addChild(offsetInput);
 
     auto offsetSlider = Slider::create(this, menu_selector(DTColorPickerPopup::waveSliderChanged), .5f);
     offsetSlider->setID("offset-slider");
-    offsetSlider->setTag(TAG_WAVE_OFFSET);
-    offsetSlider->setValue((m_waveData.offsetPerIndex - WAVE_OFFSET_LIMITS.x) / (WAVE_OFFSET_LIMITS.y - WAVE_OFFSET_LIMITS.x));
+    offsetSlider->setTag(m_TAG_WAVE_OFFSET);
+    offsetSlider->setValue((m_waveData.m_offsetPerIndex - m_WAVE_OFFSET_LIMITS.x) / (m_WAVE_OFFSET_LIMITS.y - m_WAVE_OFFSET_LIMITS.x));
 
     auto offsetSliderWrapper = CCNode::create();
     offsetSliderWrapper->setContentSize(sliderWrapperSize);
@@ -1401,7 +1407,7 @@ void DTColorPickerPopup::createWavePage(WaveData const& data) {
     offsetSliderWrapper->addChild(offsetSlider);
     offsetColumn->addChild(offsetSliderWrapper);
 
-    m_waveSliders[TAG_WAVE_OFFSET] = offsetSlider;
+    m_waveSliders[m_TAG_WAVE_OFFSET] = offsetSlider;
 
     offsetColumn->updateLayout();
 
@@ -1430,12 +1436,12 @@ void DTColorPickerPopup::waveSliderChanged(cocos2d::CCObject* sender) {
 
     CCPoint limits;
     auto tag = slider->getTag();
-    if (tag == TAG_WAVE_SPEED)
-        limits = WAVE_SPEED_LIMITS;
-    else if (tag == TAG_WAVE_DISTANCE_Y || tag == TAG_WAVE_DISTANCE_X)
-        limits = WAVE_DISTANCE_LIMITS;
-    else if (tag == TAG_WAVE_OFFSET)
-        limits = WAVE_OFFSET_LIMITS;
+    if (tag == m_TAG_WAVE_SPEED)
+        limits = m_WAVE_SPEED_LIMITS;
+    else if (tag == m_TAG_WAVE_DISTANCE_Y || tag == m_TAG_WAVE_DISTANCE_X)
+        limits = m_WAVE_DISTANCE_LIMITS;
+    else if (tag == m_TAG_WAVE_OFFSET)
+        limits = m_WAVE_OFFSET_LIMITS;
     else
         return;
 
@@ -1447,21 +1453,21 @@ void DTColorPickerPopup::setWaveValue(int tag, float value, bool updateInput) {
 
     CCPoint limits;
     float* waveValue = nullptr;
-    if (tag == TAG_WAVE_SPEED) {
-        limits = WAVE_SPEED_LIMITS;
-        waveValue = &m_waveData.speed;
+    if (tag == m_TAG_WAVE_SPEED) {
+        limits = m_WAVE_SPEED_LIMITS;
+        waveValue = &m_waveData.m_speed;
     }
-    else if (tag == TAG_WAVE_DISTANCE_Y) {
-        limits = WAVE_DISTANCE_LIMITS;
-        waveValue = &m_waveData.distanceY;
+    else if (tag == m_TAG_WAVE_DISTANCE_Y) {
+        limits = m_WAVE_DISTANCE_LIMITS;
+        waveValue = &m_waveData.m_distanceY;
     }
-    else if (tag == TAG_WAVE_DISTANCE_X) {
-        limits = WAVE_DISTANCE_LIMITS;
-        waveValue = &m_waveData.distanceX;
+    else if (tag == m_TAG_WAVE_DISTANCE_X) {
+        limits = m_WAVE_DISTANCE_LIMITS;
+        waveValue = &m_waveData.m_distanceX;
     }
-    else if (tag == TAG_WAVE_OFFSET) {
-        limits = WAVE_OFFSET_LIMITS;
-        waveValue = &m_waveData.offsetPerIndex;
+    else if (tag == m_TAG_WAVE_OFFSET) {
+        limits = m_WAVE_OFFSET_LIMITS;
+        waveValue = &m_waveData.m_offsetPerIndex;
     }
     else {
         return;
@@ -1500,10 +1506,10 @@ void DTColorPickerPopup::updateWavePreview() {
 
     auto sample = fmt::format(
         "<wave={},{},{},{}>Wave Preview</wave>",
-        m_waveData.speed,
-        m_waveData.distanceY,
-        m_waveData.distanceX,
-        m_waveData.offsetPerIndex
+        m_waveData.m_speed,
+        m_waveData.m_distanceY,
+        m_waveData.m_distanceX,
+        m_waveData.m_offsetPerIndex
     );
 
     if (m_gradientEnabled && AuthManager::isDoner()) {

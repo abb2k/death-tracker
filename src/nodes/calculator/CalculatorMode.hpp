@@ -1,23 +1,20 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
-
 class CalculatorMode : public CCNode {
-    protected:
-        bool init(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate);
+public:
+    virtual std::string getName() const = 0;
+    virtual std::string getDescription() const = 0;
 
-        Function<void(std::string const&)> onVariablesChanged;
-        Function<void(std::string const&)> onCalculate;
-    public:
-        static CalculatorMode* create(CCSize const& size, Function<void(std::string const&)>&& onVariablesChanged, Function<void(std::string const&)>&& onCalculate);
+    virtual void calculate() = 0;
+    virtual void open() = 0;
+    virtual void close() = 0;
+protected:
+    bool init(CCSize size, Function<void(std::string const&)> onVariablesChanged, Function<void(std::string const&)> onCalculate);
 
-        virtual std::string getName() const {return "";}
-        virtual std::string getDescription() const {return "";}
+    CCSize m_size;
 
-        virtual void calculate() {}
-        virtual void open() {}
-        virtual void close() {}
+    Function<void(std::string const&)> m_onVariablesChanged;
+    Function<void(std::string const&)> m_onCalculate;
 };

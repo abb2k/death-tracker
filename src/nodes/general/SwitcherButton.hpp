@@ -1,34 +1,28 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-
 using namespace geode::prelude;
 
 class SwitcherButton : public CCMenuItemSpriteExtra {
-    protected:
-        bool init(CCSize size, CCScale9Sprite* bgSpr, const std::vector<std::string>& options);
-        
-    public:
-        static SwitcherButton* create(CCSize size, const std::string& spr, const std::vector<std::string>& options);
-        static SwitcherButton* createWithSpriteFrameName(CCSize size, const std::string& spr, const std::vector<std::string>& options);
+public:
+    static SwitcherButton* create(CCSize size, std::string_view spr, std::vector<std::string> options);
+    static SwitcherButton* createWithSpriteFrameName(CCSize size, std::string_view spr, std::vector<std::string> options);
 
-        void setOptionChangedCallback(Function<void(int)> callback);
+    void setOptionChangedCallback(Function<void(int)> callback);
 
-        int getCurrentOptionIndex() const{
-            return currentOption;
-        }
+    int getCurrentOptionIndex() const { return m_currentOption; }
 
-    private:
+private:
+    bool init(CCSize size, CCScale9Sprite* bgSpr, std::vector<std::string> options);
 
-        std::vector<std::string> options;
-        int currentOption = 0;
+    std::vector<std::string> m_options;
+    int m_currentOption = 0;
 
-        geode::Label* textLabel;
-        CCScale9Sprite* mySpr;
+    geode::Label* m_textLabel;
+    CCScale9Sprite* m_mySpr;
 
-        Function<void(int)> onOptionChanged = NULL;
+    Function<void(int)> m_onOptionChanged = NULL;
 
-        void onClicked(CCObject*);
+    void onClicked(CCObject*);
 
-        void setTextForCurrentOption();
+    void setTextForCurrentOption();
 };

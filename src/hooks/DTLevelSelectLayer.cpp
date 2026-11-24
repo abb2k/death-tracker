@@ -11,12 +11,12 @@ bool DTLevelSelectLayer::init(int page) {
     CCPoint robBtnPos = {0, 0};
 
     if (robBtnMenu) {
-        m_fields->robDTButton = static_cast<CCMenuItemSpriteExtra*>(robBtnMenu->getChildByID("death-tracker-button"));
+        m_fields->m_robDTButton = static_cast<CCMenuItemSpriteExtra*>(robBtnMenu->getChildByID("death-tracker-button"));
 
-        if (m_fields->robDTButton) {
-            robBtnPos = m_fields->robDTButton->getPosition();
-            m_fields->robDTButton->setVisible(false);
-            m_fields->robDTButton->setEnabled(false);
+        if (m_fields->m_robDTButton) {
+            robBtnPos = m_fields->m_robDTButton->getPosition();
+            m_fields->m_robDTButton->setVisible(false);
+            m_fields->m_robDTButton->setEnabled(false);
         }
 
         robBtnMenu->updateLayout();
@@ -28,20 +28,20 @@ bool DTLevelSelectLayer::init(int page) {
     s->addChild(s2);
     s->setScale(0.75f);
     s->setScale(0.8f);
-    m_fields->dtButton = CCMenuItemSpriteExtra::create(
+    m_fields->m_dtButton = CCMenuItemSpriteExtra::create(
         s,
         nullptr,
         this,
         menu_selector(DTLevelSelectLayer::openDTLayer)
     );
-    m_fields->dtButton->setID("dt-skull-button");
-    m_fields->dtButton->setZOrder(1);
-    m_fields->dtButton->setPosition(robBtnPos);
+    m_fields->m_dtButton->setID("dt-skull-button");
+    m_fields->m_dtButton->setZOrder(1);
+    m_fields->m_dtButton->setPosition(robBtnPos);
 
-    robBtnMenu->addChild(m_fields->dtButton);
+    robBtnMenu->addChild(m_fields->m_dtButton);
 
-    m_fields->dtButton->setVisible(getLevelForCurrentPage().has_value());
-    m_fields->dtButton->setEnabled(getLevelForCurrentPage().has_value());
+    m_fields->m_dtButton->setVisible(getLevelForCurrentPage().has_value());
+    m_fields->m_dtButton->setEnabled(getLevelForCurrentPage().has_value());
 
     return true;
 }
@@ -58,18 +58,18 @@ void DTLevelSelectLayer::openDTLayer(CCObject*) {
 void DTLevelSelectLayer::onNext(CCObject* sender) {
     LevelSelectLayer::onNext(sender);
 
-    m_fields->dtButton->setVisible(getLevelForCurrentPage().has_value());
-    m_fields->dtButton->setEnabled(getLevelForCurrentPage().has_value());
+    m_fields->m_dtButton->setVisible(getLevelForCurrentPage().has_value());
+    m_fields->m_dtButton->setEnabled(getLevelForCurrentPage().has_value());
 
-    m_fields->robDTButton->setVisible(false);
+    m_fields->m_robDTButton->setVisible(false);
 }
 
 void DTLevelSelectLayer::onPrev(CCObject* sender) {
     LevelSelectLayer::onPrev(sender);
-    m_fields->dtButton->setVisible(getLevelForCurrentPage().has_value());
-    m_fields->dtButton->setEnabled(getLevelForCurrentPage().has_value());
+    m_fields->m_dtButton->setVisible(getLevelForCurrentPage().has_value());
+    m_fields->m_dtButton->setEnabled(getLevelForCurrentPage().has_value());
 
-    m_fields->robDTButton->setVisible(false);
+    m_fields->m_robDTButton->setVisible(false);
 }
 
 std::optional<GJGameLevel*> DTLevelSelectLayer::getLevelForCurrentPage() {

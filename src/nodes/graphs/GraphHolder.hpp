@@ -27,13 +27,13 @@ public:
 
     void sendUpdateToGraphOfType(DTGraphCoverage const& coverage);
 
-    GraphPointDelegate* delegate;
+    GraphPointDelegate* m_delegate;
 
     void sendKeyStuff(bool up, enumKeyCodes key);
 
     std::vector<DTGraphNode*> getAllGraphNodes() const;
 
-    AdvancedScrollLayer* scrollLayer;
+    AdvancedScrollLayer* m_scrollLayer;
 
 private:
     bool init(CCSize scaling);
@@ -47,45 +47,45 @@ private:
 
     void update(float dt);
 
-    ccColor4B fillColor = {0, 0, 0, 120};
-    float outlineThickness = 0.2f;
-    ccColor4B outlineColor = { 124, 124, 124, 255};
+    ccColor4B m_fillColor = {0, 0, 0, 120};
+    float m_outlineThickness = 0.2f;
+    ccColor4B m_outlineColor = { 124, 124, 124, 255};
 
-    int labelEveryBase = 5;
-    int labelEvery;
+    int m_labelEveryBase = 5;
+    int m_labelEvery;
 
-    CCDrawNode* boldGridNode = nullptr;
-    ccColor4B boldGridColor = { 29, 29, 29, 255 };
+    CCDrawNode* m_boldGridNode = nullptr;
+    ccColor4B m_boldGridColor = { 29, 29, 29, 255 };
 
-    ccColor4B boldLineColor = {115, 115, 115, 255};
-    ccColor4B smallLineColor = {115, 115, 115, 100};
-    ccColor4B labelColor = { 202, 202, 202, 255};
+    ccColor4B m_boldLineColor = {115, 115, 115, 255};
+    ccColor4B m_smallLineColor = {115, 115, 115, 100};
+    ccColor4B m_labelColor = { 202, 202, 202, 255};
 
-    CCDrawNode* fillNode = nullptr;
-    CCDrawNode* outlineNode = nullptr;
-    CCDrawNode* coverageShadeNode = nullptr;
-    CCDrawNode* coverageLineNode = nullptr;
-    CCClippingNode* mask = nullptr;
+    CCDrawNode* m_fillNode = nullptr;
+    CCDrawNode* m_outlineNode = nullptr;
+    CCDrawNode* m_coverageShadeNode = nullptr;
+    CCDrawNode* m_coverageLineNode = nullptr;
+    CCClippingNode* m_mask = nullptr;
 
-    std::set<CCSprite*> smallLines{};
-    std::set<CCSprite*> boldLines{};
-    std::set<geode::Label*> labels{};
+    std::set<CCSprite*> m_smallLines{};
+    std::set<CCSprite*> m_boldLines{};
+    std::set<geode::Label*> m_labels{};
 
-    CCNode* LabelsContainer = nullptr;
-    CCNode* LabelsVerticalContainer = nullptr;
-    CCNode* LabelsHorizontalContainer = nullptr;
+    CCNode* m_LabelsContainer = nullptr;
+    CCNode* m_LabelsVerticalContainer = nullptr;
+    CCNode* m_LabelsHorizontalContainer = nullptr;
 
-    CCNode* graphsContainer = nullptr;
+    CCNode* m_graphsContainer = nullptr;
 
-    std::unordered_map<std::string, DTGraphNode*> allGraphs{};
+    std::unordered_map<std::string, DTGraphNode*> m_allGraphs{};
 
-    CCNode* graphContainer;
+    CCNode* m_graphContainer;
 
-    float prevZoom;
-    std::optional<std::pair<float, float>> coverageBounds = std::nullopt;
-    CCSize coverageGraphSize = {0, 0};
+    float m_prevZoom;
+    std::optional<std::pair<float, float>> m_coverageBounds = std::nullopt;
+    CCSize m_coverageGraphSize = {0, 0};
 
-    float labelMaskOffset = 8.5f;
+    float m_labelMaskOffset = 8.5f;
 
-    float inGraphOffset = 7.5f;
+    float m_inGraphOffset = 7.5f;
 };

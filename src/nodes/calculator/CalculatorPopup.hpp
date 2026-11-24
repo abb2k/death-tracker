@@ -1,40 +1,37 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-#include <nodes/general/SwitcherButton.hpp>
-
 #include <nodes/calculator/CalculatorMode.hpp>
 
 using namespace geode::prelude;
 
+class SwitcherButton;
+
 class CalculatorPopup : public Popup {
-    protected:
-        bool init() override;
+public:
+    static CalculatorPopup* create();
 
-    public:
-        static CalculatorPopup* create();
+private:
+    bool init() override;
 
-    private:
+    std::vector<CalculatorMode*> m_modes;
 
-        std::vector<CalculatorMode*> modes;
+    SwitcherButton* m_modeButton;
 
-        SwitcherButton* modeButton;
+    int m_currentMode;
 
-        int currentMode;
+    void onModeInfo(CCObject*);
 
-        void onModeInfo(CCObject*);
+    void varsChanged(std::string const& vars);
+    void onCalc(std::string const& calculation);
 
-        void varsChanged(std::string const& vars);
-        void onCalc(std::string const& calculation);
+    void addMode(CalculatorMode* mode);
 
-        void addMode(CalculatorMode* mode);
+    std::string m_currentVars;
+    std::optional<std::string> m_currentCalc = std::nullopt;
 
-        std::string currentVars;
-        std::optional<std::string> currentCalc = std::nullopt;
+    void updateText();
+    TextInput* m_calcBG;
 
-        void updateText();
-        TextInput* calcBG;
-
-        void onCalcBtn(CCObject*);
-        CCMenuItemSpriteExtra* calcBtn;
+    void onCalcBtn(CCObject*);
+    CCMenuItemSpriteExtra* m_calcBtn;
 };

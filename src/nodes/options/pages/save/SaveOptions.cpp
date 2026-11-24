@@ -41,7 +41,7 @@ bool SaveOptions::setup() {
     this->addChild(deleteBtn);
 
     auto deleteBtnLabel = geode::Label::create("Delete Save", "bigFont.fnt");
-    deleteBtnLabel->setLimitLabelWidth(size.width / 2 - deleteBtn->getContentWidth(), .45f);
+    deleteBtnLabel->setLimitLabelWidth(m_size.width / 2 - deleteBtn->getContentWidth(), .45f);
     deleteBtnLabel->setAnchorPoint({0, .5f});
     deleteBtnLabel->setPosition(deleteBtn->getPosition() + ccp(deleteBtn->getContentWidth() / 2 + 5, 0));
     this->addChild(deleteBtnLabel);
@@ -56,7 +56,7 @@ bool SaveOptions::setup() {
     this->addChild(openSaveBtn);
 
     auto openSaveBtnLabel = geode::Label::create("Open save directory", "bigFont.fnt");
-    openSaveBtnLabel->setLimitLabelWidth(size.width / 2 - openSaveBtn->getContentWidth(), .45f);
+    openSaveBtnLabel->setLimitLabelWidth(m_size.width / 2 - openSaveBtn->getContentWidth(), .45f);
     openSaveBtnLabel->setAnchorPoint({0, .5f});
     openSaveBtnLabel->setPosition(openSaveBtn->getPosition() + ccp(openSaveBtn->getContentWidth() / 2 + 5, 0));
     this->addChild(openSaveBtnLabel);
@@ -68,11 +68,11 @@ bool SaveOptions::setup() {
         this,
         menu_selector(SaveOptions::onBackup)
     );
-    backupBtn->setPosition({size.width / 2 + backupBtn->getContentWidth() / 2, size.height - backupBtn->getContentHeight() / 2});
+    backupBtn->setPosition({m_size.width / 2 + backupBtn->getContentWidth() / 2, m_size.height - backupBtn->getContentHeight() / 2});
     this->addChild(backupBtn);
 
     auto backupBtnLabel = geode::Label::create("Create Backup", "bigFont.fnt");
-    backupBtnLabel->setLimitLabelWidth(size.width / 2 - backupBtn->getContentWidth(), .6f);
+    backupBtnLabel->setLimitLabelWidth(m_size.width / 2 - backupBtn->getContentWidth(), .6f);
     backupBtnLabel->setAnchorPoint({0, .5f});
     backupBtnLabel->setPosition(backupBtn->getPosition() + ccp(backupBtn->getContentWidth() / 2 + 5, 0));
     this->addChild(backupBtnLabel);
@@ -81,46 +81,46 @@ bool SaveOptions::setup() {
         CCSprite::createWithSpriteFrameName("GJ_checkOff_001.png"),
         CCSprite::createWithSpriteFrameName("GJ_checkOn_001.png"),
         .6f,
-        DTLayer::get()->m_MyLevelStats.isOk() ? DTLayer::get()->m_MyLevelStats.unwrap().metadata.autoBackup : false
+        DTLayer::get()->m_MyLevelStats.isOk() ? DTLayer::get()->m_MyLevelStats.unwrap().m_metadata.m_autoBackup : false
     );
     autoBackupToggler->setCallback([&](bool toggled) {
         if (DTLayer::get()->m_MyLevelStats.isErr()) return;
 
         auto& stats = DTLayer::get()->m_MyLevelStats.unwrap();
-        stats.metadata.autoBackup = toggled;
-        (void)StatsManager::setMetadata(stats.metadata, stats.levelKey);
+        stats.m_metadata.m_autoBackup = toggled;
+        (void)StatsManager::setMetadata(stats.m_metadata, stats.m_levelKey);
     });
     autoBackupToggler->setPosition(backupBtn->getPosition() - ccp(0, backupBtn->getContentWidth() / 2 + autoBackupToggler->getContentWidth() / 2 + 5));
     this->addChild(autoBackupToggler);
 
     auto autoBackupsLabel = geode::Label::create("Auto Backups", "bigFont.fnt");
-    autoBackupsLabel->setLimitLabelWidth(size.width / 2 - autoBackupToggler->getContentWidth(), .6f);
+    autoBackupsLabel->setLimitLabelWidth(m_size.width / 2 - autoBackupToggler->getContentWidth(), .6f);
     autoBackupsLabel->setAnchorPoint({0, .5f});
     autoBackupsLabel->setPosition(autoBackupToggler->getPosition() + ccp(autoBackupToggler->getContentWidth() / 2 + 5, 0));
     this->addChild(autoBackupsLabel);
 
     auto backupsScrollLabel = geode::Label::create("Backups", "bigFont.fnt");
-    backupsScrollLabel->setLimitLabelWidth(size.width / 2, .6f);
+    backupsScrollLabel->setLimitLabelWidth(m_size.width / 2, .6f);
     backupsScrollLabel->setAlignment(geode::Label::Alignment::Center);
     backupsScrollLabel->setPosition({autoBackupsLabel->getPositionX() + autoBackupsLabel->getScaledContentWidth() / 2, autoBackupsLabel->getPositionY() - autoBackupsLabel->getContentHeight() / 2 - backupsScrollLabel->getContentHeight() / 2 - 5});
     this->addChild(backupsScrollLabel);
 
-    backupsScrollLayer = ScrollLayer::create({size.width / 2 - 10, backupsScrollLabel->getPositionY() - backupsScrollLabel->getContentHeight() / 2 - 5});
-    backupsScrollLayer->setPositionX(backupsScrollLabel->getPositionX());
-    backupsScrollLayer->setPositionY(5 + backupsScrollLayer->getContentHeight() / 2);
-    backupsScrollLayer->ignoreAnchorPointForPosition(false);
+    m_backupsScrollLayer = ScrollLayer::create({m_size.width / 2 - 10, backupsScrollLabel->getPositionY() - backupsScrollLabel->getContentHeight() / 2 - 5});
+    m_backupsScrollLayer->setPositionX(backupsScrollLabel->getPositionX());
+    m_backupsScrollLayer->setPositionY(5 + m_backupsScrollLayer->getContentHeight() / 2);
+    m_backupsScrollLayer->ignoreAnchorPointForPosition(false);
     auto backupsScrollBG = CCScale9Sprite::create("square02_small.png");
-    backupsScrollBG->setContentSize(backupsScrollLayer->getContentSize());
+    backupsScrollBG->setContentSize(m_backupsScrollLayer->getContentSize());
     backupsScrollBG->setZOrder(-1);
     backupsScrollBG->ignoreAnchorPointForPosition(true);
     backupsScrollBG->setID("bg");
-    backupsScrollLayer->addChild(backupsScrollBG);
-    backupsScrollLayer->m_contentLayer->setLayout(ColumnLayout::create()
-        ->setAutoGrowAxis(backupsScrollLayer->getContentHeight())
+    m_backupsScrollLayer->addChild(backupsScrollBG);
+    m_backupsScrollLayer->m_contentLayer->setLayout(ColumnLayout::create()
+        ->setAutoGrowAxis(m_backupsScrollLayer->getContentHeight())
         ->setAxisAlignment(AxisAlignment::End)
         ->setCrossAxisOverflow(false)
     );
-    this->addChild(backupsScrollLayer);
+    this->addChild(m_backupsScrollLayer);
 
     updateBackupsList();
 
@@ -131,17 +131,16 @@ bool SaveOptions::setup() {
         this,
         menu_selector(SaveOptions::onExport)
     );
-    exportBtn->setPosition({exportBtn->getContentWidth() / 2 + 5, size.height - exportBtn->getContentHeight() / 2});
+    exportBtn->setPosition({exportBtn->getContentWidth() / 2 + 5, m_size.height - exportBtn->getContentHeight() / 2});
     this->addChild(exportBtn);
 
     auto exportBtnLabel = geode::Label::create("Export Save", "bigFont.fnt");
-    exportBtnLabel->setLimitLabelWidth(size.width / 2 - exportBtn->getContentWidth(), .6f);
+    exportBtnLabel->setLimitLabelWidth(m_size.width / 2 - exportBtn->getContentWidth(), .6f);
     exportBtnLabel->setAnchorPoint({0, .5f});
     exportBtnLabel->setPosition(exportBtn->getPosition() + ccp(exportBtn->getContentWidth() / 2 + 5, 0));
     this->addChild(exportBtnLabel);
 
     auto importBtnSpr = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
-    // @geode-ignore(unknown-resource)
     auto importBtnSpr1 = CCSprite::createWithSpriteFrameName("geode.loader/install.png");
     importBtnSpr1->setPosition(importBtnSpr->getContentSize() / 2);
     importBtnSpr1->setScale(1.2f);
@@ -157,7 +156,7 @@ bool SaveOptions::setup() {
     this->addChild(importBtn);
 
     auto importBtnLabel = geode::Label::create("Import Save", "bigFont.fnt");
-    importBtnLabel->setLimitLabelWidth(size.width / 2 - importBtn->getContentWidth(), .6f);
+    importBtnLabel->setLimitLabelWidth(m_size.width / 2 - importBtn->getContentWidth(), .6f);
     importBtnLabel->setAnchorPoint({0, .5f});
     importBtnLabel->setPosition(importBtn->getPosition() + ccp(importBtn->getContentWidth() / 2 + 5, 0));
     this->addChild(importBtnLabel);
@@ -195,26 +194,26 @@ bool SaveOptions::setup() {
             ->joinHighlight(deleteBtnLabel)
             ->joinTransform(TutorialBoxPlacement::TBPLeft, .75f);
     });
-    saveOverallInfo->setPosition(size - saveOverallInfo->getScaledContentSize() / 2 + ccp(2, 2));
+    saveOverallInfo->setPosition(m_size - saveOverallInfo->getScaledContentSize() / 2 + ccp(2, 2));
     this->addChild(saveOverallInfo);
 
     auto saveBackupsInfo = TutorialButton::create(.75f, "save-backup", [&, backupsScrollLabel](DTTutorialLayer* tutorialLayer) {
         tutorialLayer->appendDialogue("Here you have a list of all your backups for this level", TutorialCharacterFace::TCFNormal)
             ->joinTransform(TutorialBoxPlacement::TBPBottomLeft, .65f)
             ->joinHighlight(backupsScrollLabel)
-            ->joinHighlight(backupsScrollLayer)
+            ->joinHighlight(m_backupsScrollLayer)
             ->appendDialogue("On each backup you have some info", TutorialCharacterFace::TCFNormalTilted);
-        for (const auto& backupCell : backupsScrollLayer->m_contentLayer->getChildrenExt<CCNode*>())
+        for (const auto& backupCell : m_backupsScrollLayer->m_contentLayer->getChildrenExt<CCNode*>())
         {
             tutorialLayer->joinHighlight(backupCell);
         }
         tutorialLayer->appendDialogue("A <cp>revert</c> button for <cr>overriding</c> your current save with the backup", TutorialCharacterFace::TCFNormal);
-        for (const auto& backupCell : backupsScrollLayer->m_contentLayer->getChildrenExt<CCNode*>())
+        for (const auto& backupCell : m_backupsScrollLayer->m_contentLayer->getChildrenExt<CCNode*>())
         {
             tutorialLayer->joinHighlight(backupCell->getChildByID("revert-btn"));
         }
         tutorialLayer->appendDialogue("And a <cr>trashcan</c> button for <cr>deleting</c> a backup!", TutorialCharacterFace::TCFHappy);
-        for (const auto& backupCell : backupsScrollLayer->m_contentLayer->getChildrenExt<CCNode*>())
+        for (const auto& backupCell : m_backupsScrollLayer->m_contentLayer->getChildrenExt<CCNode*>())
         {
             tutorialLayer->joinHighlight(backupCell->getChildByID("delete-btn"));
         }
@@ -225,12 +224,12 @@ bool SaveOptions::setup() {
     this->setEnabled(false);
     this->setOpacity(0);
     backupsScrollBG->setOpacity(0);
-    for (const auto& child : CCArrayExt<BackupCell*>(backupsScrollLayer->m_contentLayer->getChildren())) {
+    for (const auto& child : CCArrayExt<BackupCell*>(m_backupsScrollLayer->m_contentLayer->getChildren())) {
         child->setOpacity(0);
         child->setEnabled(false);
     }
     
-    backupsScrollLayer->setMouseEnabled(false);
+    m_backupsScrollLayer->setMouseEnabled(false);
 
     return true;
 }
@@ -239,32 +238,32 @@ void SaveOptions::onOpened() {
     float fadeTime = .2f;
     this->setEnabled(true);
     this->runAction(CCFadeTo::create(fadeTime, 255));
-    backupsScrollLayer->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 100));
-    for (const auto& child : backupsScrollLayer->m_contentLayer->getChildrenExt<BackupCell*>()) {
+    m_backupsScrollLayer->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 100));
+    for (const auto& child : m_backupsScrollLayer->m_contentLayer->getChildrenExt<BackupCell*>()) {
         child->runAction(CCFadeTo::create(fadeTime, 255));
         child->setEnabled(true);
     }
 
-    backupsScrollLayer->setMouseEnabled(true);
+    m_backupsScrollLayer->setMouseEnabled(true);
 }
 void SaveOptions::onClosed() {
     float fadeTime = .2f;
     this->setEnabled(false);
     this->runAction(CCFadeTo::create(fadeTime, 0));
-    backupsScrollLayer->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 0));
-    for (const auto& child : backupsScrollLayer->m_contentLayer->getChildrenExt<BackupCell*>()) {
+    m_backupsScrollLayer->getChildByID("bg")->runAction(CCFadeTo::create(fadeTime, 0));
+    for (const auto& child : m_backupsScrollLayer->m_contentLayer->getChildrenExt<BackupCell*>()) {
         child->runAction(CCFadeTo::create(fadeTime, 0));
         child->setEnabled(false);
     }
 
-    backupsScrollLayer->setMouseEnabled(false);
+    m_backupsScrollLayer->setMouseEnabled(false);
 }
 
 void SaveOptions::onDelete(CCObject*) {
     createChoiceAlert("WARNING!", "Doing this will delete ALL saved progress from this levels death tracker save.\nAre you sure you want to do this?", "No", "Yes", [&](bool btn2) {
         if (btn2) {
             if (DTLayer::get()->DeleteSave())
-                settingsLayer->keyBackClicked();
+                m_settingsLayer->keyBackClicked();
         }
     });
 }
@@ -274,7 +273,7 @@ void SaveOptions::onBackup(CCObject*) {
 
     auto popup = CreateBackupPopup::create();
     popup->setCallback([this](bool general, std::optional<int> sessions) {
-        StatsManager::addBackup(DTLayer::get()->m_MyLevelStats.unwrap().levelKey, general, sessions, true);
+        StatsManager::addBackup(DTLayer::get()->m_MyLevelStats.unwrap().m_levelKey, general, sessions, true);
         
         updateBackupsList();
     });
@@ -284,17 +283,21 @@ void SaveOptions::onBackup(CCObject*) {
 
 
 void SaveOptions::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
-    if (!choiceAlertsMap.contains(layer)) return;
+    if (!m_choiceAlertsMap.contains(layer)) return;
 
-    choiceAlertsMap[layer](btn2);
+    m_choiceAlertsMap[layer](btn2);
 
-    choiceAlertsMap.erase(layer);
+    m_choiceAlertsMap.erase(layer);
 }
 
-void SaveOptions::createChoiceAlert(const std::string& title, const std::string& desc, const std::string& btn1, const std::string& btn2, Function<void(bool)> callback) {
-    auto alert = FLAlertLayer::create(this, title.c_str(), desc, btn1.c_str(), btn2.c_str());
+void SaveOptions::createChoiceAlert(std::string_view title, std::string_view desc, std::string_view btn1, std::string_view btn2, Function<void(bool)> callback) {
+    auto ownedTitle = std::string(title);
+    auto ownedDescription = std::string(desc);
+    auto ownedButton1 = std::string(btn1);
+    auto ownedButton2 = std::string(btn2);
+    auto alert = FLAlertLayer::create(this, ownedTitle.c_str(), ownedDescription, ownedButton1.c_str(), ownedButton2.c_str());
     alert->show();
-    choiceAlertsMap.insert({alert, std::move(callback)});
+    m_choiceAlertsMap.insert({alert, std::move(callback)});
 }
 
 void SaveOptions::onBackupRevert(BackupCell* cell) {
@@ -306,11 +309,11 @@ void SaveOptions::onBackupRevert(BackupCell* cell) {
             Result<> generalRes = Ok();
             Result<> sessionsRes = Ok();
 
-            if (cell->getBackupData()->meta.has_value())
-                metaRes = StatsManager::setMetadata(cell->getBackupData()->meta.value(), cell->getLevelKey());
-            if (cell->getBackupData()->from0.has_value())
-                generalRes = StatsManager::setGeneral(cell->getBackupData()->from0.value(), cell->getLevelKey());
-            if (cell->getBackupData()->sessionNames.has_value()) {
+            if (cell->getBackupData()->m_meta.has_value())
+                metaRes = StatsManager::setMetadata(cell->getBackupData()->m_meta.value(), cell->getLevelKey());
+            if (cell->getBackupData()->m_from0.has_value())
+                generalRes = StatsManager::setGeneral(cell->getBackupData()->m_from0.value(), cell->getLevelKey());
+            if (cell->getBackupData()->m_sessionNames.has_value()) {
                 sessionsRes = StatsManager::reveretBackupSessions(cell->getLevelKey(), cell->getBackupTime());
             }
 
@@ -327,7 +330,7 @@ void SaveOptions::onBackupRevert(BackupCell* cell) {
             else geode::Notification::create("Successfully reverted to backup!", NotificationIcon::Success)->show();
 
             DTLayer::get()->onClose(nullptr);
-            settingsLayer->keyBackClicked();
+            m_settingsLayer->keyBackClicked();
         }
     });
 }
@@ -346,7 +349,7 @@ void SaveOptions::onBackupDelete(BackupCell* cell) {
 }
 
 void SaveOptions::updateBackupsList() {
-    backupsScrollLayer->m_contentLayer->removeAllChildren();
+    m_backupsScrollLayer->m_contentLayer->removeAllChildren();
 
     auto lvlKey = StatsManager::getLevelKey(DTLayer::get()->m_Level);
 
@@ -354,10 +357,10 @@ void SaveOptions::updateBackupsList() {
         auto backupsList = StatsManager::getBackupsCount(lvlKey.unwrap());
         int z = 0;
         for (const auto& backupTime : backupsList) {
-            auto cell = BackupCell::create(backupsScrollLayer->getContentWidth() - 5, lvlKey.unwrap(), backupTime);
-            cell->onRevertCallback = std::bind(&SaveOptions::onBackupRevert, this, std::placeholders::_1);
-            cell->onDeleteCallback = std::bind(&SaveOptions::onBackupDelete, this, std::placeholders::_1);
-            backupsScrollLayer->m_contentLayer->addChild(cell);
+            auto cell = BackupCell::create(m_backupsScrollLayer->getContentWidth() - 5, lvlKey.unwrap(), backupTime);
+            cell->m_onRevertCallback = std::bind(&SaveOptions::onBackupRevert, this, std::placeholders::_1);
+            cell->m_onDeleteCallback = std::bind(&SaveOptions::onBackupDelete, this, std::placeholders::_1);
+            m_backupsScrollLayer->m_contentLayer->addChild(cell);
 
             if (!this->isEnabled()) {
                 cell->setOpacity(0);
@@ -368,18 +371,18 @@ void SaveOptions::updateBackupsList() {
     }
     
 
-    backupsScrollLayer->m_contentLayer->updateLayout();
-    backupsScrollLayer->moveToTop();
+    m_backupsScrollLayer->m_contentLayer->updateLayout();
+    m_backupsScrollLayer->moveToTop();
 }
 
 void SaveOptions::onExport(CCObject*) {
     auto dtLayer = DTLayer::get();
     if (dtLayer == nullptr || dtLayer->m_MyLevelStats.isErr()) return;
 
-    filepicklistener.spawn(
+    m_filepicklistener.spawn(
         "DT-export-picker-task",
         file::pick(file::PickMode::SaveFile, file::FilePickOptions{
-            .defaultPath = dtLayer->m_MyLevelStats.unwrap().metadata.levelName + ".dt",
+            .defaultPath = dtLayer->m_MyLevelStats.unwrap().m_metadata.m_levelName + ".dt",
             .filters = {
                 file::FilePickOptions::Filter{
                     .description = "Death Tracker file",
@@ -407,7 +410,7 @@ void SaveOptions::onExport(CCObject*) {
             if (!pickOpt.has_value()) return;
             auto pick = pickOpt.value();
 
-            auto source = StatsManager::getSavesFolderPath() / dtLayer->m_MyLevelStats.unwrap().levelKey;
+            auto source = StatsManager::getSavesFolderPath() / dtLayer->m_MyLevelStats.unwrap().m_levelKey;
 
             // if (pick.extension() == ".csv") {
             //     saveToCSV(pick, source);

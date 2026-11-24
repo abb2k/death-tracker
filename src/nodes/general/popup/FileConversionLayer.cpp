@@ -1,4 +1,5 @@
 #include "FileConversionLayer.hpp"
+
 #include <managers/StatsManager.hpp>
 #include <utils/Save.hpp>
 
@@ -13,28 +14,26 @@ FileConversionLayer* FileConversionLayer::create(bool exitIfNone) {
 }
 
 bool FileConversionLayer::init(bool exitIfNone) {
-    // @geode-ignore(unknown-resource)
     if (!Popup::init(250.f, 150.f, "geode.loader/GE_square01.png"))
         return false;
-    auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    this->exitIfNone = exitIfNone;
-    this->didComplete = false;
+    this->m_exitIfNone = exitIfNone;
+    this->m_didComplete = false;
 
     this->setTitle("Conversion Layer");
 
-    textArea = SimpleTextArea::create("");
-    textArea->setPosition(m_size / 2);
-    textArea->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
-    m_mainLayer->addChild(textArea);
+    m_textArea = SimpleTextArea::create("");
+    m_textArea->setPosition(m_size / 2);
+    m_textArea->setAlignment(CCTextAlignment::kCCTextAlignmentCenter);
+    m_mainLayer->addChild(m_textArea);
 
-    progressBar = Slider::create(nullptr, NULL);
-    progressBar->m_touchLogic->setVisible(false);
-    progressBar->m_touchLogic->setEnabled(false);
-    progressBar->setValue(0);
-    progressBar->setVisible(false);
-    progressBar->setPosition(m_size / 2 - ccp(0, 35));
-    m_mainLayer->addChild(progressBar);
+    m_progressBar = Slider::create(nullptr, NULL);
+    m_progressBar->m_touchLogic->setVisible(false);
+    m_progressBar->m_touchLogic->setEnabled(false);
+    m_progressBar->setValue(0);
+    m_progressBar->setVisible(false);
+    m_progressBar->setPosition(m_size / 2 - ccp(0, 35));
+    m_mainLayer->addChild(m_progressBar);
 
     this->setKeypadEnabled(true);
     this->setKeyboardEnabled(true);
@@ -42,20 +41,20 @@ bool FileConversionLayer::init(bool exitIfNone) {
 
     auto startBtnSpr = ButtonSprite::create("Start");
     startBtnSpr->setScale(.75f);
-    startBtn = CCMenuItemSpriteExtra::create(
+    m_startBtn = CCMenuItemSpriteExtra::create(
         startBtnSpr,
         this,
         menu_selector(FileConversionLayer::onStart)
     );
-    startBtn->setVisible(false);
-    startBtn->setEnabled(false);
-    startBtn->setPosition(m_size.width / 2, startBtn->getContentHeight() / 2 + 10);
-    m_buttonMenu->addChild(startBtn);
+    m_startBtn->setVisible(false);
+    m_startBtn->setEnabled(false);
+    m_startBtn->setPosition(m_size.width / 2, m_startBtn->getContentHeight() / 2 + 10);
+    m_buttonMenu->addChild(m_startBtn);
 
     this->setTitle("Working...");
-    textArea->setText("Looking for old save files...");
+    m_textArea->setText("Looking for old save files...");
 
-    lookupListener.spawn(
+    m_lookupListener.spawn(
         "DT-convert-lookup-task",
         lookupFuture(),
         [&](LookupFuture::Output val) {
@@ -67,32 +66,32 @@ bool FileConversionLayer::init(bool exitIfNone) {
 }
 
 void FileConversionLayer::lookupComplete(LookupFuture::Output result) {
-    lookupResult = std::move(result);
-    if (!lookupResult.size()) {
-        if (exitIfNone) {
-            didComplete = true;
+    m_lookupResult = std::move(result);
+    if (!m_lookupResult.size()) {
+        if (m_exitIfNone) {
+            m_didComplete = true;
             keyBackClicked();
             return;
         }
         this->setTitle("No old files found!");
-        textArea->setText("It looks like you're all set!\nNo old files were found!");
+        m_textArea->setText("It looks like you're all set!\nNo old files were found!");
         if (!StatsManager::getSavesFolderPath().exists()) {
             this->setTitle("Conversion Failed!");
-            textArea->setText("Invalid save location\nPlease change your save location in\nThe death tracker mod settings");
+            m_textArea->setText("Invalid save location\nPlease change your save location in\nThe death tracker mod settings");
         }
         this->m_closeBtn->setVisible(true);
-        didComplete = true;
+        m_didComplete = true;
         return;
     }
     
     this->setTitle("Save Conversion");
-    textArea->setText(fmt::format("{} old files from death tracker V2\nwere detected, we will convert them\nto the new version!", lookupResult.size()));
-    startBtn->setVisible(true);
-    startBtn->setEnabled(true);
+    m_textArea->setText(fmt::format("{} old files from death tracker V2\nwere detected, we will convert them\nto the new version!", m_lookupResult.size()));
+    m_startBtn->setVisible(true);
+    m_startBtn->setEnabled(true);
 }
 
-void FileConversionLayer::setTitle(const std::string& text) {
-    geode::Popup::setTitle(text, "goldFont.fnt", .8f, 15);
+void FileConversionLayer::setTitle(std::string_view text) {
+    geode::Popup::setTitle(std::string(text), "goldFont.fnt", .8f, 15);
 }
 
 ConversionFuture FileConversionLayer::conversionFuture(std::vector<std::string> allLevels, Function<void(ConversionProgress)> progress) {
@@ -103,10 +102,10 @@ ConversionFuture FileConversionLayer::conversionFuture(std::vector<std::string> 
     for (const auto& levelKey : allLevels)
     {
         auto progressObj = ConversionProgress{};
-        progressObj.filesWentOverAmount = filesWentOverAmount;
-        progressObj.convertedAmount = successfulConversionAmount;
-        progressObj.maxAmount = allLevels.size();
-        progressObj.currentConvertingFile = levelKey;
+        progressObj.m_filesWentOverAmount = filesWentOverAmount;
+        progressObj.m_convertedAmount = successfulConversionAmount;
+        progressObj.m_maxAmount = allLevels.size();
+        progressObj.m_currentConvertingFile = levelKey;
         
         progress(progressObj);
         
@@ -123,9 +122,9 @@ ConversionFuture FileConversionLayer::conversionFuture(std::vector<std::string> 
     }
     
     auto conversionRes = ConversionResult{};
-    conversionRes.convertedAmount = successfulConversionAmount;
-    conversionRes.maxAmount = allLevels.size();
-    conversionRes.failedConversions = failedConversions;
+    conversionRes.m_convertedAmount = successfulConversionAmount;
+    conversionRes.m_maxAmount = allLevels.size();
+    conversionRes.m_failedConversions = failedConversions;
     
     co_return conversionRes;
 }
@@ -136,27 +135,27 @@ LookupFuture FileConversionLayer::lookupFuture() {
 
 void FileConversionLayer::conversionComplete(ConversionFuture::Output output) {
     this->setTitle("Conversion complete!");
-    textArea->setText(fmt::format(
+    m_textArea->setText(fmt::format(
         "Converted {}/{} files!\n{} files failed to convert.",
-        output.convertedAmount,
-        output.maxAmount,
-        output.failedConversions.size()
+        output.m_convertedAmount,
+        output.m_maxAmount,
+        output.m_failedConversions.size()
     ));
 
-    progressBar->setVisible(true);
-    progressBar->setValue(1);
+    m_progressBar->setVisible(true);
+    m_progressBar->setValue(1);
 
-    for (const auto& level : output.failedConversions) log::error("Failed to convert level: {}", level);
+    for (const auto& level : output.m_failedConversions) log::error("Failed to convert level: {}", level);
 
     this->setKeypadEnabled(true);
     this->setKeyboardEnabled(true);
     this->m_closeBtn->setVisible(true);
 
-    didComplete = true;
+    m_didComplete = true;
 }
 
 void FileConversionLayer::onClose(cocos2d::CCObject* sender) {
-    if (didComplete) {
+    if (m_didComplete) {
         Save::setDidConvertToV3(true);
         Popup::onClose(sender);
     }
@@ -166,21 +165,21 @@ void FileConversionLayer::onStart(cocos2d::CCObject* sender) {
     static_cast<CCMenuItemSpriteExtra*>(sender)->setVisible(false);
     static_cast<CCMenuItemSpriteExtra*>(sender)->setEnabled(false);
 
-    conversionListener.spawn(
+    m_conversionListener.spawn(
         "DT-convert-process-task",
-        conversionFuture(lookupResult, [&](ConversionProgress progress) {
+        conversionFuture(m_lookupResult, [&](ConversionProgress progress) {
             geode::queueInMainThread([&, progress]() {
-                progressBar->setVisible(true);
-                float dev = static_cast<float>(progress.filesWentOverAmount) / static_cast<float>(progress.maxAmount);
-                progressBar->setValue(dev);
-                progressBar->updateBar();
+                m_progressBar->setVisible(true);
+                float dev = static_cast<float>(progress.m_filesWentOverAmount) / static_cast<float>(progress.m_maxAmount);
+                m_progressBar->setValue(dev);
+                m_progressBar->updateBar();
                 
                 this->setTitle("Working...");
-                textArea->setText(fmt::format(
+                m_textArea->setText(fmt::format(
                     "Converting files ({}/{})\nCurrently working on\n'{}'",
-                    progress.convertedAmount,
-                    progress.maxAmount,
-                    progress.currentConvertingFile
+                    progress.m_convertedAmount,
+                    progress.m_maxAmount,
+                    progress.m_currentConvertingFile
                 ));
             });
         }),
