@@ -239,6 +239,6 @@
 			"version": ">=v1.0.7",
 			"required": false
 		},
-		"dankmeme.argon": ">=2.0.0-alpha.1"
+		"dankmeme.argon": ">=2.0.0-beta.1"
 	}
 }
