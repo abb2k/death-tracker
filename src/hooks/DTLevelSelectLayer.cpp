@@ -43,6 +43,8 @@ bool DTLevelSelectLayer::init(int page) {
     m_fields->m_dtButton->setVisible(getLevelForCurrentPage().has_value());
     m_fields->m_dtButton->setEnabled(getLevelForCurrentPage().has_value());
 
+    schedule(schedule_selector(DTLevelSelectLayer::changeButtonVisibility));
+
     return true;
 }
 
@@ -53,23 +55,6 @@ void DTLevelSelectLayer::openDTLayer(CCObject*) {
 
     auto dtLayer = DTLayer::create(levelOpt.value());
     dtLayer->show();
-}
-
-void DTLevelSelectLayer::onNext(CCObject* sender) {
-    LevelSelectLayer::onNext(sender);
-
-    m_fields->m_dtButton->setVisible(getLevelForCurrentPage().has_value());
-    m_fields->m_dtButton->setEnabled(getLevelForCurrentPage().has_value());
-
-    m_fields->m_robDTButton->setVisible(false);
-}
-
-void DTLevelSelectLayer::onPrev(CCObject* sender) {
-    LevelSelectLayer::onPrev(sender);
-    m_fields->m_dtButton->setVisible(getLevelForCurrentPage().has_value());
-    m_fields->m_dtButton->setEnabled(getLevelForCurrentPage().has_value());
-
-    m_fields->m_robDTButton->setVisible(false);
 }
 
 std::optional<GJGameLevel*> DTLevelSelectLayer::getLevelForCurrentPage() {
@@ -102,4 +87,12 @@ std::optional<GJGameLevel*> DTLevelSelectLayer::getLevelForCurrentPage() {
     }
 
     return std::nullopt;
+}
+
+void DTLevelSelectLayer::changeButtonVisibility(float) {
+    bool hasLevel = getLevelForCurrentPage().has_value();
+    m_fields->m_dtButton->setVisible(hasLevel);
+    m_fields->m_dtButton->setEnabled(hasLevel);
+
+    m_fields->m_robDTButton->setVisible(false);
 }

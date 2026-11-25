@@ -13,12 +13,10 @@ public:
     
     bool init(int page);
 
-    void onNext(CCObject*);
-
-    void onPrev(CCObject*);
-
 private:
     void openDTLayer(CCObject*);
+
+    void changeButtonVisibility(float);
 
     std::optional<GJGameLevel*> getLevelForCurrentPage();
 };
