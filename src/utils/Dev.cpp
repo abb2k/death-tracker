@@ -1,6 +1,6 @@
 #include "Dev.hpp"
 
-void Dev::fadeTextInput(TextInput* const input, bool fadeIn, float time, bool changeEnabled) {
+void Dev::fadeTextInput(TextInput* input, bool fadeIn, float time, bool changeEnabled) {
     if (changeEnabled)
         input->setEnabled(fadeIn);
 
@@ -15,7 +15,7 @@ void Dev::fadeTextInput(TextInput* const input, bool fadeIn, float time, bool ch
     ));
 }
 
-void Dev::fadeSlider(Slider* const slider, bool fadeIn, float time, bool changeEnabled) {
+void Dev::fadeSlider(Slider* slider, bool fadeIn, float time, bool changeEnabled) {
     slider->m_enabled = false;
 
     if (changeEnabled)

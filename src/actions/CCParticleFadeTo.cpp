@@ -8,8 +8,7 @@ CCParticleFadeTo* CCParticleFadeTo::create(float duration, GLubyte toOpacity) {
         return action;
     }
 
-    CC_SAFE_DELETE(action);
-
+    delete action;
     return nullptr;
 }
 

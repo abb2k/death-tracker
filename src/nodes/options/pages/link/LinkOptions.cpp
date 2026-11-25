@@ -6,6 +6,7 @@
 #include <utils/Dev.hpp>
 #include <actions/CCTextAreaFadeTo.hpp>
 #include <nodes/Tutorial/DTTutorialLayer.hpp>
+#include <nodes/Tutorial/TutorialButton.hpp>
 #include <nodes/general/SimpleToggler.hpp>
 
 LinkOptions* LinkOptions::create(CCSize size) {

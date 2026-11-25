@@ -8,7 +8,7 @@ CCResizeWidthTo* CCResizeWidthTo::create(float duration, float endWidth) {
         return ret;
     }
 
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -16,6 +16,7 @@ bool CCResizeWidthTo::initWithDuration(float duration, float endWidth) {
     if (!CCActionInterval::initWithDuration(std::move(duration))) return false;
     
     this->m_endWidth = std::move(endWidth);
+    
     return true;
 }
 

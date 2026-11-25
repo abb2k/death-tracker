@@ -14,16 +14,9 @@ Result<std::shared_ptr<SettingV3>> ClaimDonoSetting::parse(std::string const& ke
     return root.ok(std::static_pointer_cast<SettingV3>(res));
 }
 
-bool ClaimDonoSetting::load(matjson::Value const& json) {
-    return true;
-}
-bool ClaimDonoSetting::save(matjson::Value& json) const {
-    return true;
-}
-    
-bool ClaimDonoSetting::isDefaultValue() const {
-    return true;
-}
+bool ClaimDonoSetting::load(matjson::Value const&) { return true; }
+bool ClaimDonoSetting::save(matjson::Value&) const { return true; }
+bool ClaimDonoSetting::isDefaultValue() const { return true; }
 void ClaimDonoSetting::reset() {}
 
 SettingNodeV3* ClaimDonoSetting::createNode(float width) {
@@ -32,7 +25,6 @@ SettingNodeV3* ClaimDonoSetting::createNode(float width) {
         width
     );
 }
-
 
 bool ClaimDonoSettingNode::init(std::shared_ptr<ClaimDonoSetting> setting, float width) {
     if (!SettingNodeV3::init(setting, width))
@@ -81,15 +73,6 @@ bool ClaimDonoSettingNode::init(std::shared_ptr<ClaimDonoSetting> setting, float
     return true;
 }
 
-void ClaimDonoSettingNode::updateState(CCNode* invoker) {
-    SettingNodeV3::updateState(invoker);
-
-    auto shouldEnable = this->getSetting()->shouldEnable();
-    // m_input->setEnabled(shouldEnable);
-    // m_button->setEnabled(shouldEnable);
-    // m_button->setOpacity(shouldEnable ? 255 : 155);
-    // m_button->setColor(shouldEnable ? ccWHITE : ccGRAY);
-}
 void ClaimDonoSettingNode::onButton(CCObject*) {
     m_loadingCircle->setVisible(true);
 
@@ -148,20 +131,18 @@ void ClaimDonoSettingNode::onResetToDefault() {}
 
 ClaimDonoSettingNode* ClaimDonoSettingNode::create(std::shared_ptr<ClaimDonoSetting> setting, float width) {
     auto ret = new ClaimDonoSettingNode();
+
     if (ret->init(setting, width)) {
         ret->autorelease();
         return ret;
     }
+
     delete ret;
     return nullptr;
 }
 
-bool ClaimDonoSettingNode::hasUncommittedChanges() const {
-    return false;
-}
-bool ClaimDonoSettingNode::hasNonDefaultValue() const {
-    return false;
-}
+bool ClaimDonoSettingNode::hasUncommittedChanges() const { return false; }
+bool ClaimDonoSettingNode::hasNonDefaultValue() const { return false; }
 
 std::shared_ptr<ClaimDonoSetting> ClaimDonoSettingNode::getSetting() const {
     return std::static_pointer_cast<ClaimDonoSetting>(SettingNodeV3::getSetting());

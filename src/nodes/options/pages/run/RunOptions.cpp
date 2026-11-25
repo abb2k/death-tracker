@@ -6,6 +6,7 @@
 #include <nodes/Tutorial/DTTutorialLayer.hpp>
 #include <nodes/general/SimpleToggler.hpp>
 #include <nodes/options/pages/run/PercentCell.hpp>
+#include <managers/StatsManager.hpp>
 
 RunOptions* RunOptions::create(CCSize size) {
     auto ret = new RunOptions();

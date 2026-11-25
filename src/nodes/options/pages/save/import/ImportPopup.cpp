@@ -3,6 +3,7 @@
 #include <nodes/DTLayer.hpp>
 #include <nodes/options/pages/save/import/ImportCompletePopup.hpp>
 #include <asp/fs.hpp>
+#include <managers/StatsManager.hpp>
 
 ImportPopup* ImportPopup::create() {
     auto ret = new ImportPopup();

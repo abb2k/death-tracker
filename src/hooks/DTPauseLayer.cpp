@@ -7,6 +7,8 @@
 #include <hooks/DTPlayLayer.hpp>
 #endif
 
+#include <managers/StatsManager.hpp>
+
 void DTPauseLayer::customSetup() {
     PauseLayer::customSetup();
 

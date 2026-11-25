@@ -1,108 +1,107 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-#include <nodes/overlayLabels/OverlayLabelCell.hpp>
-#include <regex>
-#include <nodes/general/SimpleToggler.hpp>
-
-#include <nodes/general/RichTextArea.hpp>
+#include <types/DTTypes.hpp>
 
 using namespace geode::prelude;
 
+class OverlayLabelCell;
+class SimpleToggler;
+class RichTextArea;
+
 class LabelEditLayer : public Popup {
-    private:
-        bool init() override;
+public:
+    static LabelEditLayer* create();
+    static std::string expandDeaths(std::string_view text);
+    static std::string expandDeaths(std::string_view text, const std::function<Result<GeneralData>(char)>& dataProvider);
 
-        void onLabelAdded(CCObject*);
+    static Anchor invertAnchor(Anchor anchor);
+    static CCPoint anchorPoint(Anchor anchor);
+    static CCPoint anchorDirection(Anchor anchor);
+    static CCPoint anchorDirection(CCPoint anchor);
 
-        std::vector<OverlayLabelCell*> m_labels{};
+private:
+    bool init() override;
 
-        OverlayLabelCell* m_currentEdit = nullptr;
-        bool m_updatingControls = false;
+    void onLabelAdded(CCObject*);
 
-        ScrollLayer* m_scroll = nullptr;
-        Scrollbar* m_labelsScrollbar = nullptr;
-        CCMenu* m_editMenu = nullptr;
-        CCScale9Sprite* m_noLabelEditedOverlay = nullptr;
-        geode::Label* m_noLabelEditedText = nullptr;
-        SimpleToggler* m_freeModeToggle = nullptr;
-        Slider* m_xSlider = nullptr;
-        Slider* m_ySlider = nullptr;
-        Slider* m_offsetSlider = nullptr;
-        Slider* m_opacitySlider = nullptr;
-        TextInput* m_nameInput = nullptr;
-        TextInput* m_textInput = nullptr;
-        TextInput* m_offsetInput = nullptr;
-        TextInput* m_opacityInput = nullptr;
+    std::vector<OverlayLabelCell*> m_labels{};
 
-        void onCellDelete(OverlayLabelCell* cell);
-        void onCellEdit(OverlayLabelCell* cell);
-        void setLabelEditEnabled(bool enabled);
-        void updateNoLabelsText();
-        void updateAnchorButtons();
+    OverlayLabelCell* m_currentEdit = nullptr;
+    bool m_updatingControls = false;
 
-        geode::Label* m_noLabelsText;
+    ScrollLayer* m_scroll = nullptr;
+    Scrollbar* m_labelsScrollbar = nullptr;
+    CCMenu* m_editMenu = nullptr;
+    CCScale9Sprite* m_noLabelEditedOverlay = nullptr;
+    geode::Label* m_noLabelEditedText = nullptr;
+    SimpleToggler* m_freeModeToggle = nullptr;
+    Slider* m_xSlider = nullptr;
+    Slider* m_ySlider = nullptr;
+    Slider* m_offsetSlider = nullptr;
+    Slider* m_opacitySlider = nullptr;
+    TextInput* m_nameInput = nullptr;
+    TextInput* m_textInput = nullptr;
+    TextInput* m_offsetInput = nullptr;
+    TextInput* m_opacityInput = nullptr;
 
-        void onSliderX(CCObject*);
-        void onSliderY(CCObject*);
-        void onOffsetSliderChanged(CCObject*);
-        void onSizeSliderChanged(CCObject*);
-        void onOpacitySliderChanged(CCObject*);
-        void setCurrentLabelSize(float size, bool updateInput = true);
-        void setCurrentLabelOpacity(int opacity, bool updateInput = true);
+    void onCellDelete(OverlayLabelCell* cell);
+    void onCellEdit(OverlayLabelCell* cell);
+    void setLabelEditEnabled(bool enabled);
+    void updateNoLabelsText();
+    void updateAnchorButtons();
 
-        std::map<CCObject*, geode::Anchor> m_anchorButtons{};
+    geode::Label* m_noLabelsText;
 
-        CCMenuItemSpriteExtra* createAnchorButton(Anchor anchor, std::string const& text);
+    void onSliderX(CCObject*);
+    void onSliderY(CCObject*);
+    void onOffsetSliderChanged(CCObject*);
+    void onSizeSliderChanged(CCObject*);
+    void onOpacitySliderChanged(CCObject*);
+    void setCurrentLabelSize(float size, bool updateInput = true);
+    void setCurrentLabelOpacity(int opacity, bool updateInput = true);
 
-        void onAnchorClicked(CCObject*);
+    std::map<CCObject*, geode::Anchor> m_anchorButtons{};
 
-        CCClippingNode* m_previewArea;
-        CCMenu* m_previewAreaMenu;
-        RichTextArea* m_currentPreviewLabel = nullptr;
-        bool m_isDraggingPreviewLabel = false;
-        CCPoint m_dragTouchLocalPoint;
+    CCMenuItemSpriteExtra* createAnchorButton(Anchor anchor, std::string const& text);
 
-        void onRichTextBtn(CCObject*);
-        bool m_doUpdateCursorPos = false;
-        std::optional<int> m_prevCursorPos = std::nullopt;
+    void onAnchorClicked(CCObject*);
 
-        void updateSavedLabels();
+    CCClippingNode* m_previewArea;
+    CCMenu* m_previewAreaMenu;
+    RichTextArea* m_currentPreviewLabel = nullptr;
+    bool m_isDraggingPreviewLabel = false;
+    CCPoint m_dragTouchLocalPoint;
 
-        comm::ListenerHandle m_overlayLabelsChangedListener;
+    void onRichTextBtn(CCObject*);
+    bool m_doUpdateCursorPos = false;
+    std::optional<int> m_prevCursorPos = std::nullopt;
 
-        void RefreshPreviewLabels();
+    void updateSavedLabels();
 
-        std::vector<RichTextArea*> m_previewLabels{};
+    comm::ListenerHandle m_overlayLabelsChangedListener;
 
-        TextInput* m_sizeInput = nullptr;
-        Slider* m_sizeSlider = nullptr;
+    void RefreshPreviewLabels();
 
-        CCScale9Sprite* m_disabledAnchorSlidersFG = nullptr;
+    std::vector<RichTextArea*> m_previewLabels{};
 
-        static constexpr float m_OFFSET_SLIDER_MIN = 0.f;
-        static constexpr float m_OFFSET_SLIDER_MAX = 20.f;
+    TextInput* m_sizeInput = nullptr;
+    Slider* m_sizeSlider = nullptr;
 
-        static std::string formatDeaths(const GeneralData& data, const std::smatch& match);
-        static Result<GeneralData> getDeathsData(char scope);
+    CCScale9Sprite* m_disabledAnchorSlidersFG = nullptr;
 
-        CCMenuItemSpriteExtra* m_richTextBtn = nullptr;
+    static constexpr float m_OFFSET_SLIDER_MIN = 0.f;
+    static constexpr float m_OFFSET_SLIDER_MAX = 20.f;
 
-        virtual bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;
+    static std::string formatDeaths(const GeneralData& data, const std::array<std::optional<std::string>, 9>& groups, std::string_view expression);
+    static Result<GeneralData> getDeathsData(char scope);
 
-        virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent) override;
-        virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent) override;
-        virtual void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent) override;
+    CCMenuItemSpriteExtra* m_richTextBtn = nullptr;
 
-        void update(float dt) override;
+    virtual bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) override;
 
-    public:
-        static LabelEditLayer* create();
-        static std::string expandDeaths(std::string_view text);
-        static std::string expandDeaths(std::string_view text, const std::function<Result<GeneralData>(char)>& dataProvider);
+    virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent) override;
+    virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent) override;
+    virtual void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent) override;
 
-        static Anchor invertAnchor(Anchor anchor);
-        static CCPoint anchorPoint(Anchor anchor);
-        static CCPoint anchorDirection(Anchor anchor);
-        static CCPoint anchorDirection(CCPoint anchor);
+    void update(float dt) override;
 };

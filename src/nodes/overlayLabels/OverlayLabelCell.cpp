@@ -1,22 +1,25 @@
 #include "OverlayLabelCell.hpp"
 
 #include <nodes/DTLayer.hpp>
+#include <nodes/general/SimpleToggler.hpp>
+#include <managers/StatsManager.hpp>
 
-OverlayLabelCell* OverlayLabelCell::create(float width, OverlayLabel const& label) {
+OverlayLabelCell* OverlayLabelCell::create(float width, OverlayLabel label) {
     auto ret = new OverlayLabelCell();
-    if (ret && ret->init(width, label)) {
+
+    if (ret && ret->init(std::move(width), std::move(label))) {
         ret->autorelease();
-    } else {
-        delete ret;
-        ret = nullptr;
+        return ret;
     }
-    return ret;
+    
+    delete ret;
+    return nullptr; 
 }
 
-bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
+bool OverlayLabelCell::init(float width, OverlayLabel label) {
     if (!CCMenu::init()) return false;
 
-    m_myLabelData = label;
+    m_myLabelData = std::move(label);
     updateLevelVisibility();
 
     this->setContentSize({width, 80});
@@ -28,7 +31,7 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
     this->addChildAtPosition(m_background, Anchor::BottomLeft);
     updateBackgroundColor();
 
-    m_labelName = SimpleTextArea::create(label.m_labelName, "bigFont.fnt", .5f);
+    m_labelName = SimpleTextArea::create(m_myLabelData.m_labelName, "bigFont.fnt", .5f);
     m_labelName->setAnchorPoint({0, 1});
     m_labelName->setAlignment(CCTextAlignment::kCCTextAlignmentLeft);
     m_labelName->setWidth(width / 1.2f);
@@ -40,7 +43,7 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
     settingsMenu->ignoreAnchorPointForPosition(false);
     this->addChildAtPosition(settingsMenu, Anchor::BottomLeft);
 
-    m_enabledToggle = SimpleToggler::createWithDefaults(.35f, label.m_enabled);
+    m_enabledToggle = SimpleToggler::createWithDefaults(.35f, m_myLabelData.m_enabled);
     m_enabledToggle->setPosition({10, 10});
     settingsMenu->addChild(m_enabledToggle);
     m_enabledToggle->setCallback([this](bool enabled) {
@@ -57,7 +60,7 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
     m_enableLabel->setPosition({m_enabledToggle->getPositionX() + m_enabledToggle->getScaledContentWidth() / 2 + 3, 10});
     settingsMenu->addChild(m_enableLabel);
 
-    m_levelSpecificToggle = SimpleToggler::createWithDefaults(.35f, label.m_levelSpecific.has_value());
+    m_levelSpecificToggle = SimpleToggler::createWithDefaults(.35f, m_myLabelData.m_levelSpecific.has_value());
     m_levelSpecificToggle->setPosition({10, 18 + m_enabledToggle->getContentHeight()});
     settingsMenu->addChild(m_levelSpecificToggle);
     m_levelSpecificToggle->setCallback([this](bool enabled) {
@@ -89,7 +92,7 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
     m_orderInput = TextInput::create(50, "Order");
     m_orderInput->setScale(.55f);
     m_orderInput->setCommonFilter(CommonFilter::Uint);
-    m_orderInput->setString(std::to_string(label.m_order));
+    m_orderInput->setString(std::to_string(m_myLabelData.m_order));
     m_orderInput->setAnchorPoint({0, .5f});
     m_orderInput->setPosition({m_orderLabel->getPositionX() + m_orderLabel->getScaledContentWidth() + 3, m_orderLabel->getPositionY()});
     m_orderInput->setCallback([this](const std::string& value) {
@@ -141,14 +144,14 @@ bool OverlayLabelCell::init(float width, OverlayLabel const& label) {
     return true;
 }
 
-void OverlayLabelCell::setData(OverlayLabel const& label) {
-    m_myLabelData = label;
-    m_labelName->setText(label.m_labelName);
+void OverlayLabelCell::setData(OverlayLabel label) {
+    m_myLabelData = std::move(label);
+    m_labelName->setText(m_myLabelData.m_labelName);
     updateLevelVisibility();
     updateBackgroundColor();
     m_updatingControls = true;
-    m_enabledToggle->toggle(label.m_enabled);
-    m_orderInput->setString(std::to_string(label.m_order));
+    m_enabledToggle->toggle(m_myLabelData.m_enabled);
+    m_orderInput->setString(std::to_string(m_myLabelData.m_order));
     m_updatingControls = false;
 }
 
@@ -178,7 +181,6 @@ void OverlayLabelCell::updateBackgroundColor() {
         m_background->setColor({100, 255, 100});
     }
     else {
-
         if (m_myLabelData.m_levelSpecific.has_value())
             m_background->setColor({ 76, 86, 228 });
         else

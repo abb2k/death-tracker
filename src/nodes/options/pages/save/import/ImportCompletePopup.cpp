@@ -4,6 +4,9 @@
 #include <nodes/options/pages/save/import/SessionCell.hpp>
 #include <nodes/layout/usage/DTLabel.hpp>
 #include <nodes/general/SimpleToggler.hpp>
+#include <managers/StatsManager.hpp>
+#include <utils/Save.hpp>
+
 
 ImportCompletePopup* ImportCompletePopup::create(LevelData data, std::vector<Session> sessions) {
     auto ret = new ImportCompletePopup();

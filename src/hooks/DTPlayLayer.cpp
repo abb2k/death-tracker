@@ -6,6 +6,7 @@
 #include <utils/Save.hpp>
 #include <utils/Settings.hpp>
 #include <utils/RichTextKeys.hpp>
+#include <nodes/general/RichTextArea.hpp>
 
 bool DTPlayLayer::disableCompletedLevelTracking() {
     return Settings::isCompletedLevelTrackingDisabled()

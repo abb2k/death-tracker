@@ -1,37 +1,36 @@
 #pragma once
 
-#include <Geode/Geode.hpp>
-#include <nodes/general/FloatingList.hpp>
-
 using namespace geode::prelude;
 
+class FloatingList;
+
 class LabelEditSpecialKeyEditorPopup : public Popup {
-    protected:
-        bool init(Function<void(const std::string&)> callback);
+public:
+    static LabelEditSpecialKeyEditorPopup* create(Function<void(const std::string&)> callback);
+    
+private:
+    bool init(Function<void(const std::string&)> callback);
 
-        void onKeyTypeClick(CCObject*);
-        void onScopeClick(CCObject*);
-        void onOperatorClick(CCObject*);
-        void updateControls();
-        void onCreateKey(CCObject*);
+    void onKeyTypeClick(CCObject*);
+    void onScopeClick(CCObject*);
+    void onOperatorClick(CCObject*);
+    void updateControls();
+    void onCreateKey(CCObject*);
 
-        Function<void(const std::string&)> m_callback;
-        CCMenuItemSpriteExtra* m_keyTypeButton = nullptr;
-        CCMenuItemSpriteExtra* m_scopeButton = nullptr;
-        CCMenuItemSpriteExtra* m_operatorButton = nullptr;
-        geode::Label* m_scopeLabel = nullptr;
-        geode::Label* m_operatorLabel = nullptr;
-        FloatingList* m_keyTypeList = nullptr;
-        FloatingList* m_scopeList = nullptr;
-        FloatingList* m_operatorList = nullptr;
-        FloatingList* m_decimalList = nullptr;
-        TextInput* m_firstValue = nullptr;
-        TextInput* m_secondValue = nullptr;
-        int m_keyType = 0;
-        int m_scope = 0;
-        int m_operator = 0;
-        bool m_decimals = false;
-
-    public:
-        static LabelEditSpecialKeyEditorPopup* create(Function<void(const std::string&)> callback);
+    Function<void(const std::string&)> m_callback;
+    CCMenuItemSpriteExtra* m_keyTypeButton = nullptr;
+    CCMenuItemSpriteExtra* m_scopeButton = nullptr;
+    CCMenuItemSpriteExtra* m_operatorButton = nullptr;
+    geode::Label* m_scopeLabel = nullptr;
+    geode::Label* m_operatorLabel = nullptr;
+    FloatingList* m_keyTypeList = nullptr;
+    FloatingList* m_scopeList = nullptr;
+    FloatingList* m_operatorList = nullptr;
+    FloatingList* m_decimalList = nullptr;
+    TextInput* m_firstValue = nullptr;
+    TextInput* m_secondValue = nullptr;
+    int m_keyType = 0;
+    int m_scope = 0;
+    int m_operator = 0;
+    bool m_decimals = false;
 };

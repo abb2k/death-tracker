@@ -1,18 +1,19 @@
 #pragma once
 
-#include <managers/StatsManager.hpp>
-#include <utils/Save.hpp>
-#include <nodes/general/AdvancedScrollLayer.hpp>
-#include <nodes/general/SessionSelector.hpp>
-#include <nodes/layout/usage/LayoutColumn.hpp>
 #include <types/DTTypes.hpp>
 #include <nodes/layout/usage/SpecialKey.hpp>
-#include <nodes/layout/layoutEditing/LayoutOptionsLayer.hpp>
-#include <nodes/Tutorial/TutorialButton.hpp>
-#include <nodes/general/FloatingList.hpp>
-#include <nodes/layout/usage/DecimalPopup.hpp>
 
 using namespace geode::prelude;
+
+class LayoutColumn;
+class AdvancedScrollLayer;
+class SpecialKey;
+class DTLabel;
+class SessionSelector;
+class LayoutOptionsLayer;
+class FloatingList;
+class DecimalPopup;
+class TutorialButton;
 
 struct ColumnComperator {
     bool operator() (LayoutColumn* a, LayoutColumn* b) const;

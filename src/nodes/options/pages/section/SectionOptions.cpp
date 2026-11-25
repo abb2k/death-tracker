@@ -3,6 +3,8 @@
 #include <nodes/DTLayer.hpp>
 #include <nodes/options/pages/section/SectionCell.hpp>
 #include <nodes/Tutorial/DTTutorialLayer.hpp>
+#include <nodes/Tutorial/TutorialButton.hpp>
+#include <managers/StatsManager.hpp>
 
 SectionOptions* SectionOptions::create(CCSize size) {
     auto ret = new SectionOptions();

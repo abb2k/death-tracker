@@ -8,7 +8,7 @@ CCWaveAction* CCWaveAction::create(float period, float distX, float distY, float
         return ret;
     }
 
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 

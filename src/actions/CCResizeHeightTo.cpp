@@ -8,7 +8,7 @@ CCResizeHeightTo* CCResizeHeightTo::create(float duration, float m_endHeight) {
         return ret;
     }
 
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -16,6 +16,7 @@ bool CCResizeHeightTo::initWithDuration(float duration, float m_endHeight) {
     if (!CCActionInterval::initWithDuration(std::move(duration))) return false;
     
     this->m_endHeight = std::move(m_endHeight);
+    
     return true;
 }
 

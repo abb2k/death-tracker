@@ -1,4 +1,5 @@
 #include "DateFormatter.hpp"
+
 #include <utils/Settings.hpp>
 
 std::string DateFormatter::timeFormat(const tm& dateTime) {

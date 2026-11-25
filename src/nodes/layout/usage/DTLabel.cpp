@@ -20,6 +20,7 @@
 #include <nodes/layout/usage/SpecialKey.hpp>
 
 #include <nodes/general/RichTextArea.hpp>
+#include <managers/StatsManager.hpp>
 
 bool DTLabel::ColumnComperator::operator()(LayoutColumn* a, LayoutColumn* b) const {
     return a->getInfo().m_orderPos < b->getInfo().m_orderPos;

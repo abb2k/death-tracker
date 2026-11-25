@@ -8,23 +8,26 @@ CCShowHide* CCShowHide::create(bool visible) {
         return ret;
     }
 
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
 bool CCShowHide::init(bool visible) {
     m_bVisible = std::move(visible);
+
     return true;
 }
 
-void CCShowHide::update(float time) {
-    if (m_pTarget)
-        m_pTarget->setVisible(m_bVisible);
+void CCShowHide::update(float) {
+    if (!m_pTarget) return;
+
+    m_pTarget->setVisible(m_bVisible);
 }
 
 CCObject* CCShowHide::copyWithZone(CCZone* pZone) {
     CCZone* pNewZone = nullptr;
     CCShowHide* pCopy = nullptr;
+
     if (pZone && pZone->m_pCopyObject) {
         pCopy = static_cast<CCShowHide*>(pZone->m_pCopyObject);
     }
@@ -36,6 +39,6 @@ CCObject* CCShowHide::copyWithZone(CCZone* pZone) {
     CCActionInstant::copyWithZone(pZone);
     pCopy->init(m_bVisible);
 
-    CC_SAFE_DELETE(pNewZone);
+    delete pNewZone;
     return pCopy;
 }

@@ -9,7 +9,7 @@ CCTextAreaTintTo* CCTextAreaTintTo::create(float duration, ccColor3B toColor) {
         return ret;
     }
 
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -17,6 +17,7 @@ bool CCTextAreaTintTo::initWithDuration(float duration, ccColor3B toColor) {
     if (!CCActionInterval::initWithDuration(std::move(duration))) return false;
 
     this->m_endColor = std::move(toColor);
+
     return true;
 }
 
@@ -24,7 +25,9 @@ void CCTextAreaTintTo::startWithTarget(CCNode* target) {
     CCActionInterval::startWithTarget(target);
 
     ccColor4B color;
+
     if (!getTextAreaColor(target, color)) return;
+
     this->m_startColor = { color.r, color.g, color.b };
     this->m_deltaR = (int)m_endColor.r - (int)m_startColor.r;
     this->m_deltaG = (int)m_endColor.g - (int)m_startColor.g;
@@ -55,10 +58,12 @@ bool CCTextAreaTintTo::getTextAreaColor(CCNode* target, ccColor4B& color) {
         color = textArea->getColor();
         return true;
     }
+
     if (auto textArea = typeinfo_cast<SimpleTextArea*>(target)) {
         color = textArea->getColor();
         return true;
     }
+    
     return false;
 }
 

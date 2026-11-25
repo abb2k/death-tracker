@@ -32,12 +32,14 @@ enum TutorialCharacterFace {
 };
 
 struct HighlightText {
+public:
     std::string m_text;
     TutorialTextPlacement m_placement;
     float m_size;
 };
 
 struct TutorialSegment {
+public:
     Function<void()> m_beforeCallback = NULL;
     Function<void()> m_afterCallback = NULL;
 

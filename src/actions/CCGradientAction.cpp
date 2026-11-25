@@ -8,18 +8,19 @@ CCGradientAction* CCGradientAction::create(float transitionDuration, ccColor3B c
         return action;
     }
 
-    CC_SAFE_DELETE(action);
+    delete action;
     return nullptr;
 }
 
 CCGradientAction* CCGradientAction::create(float transitionDuration, ccColor4B colorA, ccColor4B colorB, float phaseOffset) {
     auto action = new CCGradientAction();
+
     if (action && action->init(std::move(transitionDuration), std::move(colorA), std::move(colorB), std::move(phaseOffset))) {
         action->autorelease();
         return action;
     }
 
-    CC_SAFE_DELETE(action);
+    delete action;
     return nullptr;
 }
 
@@ -32,6 +33,7 @@ bool CCGradientAction::init(float transitionDuration, ccColor3B colorA, ccColor3
     m_colorB = to4B(std::move(colorB));
     m_phaseOffset = std::move(phaseOffset);
     m_animateOpacity = false;
+
     return true;
 }
 
@@ -44,11 +46,13 @@ bool CCGradientAction::init(float transitionDuration, ccColor4B colorA, ccColor4
     m_colorB = std::move(colorB);
     m_phaseOffset = std::move(phaseOffset);
     m_animateOpacity = true;
+
     return true;
 }
 
 void CCGradientAction::startWithTarget(CCNode* target) {
     CCActionInterval::startWithTarget(target);
+
     update(0.0f);
 }
 
@@ -94,6 +98,7 @@ void CCGradientAction::addColorOffset(int offset) {
 
 CCActionInterval* CCGradientAction::reverse() {
     CCGradientAction* reversed = nullptr;
+    
     if (m_animateOpacity) {
         reversed = CCGradientAction::create(m_transitionDuration, m_colorB, m_colorA, m_phaseOffset);
     } else {
@@ -106,5 +111,6 @@ CCActionInterval* CCGradientAction::reverse() {
     }
 
     if (reversed) reversed->m_colorOffset = m_colorOffset;
+
     return reversed;
 }

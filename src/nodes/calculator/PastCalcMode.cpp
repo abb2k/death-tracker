@@ -2,6 +2,7 @@
 
 #include <nodes/DTLayer.hpp>
 #include <nodes/general/SwitcherButton.hpp>
+#include <managers/StatsManager.hpp>
 
 PastCalcMode* PastCalcMode::create(CCSize size, Function<void(std::string const&)> onVariablesChanged, Function<void(std::string const&)> onCalculate) {
     auto ret = new PastCalcMode();

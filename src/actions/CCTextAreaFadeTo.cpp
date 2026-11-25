@@ -9,7 +9,7 @@ CCTextAreaFadeTo* CCTextAreaFadeTo::create(float duration, GLubyte toOpacity) {
         return ret;
     }
 
-    CC_SAFE_DELETE(ret);
+    delete ret;
     return nullptr;
 }
 
@@ -17,6 +17,7 @@ bool CCTextAreaFadeTo::initWithDuration(float duration, GLubyte toOpacity) {
     if (!CCActionInterval::initWithDuration(std::move(duration))) return false;
 
     this->m_endOpacity = std::move(toOpacity);
+
     return true;
 }
 
@@ -24,7 +25,9 @@ void CCTextAreaFadeTo::startWithTarget(CCNode* target) {
     CCActionInterval::startWithTarget(target);
 
     ccColor4B color;
+
     if (!getTextAreaColor(target, color)) return;
+
     this->m_startOpacity = color.a;
     this->m_deltaOpacity = (int)m_endOpacity - (int)m_startOpacity;
 }
@@ -46,10 +49,12 @@ bool CCTextAreaFadeTo::getTextAreaColor(CCNode* target, ccColor4B& color) {
         color = textArea->getColor();
         return true;
     }
+
     if (auto textArea = typeinfo_cast<SimpleTextArea*>(target)) {
         color = textArea->getColor();
         return true;
     }
+    
     return false;
 }
 

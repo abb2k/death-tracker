@@ -7,7 +7,8 @@
 #include <nodes/Tutorial/DTTutorialLayer.hpp>
 #include <nodes/general/SimpleToggler.hpp>
 #include <nodes/options/pages/save/backup/BackupCell.hpp>
-
+#include <managers/StatsManager.hpp>
+#include <nodes/Tutorial/TutorialButton.hpp>
 #include <asp/fs.hpp>
 
 SaveOptions* SaveOptions::create(CCSize size) {

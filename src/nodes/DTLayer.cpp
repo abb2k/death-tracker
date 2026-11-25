@@ -1,29 +1,29 @@
-#include <nodes/DTLayer.hpp>
+#include "DTLayer.hpp"
 
 #include <nodes/graphs/DTGraphLayer.hpp>
 #include <nodes/options/DTLevelSpecificSettingsLayer.hpp>
 #include <nodes/calculator/CalculatorPopup.hpp>
-
 #include <nodes/overlayLabels/LabelEditLayer.hpp>
-
-#include <Geode/ui/GeodeUI.hpp>
 #include <regex>
 #include <actions/CCResizeWidthTo.hpp>
 #include <actions/CCParticleFadeTo.hpp>
-
-#include <arc/task/Yield.hpp>
-#include <arc/time/Sleep.hpp>
-
 #include <utils/DateFormatter.hpp>
 #include <utils/Settings.hpp>
 #include <nodes/general/popup/ChangelogPopup.hpp>
 #include <nodes/general/popup/TextInputPopup.hpp>
-
 #include <managers/AuthManager.hpp>
-
 #include <nodes/layout/layoutEditing/DTColorPickerPopup.hpp>
 #include <nodes/Tutorial/DTTutorialLayer.hpp>
 #include <nodes/layout/usage/DTLabel.hpp>
+#include <managers/StatsManager.hpp>
+#include <utils/Save.hpp>
+#include <nodes/general/AdvancedScrollLayer.hpp>
+#include <nodes/general/SessionSelector.hpp>
+#include <nodes/layout/usage/LayoutColumn.hpp>
+#include <nodes/layout/layoutEditing/LayoutOptionsLayer.hpp>
+#include <nodes/Tutorial/TutorialButton.hpp>
+#include <nodes/general/FloatingList.hpp>
+#include <nodes/layout/usage/DecimalPopup.hpp>
 
 float DTLayer::transitionTime = .35f;
 geode::Label* DTLayer::verText = nullptr;

@@ -1,9 +1,4 @@
-#include <Geode/loader/SettingV3.hpp>
-#include <Geode/loader/Mod.hpp>
-
-#include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
-#include <nodes/general/popup/FileConversionLayer.hpp>
+#pragma once
 
 using namespace geode::prelude;
 
@@ -21,7 +16,15 @@ public:
 };
 
 class ConvertSaveSettingNode : public SettingNodeV3 {
-protected:
+public:
+    static ConvertSaveSettingNode* create(std::shared_ptr<ConvertSaveSetting> setting, float width);
+
+    bool hasUncommittedChanges() const override;
+    bool hasNonDefaultValue() const override;
+
+    std::shared_ptr<ConvertSaveSetting> getSetting() const;
+
+private:
     ButtonSprite* m_buttonSprite;
     CCMenuItemSpriteExtra* m_button;
 
@@ -32,14 +35,6 @@ protected:
 
     void onCommit() override;
     void onResetToDefault() override;
-
-public:
-    static ConvertSaveSettingNode* create(std::shared_ptr<ConvertSaveSetting> setting, float width);
-
-    bool hasUncommittedChanges() const override;
-    bool hasNonDefaultValue() const override;
-
-    std::shared_ptr<ConvertSaveSetting> getSetting() const;
 };
 
 $execute {

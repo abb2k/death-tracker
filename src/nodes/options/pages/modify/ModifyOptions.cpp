@@ -7,6 +7,9 @@
 #include <nodes/layout/usage/DTLabel.hpp>
 #include <nodes/general/SessionSelector.hpp>
 #include <nodes/general/SwitcherButton.hpp>
+#include <nodes/Tutorial/TutorialButton.hpp>
+#include <nodes/layout/usage/DecimalPopup.hpp>
+#include <managers/StatsManager.hpp>
 
 ModifyOptions* ModifyOptions::create(CCSize size) {
     auto ret = new ModifyOptions();

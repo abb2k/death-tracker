@@ -1,6 +1,6 @@
 #include "LabelEditLayer.hpp"
 
-#include <types/DTTypes.hpp>
+#include <regex>
 
 #include <utils/Save.hpp>
 #include <utils/Settings.hpp>
@@ -13,13 +13,20 @@
 #include <managers/AuthManager.hpp>
 
 #include <nodes/overlayLabels/LabelEditSpecialKeyEditorPopup.hpp>
+#include <nodes/overlayLabels/OverlayLabelCell.hpp>
+#include <nodes/general/SimpleToggler.hpp>
+
+#include <nodes/general/RichTextArea.hpp>
+#include <managers/StatsManager.hpp>
 
 LabelEditLayer* LabelEditLayer::create() {
     auto ret = new LabelEditLayer();
+
     if (ret->init()) {
         ret->autorelease();
         return ret;
     }
+
     delete ret;
     return nullptr;
 }
@@ -1063,7 +1070,7 @@ Result<GeneralData> LabelEditLayer::getDeathsData(char scope) {
     return Ok(data);
 }
 
-std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::smatch& match) {
+std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::array<std::optional<std::string>, 9>& groups, std::string_view expression) {
     std::map<int, uint64_t> deathsByPercent;
 
     auto sumDeaths = [&](const ComplexDeathMap& deathMap) {
@@ -1082,17 +1089,17 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
 
     sumDeaths(data.m_deaths);
 
-    if (match[6].matched) {
+    if (groups[6]) {
         std::vector<std::string> output;
 
-        auto countRes = utils::numFromString<int>(match[6].str());
+        auto countRes = utils::numFromString<int>(*groups[6]);
         if (countRes.isErr())
             return "Invalid count";
         auto count = countRes.unwrap();
         
         std::optional<ComplexPercent> startPercent;
-        if (match[7].matched && !match[7].str().empty()) {
-            auto startPercentRes = utils::numFromString<double>(match[7].str());
+        if (groups[7] && !groups[7]->empty()) {
+            auto startPercentRes = utils::numFromString<double>(*groups[7]);
             if (startPercentRes.isErr())
                 return "Invalid start percent";
             auto parsedStartPercent = ComplexPercent::fromPercent(startPercentRes.unwrap());
@@ -1103,7 +1110,7 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
         
         std::vector<std::pair<Run, uint64_t>> bestRuns;
         std::map<int64_t, uint64_t> bestRunsByWholePercent;
-        auto showDecimals = match[8].matched;
+        auto showDecimals = groups[8].has_value();
         auto filteredRuns = data.m_runs.filterCheatedRuns();
         const auto& runData = startPercent ? filteredRuns.m_records : data.m_deaths.m_records;
         for (const auto& entry : runData) {
@@ -1142,7 +1149,7 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
         });
 
         for (int i = 0; i < count && i < static_cast<int>(bestRuns.size()); i++) {
-            auto decimalPrecision = match[8].matched ? Settings::getDecimalPrecision() : 0;
+            auto decimalPrecision = groups[8] ? Settings::getDecimalPrecision() : 0;
 
             std::string entry;
 
@@ -1167,28 +1174,28 @@ std::string LabelEditLayer::formatDeaths(const GeneralData& data, const std::sma
     bool exclusiveMin = false;
     bool exclusiveMax = false;
 
-    if (match[2].matched) {
-        auto minPercentRes = utils::numFromString<int>(match[2].str());
+    if (groups[2]) {
+        auto minPercentRes = utils::numFromString<int>(*groups[2]);
         if (minPercentRes.isErr())
             return "Invalid min percent";
         minPercent = minPercentRes.unwrap();
 
-        exclusiveMin = match[0].str().find(">=") == std::string::npos;
+        exclusiveMin = expression.find(">=") == std::string_view::npos;
     }
-    else if (match[3].matched) {
-        auto maxPercentRes = utils::numFromString<int>(match[3].str());
+    else if (groups[3]) {
+        auto maxPercentRes = utils::numFromString<int>(*groups[3]);
         if (maxPercentRes.isErr())
             return "Invalid max percent";
         maxPercent = maxPercentRes.unwrap();
         exclusiveMax = true;
     }
     else {
-        auto minPercentRes = utils::numFromString<int>(match[4].str());
+        auto minPercentRes = utils::numFromString<int>(*groups[4]);
         if (minPercentRes.isErr())
             return "Invalid min percent";
         minPercent = minPercentRes.unwrap();
 
-        auto maxPercentRes = utils::numFromString<int>(match[5].str());
+        auto maxPercentRes = utils::numFromString<int>(*groups[5]);
         if (maxPercentRes.isErr())
             return "Invalid max percent";
         maxPercent = maxPercentRes.unwrap();
@@ -1293,8 +1300,17 @@ std::string LabelEditLayer::expandDeaths(std::string_view textView, const std::f
         auto scope = match[1].str()[0];
         const auto& data = getData(scope);
         if (data) {
-            expanded += formatDeaths(data.value(), match);
-        } else {
+            std::array<std::optional<std::string>, 9> groups;
+
+            for (int i = 0; i < groups.size(); i++) {
+                if (!match[i].matched) continue;
+                
+                groups[i] = match[i].str();
+            }
+
+            expanded += formatDeaths(data.value(), groups, groups[0].value());
+        }
+        else {
             expanded += "[None]";
         }
         

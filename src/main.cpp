@@ -1,9 +1,6 @@
-#include <Geode/Geode.hpp>
-
 #include <utils/Save.hpp>
 #include <managers/StatsManager.hpp>
 #include <utils/Settings.hpp>
-#include <Geode/utils/web.hpp>
 
 #include <managers/LinkedLevelsCacheManager.hpp>
 

@@ -1,9 +1,4 @@
-#include <Geode/loader/SettingV3.hpp>
-#include <Geode/loader/Mod.hpp>
-
-#include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
-#include <nodes/general/popup/FileConversionLayer.hpp>
+#pragma once
 
 using namespace geode::prelude;
 
@@ -21,7 +16,15 @@ public:
 };
 
 class ClaimDonoSettingNode : public SettingNodeV3 {
-protected:
+public:
+    static ClaimDonoSettingNode* create(std::shared_ptr<ClaimDonoSetting> setting, float width);
+
+    bool hasUncommittedChanges() const override;
+    bool hasNonDefaultValue() const override;
+
+    std::shared_ptr<ClaimDonoSetting> getSetting() const;
+
+private:
     TextInput* m_input;
     CCMenuItemSpriteExtra* m_button;
     LoadingCircle* m_loadingCircle;
@@ -32,21 +35,12 @@ protected:
 
     bool init(std::shared_ptr<ClaimDonoSetting> setting, float width);
     
-    void updateState(CCNode* invoker) override;
     void onButton(CCObject*);
 
     void onCommit() override;
     void onResetToDefault() override;
 
     void disableStuff();
-
-public:
-    static ClaimDonoSettingNode* create(std::shared_ptr<ClaimDonoSetting> setting, float width);
-
-    bool hasUncommittedChanges() const override;
-    bool hasNonDefaultValue() const override;
-
-    std::shared_ptr<ClaimDonoSetting> getSetting() const;
 };
 
 $execute {

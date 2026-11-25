@@ -7,29 +7,7 @@
 #include <nodes/layout/usage/LayoutColumn.hpp>
 #include <nodes/layout/layoutEditing/FontSelectionCell.hpp>
 #include <nodes/general/SimpleToggler.hpp>
-
-/*
-settings needed:
-
-- for labels:
-    - labels name (string) :D
-    - text color (ccColor3B) :D
-    - font size (float) :XD
-    - label color (ccColor3B) :D
-    - text (string) :D
-    - alignment (CCTextAlignment) :D
-    - special key selection (other UI)
-    - font
-    - movement and expanding options maybe
-
-- for columns:
-    - column width (float)
-    - column position (float)
-    - color (ccColor3B)
-
-- for both:
-    - delete (button)
-*/
+#include <managers/StatsManager.hpp>
 
 LayoutOptionsLayer* LayoutOptionsLayer::create(CCSize size) {
     auto ret = new LayoutOptionsLayer();

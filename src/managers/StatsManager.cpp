@@ -1,9 +1,11 @@
 #include "StatsManager.hpp"
+
 #include <utils/Settings.hpp>
 #include <utils/Dev.hpp>
 #include <cvolton.level-id-api/EditorIDs.hpp>
 #include <nodes/DTLayer.hpp>
 #include <asp/fs.hpp>
+#include <utils/Save.hpp>
 
 /* static member variables
 =========================== */
@@ -279,7 +281,7 @@ Result<> StatsManager::setMetadata(const LevelMetadata& stats, std::string_view 
 
     auto levelSaveFilePath = getSavesFolderPath() / std::string(levelKey) / StatsManager::METADATA_FILE_NAME;
 
-    auto indentation = Dev::MINIFY_SAVE_FILE
+    auto indentation = Dev::m_minifySaveFile
         ? matjson::NO_INDENTATION
         : 4;
 
@@ -302,7 +304,7 @@ Result<> StatsManager::setSession(Session& stats, const std::string& levelKey, l
 
     createFile(levelSaveFilePath, Session{});
 
-    auto indentation = Dev::MINIFY_SAVE_FILE
+    auto indentation = Dev::m_minifySaveFile
         ? matjson::NO_INDENTATION
         : 4;
 
@@ -331,7 +333,7 @@ Result<> StatsManager::setGeneral(const GeneralData& stats, std::string_view lev
 
     auto levelSaveFilePath = getSavesFolderPath() / std::string(levelKey) / StatsManager::FROM0_FILE_NAME;
 
-    auto indentation = Dev::MINIFY_SAVE_FILE
+    auto indentation = Dev::m_minifySaveFile
         ? matjson::NO_INDENTATION
         : 4;
 
