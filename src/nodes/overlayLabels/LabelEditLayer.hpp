@@ -46,6 +46,7 @@ private:
 
     void onCellDelete(OverlayLabelCell* cell);
     void onCellEdit(OverlayLabelCell* cell);
+    void onCellChanged(OverlayLabelCell* cell);
     void setLabelEditEnabled(bool enabled);
     void updateNoLabelsText();
     void updateAnchorButtons();

@@ -13,6 +13,7 @@ public:
     void onDeleteCallback(Function<void(OverlayLabelCell*)> onDelete);
     void onEditCallback(Function<void(OverlayLabelCell*)> onEdit);
     void onChangedCallback(Function<void(OverlayLabelCell*)> onChanged);
+    void onVisibilityChangedCallback(Function<void(OverlayLabelCell*)> onVisibilityChanged);
 
     OverlayLabel const& getData() const { return m_myLabelData; }
     void setData(OverlayLabel label);
@@ -29,7 +30,7 @@ public:
     TextInput* getOrderInput() const { return m_orderInput; }
     geode::Label* getOrderLabel() const { return m_orderLabel; }
     
-
+    void updateLevelVisibility();
 private:
     bool init(float width, OverlayLabel label);
 
@@ -47,7 +48,6 @@ private:
     bool m_updatingControls = false;
     bool m_isEditing = false;
 
-    void updateLevelVisibility();
     void updateBackgroundColor();
 
     void onDelete(CCObject*);
@@ -56,4 +56,5 @@ private:
     Function<void(OverlayLabelCell*)> m_onDelete = NULL;
     Function<void(OverlayLabelCell*)> m_onEdit = NULL;
     Function<void(OverlayLabelCell*)> m_onChanged = NULL;
+    Function<void(OverlayLabelCell*)> m_onVisibilityChanged = NULL;
 };

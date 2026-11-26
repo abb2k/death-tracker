@@ -773,7 +773,7 @@ void DTPlayLayer::refreshOverlayLabels() {
     std::map<Anchor, float> anchorOffsets;
 
     for (const auto& label : orderedLabels) {
-        if (!label.m_enabled || !label.isOverlayLabelVisibleOnLevel(m_level, m_fields->m_preloadedMetadata.has_value() ? m_fields->m_preloadedMetadata.value() : LevelMetadata{})) continue;
+        if (!label.m_enabled || !label.isOverlayLabelVisibleOnLevel(m_level)) continue;
 
         auto overlayLabel = RichTextArea::create(
             LabelEditLayer::expandDeaths(label.m_text, [this](char scope) {
@@ -819,8 +819,9 @@ void DTPlayLayer::refreshOverlayLabels() {
             );
         }
 
-        for (const auto& line : overlayLabel->getLines())
-            line->setOpacity(labelSettings.m_opacity);
+        auto overlayColor = overlayLabel->getColor();
+        overlayColor.a = labelSettings.m_opacity;
+        overlayLabel->setColor(overlayColor);
     }
 }
 

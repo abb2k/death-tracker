@@ -2862,6 +2862,7 @@ void DTLayer::onDiscardLayoutChanges(CCObject*) {
     Save::setNewBestCustomizations(m_originalNewBestCustomization);
     Save::setSessionBestCustomizations(m_originalSessionBestCustomization);
 
+    closeOptionsLayer();
     setLayoutBy(Save::getLayout());
 
     m_specialStrings["general"]->updateContent();

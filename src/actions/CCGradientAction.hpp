@@ -25,5 +25,6 @@ private:
     std::int64_t m_colorOffset = 0;
     ccColor4B m_colorA = {255, 255, 255, 255};
     ccColor4B m_colorB = {255, 255, 255, 255};
+    GLubyte m_baseOpacity = 255;
     bool m_animateOpacity = false;
 };

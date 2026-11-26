@@ -71,4 +71,6 @@ private:
     void addNB(CCObject*);
 
     void removeInvalidRuns(CCObject*);
+
+    static constexpr int m_previewLabelFadeActionTag = 12;
 };

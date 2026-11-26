@@ -85,7 +85,7 @@ bool LayoutOptionsLayer::init(CCSize size) {
 
         m_editedLabel.value()->setLabelName(newStr);
     });
-    m_labelNameInput->setFilter("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ <>=,.");
+    m_labelNameInput->setCommonFilter(CommonFilter::Any);
     m_labelNameInput->setPositionY(-22);
     m_labelSettingsNode->addChild(m_labelNameInput);
 
@@ -811,11 +811,12 @@ void LayoutOptionsLayer::onBack(CCObject*) {
 
 void LayoutOptionsLayer::onDelete(CCObject*) {
     if (m_editedLabel.has_value()) {
-        m_editedLabel.value()->removeFromColumns();
-        m_editedLabel.value()->removeFromParentAndCleanup(true);
-        DTLayer::get()->organizeLayout();
+        auto label = m_editedLabel.value();
         if (m_onBackedOut != NULL)
             m_onBackedOut();
+        label->removeFromColumns();
+        label->removeFromParentAndCleanup(true);
+        DTLayer::get()->organizeLayout();
     }
     else if (m_editedColumn.has_value()) {
         m_editedColumn.value()->destroyColumnAndCleanup();

@@ -19,6 +19,7 @@ DecimalPopup* DecimalPopup::create(CCSize size) {
 bool DecimalPopup::init(CCSize size) {
     if (!CCNode::init()) return false;
 
+    m_maxPopupHeight = size.height;
     this->setContentSize(size);
 
     m_bg = CCScale9Sprite::create("square02_small.png");
@@ -71,13 +72,13 @@ bool DecimalPopup::init(CCSize size) {
 
     auto closeBtnSpr = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
     closeBtnSpr->setScale(.4f);
-    auto closeBtn = CCMenuItemSpriteExtra::create(
+    m_closeButton = CCMenuItemSpriteExtra::create(
         closeBtnSpr,
         this,
         menu_selector(DecimalPopup::onClose)
     );
-    closeBtn->setPosition({2, size.height - 7});
-    buttMenu->addChild(closeBtn);
+    m_closeButton->setPosition({2, size.height - 7});
+    buttMenu->addChild(m_closeButton);
 
     m_scrollBargame = Scrollbar::create(m_scroll);
     m_scrollBargame->setPosition({size.width - 2, size.height / 2});
@@ -96,113 +97,33 @@ void DecimalPopup::onEnter() {
 }
 
 void DecimalPopup::onExit() {
+    close();
     CCNode::onExit();
 }
 
 void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8_t decimalDepth, DTLabel* referenceLabel, std::optional<std::pair<long long, size_t>> occurrenceSelection) {
+    if (m_originLabel != referenceLabel) {
+        if (m_originLabel)
+            m_originLabel->release();
+        m_originLabel = referenceLabel;
+        if (m_originLabel)
+            m_originLabel->retain();
+    }
+
+    if (origin && m_originLabel) {
+        auto toLabelSpace = [this, origin](CCPoint point) {
+            return m_originLabel->convertToNodeSpace(origin->convertToWorldSpace(point));
+        };
+        m_originTopRight = toLabelSpace({origin->getContentWidth(), origin->getContentHeight()});
+        m_originBottomLeft = toLabelSpace({0, 0});
+        m_originBottomRight = toLabelSpace({origin->getContentWidth(), 0});
+        m_originTopLeft = toLabelSpace({0, origin->getContentHeight()});
+    }
+
     this->setVisible(true);
     m_label->setEnabled(true);
 
-    auto offset = ccp(2, 3);
-
-    this->setAnchorPoint({0.f, 1});
-
-    auto posWorld = origin->convertToWorldSpace({origin->getContentWidth(), origin->getContentHeight()});
-    auto posNode = this->getParent()->convertToNodeSpace(posWorld);
-
-    this->setPosition(posNode + offset);
-
-    bool tooFarSide;
-    bool tooFarBottom;
-
-    auto updateFarChecks = [&]() {
-        auto posWorldBottom = this->convertToWorldSpace({this->getContentWidth(), 0});
-        auto posNodeBottom = this->getParent()->getParent()->convertToNodeSpace(posWorldBottom);
-
-        auto posWorldSide = this->convertToWorldSpace({0, this->getContentHeight()});
-        auto posNodeSide = this->getParent()->getParent()->convertToNodeSpace(posWorldSide);
-
-        tooFarSide = !this->getParent()->boundingBox().containsPoint(posNodeSide);
-        tooFarBottom = !this->getParent()->boundingBox().containsPoint(posNodeBottom);
-    };
-    updateFarChecks();
-
-    if (tooFarSide && tooFarBottom) {
-        this->setAnchorPoint({1, 0});
-
-        auto posWorld = origin->convertToWorldSpace({0, 0});
-        auto posNode = this->getParent()->convertToNodeSpace(posWorld);
-
-        this->setPosition(posNode - offset);
-
-        updateFarChecks();
-    }
-    else {
-        if (tooFarBottom) {
-            this->setAnchorPoint({this->getAnchorPoint().x, 0});
-
-            auto posWorld = origin->convertToWorldSpace({origin->getContentWidth(), 0});
-            auto posNode = this->getParent()->convertToNodeSpace(posWorld);
-
-            this->setPositionY(posNode.y - offset.y);
-
-            updateFarChecks();
-        }
-
-        if (tooFarSide) {
-            this->setAnchorPoint({1, this->getAnchorPoint().y});
-
-            auto posWorld = origin->convertToWorldSpace({0, origin->getContentHeight()});
-            auto posNode = this->getParent()->convertToNodeSpace(posWorld);
-
-            this->setPositionX(posNode.x - offset.x);
-
-            updateFarChecks();
-        }
-
-        auto posWorldTop = this->convertToWorldSpace({this->getContentWidth(), this->getContentHeight()});
-        auto posNodeTop = this->getParent()->getParent()->convertToNodeSpace(posWorldTop);
-
-        bool tooFarTop = !this->getParent()->boundingBox().containsPoint(posNodeTop);
-
-        if (tooFarTop) {
-            this->setAnchorPoint({this->getAnchorPoint().x, 1});
-
-            auto posWorld = origin->convertToWorldSpace({origin->getContentWidth(), origin->getContentHeight()});
-            auto posNode = this->getParent()->convertToNodeSpace(posWorld);
-
-            this->setPositionY(posNode.y + offset.y);
-
-            updateFarChecks();
-        }
-
-        auto posWorldRight = this->convertToWorldSpace({this->getContentWidth(), 0});
-        auto posNodeRight = this->getParent()->getParent()->convertToNodeSpace(posWorldRight);
-
-        bool tooFarRight = !this->getParent()->boundingBox().containsPoint(posNodeRight);
-
-        if (tooFarRight) {
-            this->setAnchorPoint({1, this->getAnchorPoint().y});
-
-            auto posWorld = origin->convertToWorldSpace({0, 0});
-            auto posNode = this->getParent()->convertToNodeSpace(posWorld);
-
-            this->setPositionX(posNode.x - offset.x);
-
-            updateFarChecks();
-        }
-
-        if (tooFarBottom) {
-            this->setAnchorPoint({this->getAnchorPoint().x, 0});
-
-            auto posWorld = origin->convertToWorldSpace({origin->getContentWidth(), 0});
-            auto posNode = this->getParent()->convertToNodeSpace(posWorld);
-
-            this->setPositionY(posNode.y - offset.y);
-
-            updateFarChecks();
-        }
-    }
+    this->positionToOrigin();
 
     m_label->setPayload("decimalDepth", decimalDepth);
     m_label->setPayload("decimalRun", run);
@@ -241,6 +162,105 @@ void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8
     m_label->setLabelText("{dynamicDecimal}");
 }
 
+void DecimalPopup::positionToOrigin() {
+    if (!m_originLabel || !m_originLabel->getParent()) {
+        close();
+        return;
+    }
+    if (!this->getParent() || !this->getParent()->getParent()) return;
+
+    auto offset = ccp(2, 3);
+    this->setAnchorPoint({0.f, 1});
+
+    auto posWorld = m_originLabel->convertToWorldSpace(m_originTopRight);
+    auto posNode = this->getParent()->convertToNodeSpace(posWorld);
+    this->setPosition(posNode + offset);
+
+    bool tooFarSide;
+    bool tooFarBottom;
+
+    auto updateFarChecks = [&]() {
+        auto posWorldBottom = this->convertToWorldSpace({this->getContentWidth(), 0});
+        auto posNodeBottom = this->getParent()->getParent()->convertToNodeSpace(posWorldBottom);
+
+        auto posWorldSide = this->convertToWorldSpace({0, this->getContentHeight()});
+        auto posNodeSide = this->getParent()->getParent()->convertToNodeSpace(posWorldSide);
+
+        tooFarSide = !this->getParent()->boundingBox().containsPoint(posNodeSide);
+        tooFarBottom = !this->getParent()->boundingBox().containsPoint(posNodeBottom);
+    };
+    updateFarChecks();
+
+    if (tooFarSide && tooFarBottom) {
+        this->setAnchorPoint({1, 0});
+
+        posWorld = m_originLabel->convertToWorldSpace(m_originBottomLeft);
+        posNode = this->getParent()->convertToNodeSpace(posWorld);
+        this->setPosition(posNode - offset);
+
+        updateFarChecks();
+    }
+    else {
+        if (tooFarBottom) {
+            this->setAnchorPoint({this->getAnchorPoint().x, 0});
+
+            posWorld = m_originLabel->convertToWorldSpace(m_originBottomRight);
+            posNode = this->getParent()->convertToNodeSpace(posWorld);
+            this->setPositionY(posNode.y - offset.y);
+
+            updateFarChecks();
+        }
+
+        if (tooFarSide) {
+            this->setAnchorPoint({1, this->getAnchorPoint().y});
+
+            posWorld = m_originLabel->convertToWorldSpace(m_originTopLeft);
+            posNode = this->getParent()->convertToNodeSpace(posWorld);
+            this->setPositionX(posNode.x - offset.x);
+
+            updateFarChecks();
+        }
+
+        auto posWorldTop = this->convertToWorldSpace({this->getContentWidth(), this->getContentHeight()});
+        auto posNodeTop = this->getParent()->getParent()->convertToNodeSpace(posWorldTop);
+        bool tooFarTop = !this->getParent()->boundingBox().containsPoint(posNodeTop);
+
+        if (tooFarTop) {
+            this->setAnchorPoint({this->getAnchorPoint().x, 1});
+
+            posWorld = m_originLabel->convertToWorldSpace(m_originTopRight);
+            posNode = this->getParent()->convertToNodeSpace(posWorld);
+            this->setPositionY(posNode.y + offset.y);
+
+            updateFarChecks();
+        }
+
+        auto posWorldRight = this->convertToWorldSpace({this->getContentWidth(), 0});
+        auto posNodeRight = this->getParent()->getParent()->convertToNodeSpace(posWorldRight);
+        bool tooFarRight = !this->getParent()->boundingBox().containsPoint(posNodeRight);
+
+        if (tooFarRight) {
+            this->setAnchorPoint({1, this->getAnchorPoint().y});
+
+            posWorld = m_originLabel->convertToWorldSpace(m_originBottomLeft);
+            posNode = this->getParent()->convertToNodeSpace(posWorld);
+            this->setPositionX(posNode.x - offset.x);
+
+            updateFarChecks();
+        }
+
+        if (tooFarBottom) {
+            this->setAnchorPoint({this->getAnchorPoint().x, 0});
+
+            posWorld = m_originLabel->convertToWorldSpace(m_originBottomRight);
+            posNode = this->getParent()->convertToNodeSpace(posWorld);
+            this->setPositionY(posNode.y - offset.y);
+
+            updateFarChecks();
+        }
+    }
+}
+
 void DecimalPopup::update(float dt) {
     float prevHeight = m_scroll->m_contentLayer->getContentHeight();
     m_scroll->m_contentLayer->updateLayout();
@@ -248,12 +268,16 @@ void DecimalPopup::update(float dt) {
     constexpr float bottomPadding = 3.f;
     auto labelHeight = m_label->getContentHeight();
     auto scrollHeight = std::min(labelHeight + bottomPadding, m_maxScrollHeight);
-    auto bgHeight = std::min(labelHeight + bottomPadding, this->getContentHeight() - 2.5f);
+    auto popupHeight = scrollHeight + 6.5f;
+    auto bgHeight = std::min(labelHeight + bottomPadding, m_maxPopupHeight - 2.5f);
 
+    this->setContentHeight(popupHeight);
+    m_bg->setPositionY(popupHeight - 2.5f);
     m_bg->setContentHeight(bgHeight / m_bg->getScale());
+    m_closeButton->setPositionY(popupHeight - 7);
+    auto scrollTop = popupHeight - 3.25f;
 
     if (m_scroll->getContentHeight() != scrollHeight) {
-        auto scrollTop = this->getContentHeight() - 3.25f;
         m_scroll->setContentHeight(scrollHeight);
         m_scroll->setPositionY(scrollTop - scrollHeight);
         m_scrollBargame->setPositionY(scrollTop - scrollHeight / 2);
@@ -265,9 +289,16 @@ void DecimalPopup::update(float dt) {
         );
         m_scroll->m_contentLayer->updateLayout();
     }
+    else {
+        m_scroll->setPositionY(scrollTop - scrollHeight);
+        m_scrollBargame->setPositionY(scrollTop - scrollHeight / 2);
+    }
 
     if (m_scroll->m_contentLayer->getContentHeight() != prevHeight)
         m_scroll->moveToTop();
+
+    if (this->isVisible())
+        this->positionToOrigin();
 
     bool canScroll = this->isVisible() && m_scroll->m_contentLayer->getContentHeight() > m_scroll->getContentHeight();
     m_scroll->setMouseEnabled(canScroll);
@@ -291,6 +322,10 @@ bool DecimalPopup::isTouchOnMe(CCTouch *pTouch, bool begin) {
 
 void DecimalPopup::close() {
     this->setVisible(false);
+    auto originLabel = m_originLabel;
+    m_originLabel = nullptr;
+    if (originLabel)
+        originLabel->release();
 
     m_scroll->setMouseEnabled(false);
     m_scroll->setTouchEnabled(false);

@@ -20,14 +20,22 @@ private:
     bool init(CCSize size);
 
     DTLabel* m_label;
+    DTLabel* m_originLabel = nullptr;
+    CCPoint m_originTopRight;
+    CCPoint m_originBottomLeft;
+    CCPoint m_originBottomRight;
+    CCPoint m_originTopLeft;
 
     CCScale9Sprite* m_bg;
+    CCMenuItemSpriteExtra* m_closeButton = nullptr;
 
     ScrollLayer* m_scroll;
 
+    float m_maxPopupHeight = 0.f;
     float m_maxScrollHeight;
 
     void update(float dt) override;
+    void positionToOrigin();
 
     void onEnter() override;
     void onExit() override;

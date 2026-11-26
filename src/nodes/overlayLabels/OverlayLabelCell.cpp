@@ -72,7 +72,10 @@ bool OverlayLabelCell::init(float width, OverlayLabel label) {
         } else {
             m_myLabelData.m_levelSpecific = std::nullopt;
         }
+        auto wasVisible = isVisible();
         updateLevelVisibility();
+        if (wasVisible != isVisible() && m_onVisibilityChanged != NULL)
+            m_onVisibilityChanged(this);
         updateBackgroundColor();
         if (m_onChanged != NULL) m_onChanged(this);
     });
@@ -163,11 +166,8 @@ void OverlayLabelCell::setEditing(bool isEditing) {
 void OverlayLabelCell::updateLevelVisibility() {
     auto dtLayer = DTLayer::get();
 
-    LevelMetadata meta = dtLayer ? (dtLayer->m_MyLevelStats.isOk() ? dtLayer->m_MyLevelStats.unwrap().m_metadata : LevelMetadata{}) : LevelMetadata{};
-
     auto isVisible = m_myLabelData.isOverlayLabelVisibleOnLevel(
-        dtLayer ? dtLayer->m_Level : nullptr,
-        meta
+        dtLayer ? dtLayer->m_Level : nullptr
     );
 
     this->setVisible(isVisible);
@@ -207,4 +207,8 @@ void OverlayLabelCell::onEditCallback(Function<void(OverlayLabelCell*)> onEdit){
 
 void OverlayLabelCell::onChangedCallback(Function<void(OverlayLabelCell*)> onChanged){
     m_onChanged = std::move(onChanged);
+}
+
+void OverlayLabelCell::onVisibilityChangedCallback(Function<void(OverlayLabelCell*)> onVisibilityChanged) {
+    m_onVisibilityChanged = std::move(onVisibilityChanged);
 }

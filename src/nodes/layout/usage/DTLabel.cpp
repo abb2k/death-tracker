@@ -88,9 +88,9 @@ bool DTLabel::init(DTLabelInfo info) {
     setLabelText(m_info.m_text);
     m_labelTextContainer->addChild(m_labelText);
     
-    m_labelText->registerRichTextKey(RichTextKeys::makeWaveKey([this](){ return m_donerRichTextEnabled; }));
+    m_labelText->registerRichTextKey(RichTextKeys::makeWaveKey([this](){ return m_donerRichTextEnabled && !m_ignoreExtraSettings; }));
     
-    m_labelText->registerRichTextKey(RichTextKeys::makeGradientKey([this](){ return m_donerRichTextEnabled; }));
+    m_labelText->registerRichTextKey(RichTextKeys::makeGradientKey([this](){ return m_donerRichTextEnabled && !m_ignoreExtraSettings; }));
     
     m_labelText->registerRichTextKey(RichTextKeys::makeCPlusKey());
 
@@ -145,8 +145,8 @@ bool DTLabel::init(DTLabelInfo info) {
     m_labelTitleArea->setMaxLines(1);
     m_labelTitleArea->setVisible(!m_info.m_hideHeader);
     
-    m_labelTitleArea->registerRichTextKey(RichTextKeys::makeWaveKey([&](){ return m_donerRichTextEnabled; }));
-    m_labelTitleArea->registerRichTextKey(RichTextKeys::makeGradientKey([&](){ return m_donerRichTextEnabled; }));
+    m_labelTitleArea->registerRichTextKey(RichTextKeys::makeWaveKey([&](){ return m_donerRichTextEnabled && !m_ignoreExtraSettings; }));
+    m_labelTitleArea->registerRichTextKey(RichTextKeys::makeGradientKey([&](){ return m_donerRichTextEnabled && !m_ignoreExtraSettings; }));
     m_labelTitleArea->registerRichTextKey(RichTextKeys::makeCPlusKey());
 
     m_labelTitleArea->updateContent();
@@ -257,18 +257,16 @@ void DTLabel::update(float dt) {
 
     m_loadingCircle->setPosition({this->getContentWidth() / 2, this->getContentHeight() - getSpecificTitleHeight() / 2});
 
-    auto titleWidth = this->getContentWidth() - m_expandBtn->getScaledContentHeight() * 2 - 5;
+    auto titleAreaLeft = m_expandBtn->getPositionX() + m_expandBtn->getScaledContentWidth() / 2.f + 5.f;
+    auto titleAreaRight = this->getContentWidth() - 5.f;
+    auto titleWidth = std::max(0.f, titleAreaRight - titleAreaLeft);
     if (std::abs(m_labelTitleArea->getWidth() - titleWidth) > 0.01f) {
         m_labelTitleArea->setWidth(titleWidth);
         m_labelTitleArea->setWidth(m_labelTitleArea->getWidth());
     }
 
     m_labelTitleArea->setPositionY(this->getContentHeight());
-    m_labelTitleArea->setPositionX(this->getContentWidth() / 2 + (
-        m_labelTitleArea->getAlignment() == CCTextAlignment::kCCTextAlignmentRight && !m_info.m_hideHeader ?
-            m_expandBtn->getScaledContentHeight() :
-            0
-    ));
+    m_labelTitleArea->setPositionX(titleAreaLeft + titleWidth / 2.f);
 
     m_leftExpandLine->setPositionY(this->getContentHeight());
 

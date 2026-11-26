@@ -53,12 +53,18 @@ bool CCGradientAction::init(float transitionDuration, ccColor4B colorA, ccColor4
 void CCGradientAction::startWithTarget(CCNode* target) {
     CCActionInterval::startWithTarget(target);
 
+    if (auto rgba = typeinfo_cast<CCRGBAProtocol*>(target)) {
+        m_baseOpacity = rgba->getOpacity();
+    } else {
+        m_baseOpacity = 255;
+    }
+
     update(0.0f);
 }
 
 void CCGradientAction::update(float time) {
-    auto sprite = typeinfo_cast<CCSprite*>(m_pTarget);
-    if (!sprite) return;
+    auto rgba = typeinfo_cast<CCRGBAProtocol*>(m_pTarget);
+    if (!rgba) return;
 
     auto phase = std::fmod(time * m_cycleDuration + m_phaseOffset, m_cycleDuration);
 
@@ -82,13 +88,16 @@ void CCGradientAction::update(float time) {
         ));
     };
 
-    sprite->setColor({
+    rgba->setColor(ccColor3B{
         addOffset(interpolate(from.r, to.r)),
         addOffset(interpolate(from.g, to.g)),
         addOffset(interpolate(from.b, to.b))
     });
     if (m_animateOpacity) {
-        sprite->setOpacity(interpolate(from.a, to.a));
+        auto gradientOpacity = interpolate(from.a, to.a);
+        rgba->setOpacity(static_cast<GLubyte>(
+            (static_cast<unsigned int>(m_baseOpacity) * gradientOpacity + 127) / 255
+        ));
     }
 }
 

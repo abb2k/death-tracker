@@ -472,7 +472,11 @@ bool LabelEditLayer::init() {
         auto labelCell = OverlayLabelCell::create(m_scroll->getContentWidth(), label);
         labelCell->onEditCallback([this](auto cell) { onCellEdit(cell); });
         labelCell->onDeleteCallback([this](auto cell) { onCellDelete(cell); });
-        labelCell->onChangedCallback([this](auto) { updateSavedLabels(); });
+        labelCell->onChangedCallback([this](auto cell) { onCellChanged(cell); });
+        labelCell->onVisibilityChangedCallback([this](auto) {
+            m_scroll->m_contentLayer->updateLayout();
+            updateNoLabelsText();
+        });
         m_scroll->m_contentLayer->addChild(labelCell);
         m_labels.push_back(labelCell);
     }
@@ -565,11 +569,20 @@ void LabelEditLayer::onLabelAdded(CCObject*) {
     newLabel.m_labelName = "New Label";
 
     auto newLabelCell = OverlayLabelCell::create(m_scroll->getContentWidth(), newLabel);
-    newLabelCell->onEditCallback([&](auto cell){ onCellEdit(cell); });
-    newLabelCell->onDeleteCallback([&](auto cell){ onCellDelete(cell); });
-    newLabelCell->onChangedCallback([this](auto) { updateSavedLabels(); });
+    newLabelCell->onEditCallback([this](auto cell) { onCellEdit(cell); });
+    newLabelCell->onDeleteCallback([this](auto cell) { onCellDelete(cell); });
+    newLabelCell->onChangedCallback([this](auto cell) { onCellChanged(cell); });
+    newLabelCell->onVisibilityChangedCallback([this](auto) {
+        m_scroll->m_contentLayer->updateLayout();
+        updateNoLabelsText();
+    });
 
     m_scroll->m_contentLayer->addChild(newLabelCell);
+    for (auto& label : m_labels)
+    {
+        label->updateLevelVisibility();
+    }
+    
     m_scroll->m_contentLayer->updateLayout();
 
     m_labels.push_back(newLabelCell);
@@ -607,10 +620,19 @@ void LabelEditLayer::onCellDelete(OverlayLabelCell* cell) {
     cell->setVisible(false);
     cell->removeMeAndCleanup();
 
+    for (auto& label : m_labels)
+    {
+        label->updateLevelVisibility();
+    }
+
     m_scroll->m_contentLayer->updateLayout();
 
     updateNoLabelsText();
 
+    updateSavedLabels();
+}
+
+void LabelEditLayer::onCellChanged(OverlayLabelCell*) {
     updateSavedLabels();
 }
 
@@ -907,7 +929,7 @@ void LabelEditLayer::RefreshPreviewLabels() {
     std::map<Anchor, float> anchorOffsets;
     
     for (const auto& [index, label] : orderedLabels) {
-        if (!label.m_enabled || !label.isOverlayLabelVisibleOnLevel(currentLevel, dtLayer ? (dtLayer->m_MyLevelStats.isOk() ? dtLayer->m_MyLevelStats.unwrap().m_metadata : LevelMetadata{}) : LevelMetadata{})) continue;
+        if (!label.m_enabled || !label.isOverlayLabelVisibleOnLevel(currentLevel)) continue;
 
         auto previewLabel = RichTextArea::create(expandDeaths(label.m_text), labelSettings.m_font, labelSettings.m_size * previewScale);
         m_previewLabels.push_back(previewLabel);
@@ -958,8 +980,9 @@ void LabelEditLayer::RefreshPreviewLabels() {
             previewLabel->setPosition(m_previewArea->getContentSize() * anchor + labelSettings.m_offset * anchorDirection(anchor));
         }
 
-        for (const auto& line : previewLabel->getLines())
-            line->setOpacity(labelSettings.m_opacity);
+        auto previewColor = previewLabel->getColor();
+        previewColor.a = labelSettings.m_opacity;
+        previewLabel->setColor(previewColor);
     }
 }
 
@@ -1410,6 +1433,5 @@ void LabelEditLayer::ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent) {
 void LabelEditLayer::update(float dt) {
     if (m_textInput && m_prevCursorPos.has_value() && m_doUpdateCursorPos) {
         m_prevCursorPos = m_textInput->getCursorPos();
-        log::info("Previous cursor position: {}", m_prevCursorPos.value());
     }
 }

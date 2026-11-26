@@ -706,7 +706,10 @@ void ModifyOptions::onOpened() {
 
     m_sessionSelector->setMaximumCount(DTLayer::get()->m_sessionSelector->getMaximumCount(), false);
 
-    m_myLabel->runAction(CCFadeIn::create(fadeTime));
+    m_myLabel->stopActionByTag(m_previewLabelFadeActionTag);
+    auto labelFade = CCFadeIn::create(fadeTime);
+    labelFade->setTag(m_previewLabelFadeActionTag);
+    m_myLabel->runAction(labelFade);
     m_myLabel->fadeTextColorTo({255, 255, 255, 255}, fadeTime);
     m_myLabel->fadeTitleColorTo({255, 255, 255, 255}, fadeTime);
     m_myLabel->setRunMoreButtonsVisible(true, fadeTime);
@@ -743,7 +746,10 @@ void ModifyOptions::onClosed() {
     Dev::fadeTextInput(m_addRunStartInput, false, fadeTime);
     Dev::fadeTextInput(m_runAmountInput, false, fadeTime);
 
-    m_myLabel->runAction(CCFadeOut::create(fadeTime));
+    m_myLabel->stopActionByTag(m_previewLabelFadeActionTag);
+    auto labelFade = CCFadeOut::create(fadeTime);
+    labelFade->setTag(m_previewLabelFadeActionTag);
+    m_myLabel->runAction(labelFade);
     m_myLabel->fadeTextColorTo({255, 255, 255, 0}, fadeTime);
     m_myLabel->fadeTitleColorTo({255, 255, 255, 0}, fadeTime);
     m_myLabel->setRunMoreButtonsVisible(false, fadeTime);

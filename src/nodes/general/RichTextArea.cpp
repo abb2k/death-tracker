@@ -1,317 +1,326 @@
 #include "RichTextArea.hpp"
 
+#include <numeric>
 #include <regex>
 #include <asp/iter.hpp>
 
-cocos2d::CCLabelBMFont* RichTextArea::createLabel(std::string text, float top) {
-    if (m_maxLines && m_lines.size() >= m_maxLines) {
-        cocos2d::CCLabelBMFont* last = m_lines.at(m_maxLines - 1);
-        std::string_view textv = last->getString();
-
-        last->setString(fmt::format("{}...", textv.substr(0, textv.size() - 3)).c_str());
-
-        return nullptr;
-    } else {
-        cocos2d::CCLabelBMFont* label = cocos2d::CCLabelBMFont::create(std::move(text).c_str(), m_font.c_str());
-        
-        label->setScale(m_scale);
-        label->setPosition({ 0, top });
-        label->setColor({ m_color.r, m_color.g, m_color.b });
-        label->setOpacity(m_color.a);
-
-        return label;
-    }
-}
-
-float RichTextArea::calculateOffset(cocos2d::CCLabelBMFont* label) {
-    return m_linePadding + label->getContentSize().height * m_scale;
-}
-
-void RichTextArea::charIteration(geode::FunctionRef<cocos2d::CCLabelBMFont*(cocos2d::CCLabelBMFont* line, char c, float top)> overflowHandling) {
-    float top = 0;
-    m_lines.clear();
-    m_pendingSpriteEffects.clear();
-    cocos2d::CCLabelBMFont* line = this->createLabel("", top);
-    m_lines = { line };
-
-    std::map<std::string, std::shared_ptr<RichTextKeyInstanceBase>> appliedRichTextInstances{};
+std::vector<RichTextArea::RichCharacter> RichTextArea::buildCharacters() {
+    std::vector<RichCharacter> characters;
+    std::map<std::string, std::shared_ptr<RichTextKeyInstanceBase>> activeInstances;
     std::map<std::string, size_t> activationOrder;
+    std::map<std::shared_ptr<RichTextKeyInstanceBase>, int> localIndices;
     size_t nextActivationOrder = 0;
+    size_t byteIndex = 0;
+    size_t characterIndex = 0;
 
-    std::map<std::shared_ptr<RichTextKeyInstanceBase>, int> m_charIndexForInstance{};
-
-    using CharacterEffect = std::pair<std::shared_ptr<RichTextKeyInstanceBase>, int>;
-
-    std::vector<std::vector<CharacterEffect>> effectsForCharacter;
-    std::map<cocos2d::CCLabelBMFont*, std::vector<size_t>> characterIndicesForLine{};
-    characterIndicesForLine[line] = {};
-
-    m_charactersForButton.clear();
-
-    size_t index = 0;
-    for (const char& c : m_text) {
-        if (m_richTextInstances.contains(index)) {
-            auto instances = m_richTextInstances[index];
-
-            for (const auto& instance : instances) {
+    while (byteIndex < m_text.size()) {
+        int sourceIndex = static_cast<int>(byteIndex);
+        if (m_richTextInstances.contains(sourceIndex)) {
+            for (const auto& instance : m_richTextInstances[sourceIndex]) {
                 auto key = instance->getKey();
-
                 if (instance->isCancellation()) {
-                    auto active = appliedRichTextInstances.find(key);
-                    
-                    if (active != appliedRichTextInstances.end()) {
-                        m_charIndexForInstance.erase(active->second);
-                        appliedRichTextInstances.erase(active);
+                    auto active = activeInstances.find(key);
+
+                    if (active != activeInstances.end()) {
+                        localIndices.erase(active->second);
+                        activeInstances.erase(active);
                         activationOrder.erase(key);
                     }
 
                     continue;
                 }
 
-                appliedRichTextInstances[key] = instance;
-                m_charIndexForInstance[instance] = 0;
+                activeInstances[key] = instance;
+                localIndices[instance] = 0;
                 activationOrder[key] = nextActivationOrder++;
             }
         }
 
-        if (m_specialExitCancellations.contains(index)) {
+        if (m_specialExitCancellations.contains(sourceIndex)) {
             const std::string* latestKey = nullptr;
             size_t latestOrder = 0;
-            
-            for (const auto& key : m_specialExitCancellations[index]) {
-                auto active = appliedRichTextInstances.find(key);
+            for (const auto& key : m_specialExitCancellations[sourceIndex]) {
+                auto active = activeInstances.find(key);
                 auto order = activationOrder.find(key);
-                
-                if (active != appliedRichTextInstances.end() && order != activationOrder.end() && (latestKey == nullptr || order->second > latestOrder)) {
+                if (active != activeInstances.end() && order != activationOrder.end() && (latestKey == nullptr || order->second > latestOrder)) {
                     latestKey = &key;
                     latestOrder = order->second;
                 }
             }
 
             if (latestKey != nullptr) {
-                auto active = appliedRichTextInstances.find(*latestKey);
-                m_charIndexForInstance.erase(active->second);
-                appliedRichTextInstances.erase(active);
+                auto active = activeInstances.find(*latestKey);
+                localIndices.erase(active->second);
+                activeInstances.erase(active);
                 activationOrder.erase(*latestKey);
             }
         }
 
-        std::vector<CharacterEffect> characterEffects{};
-        characterEffects.reserve(appliedRichTextInstances.size());
-
-        for (const auto& [key, instancePtr] : appliedRichTextInstances) {
-            characterEffects.emplace_back(instancePtr, m_charIndexForInstance[instancePtr]);
+        auto lead = static_cast<unsigned char>(m_text[byteIndex]);
+        size_t length = 1;
+        if (lead >= 0xC0 && lead <= 0xDF) {
+            length = 2;
+        } else if (lead >= 0xE0 && lead <= 0xEF) {
+            length = 3;
+        } else if (lead >= 0xF0 && lead <= 0xF7) {
+            length = 4;
         }
-        
-        effectsForCharacter.push_back(std::move(characterEffects));
-        auto characterIndex = index;
-        index++;
-
-        if (c == '\n') {
-            line = this->createLabel("", top -= this->calculateOffset(line));
-
-            if (line == nullptr) {
-                break;
-            }
-            else {
-                m_lines.push_back(line);
-                characterIndicesForLine[line] = {};
-            }
+        if (byteIndex + length > m_text.size()) {
+            length = 1;
         }
-        else if (m_artificialWidth && line->getContentWidth() * m_scale >= getWidth()) {
-            cocos2d::CCLabelBMFont* oldLine = line;
-            std::string oldText = line->getString();
-            auto oldCharacterIndices = characterIndicesForLine[line];
-            line = overflowHandling(line, c, top -= this->calculateOffset(line));
 
-            if (line == nullptr) {
-                break;
-            }
-            else {
-                m_lines.push_back(line);
+        auto codepoint = lead;
+        auto appendContinuationByte = [&](char32_t value, size_t offset) {
+            auto byte = static_cast<unsigned char>(m_text[byteIndex + offset]);
+            return value * 64 + byte % 64;
+        };
+        if (length == 2) {
+            codepoint = appendContinuationByte(lead - 0xC0, 1);
+        } else if (length == 3) {
+            codepoint = appendContinuationByte(lead - 0xE0, 1);
+            codepoint = appendContinuationByte(codepoint, 2);
+        } else if (length == 4) {
+            codepoint = appendContinuationByte(lead - 0xF0, 1);
+            codepoint = appendContinuationByte(codepoint, 2);
+            codepoint = appendContinuationByte(codepoint, 3);
+        }
 
-                std::string newText = line->getString();
-                bool currentCharacterWasRendered = c != ' ' && !newText.empty() && newText.back() == c;
+        RichCharacter character{
+            m_text.substr(byteIndex, length),
+            codepoint,
+            byteIndex,
+            characterIndex,
+            {}
+        };
+        character.m_effects.reserve(activeInstances.size());
+        for (const auto& [key, instance] : activeInstances) {
+            character.m_effects.push_back({instance, localIndices[instance]});
+        }
+        characters.push_back(std::move(character));
 
-                auto movedText = newText;
-                
-                if (currentCharacterWasRendered) {
-                    movedText.pop_back();
-                }
-
-                auto movedCharacterCount = std::min(oldText.size(), movedText.size());
-                while (movedCharacterCount > 0 && oldText.compare(oldText.size() - movedCharacterCount, movedCharacterCount, movedText, 0, movedCharacterCount) != 0) {
-                    movedCharacterCount--;
-                }
-                movedCharacterCount = std::min(movedCharacterCount, oldCharacterIndices.size());
-
-                std::vector<size_t>& remainingCharacterIndices = characterIndicesForLine[oldLine];
-                remainingCharacterIndices.resize(std::min(oldCharacterIndices.size(), std::string(oldLine->getString()).size()));
-
-                std::vector<size_t>& newCharacterIndices = characterIndicesForLine[line];
-                newCharacterIndices.insert(
-                    newCharacterIndices.end(),
-                    oldCharacterIndices.end() - movedCharacterCount,
-                    oldCharacterIndices.end()
-                );
-
-                if (currentCharacterWasRendered) {
-                    newCharacterIndices.push_back(characterIndex);
-                }
-
-                if (currentCharacterWasRendered) {
-                    for (const auto& [key, instancePtr] : appliedRichTextInstances) {
-                        m_charIndexForInstance[instancePtr]++;
-                    }
-                }
+        if (m_text.compare(byteIndex, length, "\n") != 0) {
+            for (const auto& [key, instance] : activeInstances) {
+                localIndices[instance]++;
             }
         }
-        else {
-            line->setString((std::string(line->getString()) + c).c_str());
 
-            characterIndicesForLine[line].push_back(characterIndex);
-            if (line->getChildren()->lastObject() != nullptr) {
-                for (const auto& [key, instancePtr] : appliedRichTextInstances) {
-                    m_charIndexForInstance[instancePtr]++;
-                }
-            }
-        }
+        byteIndex += length;
+        characterIndex++;
     }
 
-    for (auto* line : m_lines) {
-        auto const& characterIndices = characterIndicesForLine[line];
-        auto children = line->getChildren();
-        auto childCount = std::min<size_t>(children->count(), characterIndices.size());
+    return characters;
+}
 
-        for (size_t i = 0; i < childCount; i++) {
-            auto* sprite = static_cast<cocos2d::CCFontSprite*>(children->objectAtIndex(i));
-            const size_t sourceCharacterIndex = characterIndices[i];
-            for (const auto& [instancePtr, localIndex] : effectsForCharacter[sourceCharacterIndex]) {
-                m_pendingSpriteEffects.push_back({
-                    sprite,
-                    instancePtr,
-                    localIndex,
-                    sourceCharacterIndex
+geode::Label* RichTextArea::createLabel(std::vector<RichCharacter> const& characters, std::vector<PendingNodeEffect>& pendingEffects) {
+    auto label = geode::Label::create(m_font.c_str());
+    if (!label) {
+        log::error("Failed to create rich text label using font '{}'", m_font);
+        return nullptr;
+    }
+
+    std::vector<geode::Label::Run> runs;
+    std::string plainText;
+    char32_t previousCodepoint = 0;
+    geode::BitmapFont* previousFont = label->getFont();
+    auto flushPlainText = [&] {
+        if (plainText.empty()) return;
+        geode::Label::Run run;
+        run.text = std::move(plainText);
+        runs.push_back(std::move(run));
+        plainText.clear();
+    };
+
+    for (const auto& character : characters) {
+        if (character.m_effects.empty() || character.m_text == "\n") {
+            plainText += character.m_text;
+            if (character.m_text == "\n") {
+                previousCodepoint = 0;
+                previousFont = nullptr;
+            } else {
+                previousCodepoint = character.m_codepoint;
+                previousFont = label->getFont();
+            }
+            continue;
+        }
+
+        flushPlainText();
+        std::string characterFont = m_font;
+        for (const auto& effect : character.m_effects) {
+            if (const auto font = effect.m_instance->getCharacterFont()) {
+                characterFont = font.value();
+            }
+        }
+
+        auto glyphLabel = geode::Label::create(character.m_text, characterFont.c_str());
+        auto glyphNode = cocos2d::CCNode::create();
+        if (!glyphLabel || !glyphNode) {
+            log::error("Failed to create rich text glyph using font '{}'", m_font);
+            return nullptr;
+        }
+
+        glyphLabel->setAnchorPoint({ 0.f, 0.f });
+        glyphLabel->setColor({ m_color.r, m_color.g, m_color.b });
+        glyphLabel->setOpacity(m_color.a);
+
+        auto glyphSize = glyphLabel->getContentSize();
+        auto cursor = glyphLabel->getCursorPosition(glyphLabel->getCodepointCount());
+        float glyphAdvance = cursor ? cursor->x : glyphSize.width;
+        auto font = glyphLabel->getFont();
+        float kerning = previousCodepoint && font && previousFont == font ? font->getKerning(previousCodepoint, character.m_codepoint) : 0.f;
+        float characterSpacing = std::accumulate(
+            character.m_effects.begin(),
+            character.m_effects.end(),
+            0.f,
+            [](float spacing, const CharacterEffect& effect) {
+                return spacing + effect.m_instance->getCharacterSpacing().value_or(0.f);
+            }
+        );
+        float sizeScale = 1.f;
+        for (const auto& effect : character.m_effects) {
+            if (const auto size = effect.m_instance->getCharacterSize()) {
+                sizeScale = std::abs(size.value());
+
+                effect.m_instance->applyChangesToSprite(
+                    glyphLabel,
+                    effect.m_localIndex,
+                    static_cast<int>(character.m_sourceCharacterIndex + 1)
+                );
+            }
+        }
+
+        float baseAdvance = std::max(0.f, glyphAdvance + kerning + characterSpacing);
+        float baseHeight = std::max(glyphLabel->getLineHeight(), glyphSize.height);
+        glyphNode->setContentSize({
+            baseAdvance * sizeScale,
+            baseHeight * sizeScale
+        });
+        glyphNode->setAnchorPoint({ 0.5f, 0.5f });
+        glyphLabel->setPosition({ kerning * sizeScale, 0.f });
+        glyphNode->addChild(glyphLabel);
+        previousFont = glyphLabel->getFont();
+
+        for (const auto& effect : character.m_effects) {
+            if (effect.m_instance->getCharacterSize() || effect.m_instance->getCharacterSpacing() || effect.m_instance->getCharacterFont()) {
+                continue;
+            } else {
+                pendingEffects.push_back({
+                    glyphLabel,
+                    effect.m_instance,
+                    effect.m_localIndex,
+                    character.m_sourceCharacterIndex
                 });
             }
         }
+
+        Ref<cocos2d::CCNode> glyphNodeRef(glyphNode);
+        geode::Label::Run run;
+        run.node = [glyphNodeRef]() -> cocos2d::CCNode* {
+            return glyphNodeRef.data();
+        };
+        runs.push_back(std::move(run));
+        previousCodepoint = character.m_codepoint;
     }
-}
+    flushPlainText();
 
-void RichTextArea::updateLinesNoWrap() {
-    std::stringstream stream(m_text);
-    std::string part;
-    float top = 0;
-    m_lines.clear();
+    label->setRuns(std::move(runs));
+    label->setColor({ m_color.r, m_color.g, m_color.b });
+    label->setOpacity(m_color.a);
+    label->setScale(m_scale);
+    label->setLineSpacing(m_scale != 0.f ? m_linePadding / m_scale : 0.f);
+    label->setBreakWords(m_wrappingMode == geode::WORD_WRAP || m_wrappingMode == geode::CUTOFF_WRAP);
+    label->setMaxWidth(
+        m_artificialWidth && m_wrappingMode != geode::NO_WRAP && m_scale > 0.f ? getWidth() / m_scale : 0.f
+    );
 
-    while (std::getline(stream, part)) {
-        cocos2d::CCLabelBMFont* line = createLabel(std::move(part), top);
-        part.clear();
-
-        if (line == nullptr) {
+    switch (m_alignment) {
+        case cocos2d::kCCTextAlignmentCenter:
+            label->setAlignment(geode::Label::Alignment::Center);
             break;
-        } else {
-            top -= calculateOffset(line);
-
-            m_lines.push_back(line);
-        }
+        case cocos2d::kCCTextAlignmentRight:
+            label->setAlignment(geode::Label::Alignment::Right);
+            break;
+        default:
+            label->setAlignment(geode::Label::Alignment::Left);
+            break;
     }
-}
 
-void RichTextArea::updateLinesWordWrap(bool spaceWrap) {
-    charIteration([this, spaceWrap](cocos2d::CCLabelBMFont* line, char c, float top) {
-        const std::string_view delimiters(spaceWrap ? " " : " `~!@#$%^&*()-_=+[{}];:'\",<.>/?\\|");
-
-        if (!delimiters.contains(c)) {
-            const std::string& text = line->getString();
-            const size_t position = text.find_last_of(delimiters) + 1;
-            cocos2d::CCLabelBMFont* newLine = createLabel(text.substr(position) + c, top);
-
-            if (newLine != nullptr) {
-                line->setString(text.substr(0, position).c_str());
-            }
-
-            return newLine;
-        } else {
-            return createLabel(std::string(c != ' ', c).c_str(), top);
-        }
-    });
-}
-
-void RichTextArea::updateLinesCutoffWrap() {
-    charIteration([this](cocos2d::CCLabelBMFont* line, char c, float top) {
-        const std::string& text = line->getString();
-        const char back = text.back();
-        const bool lastIsSpace = back == ' ';
-        cocos2d::CCLabelBMFont* newLine = createLabel(std::string(!lastIsSpace, back).append(1, c).c_str(), top);
-
-        if (newLine != nullptr && !lastIsSpace) {
-            line->setString(text.substr(0, text.size() - 1).c_str());
-        } else if (newLine == nullptr && !lastIsSpace) {
-            if (text[text.size() - 2] == ' ') {
-                line->setString(text.substr(0, text.size() - 1).c_str());
-            } else {
-                line->setString((text.substr(0, text.size() - 1) + '-').c_str());
-            }
-        }
-
-        return newLine;
-    });
+    label->validate();
+    return label;
 }
 
 void RichTextArea::updateContainer() {
-    switch (m_wrappingMode) {
-        case geode::NO_WRAP: {
-            updateLinesNoWrap();
-        } break;
-        case geode::WORD_WRAP: {
-            updateLinesWordWrap(false);
-        } break;
-        case geode::SPACE_WRAP: {
-            updateLinesWordWrap(true);
-        } break;
-        case geode::CUTOFF_WRAP: {
-            updateLinesCutoffWrap();
-        } break;
-    }
+    auto characters = this->buildCharacters();
+    m_pendingNodeEffects.clear();
+    m_charactersForButton.clear();
+    m_currentlyHeldButton = nullptr;
 
-    const size_t lineCount = m_lines.size();
-    const float width = getWidth();
+    auto label = this->createLabel(characters, m_pendingNodeEffects);
+    if (label && m_maxLines) {
+        auto cutoff = characters.size();
+        auto codepointCount = std::min(label->getCodepointCount(), characters.size());
+        auto lineRects = label->getRangeRects(0, codepointCount);
 
-    if (lineCount > 0) {
-        m_lineHeight = m_lines.back()->getContentSize().height * m_scale;
-    } else {
-        m_lineHeight = 0;
-    }
-
-    const float height = m_lineHeight * lineCount + m_linePadding * (lineCount - 1);
-
-    setContentSize({ width, height });
-    m_container->setContentSize(getContentSize());
-    m_container->removeAllChildren();
-
-    for (cocos2d::CCLabelBMFont* line : m_lines) {
-        const float y = height + line->getPositionY();
-
-        switch (m_alignment) {
-            case cocos2d::kCCTextAlignmentLeft: {
-                line->setAnchorPoint({ 0, 1 });
-                line->setPosition({ 0, y });
-            } break;
-            case cocos2d::kCCTextAlignmentCenter: {
-                line->setAnchorPoint({ 0.5f, 1 });
-                line->setPosition({ width / 2, y });
-            } break;
-            case cocos2d::kCCTextAlignmentRight: {
-                line->setAnchorPoint({ 1, 1 });
-                line->setPosition({ width, y });
-            } break;
+        if (lineRects.size() > m_maxLines) {
+            const float overflowLineY = lineRects[m_maxLines].origin.y;
+            for (size_t i = 0; i < codepointCount; i++) {
+                auto cursor = label->getCursorPosition(i);
+                if (cursor && std::abs(cursor->y - overflowLineY) < 0.01f) {
+                    cutoff = i;
+                    break;
+                }
+            }
         }
 
-        m_container->addChild(line);
+        if (cutoff < characters.size()) {
+            characters.resize(cutoff);
+            while (!characters.empty() && characters.back().m_text == "\n") {
+                characters.pop_back();
+            }
+            for (int i = 0; i < 3; i++) {
+                characters.push_back({
+                    ".",
+                    U'.',
+                    m_text.size(),
+                    characters.size(),
+                    {}
+                });
+            }
+
+            m_pendingNodeEffects.clear();
+            label = this->createLabel(characters, m_pendingNodeEffects);
+        }
     }
 
-    didUpdateContainer();
+    m_lines.clear();
+    m_container->removeAllChildren();
+    if (!label) {
+        m_lineHeight = 0.f;
+        setContentSize({ getWidth(), 0.f });
+        m_container->setContentSize(getContentSize());
+        return;
+    }
+
+    m_lines.push_back(label);
+    auto labelSize = label->getContentSize();
+    float height = std::max(0.f, labelSize.height * m_scale - (labelSize.height > 0.f ? m_linePadding : 0.f));
+    m_lineHeight = label->getLineHeight() * m_scale - m_linePadding;
+    setContentSize({ getWidth(), height });
+    m_container->setContentSize(getContentSize());
+
+    float anchorX = 0.f;
+    float positionX = 0.f;
+    if (m_alignment == cocos2d::kCCTextAlignmentCenter) {
+        anchorX = 0.5f;
+        positionX = getWidth() / 2.f;
+    } else if (m_alignment == cocos2d::kCCTextAlignmentRight) {
+        anchorX = 1.f;
+        positionX = getWidth();
+    }
+    label->setAnchorPoint({ anchorX, 1.f });
+    label->setPosition({ positionX, height });
+    m_container->addChild(label);
+
+    this->didUpdateContainer();
 }
 
 RichTextArea* RichTextArea::create(std::string text, std::string font, float scale) {
@@ -357,21 +366,26 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     updateContent();
     
     registerRichTextKey(std::make_shared<RichTextKey<ccColor4B>>(
-        "color",
+        RichTextKeys::m_color,
         [](std::string value) -> Result<ccColor4B> {
             auto colorRes = cc4bFromHexString(value);
             if (colorRes.isErr()) return Err(colorRes.unwrapErr());
 
             return Ok(colorRes.unwrap());
         },
-        [](ccColor4B const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
-            sprite->setColor({ value.r, value.g, value.b });
-            sprite->setOpacity(value.a);
+        [](ccColor4B const& value, cocos2d::CCNode* sprite, int localIndex, int charIndex) {
+            if (auto rgba = typeinfo_cast<cocos2d::CCRGBAProtocol*>(sprite)) {
+                auto baseOpacity = rgba->getOpacity();
+                rgba->setColor(cocos2d::ccColor3B{ value.r, value.g, value.b });
+                rgba->setOpacity(static_cast<GLubyte>(
+                    (static_cast<unsigned int>(baseOpacity) * value.a + 127) / 255
+                ));
+            }
         }
     ));
 
     registerRichTextKey(std::make_shared<RichTextKey<bool>>(
-        "flip",
+        RichTextKeys::m_flip,
         [](std::string value) -> Result<bool> {
             if (value == "") return Ok(true);
 
@@ -381,13 +395,14 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(value == "true");
         },
-        [](bool const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
-            sprite->setFlipY(value);
+        [](bool const& value, cocos2d::CCNode* sprite, int localIndex, int charIndex) {
+            const float scale = std::abs(sprite->getScaleY());
+            sprite->setScaleY(value ? -scale : scale);
         }
     ));
 
     registerRichTextKey(std::make_shared<RichTextKey<bool>>(
-        "mirror",
+        RichTextKeys::m_mirror,
         [](std::string value) -> Result<bool> {
             if (value == "") return Ok(true);
 
@@ -397,13 +412,14 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
             return Ok(value == "true");
         },
-        [](bool const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
-            sprite->setFlipX(value);
+        [](bool const& value, cocos2d::CCNode* sprite, int localIndex, int charIndex) {
+            const float scale = std::abs(sprite->getScaleX());
+            sprite->setScaleX(value ? -scale : scale);
         }
     ));
 
     registerRichTextKey(std::make_shared<RichTextKey<std::time_t>>(
-        "workingTime",
+        RichTextKeys::m_workingTime,
         [](std::string value) -> Result<std::time_t> {
             auto timeRes = geode::utils::numFromString<time_t>(value);
             if (timeRes.isErr()) return Ok(std::time(nullptr));
@@ -416,16 +432,50 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
     ));
 
     registerRichTextKey(std::make_shared<RichTextKey<float>>(
-        "size",
+        RichTextKeys::m_size,
         [](std::string value) -> Result<float> {
             auto numRes = geode::utils::numFromString<float>(value);
             if (numRes.isErr()) return Err("size invalid!");
 
             return Ok(numRes.unwrap());
         },
-        [](float const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
+        [](float const& value, cocos2d::CCNode* sprite, int localIndex, int charIndex) {
             sprite->setScale(value);
         }
+    ));
+
+    registerRichTextKey(std::make_shared<RichTextKey<float>>(
+        RichTextKeys::m_spacing,
+        [](std::string value) -> Result<float> {
+            auto spacing = geode::utils::numFromString<float>(value);
+            if (spacing.isErr() || !std::isfinite(spacing.unwrap())) {
+                return Err("spacing invalid!");
+            }
+
+            return Ok(spacing.unwrap());
+        },
+        [](float const&, cocos2d::CCNode*, int, int) {}
+    ));
+
+    registerRichTextKey(std::make_shared<RichTextKey<std::string>>(
+        RichTextKeys::m_font,
+        [](std::string value) -> Result<std::string> {
+            const auto hasFntExtension = value.size() >= 4
+                && value[value.size() - 4] == '.'
+                && std::tolower(static_cast<unsigned char>(value[value.size() - 3])) == 'f'
+                && std::tolower(static_cast<unsigned char>(value[value.size() - 2])) == 'n'
+                && std::tolower(static_cast<unsigned char>(value[value.size() - 1])) == 't';
+            if (!hasFntExtension) {
+                value += ".fnt";
+            }
+
+            if (!geode::Label::create(value.c_str())) {
+                return Err("font invalid!");
+            }
+
+            return Ok(std::move(value));
+        },
+        [](std::string const&, cocos2d::CCNode*, int, int) {}
     ));
 
     auto makeQuickColorKey = [&](std::string const& key, cocos2d::ccColor3B const& color) {
@@ -436,8 +486,10 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
 
                 return Ok(std::monostate());
             },
-            [color](std::monostate const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
-                sprite->setColor(color);
+            [color](std::monostate const& value, cocos2d::CCNode* sprite, int localIndex, int charIndex) {
+                if (auto rgba = typeinfo_cast<cocos2d::CCRGBAProtocol*>(sprite)) {
+                    rgba->setColor(color);
+                }
             }
         );
         colorKey->setSpecialExits({"c"});
@@ -445,44 +497,27 @@ bool RichTextArea::init(std::string font, std::string text, float scale, float w
         registerRichTextKey(colorKey);
     };
 
-    makeQuickColorKey("cb", { 74, 82, 225 });
-    makeQuickColorKey("cg", { 64, 227, 72 });
-    makeQuickColorKey("cl", { 96, 171, 239 });
-    makeQuickColorKey("cj", { 50, 200, 255 });
-    makeQuickColorKey("cy", { 255, 255, 0 });
-    makeQuickColorKey("co", { 255, 90, 75 });
-    makeQuickColorKey("cr", { 255, 90, 90 });
-    makeQuickColorKey("cp", { 255, 0, 255 });
-    makeQuickColorKey("ca", { 150, 50, 255 });
-    makeQuickColorKey("cd", { 255, 150, 255 });
-    makeQuickColorKey("cc", { 255, 255, 150 });
-    makeQuickColorKey("cf", { 150, 255, 255 });
-    makeQuickColorKey("cs", { 255, 220, 65 });
-    makeQuickColorKey("c_", { 255, 0, 0 });
-
-    // maybe one day someone will make this work but its fine :(
-    // registerRichTextKey(std::make_shared<RichTextKey<std::string>>(
-    //     "font",
-    //     [](std::string value) -> Result<std::string> {
-    //         auto temp = cocos2d::CCLabelBMFont::create("Test", value.c_str());
-    //         if (temp == nullptr) return Err("Font file isn't valid!");
-
-    //         return Ok(value);
-    //     },
-    //     [&](std::string const& value, CCFontSprite* const applyToSpr) {
-    //         applyToSpr->retain();
-    //         applyToSpr->removeFromParent();
-    //         this->addChild(applyToSpr);
-    //         applyToSpr->release();
-    //     }
-    // ));
+    makeQuickColorKey(RichTextKeys::m_quickBlue, { 74, 82, 225 });
+    makeQuickColorKey(RichTextKeys::m_quickGreen, { 64, 227, 72 });
+    makeQuickColorKey(RichTextKeys::m_quickLightBlue, { 96, 171, 239 });
+    makeQuickColorKey(RichTextKeys::m_quickCyan, { 50, 200, 255 });
+    makeQuickColorKey(RichTextKeys::m_quickYellow, { 255, 255, 0 });
+    makeQuickColorKey(RichTextKeys::m_quickOrange, { 255, 90, 75 });
+    makeQuickColorKey(RichTextKeys::m_quickRed, { 255, 90, 90 });
+    makeQuickColorKey(RichTextKeys::m_quickPurple, { 255, 0, 255 });
+    makeQuickColorKey(RichTextKeys::m_quickViolet, { 150, 50, 255 });
+    makeQuickColorKey(RichTextKeys::m_quickPink, { 255, 150, 255 });
+    makeQuickColorKey(RichTextKeys::m_quickPaleYellow, { 255, 255, 150 });
+    makeQuickColorKey(RichTextKeys::m_quickPaleCyan, { 150, 255, 255 });
+    makeQuickColorKey(RichTextKeys::m_quickGold, { 255, 220, 65 });
+    makeQuickColorKey(RichTextKeys::m_quickSpecialRed, { 255, 0, 0 });
 
     registerRichTextKey(std::make_shared<RichTextKey<std::string>>(
-        "link",
+        RichTextKeys::m_link,
         [](std::string value) -> Result<std::string> {
             return Ok(value);
         },
-        [&](std::string const& value, int keyState, bool hoverClickOn, cocos2d::CCFontSprite* specificSpriteClicked, std::set<cocos2d::CCFontSprite*> const& wordClicked) {
+        [&](std::string const& value, int keyState, bool hoverClickOn, cocos2d::CCNode* specificSpriteClicked, std::set<cocos2d::CCNode*> const& wordClicked) {
             this->processLinkClick(value, keyState, hoverClickOn, specificSpriteClicked, wordClicked);
         }
     ));
@@ -550,10 +585,9 @@ size_t RichTextArea::getMaxLines() {
 
 void RichTextArea::setWidth(float width) {
     m_artificialWidth = true;
-    updateContainer();
-
     this->setContentSize({ width, this->getContentSize().height });
     m_container->setContentSize(this->getContentSize());
+    updateContainer();
 }
 
 float RichTextArea::getWidth() {
@@ -578,7 +612,7 @@ float RichTextArea::getLinePadding() {
     return m_linePadding;
 }
 
-std::vector<cocos2d::CCLabelBMFont*> RichTextArea::getLines() {
+std::vector<geode::Label*> RichTextArea::getLines() {
     return m_lines;
 }
 
@@ -613,16 +647,15 @@ std::vector<std::shared_ptr<RichTextKeyBase>> RichTextArea::getTextKeys(){
 }
 
 void RichTextArea::didUpdateContainer() {
-    auto pendingSpriteEffects = std::move(m_pendingSpriteEffects);
-    for (const auto& effect : pendingSpriteEffects) {
+    auto pendingEffects = std::move(m_pendingNodeEffects);
+    for (const auto& effect : pendingEffects) {
         effect.m_instance->applyChangesToSprite(
-            effect.m_sprite,
+            effect.m_node,
             effect.m_localIndex,
             static_cast<int>(effect.m_sourceCharacterIndex + 1)
         );
-
         if (effect.m_instance->isButton() && !effect.m_instance->isCancellation()) {
-            m_charactersForButton[effect.m_instance].insert(effect.m_sprite);
+            m_charactersForButton[effect.m_instance].insert(effect.m_node);
         }
     }
 }
@@ -734,22 +767,25 @@ void RichTextArea::processLinkClick(
     std::string const& link,
     int keyState,
     bool hoverClickOn,
-    cocos2d::CCFontSprite* specificSpriteClicked,
-    std::set<cocos2d::CCFontSprite*> const& wordClicked
+    cocos2d::CCNode* specificSpriteClicked,
+    std::set<cocos2d::CCNode*> const& wordClicked
 ){
     if (hoverClickOn){
         if (keyState == 1) {
             for (const auto& linkCharacter : wordClicked)
             {
+                auto rgba = typeinfo_cast<cocos2d::CCRGBAProtocol*>(linkCharacter);
+                if (!rgba) continue;
+
                 this->m_ogColorForLink.insert({
                     linkCharacter,
-                    linkCharacter->getColor() == ccColor3B{255, 255, 255} ?
+                    rgba->getColor() == ccColor3B{255, 255, 255} ?
                         ccColor3B{getColor().r, getColor().g, getColor().b} :
-                        linkCharacter->getColor()
+                        rgba->getColor()
                     }
                 );
 
-                linkCharacter->setColor({ 78, 78, 255 });
+                rgba->setColor(cocos2d::ccColor3B{ 78, 78, 255 });
             }
         }
 
@@ -759,8 +795,9 @@ void RichTextArea::processLinkClick(
 
     if (!hoverClickOn || keyState == 3) {
         for (const auto& linkCharacter : wordClicked) {
-            if (this->m_ogColorForLink.contains(linkCharacter)) {
-                linkCharacter->setColor(this->m_ogColorForLink[linkCharacter]);
+            auto rgba = typeinfo_cast<cocos2d::CCRGBAProtocol*>(linkCharacter);
+            if (rgba && this->m_ogColorForLink.contains(linkCharacter)) {
+                rgba->setColor(this->m_ogColorForLink[linkCharacter]);
             }
         }
     }

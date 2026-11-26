@@ -916,16 +916,13 @@ matjson::Value matjson::Serialize<DTLayoutPreset>::toJson(const DTLayoutPreset& 
     });
 }
 
-bool OverlayLabel::isOverlayLabelVisibleOnLevel(GJGameLevel* level, LevelMetadata const& meta) const {
+bool OverlayLabel::isOverlayLabelVisibleOnLevel(GJGameLevel* level) const {
     if (!this->m_levelSpecific.has_value()) return true;
 
     auto levelKeyRes = StatsManager::getLevelKey(level);
     if (levelKeyRes.isErr()) return false;
 
-    std::set<std::string> levelKeys = meta.m_linkedLevels;
-    levelKeys.insert(levelKeyRes.unwrap());
-
-    return levelKeys.contains(this->m_levelSpecific.value());
+    return levelKeyRes.unwrap() == this->m_levelSpecific.value();
 }
 
 Result<OverlayLabel> matjson::Serialize<OverlayLabel>::fromJson(const matjson::Value& value) {

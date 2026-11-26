@@ -166,7 +166,7 @@
 		"save-path-new": {
 			"type": "folder",
 			"name": "Save Path",
-			"default": "{mod_save_dir}\\levels"
+			"default": "{mod_save_dir}/levels"
 		},
 		"customazation-title":{
 			"type": "title",

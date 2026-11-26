@@ -7,7 +7,7 @@
 
 std::shared_ptr<RichTextKey<RichTextKeys::WaveKeyParams>> RichTextKeys::makeWaveKey(Function<bool()> donerRichTextEnabled) {
     return std::make_shared<RichTextKey<RichTextKeys::WaveKeyParams>>(
-        "wave",
+        RichTextKeys::m_wave,
         [](std::string value) -> Result<RichTextKeys::WaveKeyParams> {
             float speed = 1;
             float distanceY = 5;
@@ -35,7 +35,7 @@ std::shared_ptr<RichTextKey<RichTextKeys::WaveKeyParams>> RichTextKeys::makeWave
 
             return Ok(std::make_tuple(speed, distanceY, distanceX, offsetPerIndex));
         },
-        [donerRichTextEnabled = std::move(donerRichTextEnabled)](RichTextKeys::WaveKeyParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) mutable {
+        [donerRichTextEnabled = std::move(donerRichTextEnabled)](RichTextKeys::WaveKeyParams const& value, cocos2d::CCNode* sprite, int localIndex, int charIndex) mutable {
             if (!donerRichTextEnabled()) return;
 
             sprite->runAction(
@@ -53,7 +53,7 @@ std::shared_ptr<RichTextKey<RichTextKeys::WaveKeyParams>> RichTextKeys::makeWave
 }
 std::shared_ptr<RichTextKey<RichTextKeys::GradientKeyParams>> RichTextKeys::makeGradientKey(Function<bool()> donerRichTextEnabled) {
     return std::make_shared<RichTextKey<RichTextKeys::GradientKeyParams>>(
-        "gradient",
+        RichTextKeys::m_gradient,
         [](std::string value) -> Result<RichTextKeys::GradientKeyParams> {
             ccColor4B colorA = {255, 255, 255, 255};
             ccColor4B colorB = {255, 255, 255, 255};
@@ -84,7 +84,7 @@ std::shared_ptr<RichTextKey<RichTextKeys::GradientKeyParams>> RichTextKeys::make
 
             return Ok(std::make_tuple(colorA, colorB, transitionDuration, stagger));
         },
-        [donerRichTextEnabled = std::move(donerRichTextEnabled)](RichTextKeys::GradientKeyParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int) mutable {
+        [donerRichTextEnabled = std::move(donerRichTextEnabled)](RichTextKeys::GradientKeyParams const& value, cocos2d::CCNode* sprite, int localIndex, int) mutable {
             if (!donerRichTextEnabled()) return;
 
             auto colorA = std::get<0>(value);
@@ -94,12 +94,20 @@ std::shared_ptr<RichTextKey<RichTextKeys::GradientKeyParams>> RichTextKeys::make
 
             if (sprite->getActionByTag(12) != nullptr) return;
 
-            auto animation = CCRepeatForever::create(CCGradientAction::create(
-                transitionDuration,
-                colorA,
-                colorB,
-                -stagger * localIndex
-            ));
+            auto gradient = colorA.a == 255 && colorB.a == 255
+                ? CCGradientAction::create(
+                    transitionDuration,
+                    ccColor3B{ colorA.r, colorA.g, colorA.b },
+                    ccColor3B{ colorB.r, colorB.g, colorB.b },
+                    -stagger * localIndex
+                )
+                : CCGradientAction::create(
+                    transitionDuration,
+                    colorA,
+                    colorB,
+                    -stagger * localIndex
+                );
+            auto animation = CCRepeatForever::create(gradient);
             animation->setTag(12);
 
             sprite->runAction(animation);
@@ -108,20 +116,21 @@ std::shared_ptr<RichTextKey<RichTextKeys::GradientKeyParams>> RichTextKeys::make
 }
 std::shared_ptr<RichTextKey<RichTextKeys::CPlusKeyParams>> RichTextKeys::makeCPlusKey() {
     return std::make_shared<RichTextKey<RichTextKeys::CPlusKeyParams>>(
-        "cplus",
+        RichTextKeys::m_cPlus,
         [](std::string value) -> Result<RichTextKeys::CPlusKeyParams> {
             GEODE_UNWRAP_INTO(auto num, utils::numFromString<int>(value));
 
             return Ok(num);
         },
-        [](RichTextKeys::CPlusKeyParams const& value, cocos2d::CCFontSprite* sprite, int localIndex, int charIndex) {
+        [](RichTextKeys::CPlusKeyParams const& value, cocos2d::CCNode* sprite, int localIndex, int charIndex) {
             if (auto gradient = typeinfo_cast<CCGradientAction*>(sprite->getActionByTag(12))) {
                 gradient->addColorOffset(value);
                 return;
             }
 
-            auto colorAdded = sprite->getColor();
-            if (colorAdded == ccWHITE) colorAdded = static_cast<CCLabelBMFont*>(sprite->getParent())->getColor();
+            auto rgba = typeinfo_cast<cocos2d::CCRGBAProtocol*>(sprite);
+            if (!rgba) return;
+            auto colorAdded = rgba->getColor();
 
             auto r = static_cast<std::int64_t>(colorAdded.r) + value;
             auto g = static_cast<std::int64_t>(colorAdded.g) + value;
@@ -133,7 +142,7 @@ std::shared_ptr<RichTextKey<RichTextKeys::CPlusKeyParams>> RichTextKeys::makeCPl
 
             auto newColor = ccColor3B{static_cast<GLubyte>(r), static_cast<GLubyte>(g), static_cast<GLubyte>(b)};
 
-            sprite->setColor(newColor);
+            rgba->setColor(newColor);
         }
     );
 }
@@ -144,7 +153,7 @@ std::shared_ptr<RichTextKey<RichTextKeys::RunMoreKeyParams>> RichTextKeys::makeR
     Function<void(CCMenuItemSpriteExtra*)> onClick
 ) {
     return std::make_shared<RichTextKey<RichTextKeys::RunMoreKeyParams>>(
-        "runMoreBtn",
+        RichTextKeys::m_runMoreButton,
         [](std::string value) -> Result<RichTextKeys::RunMoreKeyParams> {
             if (value.empty()) return Err("Run more empty");
 
@@ -169,21 +178,26 @@ std::shared_ptr<RichTextKey<RichTextKeys::RunMoreKeyParams>> RichTextKeys::makeR
             font = std::move(font),
             buttonsVisible = std::move(buttonsVisible),
             onClick = std::make_shared<Function<void(CCMenuItemSpriteExtra*)>>(std::move(onClick))
-        ](RichTextKeys::RunMoreKeyParams const& value, cocos2d::CCFontSprite* sprite, int, int) mutable {
-            auto line = static_cast<CCLabelBMFont*>(sprite->getParent());
+        ](RichTextKeys::RunMoreKeyParams const& value, cocos2d::CCNode* sprite, int, int) mutable {
+            auto glyphLabel = typeinfo_cast<geode::Label*>(sprite);
+            auto glyphNode = sprite->getParent();
+            auto line = glyphNode ? typeinfo_cast<geode::Label*>(glyphNode->getParent()) : nullptr;
+            if (!glyphLabel || !glyphNode || !line) return;
             auto menuParent = line->getParent();
-            auto buttonPosition = menuParent->convertToNodeSpace(line->convertToWorldSpace(sprite->getPosition()));
+            auto buttonPosition = menuParent->convertToNodeSpace(
+                glyphLabel->convertToWorldSpace(glyphLabel->getContentSize() / 2)
+            );
 
             auto btnSpr = CCScale9Sprite::create("square02_small.png");
             btnSpr->setOpacity(100);
 
             auto btnLabel = geode::Label::create("...", font());
             btnLabel->setColor(line->getColor());
-            btnLabel->setOpacity(line->getOpacity());
+            btnLabel->setOpacity(255);
             btnLabel->setLineSpacing(btnLabel->getLineHeight() / 2);
             btnLabel->setExtraKerning(1);
 
-            auto characterSize = sprite->getContentSize();
+            auto characterSize = glyphLabel->getContentSize();
             auto buttonSize = std::min(characterSize.width, characterSize.height) * .85f;
             auto sourceSize = btnSpr->getContentSize();
             auto sliceSize = std::max(buttonSize, std::max(sourceSize.width, sourceSize.height));
@@ -195,7 +209,9 @@ std::shared_ptr<RichTextKey<RichTextKeys::RunMoreKeyParams>> RichTextKeys::makeR
             btnSpr->addChild(btnLabel);
             btnLabel->setPosition(btnSpr->getContentSize() / 2);
 
-            btnSpr->setScale(btnSpr->getScale() * line->getScale());
+            btnSpr->setScale(
+                btnSpr->getScale() * line->getScale() * std::abs(glyphLabel->getScale())
+            );
 
             auto moreBtn = CCMenuItemExt::createSpriteExtra(
                 btnSpr,
@@ -203,9 +219,10 @@ std::shared_ptr<RichTextKey<RichTextKeys::RunMoreKeyParams>> RichTextKeys::makeR
                     (*onClick)(sender);
                 }
             );
+            moreBtn->setCascadeOpacityEnabled(true);
+            moreBtn->setOpacity(line->getOpacity());
             moreBtn->setEnabled(buttonsVisible());
-            if (!moreBtn->isEnabled())
-                btnSpr->setOpacity(0);
+            btnSpr->setOpacity(buttonsVisible() ? 100 : 0);
             btnSpr->setPosition(moreBtn->getContentSize() / 2);
             moreBtn->setPosition(buttonPosition);
             auto buttonID = StatsManager::createRunKey(std::get<0>(value)).unwrap();
@@ -216,7 +233,7 @@ std::shared_ptr<RichTextKey<RichTextKeys::RunMoreKeyParams>> RichTextKeys::makeR
             moreBtn->setTag(std::get<1>(value) ? 1 : 0);
 
             menuParent->addChild(moreBtn);
-            sprite->setOpacity(0);
+            sprite->setVisible(false);
         }
     );
 }

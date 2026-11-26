@@ -477,7 +477,7 @@ struct OverlayLabel_s {
 
     std::optional<std::string> m_levelSpecific = std::nullopt;
 
-    bool isOverlayLabelVisibleOnLevel(GJGameLevel* level, LevelMetadata const& meta) const;
+    bool isOverlayLabelVisibleOnLevel(GJGameLevel* level) const;
 };
 typedef struct OverlayLabel_s OverlayLabel;
 
