@@ -27,9 +27,12 @@ $execute {
         Save::setNewBestCustomizations(Save::getDefaultNewBestCustomizations());
         Save::setSessionBestCustomizations(Save::getDefaultSessionBestCustomizations());
 
-        Save::setOverlayLabels(Save::getDefaultOverlayLabels());
-
         Save::setDidInitLayout(true);
+    }
+
+    if (!Save::getDidInitDefaultOverlayLabels()) {
+        Save::setOverlayLabels(Save::getDefaultOverlayLabels());
+        Save::setDidInitDefaultOverlayLabels(true);
     }
 
     if (Settings::getPreloadLinked())

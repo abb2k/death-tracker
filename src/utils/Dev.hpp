@@ -9,4 +9,5 @@ public:
 
     static void fadeTextInput(TextInput* input, bool fadeIn, float time, bool changeEnabled = true);
     static void fadeSlider(Slider* slider, bool fadeIn, float time, bool changeEnabled = true);
+    static void setSliderEnabled(Slider* slider, bool enabled);
 };

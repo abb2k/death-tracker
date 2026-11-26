@@ -79,11 +79,9 @@ std::optional<GJGameLevel*> DTLevelSelectLayer::getLevelForCurrentPage() {
         return std::nullopt;
 
     if (auto lvl = typeinfo_cast<GJGameLevel*>(level)) {
-        auto lvlReal = LevelTools::getLevel(lvl->m_levelID.value(), true);
-
         if (lvl->m_levelID.value() < 0 || lvl->m_levelName.empty()) return std::nullopt;
 
-        return lvlReal;
+        return lvl;
     }
 
     return std::nullopt;

@@ -146,6 +146,13 @@ void Save::setDidInitLayout(const bool& b) {
     Mod::get()->setSavedValue("didInitLayout", b);
 }
 
+bool Save::getDidInitDefaultOverlayLabels() {
+    return Mod::get()->getSavedValue<bool>("didInitDefaultOverlayLabels");
+}
+void Save::setDidInitDefaultOverlayLabels(const bool& b) {
+    Mod::get()->setSavedValue("didInitDefaultOverlayLabels", b);
+}
+
 DTLayoutV3 Save::getDefaultLayout() {
     return DTLayoutV3{
         .m_columns = std::vector<DTColumnInfo>{

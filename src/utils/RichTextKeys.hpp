@@ -22,8 +22,4 @@ public:
         Function<bool()> buttonsVisible,
         Function<void(CCMenuItemSpriteExtra*)> onClick
     );
-private:
-    static std::shared_ptr<RichTextKey<WaveKeyParams>> m_waveKey;
-    static std::shared_ptr<RichTextKey<GradientKeyParams>> m_gradientKey;
-    static std::shared_ptr<RichTextKey<CPlusKeyParams>> m_cPlusKey;
 };

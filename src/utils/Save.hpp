@@ -60,6 +60,9 @@ public:
     static bool getDidInitLayout();
     static void setDidInitLayout(const bool& b);
 
+    static bool getDidInitDefaultOverlayLabels();
+    static void setDidInitDefaultOverlayLabels(const bool& b);
+
     static DTLayoutV3 getDefaultLayout();
     static CustomizationData getDefaultNewBestCustomizations();
     static CustomizationData getDefaultSessionBestCustomizations();

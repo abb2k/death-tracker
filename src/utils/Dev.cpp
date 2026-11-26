@@ -31,3 +31,18 @@ void Dev::fadeSlider(Slider* slider, bool fadeIn, float time, bool changeEnabled
         normalImage->runAction(createAction());
     }
 }
+
+void Dev::setSliderEnabled(Slider* slider, bool enabled) {
+    if (!slider || slider->m_enabled == enabled) return;
+
+    slider->m_enabled = enabled;
+    slider->m_touchLogic->setTouchEnabled(enabled);
+
+    auto color = enabled ? cocos2d::ccColor3B{255, 255, 255} : cocos2d::ccColor3B{150, 150, 150};
+    slider->m_sliderBar->setColor(color);
+    slider->m_groove->setColor(color);
+
+    if (auto normalImage = static_cast<cocos2d::CCSprite*>(slider->m_touchLogic->m_thumb->getNormalImage())) {
+        normalImage->setColor(color);
+    }
+}

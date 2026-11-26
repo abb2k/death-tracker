@@ -4,6 +4,7 @@
 
 #include <managers/AuthManager.hpp>
 #include <utils/RichTextKeys.hpp>
+#include <utils/Dev.hpp>
 
 #include <nodes/general/FloatingList.hpp>
 #include <nodes/general/SimpleToggler.hpp>
@@ -1572,10 +1573,10 @@ void DTColorPickerPopup::setAllChildrenEnabled(CCNode* node, bool enabled) {
         }
         else if (auto slider = typeinfo_cast<Slider*>(n)) {
             if (enabled)
-                slider->enableSlider();
+                Dev::setSliderEnabled(slider, true);
             else {
                 auto value = slider->getValue();
-                slider->disableSlider();
+                Dev::setSliderEnabled(slider, false);
                 slider->setValue(value);
             }
         }

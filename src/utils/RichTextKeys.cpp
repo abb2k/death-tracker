@@ -5,15 +5,8 @@
 #include <actions/CCGradientAction.hpp>
 #include <managers/StatsManager.hpp>
 
-std::shared_ptr<RichTextKey<RichTextKeys::WaveKeyParams>> RichTextKeys::m_waveKey = nullptr;
-std::shared_ptr<RichTextKey<RichTextKeys::GradientKeyParams>> RichTextKeys::m_gradientKey = nullptr;
-std::shared_ptr<RichTextKey<RichTextKeys::CPlusKeyParams>> RichTextKeys::m_cPlusKey = nullptr;
-
 std::shared_ptr<RichTextKey<RichTextKeys::WaveKeyParams>> RichTextKeys::makeWaveKey(Function<bool()> donerRichTextEnabled) {
-    if (m_waveKey)
-        return m_waveKey;
-    
-    m_waveKey = std::make_shared<RichTextKey<RichTextKeys::WaveKeyParams>>(
+    return std::make_shared<RichTextKey<RichTextKeys::WaveKeyParams>>(
         "wave",
         [](std::string value) -> Result<RichTextKeys::WaveKeyParams> {
             float speed = 1;
@@ -57,14 +50,9 @@ std::shared_ptr<RichTextKey<RichTextKeys::WaveKeyParams>> RichTextKeys::makeWave
             );
         }
     );
-
-    return m_waveKey;
 }
 std::shared_ptr<RichTextKey<RichTextKeys::GradientKeyParams>> RichTextKeys::makeGradientKey(Function<bool()> donerRichTextEnabled) {
-    if (m_gradientKey)
-        return m_gradientKey;
-    
-    m_gradientKey = std::make_shared<RichTextKey<RichTextKeys::GradientKeyParams>>(
+    return std::make_shared<RichTextKey<RichTextKeys::GradientKeyParams>>(
         "gradient",
         [](std::string value) -> Result<RichTextKeys::GradientKeyParams> {
             ccColor4B colorA = {255, 255, 255, 255};
@@ -117,14 +105,9 @@ std::shared_ptr<RichTextKey<RichTextKeys::GradientKeyParams>> RichTextKeys::make
             sprite->runAction(animation);
         }
     );
-
-    return m_gradientKey;
 }
 std::shared_ptr<RichTextKey<RichTextKeys::CPlusKeyParams>> RichTextKeys::makeCPlusKey() {
-    if (m_cPlusKey)
-        return m_cPlusKey;
-
-    m_cPlusKey = std::make_shared<RichTextKey<RichTextKeys::CPlusKeyParams>>(
+    return std::make_shared<RichTextKey<RichTextKeys::CPlusKeyParams>>(
         "cplus",
         [](std::string value) -> Result<RichTextKeys::CPlusKeyParams> {
             GEODE_UNWRAP_INTO(auto num, utils::numFromString<int>(value));
@@ -153,8 +136,6 @@ std::shared_ptr<RichTextKey<RichTextKeys::CPlusKeyParams>> RichTextKeys::makeCPl
             sprite->setColor(newColor);
         }
     );
-    
-    return m_cPlusKey;
 }
 
 std::shared_ptr<RichTextKey<RichTextKeys::RunMoreKeyParams>> RichTextKeys::makeRunMoreKey(

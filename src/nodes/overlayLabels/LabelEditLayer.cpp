@@ -4,6 +4,7 @@
 
 #include <utils/Save.hpp>
 #include <utils/Settings.hpp>
+#include <utils/Dev.hpp>
 
 #include <utils/RichTextKeys.hpp>
 #include <nodes/DTLayer.hpp>
@@ -292,12 +293,12 @@ bool LabelEditLayer::init() {
         if (label.m_freeMode) {
             m_xSlider->setValue(label.m_posX);
             m_ySlider->setValue(label.m_posY);
-            m_xSlider->enableSlider();
-            m_ySlider->enableSlider();
+            Dev::setSliderEnabled(m_xSlider, true);
+            Dev::setSliderEnabled(m_ySlider, true);
         }
         else {
-            m_xSlider->disableSlider();
-            m_ySlider->disableSlider();
+            Dev::setSliderEnabled(m_xSlider, false);
+            Dev::setSliderEnabled(m_ySlider, false);
         }
         m_updatingControls = false;
 
@@ -365,8 +366,8 @@ bool LabelEditLayer::init() {
     m_disabledAnchorSlidersFG->setPositionY(sliderHolder->getContentHeight() / 2);
     sliderHolder->addChild(m_disabledAnchorSlidersFG);
 
-    m_xSlider->disableSlider();
-    m_ySlider->disableSlider();
+    Dev::setSliderEnabled(m_xSlider, false);
+    Dev::setSliderEnabled(m_ySlider, false);
 
     auto nameLabel = geode::Label::create("Name:", "bigFont.fnt");
     nameLabel->setScale(.5f);
@@ -591,9 +592,9 @@ void LabelEditLayer::onCellDelete(OverlayLabelCell* cell) {
         m_textInput->setString("");
         m_freeModeToggle->toggle(false);
         m_xSlider->setValue(0);
-        m_xSlider->disableSlider();
+        Dev::setSliderEnabled(m_xSlider, false);
         m_ySlider->setValue(0);
-        m_ySlider->disableSlider();
+        Dev::setSliderEnabled(m_ySlider, false);
         m_updatingControls = false;
         m_disabledAnchorSlidersFG->setVisible(true);
         setLabelEditEnabled(false);
@@ -624,9 +625,9 @@ void LabelEditLayer::onCellEdit(OverlayLabelCell* cell) {
         m_textInput->setString("");
         m_freeModeToggle->toggle(false);
         m_xSlider->setValue(0);
-        m_xSlider->disableSlider();
+        Dev::setSliderEnabled(m_xSlider, false);
         m_ySlider->setValue(0);
-        m_ySlider->disableSlider();
+        Dev::setSliderEnabled(m_ySlider, false);
         m_updatingControls = false;
         m_disabledAnchorSlidersFG->setVisible(true);
         setLabelEditEnabled(false);
@@ -653,12 +654,12 @@ void LabelEditLayer::onCellEdit(OverlayLabelCell* cell) {
     m_updatingControls = false;
     m_disabledAnchorSlidersFG->setVisible(!label.m_freeMode);
     if (!label.m_freeMode) {
-        m_xSlider->disableSlider();
-        m_ySlider->disableSlider();
+        Dev::setSliderEnabled(m_xSlider, false);
+        Dev::setSliderEnabled(m_ySlider, false);
     }
     else {
-        m_xSlider->enableSlider();
-        m_ySlider->enableSlider();
+        Dev::setSliderEnabled(m_xSlider, true);
+        Dev::setSliderEnabled(m_ySlider, true);
     }
 
     RefreshPreviewLabels();
@@ -670,8 +671,8 @@ void LabelEditLayer::setLabelEditEnabled(bool enabled) {
     m_textInput->setEnabled(enabled);
     updateAnchorButtons();
     if (!enabled) {
-        m_xSlider->disableSlider();
-        m_ySlider->disableSlider();
+        Dev::setSliderEnabled(m_xSlider, false);
+        Dev::setSliderEnabled(m_ySlider, false);
     }
     m_noLabelEditedOverlay->setVisible(!enabled);
     m_noLabelEditedText->setVisible(!enabled);
