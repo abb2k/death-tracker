@@ -1,7 +1,17 @@
 # Changelog
 
+## v3.1.2
+- fixed decimal popup from placing in incorrect positions
+- small crash fixes
+- fixed overlay label scroll bugs
+- richtextarea is now using geode label! allowing for emotes and other stuff :D
+- the \<size\> key works better now and doesnt make character weird looking
+- added the \<spacing\> key to adjust character spacing
+- added the \<font\> key for changing fonts mid text
+- you can now input any character into the label title
+
 ## v3.1.1
-- fixed issue in sections key where it would vut off a key for no reason
+- fixed issue in sections key where it would cut off a key for no reason
 - fixed the donor button and convert save buttons making them clickable again
 
 ## v3.1.0
