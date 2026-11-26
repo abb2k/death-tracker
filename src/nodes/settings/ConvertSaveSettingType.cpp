@@ -36,7 +36,11 @@ bool ConvertSaveSettingNode::init(std::shared_ptr<ConvertSaveSetting> setting, f
     m_button = CCMenuItemSpriteExtra::create(
         m_buttonSprite, this, menu_selector(ConvertSaveSettingNode::onButton)
     );
-    this->getButtonMenu()->addChildAtPosition(m_button, Anchor::Center);
+    auto menu = CCMenu::createWithItem(m_button);
+    menu->setContentSize(m_button->getContentSize());
+    menu->ignoreAnchorPointForPosition(false);
+    m_button->setPosition(menu->getContentSize() / 2);
+    this->getButtonMenu()->addChildAtPosition(menu, Anchor::Center);
     this->getButtonMenu()->setContentWidth(60);
     this->getButtonMenu()->updateLayout();
 

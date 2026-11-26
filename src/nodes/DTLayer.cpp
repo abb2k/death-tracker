@@ -4007,7 +4007,7 @@ UpdateFuture DTLayer::onSectionKey(std::map<std::string, std::any> payload) {
                 keysStart = fmt::format("<cplus={}>", custom.m_alternateStrength);
             }
 
-            out += fmt::format("{}{}{}{}", keysStart, format, custom.m_seperator, keysEnd);
+            out += fmt::format("{}{}{}{}", keysStart, format, keysEnd, custom.m_seperator);
 
             indexofyeah++;
         }

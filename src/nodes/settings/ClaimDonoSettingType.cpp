@@ -45,9 +45,13 @@ bool ClaimDonoSettingNode::init(std::shared_ptr<ClaimDonoSetting> setting, float
         menu_selector(ClaimDonoSettingNode::onButton)
     );
     spr->setScaleX(spr->getScaleX() * -1);
+    auto menu = CCMenu::createWithItem(m_button);
+    menu->setContentSize(m_button->getContentSize());
+    menu->ignoreAnchorPointForPosition(false);
+    m_button->setPosition(menu->getContentSize() / 2);
 
     this->getButtonMenu()->addChildAtPosition(m_input, Anchor::Left);
-    this->getButtonMenu()->addChildAtPosition(m_button, Anchor::Right, {-15, 0});
+    this->getButtonMenu()->addChildAtPosition(menu, Anchor::Right, {-15, 0});
     this->getButtonMenu()->setContentWidth(62);
     this->getButtonMenu()->updateLayout();
 
