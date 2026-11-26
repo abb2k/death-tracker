@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.1.1
+- fixed issue in sections key where it would vut off a key for no reason
+- fixed the donor button and convert save buttons making them clickable again
+
 ## v3.1.0
 - added decimal percentages support + more death data such as timestamps for deaths and such
 - added "Overlay Labels" to display information of your deaths in-level!! :D
