@@ -255,7 +255,7 @@ void AdvancedScrollLayer::keyUp(enumKeyCodes key, double d) {
 }
 
 void AdvancedScrollLayer::registerWithTouchDispatcher() {
-    CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(this, 0, true);
+    CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(this, 1, true);
 }
 
 void AdvancedScrollLayer::setHorizontalScrollbarPosition(bool onTop) {

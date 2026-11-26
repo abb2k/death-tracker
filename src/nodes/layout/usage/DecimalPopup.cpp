@@ -21,14 +21,16 @@ bool DecimalPopup::init(CCSize size) {
 
     this->setContentSize(size);
 
-    auto bg = CCScale9Sprite::create("square02_small.png");
-    bg->setAnchorPoint({0, 0});
-    bg->setScale(.5f);
-    bg->setContentSize((this->getContentSize() - ccp(0, 2.5f)) / bg->getScale());
-    bg->setOpacity(200);
-    this->addChild(bg);
+    m_bg = CCScale9Sprite::create("square02_small.png");
+    m_bg->setAnchorPoint({0, 1});
+    m_bg->setScale(.5f);
+    m_bg->setContentSize((this->getContentSize() - ccp(0, 2.5f)) / m_bg->getScale());
+    m_bg->setPositionY(size.height - 2.5f);
+    m_bg->setOpacity(200);
+    this->addChild(m_bg);
 
     auto scrollOffset = ccp(2, 6.5f);
+    m_maxScrollHeight = size.height - scrollOffset.y;
     m_scroll = ScrollLayer::create(size - scrollOffset);
     m_scroll->setAnchorPoint({0, 0});
     m_scroll->setPosition(scrollOffset / 2);
@@ -80,6 +82,7 @@ bool DecimalPopup::init(CCSize size) {
     m_scrollBargame = Scrollbar::create(m_scroll);
     m_scrollBargame->setPosition({size.width - 2, size.height / 2});
     m_scrollBargame->setAnchorPoint({1, 0.5f});
+    m_scrollBargame->setVisible(false);
     this->addChild(m_scrollBargame);
 
     scheduleUpdate();
@@ -98,10 +101,7 @@ void DecimalPopup::onExit() {
 
 void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8_t decimalDepth, DTLabel* referenceLabel, std::optional<std::pair<long long, size_t>> occurrenceSelection) {
     this->setVisible(true);
-    m_scroll->setMouseEnabled(true);
-    m_scroll->setTouchEnabled(true);
     m_label->setEnabled(true);
-    m_scrollBargame->setTouchEnabled(true);
 
     auto offset = ccp(2, 3);
 
@@ -244,13 +244,42 @@ void DecimalPopup::setDisplay(CCNode* origin, const Run& run, bool isSess, uint8
 void DecimalPopup::update(float dt) {
     float prevHeight = m_scroll->m_contentLayer->getContentHeight();
     m_scroll->m_contentLayer->updateLayout();
+
+    constexpr float bottomPadding = 3.f;
+    auto labelHeight = m_label->getContentHeight();
+    auto scrollHeight = std::min(labelHeight + bottomPadding, m_maxScrollHeight);
+    auto bgHeight = std::min(labelHeight + bottomPadding, this->getContentHeight() - 2.5f);
+
+    m_bg->setContentHeight(bgHeight / m_bg->getScale());
+
+    if (m_scroll->getContentHeight() != scrollHeight) {
+        auto scrollTop = this->getContentHeight() - 3.25f;
+        m_scroll->setContentHeight(scrollHeight);
+        m_scroll->setPositionY(scrollTop - scrollHeight);
+        m_scrollBargame->setPositionY(scrollTop - scrollHeight / 2);
+        m_scroll->m_contentLayer->setLayout(ColumnLayout::create()
+            ->setAutoGrowAxis(scrollHeight)
+            ->setAxisAlignment(AxisAlignment::End)
+            ->setCrossAxisAlignment(AxisAlignment::Center)
+            ->setCrossAxisOverflow(false)
+        );
+        m_scroll->m_contentLayer->updateLayout();
+    }
+
     if (m_scroll->m_contentLayer->getContentHeight() != prevHeight)
         m_scroll->moveToTop();
+
+    bool canScroll = this->isVisible() && m_scroll->m_contentLayer->getContentHeight() > m_scroll->getContentHeight();
+    m_scroll->setMouseEnabled(canScroll);
+    m_scroll->setTouchEnabled(canScroll);
+    m_scrollBargame->setVisible(canScroll);
+    m_scrollBargame->setTouchEnabled(canScroll);
 }
 
 bool DecimalPopup::isTouchOnMe(CCTouch *pTouch, bool begin) {
     if (begin) {
-        m_isHolding = this->boundingBox().containsPoint(this->getParent()->convertTouchToNodeSpace(pTouch)) && this->isVisible();
+        bool canScroll = m_scroll->m_contentLayer->getContentHeight() > m_scroll->getContentHeight();
+        m_isHolding = canScroll && m_bg->boundingBox().containsPoint(m_bg->getParent()->convertTouchToNodeSpace(pTouch)) && this->isVisible();
     }
     
     if (m_isHolding) {
@@ -266,6 +295,7 @@ void DecimalPopup::close() {
     m_scroll->setMouseEnabled(false);
     m_scroll->setTouchEnabled(false);
     m_label->setEnabled(false);
+    m_scrollBargame->setVisible(false);
     m_scrollBargame->setTouchEnabled(false);
 }
 

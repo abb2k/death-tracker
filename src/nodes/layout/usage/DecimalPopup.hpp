@@ -21,7 +21,11 @@ private:
 
     DTLabel* m_label;
 
+    CCScale9Sprite* m_bg;
+
     ScrollLayer* m_scroll;
+
+    float m_maxScrollHeight;
 
     void update(float dt) override;
 
@@ -34,5 +38,5 @@ private:
 
     Scrollbar* m_scrollBargame;
 
-    bool m_isHolding;
+    bool m_isHolding = false;
 };
