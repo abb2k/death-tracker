@@ -1,15 +1,18 @@
 #include "DTLevelInfoLayer.hpp"
 
 #include <nodes/DTLayer.hpp>
-#include <utils/Settings.hpp>
 
 bool DTLevelInfoLayer::init(GJGameLevel* p0, bool p1) {
     if (!LevelInfoLayer::init(p0, p1)) return false;
 
     auto robDTMenu = getChildByID("death-tracker-menu");
 
-    if (robDTMenu)
-        robDTMenu->setVisible(false);
+    if (robDTMenu) {
+        auto dtbtn = getChildByID("death-tracker-button");
+        if (dtbtn)
+            dtbtn->setVisible(false);
+    }
+        
 
     auto s = CCSprite::createWithSpriteFrameName("GJ_plainBtn_001.png");
     auto s2 = CCSprite::createWithSpriteFrameName("miniSkull_001.png");

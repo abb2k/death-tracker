@@ -1,7 +1,6 @@
 #include "DTLevelSelectLayer.hpp"
 
 #include <nodes/DTLayer.hpp>
-#include <utils/Settings.hpp>
 
 bool DTLevelSelectLayer::init(int page) {
     if (!LevelSelectLayer::init(page)) return false;
