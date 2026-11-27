@@ -1,5 +1,8 @@
 # Changelog
 
+## v3.1.4
+- update layout added to level info layer and pause layer
+
 ## v3.1.3
 - im not very smart and did a bit of an oopsie so death tracker menu for level info layer
 

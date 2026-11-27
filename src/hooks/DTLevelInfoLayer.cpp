@@ -9,8 +9,11 @@ bool DTLevelInfoLayer::init(GJGameLevel* p0, bool p1) {
 
     if (robDTMenu) {
         auto dtbtn = robDTMenu->getChildByID("death-tracker-button");
+
         if (dtbtn)
             dtbtn->setVisible(false);
+
+        robDTMenu->updateLayout();
     }
         
 

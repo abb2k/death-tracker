@@ -18,7 +18,10 @@ void DTPauseLayer::customSetup() {
 
     auto robDTButton = sideMenu->getChildByID("death-tracker-button");
 
-    if (robDTButton) robDTButton->setVisible(false);
+    if (robDTButton) {
+        robDTButton->setVisible(false);
+        sideMenu->updateLayout();
+    }
 
     if (!Settings::getPauseMenuEnabled()) return;
 
