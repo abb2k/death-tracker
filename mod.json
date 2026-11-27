@@ -25,7 +25,10 @@
 				"resources/*.png",
 				"resources/tutorialExpressions/*.png"
 			]
-		}
+		},
+		"files": [
+			"resources/*.mp3"
+		]
 	},
 	"tags": ["utility", "interface", "offline"],
 	"settings": {
@@ -238,6 +241,14 @@
 		"alphalaneous.badgify": {
 			"version": ">=v1.0.7",
 			"required": false
+		},
+		"timestepyt.heisbehindthetree": {
+			"version": ">=v1.0.0",
+			"required": false
+		},
+		"timestepyt.deltarune_textboxes": {
+			"required": false,
+			"version": ">=1.7.5"
 		},
 		"dankmeme.argon": ">=2.0.0-beta.1"
 	}

@@ -1,6 +1,21 @@
 #include "DTTutorialLayer.hpp"
 
 #include <hooks/DTDialogLayer.hpp>
+#include <timestepyt.deltarune_textboxes/API.hpp>
+#include <timestepyt.heisbehindthetree/api/API.hpp>
+
+std::vector<DTTutorialLayer::TutorialPortrait> const& DTTutorialLayer::tutorialPortraits() {
+    static std::vector<TutorialPortrait> const portraits = {
+        {"normal.png"_spr, static_cast<int>(TutorialCharacterFace::TCFNormal), 2},
+        {"tiltedNormal.png"_spr, static_cast<int>(TutorialCharacterFace::TCFNormalTilted), 2.15f},
+        {"happy.png"_spr, static_cast<int>(TutorialCharacterFace::TCFHappy), 2.15f},
+        {"angry.png"_spr, static_cast<int>(TutorialCharacterFace::TCFAngry), 2},
+        {"worried.png"_spr, static_cast<int>(TutorialCharacterFace::TCFWorried), 2},
+        {"sleeping.png"_spr, static_cast<int>(TutorialCharacterFace::TCFSleeping), 2},
+        {"bored.png"_spr, static_cast<int>(TutorialCharacterFace::TCFBored), 2}
+    };
+    return portraits;
+}
 
 DTTutorialLayer* DTTutorialLayer::create() {
     auto ret = new DTTutorialLayer();
@@ -37,10 +52,10 @@ bool DTTutorialLayer::init() {
     m_skipButton->setOpacity(0);
     m_skipButton->runAction(CCFadeIn::create(.5f));
 
-    auto menu = CCMenu::create();
-    this->addChild(menu);
+    m_skipMenu = CCMenu::create();
+    this->addChild(m_skipMenu);
 
-    menu->addChildAtPosition(m_skipButton, Anchor::BottomRight);
+    m_skipMenu->addChildAtPosition(m_skipButton, Anchor::BottomRight);
 
     scheduleUpdate();
     this->setMouseEnabled(true);
@@ -61,6 +76,7 @@ DTTutorialLayer* DTTutorialLayer::appendDialogue(const std::string& text, Tutori
 }
 
 DTTutorialLayer* DTTutorialLayer::appendDialogue(DialogObject* dialogue) {
+    dialogue->retain();
     TutorialSegment segment {
         .m_dialogue = dialogue
     };
@@ -136,6 +152,17 @@ DTTutorialLayer* DTTutorialLayer::insertJoinTextToHighlight(int dialogueIndex, c
 
 void DTTutorialLayer::show() {
     if (!m_allSegments.size()) return;
+
+    m_isEggTutorial =
+        Loader::get()->isModLoaded("timestepyt.heisbehindthetree") &&
+        heisbehindthetree::wasEggReceived().unwrapOr(false) &&
+        !heisbehindthetree::wasEggStored().unwrapOr(false);
+    if (m_isEggTutorial) {
+        m_skipButton->setVisible(false);
+        m_skipButton->setEnabled(false);
+        appendEggTutorialExtension();
+    }
+
     auto highestZ = CCScene::get()->getHighestChildZ();
 
     this->setZOrder(highestZ + 1);
@@ -150,16 +177,15 @@ void DTTutorialLayer::show() {
         m_dialogueSegmentIndexes.insert({segment.m_dialogue, i});
         i++;
     }
+
+    if (Loader::get()->isModLoaded("timestepyt.deltarune_textboxes")) {
+        showDeltaruneDialogueStep(0);
+        return;
+    }
     
-    m_dialogueLayer = DTDialogLayer::createWithTaggedSprites(dialogueArray, 1, {
-        {"normal.png"_spr, static_cast<int>(TutorialCharacterFace::TCFNormal), 2},
-        {"tiltedNormal.png"_spr, static_cast<int>(TutorialCharacterFace::TCFNormalTilted), 2.15f},
-        {"happy.png"_spr, static_cast<int>(TutorialCharacterFace::TCFHappy), 2.15f},
-        {"angry.png"_spr, static_cast<int>(TutorialCharacterFace::TCFAngry), 2},
-        {"worried.png"_spr, static_cast<int>(TutorialCharacterFace::TCFWorried), 2},
-        {"sleeping.png"_spr, static_cast<int>(TutorialCharacterFace::TCFSleeping), 2},
-        {"bored.png"_spr, static_cast<int>(TutorialCharacterFace::TCFBored), 2}
-    });
+    m_dialogueLayer = DTDialogLayer::createWithTaggedSprites(dialogueArray, 1, tutorialPortraits());
+    m_dialogueMainLayer = m_dialogueLayer->m_mainLayer;
+    m_dialogueBackground = static_cast<CCScale9Sprite*>(m_dialogueMainLayer->getChildren()->objectAtIndex(0));
     static_cast<DTDialogLayer*>(m_dialogueLayer)->setProgressCallback(std::bind(&DTTutorialLayer::onProgress, this, std::placeholders::_1));
     m_dialogueLayer->addToMainScene();
     m_dialogueLayer->m_delegate = this;
@@ -168,13 +194,227 @@ void DTTutorialLayer::show() {
     m_dialogueLayer->setOpacity(0);
 }
 
+void DTTutorialLayer::appendEggTutorialExtension() {
+    m_eggTutorialDialogueStartIndex = m_allSegments.size();
+    appendDialogue("...", TutorialCharacterFace::TCFSleeping);
+    joinTransform(TutorialBoxPlacement::TBPCenter);
+    appendDialogue("Huh?", TutorialCharacterFace::TCFNormal);
+    appendDialogue("Whats that?", TutorialCharacterFace::TCFNormalTilted);
+    appendDialogue("You want to give me an \"Egg\"?", TutorialCharacterFace::TCFWorried);
+    appendDialogue("Im not sure why you would wan-", TutorialCharacterFace::TCFNormal);
+    appendDialogue("...", TutorialCharacterFace::TCFNormal);
+    appendDialogue("You want me to keep it safe?", TutorialCharacterFace::TCFBored);
+    appendDialogue("Umm", TutorialCharacterFace::TCFWorried);
+    appendDialogue("Alright sure..", TutorialCharacterFace::TCFNormal);
+    appendDialogue("Im not too sure about this, but im here to help so sure i will!", TutorialCharacterFace::TCFHappy);
+    joinCallback([this] {
+        m_eggTutorialCompleted = true;
+        (void)heisbehindthetree::storeEgg();
+        FMODAudioEngine::sharedEngine()->playEffect("timestepyt.heisbehindthetree/snd_egg.wav");
+    }, true);
+    appendDialogue("Ill keep it safe dont worry! you go enjoy the rest of death tracker!", TutorialCharacterFace::TCFHappy);
+}
+
+void DTTutorialLayer::setEggDialogueSkipKeybindDisabled(bool disabled) {
+    if (disabled) {
+        if (m_previousDeltaruneSkipKeybinds) return;
+
+        auto textboxesMod = Loader::get()->getLoadedMod("timestepyt.deltarune_textboxes");
+        if (!textboxesMod) {
+            log::error("Deltarune Textboxes was not loaded while showing the egg tutorial");
+            return;
+        }
+
+        auto setting = geode::cast::typeinfo_pointer_cast<KeybindSettingV3>(
+            textboxesMod->getSetting("keybind-skip")
+        );
+        if (!setting) {
+            log::error("Deltarune Textboxes is missing its Skip Text keybind setting");
+            return;
+        }
+
+        m_previousDeltaruneSkipKeybinds = setting->getValue();
+        setting->setValue({});
+        return;
+    }
+
+    if (!m_previousDeltaruneSkipKeybinds) return;
+
+    auto textboxesMod = Loader::get()->getLoadedMod("timestepyt.deltarune_textboxes");
+    if (!textboxesMod) {
+        m_previousDeltaruneSkipKeybinds.reset();
+        return;
+    }
+
+    auto setting = geode::cast::typeinfo_pointer_cast<KeybindSettingV3>(
+        textboxesMod->getSetting("keybind-skip")
+    );
+    if (!setting) {
+        m_previousDeltaruneSkipKeybinds.reset();
+        return;
+    }
+
+    setting->setValue(*m_previousDeltaruneSkipKeybinds);
+    m_previousDeltaruneSkipKeybinds.reset();
+}
+
+void DTTutorialLayer::showDeltaruneDialogueStep(std::size_t index) {
+    if (index >= m_allSegments.size()) {
+        m_eggTutorialCompleted = m_isEggTutorial;
+        dialogClosed(nullptr);
+        return;
+    }
+
+    m_deltaruneDialogueIndex = index;
+    auto const isEggDialogue = m_eggTutorialDialogueStartIndex &&
+        index >= m_eggTutorialDialogueStartIndex.value();
+    setEggDialogueSkipKeybindDisabled(isEggDialogue);
+    auto dialogue = m_allSegments[index].m_dialogue;
+
+    auto const& portraits = tutorialPortraits();
+    auto portraitInfo = std::find_if(portraits.begin(), portraits.end(), [dialogue](auto const& portrait) {
+        return std::get<1>(portrait) == dialogue->getTag();
+    });
+    auto const& portraitName = portraitInfo == portraits.end() ? std::get<0>(portraits.front()) : std::get<0>(*portraitInfo);
+
+    auto portrait = CCSprite::createWithSpriteFrameName(portraitName.c_str());
+    if (!portrait)
+        portrait = CCSprite::create(portraitName.c_str());
+    if (!portrait) {
+        dialogClosed(nullptr);
+        return;
+    }
+
+    auto portraitScale = deltarune_textboxes::getCharacterSpriteScaleFrom(portrait);
+    if (portraitScale.isErr()) {
+        dialogClosed(nullptr);
+        return;
+    }
+    portrait->setScale(portraitScale.unwrap() * 0.7f);
+
+    auto dialogueObject = deltarune_textboxes::createDialogObject(portrait, "Default", "abb2k", dialogue->m_text);
+    if (dialogueObject.isErr()) {
+        dialogClosed(nullptr);
+        return;
+    }
+
+    std::array<deltarune_textboxes::DialogObjectPtr, 1> dialogueObjects{
+        std::move(dialogueObject).unwrap()
+    };
+    auto textboxesMod = isEggDialogue
+        ? Loader::get()->getLoadedMod("timestepyt.deltarune_textboxes")
+        : nullptr;
+    if (isEggDialogue && !textboxesMod) {
+        log::error("Deltarune Textboxes was not loaded while showing the egg tutorial");
+        dialogClosed(nullptr);
+        return;
+    }
+
+    auto createDialog = [&] {
+        return deltarune_textboxes::createFullDialog(
+            std::span<deltarune_textboxes::DialogObjectPtr>(dialogueObjects)
+        );
+    };
+    auto alertResult = [&] {
+        if (!textboxesMod)
+            return createDialog();
+
+        auto const previousDisableClickToProgress =
+            textboxesMod->getSettingValue<bool>("disableClickToProgress");
+        textboxesMod->setSettingValue<bool>("disableClickToProgress", true);
+        auto result = createDialog();
+        textboxesMod->setSettingValue<bool>("disableClickToProgress", previousDisableClickToProgress);
+        return result;
+    }();
+    if (alertResult.isErr()) {
+        dialogClosed(nullptr);
+        return;
+    }
+
+    m_deltaruneAlert = alertResult.unwrap();
+    m_deltaruneAlert->m_alertProtocol = this;
+    m_dialogueMainLayer = m_deltaruneAlert->m_mainLayer;
+    m_dialogueBackground = m_dialogueMainLayer
+        ? static_cast<CCScale9Sprite*>(m_dialogueMainLayer->getChildByID("background"))
+        : nullptr;
+    moveSkipMenuTo(m_deltaruneAlert, 1000);
+    if (m_hasDialoguePlacement) {
+        m_dialogueMainLayer->setScale(m_dialogueBoxScale);
+        m_dialogueMainLayer->setPosition(dialogueMainLayerPositionForCenter(m_dialogueCenter, m_dialogueBoxScale));
+    }
+    else if (m_dialogueBoxScale != 1.f) {
+        m_dialogueMainLayer->setScale(m_dialogueBoxScale);
+    }
+    onProgress(dialogue);
+    DTDialogLayer::addStoredEggBadge(m_dialogueMainLayer, m_dialogueBackground, true);
+}
+
+void DTTutorialLayer::FLAlert_Clicked(FLAlertLayer* layer, bool) {
+    if (m_isClosing || layer != m_deltaruneAlert) return;
+
+    m_deltaruneAlert = nullptr;
+    m_dialogueMainLayer = nullptr;
+    m_dialogueBackground = nullptr;
+    showDeltaruneDialogueStep(m_deltaruneDialogueIndex + 1);
+}
+
+CCPoint DTTutorialLayer::dialogueMainLayerPositionForCenter(CCPoint center, float scale) {
+    if (!m_deltaruneAlert)
+        return center;
+
+    auto parent = m_dialogueMainLayer->getParent();
+    if (!parent) {
+        return m_dialogueMainLayer->getPosition();
+    }
+
+    auto const currentPosition = m_dialogueMainLayer->getPosition();
+    auto const currentScale = m_dialogueMainLayer->getScale();
+    m_dialogueMainLayer->setScale(scale);
+    auto const backgroundCenter = ccp(
+        m_dialogueBackground->getContentWidth() / 2,
+        m_dialogueBackground->getContentHeight() / 2
+    );
+    auto const backgroundCenterInParent = parent->convertToNodeSpace(
+        m_dialogueBackground->convertToWorldSpace(backgroundCenter)
+    );
+    m_dialogueMainLayer->setScale(currentScale);
+    auto const desiredCenterInParent = parent->convertToNodeSpace(this->convertToWorldSpace(center));
+
+    return currentPosition + desiredCenterInParent - backgroundCenterInParent;
+}
+
+void DTTutorialLayer::moveSkipMenuTo(CCNode* parent, int zOrder) {
+    if (!m_skipMenu || !parent || m_skipMenu->getParent() == parent) return;
+
+    auto const anchor = m_skipMenu->getAnchorPoint();
+    auto const size = m_skipMenu->getContentSize();
+    auto const anchorInPoints = ccp(size.width * anchor.x, size.height * anchor.y);
+    auto const worldAnchor = m_skipMenu->convertToWorldSpace(anchorInPoints);
+
+    m_skipMenu->retain();
+    m_skipMenu->removeFromParentAndCleanup(false);
+    parent->addChild(m_skipMenu, zOrder);
+    m_skipMenu->setPosition(parent->convertToNodeSpace(worldAnchor));
+    m_skipMenu->setTouchPriority(parent == m_deltaruneAlert ? -1000 : 0);
+    m_skipMenu->release();
+}
+
 void DTTutorialLayer::onProgress(DialogObject* dObject) {
-    if (m_prevDialogue != nullptr && m_dialogueSegmentIndexes.contains(dObject) && m_allSegments[m_dialogueSegmentIndexes[dObject]].m_afterCallback != NULL) {
-        auto& objToRunOn = m_allSegments[m_dialogueSegmentIndexes[dObject]];
-        objToRunOn.m_afterCallback();
+    if (m_prevDialogue != nullptr) {
+        auto previousSegment = m_dialogueSegmentIndexes.find(m_prevDialogue);
+        if (previousSegment != m_dialogueSegmentIndexes.end()) {
+            auto& completedSegment = m_allSegments[previousSegment->second];
+            if (completedSegment.m_afterCallback != NULL)
+                completedSegment.m_afterCallback();
+        }
     }
     
     auto segmentIndex = m_dialogueSegmentIndexes[dObject];
+    if (m_dialogueLayer) {
+        auto const isEggDialogue = m_eggTutorialDialogueStartIndex &&
+            segmentIndex >= m_eggTutorialDialogueStartIndex.value();
+        static_cast<DTDialogLayer*>(m_dialogueLayer)->setFastForwardDisabled(isEggDialogue);
+    }
 
     if (m_allSegments[segmentIndex].m_beforeCallback != NULL) {
         auto& objToRunOn = m_allSegments[segmentIndex];
@@ -193,13 +433,13 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
         m_lightRT->getSprite()->runAction(CCEaseInOut::create(CCFadeTo::create(.25f, 255), 2));
     }
     
-    if (m_allSegments[segmentIndex].m_alignment.has_value()) {
-        m_dialogueLayer->m_mainLayer->stopActionByTag(10);
+    if (m_allSegments[segmentIndex].m_alignment.has_value() && m_dialogueMainLayer && m_dialogueBackground) {
+        m_dialogueMainLayer->stopActionByTag(10);
         CCPoint toMoveTo;
 
-        auto bg = static_cast<CCScale9Sprite*>(m_dialogueLayer->m_mainLayer->getChildren()->objectAtIndex(0));
+        auto bg = m_dialogueBackground;
 
-        float scaleMultiplier = m_allSegments[segmentIndex].m_boxScale.has_value() ? m_allSegments[segmentIndex].m_boxScale.value() : m_dialogueLayer->m_mainLayer->getScale();
+        float scaleMultiplier = m_allSegments[segmentIndex].m_boxScale.has_value() ? m_allSegments[segmentIndex].m_boxScale.value() : m_dialogueBoxScale;
 
         switch (m_allSegments[segmentIndex].m_alignment.value()) {
             case TutorialBoxPlacement::TBPCenter:
@@ -231,26 +471,30 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
             break;
         }
 
+        m_dialogueCenter = toMoveTo;
+        m_hasDialoguePlacement = true;
+        auto const targetPosition = dialogueMainLayerPositionForCenter(toMoveTo, scaleMultiplier);
         if (firstRN) {
-            m_dialogueLayer->m_mainLayer->setPosition(toMoveTo);
+            m_dialogueMainLayer->setPosition(targetPosition);
         }
         else {
-            auto movement = CCEaseInOut::create(CCMoveTo::create(time, toMoveTo), 2);
+            auto movement = CCEaseInOut::create(CCMoveTo::create(time, targetPosition), 2);
             movement->setTag(10);
-            m_dialogueLayer->m_mainLayer->runAction(movement);
+            m_dialogueMainLayer->runAction(movement);
         }
     }
 
-    if (m_allSegments[segmentIndex].m_boxScale.has_value()) {
-        m_dialogueLayer->m_mainLayer->stopActionByTag(11);
+    if (m_allSegments[segmentIndex].m_boxScale.has_value() && m_dialogueMainLayer) {
+        m_dialogueBoxScale = m_allSegments[segmentIndex].m_boxScale.value();
+        m_dialogueMainLayer->stopActionByTag(11);
         
         if (firstRN) {
-            m_dialogueLayer->m_mainLayer->setScale(m_allSegments[segmentIndex].m_boxScale.value());
+            m_dialogueMainLayer->setScale(m_dialogueBoxScale);
         }
         else {
-            auto scaleEase = CCEaseInOut::create(CCScaleTo::create(time, m_allSegments[segmentIndex].m_boxScale.value()), 2);
+            auto scaleEase = CCEaseInOut::create(CCScaleTo::create(time, m_dialogueBoxScale), 2);
             scaleEase->setTag(11);
-            m_dialogueLayer->m_mainLayer->runAction(scaleEase);
+            m_dialogueMainLayer->runAction(scaleEase);
         }   
     }
 
@@ -313,8 +557,6 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
         if (touchesAllowed)
             m_touchAllowedNodes.insert({glow, highlightTarget});
 
-        m_prevDialogue = dObject;
-
         if (!m_allSegments[segmentIndex].m_textForTargets.contains(highlightTarget)) continue;
 
         auto& textInfo = m_allSegments[segmentIndex].m_textForTargets[highlightTarget];
@@ -355,11 +597,19 @@ void DTTutorialLayer::onProgress(DialogObject* dObject) {
         m_textsForHighlights.insert({glow, label});
     }
 
+    m_prevDialogue = dObject;
 }
 
 void DTTutorialLayer::dialogClosed(DialogLayer* layer) {
     if (m_isClosing) return;
 
+    setEggDialogueSkipKeybindDisabled(false);
+
+    if (m_isEggTutorial && (layer || m_eggTutorialCompleted)) {
+        Mod::get()->setSavedValue("eggTutorialCompleted", true);
+    }
+
+    moveSkipMenuTo(this, 0);
     m_isClosing = true;
     
     m_lightRT->getSprite()->runAction(CCSequence::create(
@@ -371,6 +621,9 @@ void DTTutorialLayer::dialogClosed(DialogLayer* layer) {
     m_skipButton->runAction(CCFadeOut::create(.5f));
 
     m_dialogueLayer = nullptr;
+    m_deltaruneAlert = nullptr;
+    m_dialogueMainLayer = nullptr;
+    m_dialogueBackground = nullptr;
 }
 
 void DTTutorialLayer::close() {
@@ -387,8 +640,14 @@ void DTTutorialLayer::update(float dt) {
 }
 
 DTTutorialLayer::~DTTutorialLayer() {
+    setEggDialogueSkipKeybindDisabled(false);
+
     for (const auto& glow : m_retainedSprites) {
         glow->release();
+    }
+
+    for (const auto& segment : m_allSegments) {
+        segment.m_dialogue->release();
     }
     
     CCTouchDispatcher::get()->removeDelegate(this);
@@ -562,7 +821,12 @@ bool DTTutorialLayer::scrollWheel(float x, float y) {
 }
 
 void DTTutorialLayer::skipTutorial(CCObject*) {
-    if (m_isClosing) return;
-    m_dialogueLayer->removeMeAndCleanup();
+    if (m_isClosing || m_isEggTutorial) return;
+    if (m_dialogueLayer)
+        m_dialogueLayer->removeMeAndCleanup();
+    if (m_deltaruneAlert) {
+        moveSkipMenuTo(this, 0);
+        m_deltaruneAlert->removeFromParentAndCleanup(true);
+    }
     dialogClosed(nullptr);
 }

@@ -9,12 +9,15 @@ public:
     static DTLevelSpecificSettingsLayer* create();
 
     void keyBackClicked() override;
+    void keyDown(enumKeyCodes key, double timestamp) override;
+    void keyUp(enumKeyCodes key, double timestamp) override;
 private:
     bool init() override;
 
     void onClose(CCObject*) override;
 
     CCNode* createPageBtn(std::string_view text, OptionsNode* page);
+    void insertPage(OptionsNode* page);
     CCNode* createSeperator();
 
     void sendUnderlineTo(CCNode* node, bool instant = false);
@@ -26,4 +29,7 @@ private:
     OptionsNode* m_currentPage = nullptr;
 
     CCScale9Sprite* m_optionUnderline;
+
+    OptionsNode* m_manPage = nullptr;
+    bool m_canMan = false;
 };

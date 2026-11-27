@@ -53,7 +53,7 @@ public:
     std::map<CCNode*, HighlightText> m_textForTargets{};
 };
 
-class DTTutorialLayer : public CCLayer, public DialogDelegate {
+class DTTutorialLayer : public CCLayer, public DialogDelegate, public FLAlertLayerProtocol {
 public:
     static DTTutorialLayer* create();
 
@@ -74,11 +74,14 @@ public:
     DTTutorialLayer* insertJoinTextToHighlight(int dialogueIndex, const std::string& text, float size = 1, TutorialTextPlacement alignment = TutorialTextPlacement::TTTop);
     
     void show();
+    void FLAlert_Clicked(FLAlertLayer* layer, bool btn2) override;
 
     ~DTTutorialLayer();
     
 private:
     bool init() override;
+    using TutorialPortrait = std::tuple<std::string, int, float>;
+    static std::vector<TutorialPortrait> const& tutorialPortraits();
     
     std::vector<TutorialSegment> m_allSegments{};
     std::map<DialogObject*, int> m_dialogueSegmentIndexes{};
@@ -87,8 +90,24 @@ private:
     CCRenderTexture* m_lightRT;
 
     void onProgress(DialogObject* dObject);
+    void showDeltaruneDialogueStep(std::size_t index);
+    void appendEggTutorialExtension();
+    void setEggDialogueSkipKeybindDisabled(bool disabled);
+    CCPoint dialogueMainLayerPositionForCenter(CCPoint center, float scale);
+    void moveSkipMenuTo(CCNode* parent, int zOrder);
 
-    DialogLayer* m_dialogueLayer;
+    DialogLayer* m_dialogueLayer = nullptr;
+    FLAlertLayer* m_deltaruneAlert = nullptr;
+    CCNode* m_dialogueMainLayer = nullptr;
+    CCScale9Sprite* m_dialogueBackground = nullptr;
+    std::size_t m_deltaruneDialogueIndex = 0;
+    CCPoint m_dialogueCenter;
+    float m_dialogueBoxScale = 1.f;
+    bool m_hasDialoguePlacement = false;
+    bool m_isEggTutorial = false;
+    bool m_eggTutorialCompleted = false;
+    std::optional<std::size_t> m_eggTutorialDialogueStartIndex;
+    std::optional<std::vector<Keybind>> m_previousDeltaruneSkipKeybinds;
 
     void dialogClosed(DialogLayer* layer) override;
 
@@ -129,8 +148,9 @@ private:
 
     DialogObject* m_prevDialogue = nullptr;
     CCMenuItemSpriteExtra* m_skipButton;
+    CCMenu* m_skipMenu = nullptr;
 
     void skipTutorial(CCObject*);
 
-    bool m_isClosing;
+    bool m_isClosing = false;
 };

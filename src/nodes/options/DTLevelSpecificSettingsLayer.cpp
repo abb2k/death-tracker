@@ -7,6 +7,7 @@
 #include <nodes/options/pages/modify/ModifyOptions.hpp>
 #include <nodes/options/pages/save/SaveOptions.hpp>
 #include <nodes/options/pages/section/SectionOptions.hpp>
+#include <nodes/options/pages/man/ManOptions.hpp>
 
 DTLevelSpecificSettingsLayer* DTLevelSpecificSettingsLayer::create() {
     auto popup = new DTLevelSpecificSettingsLayer;
@@ -49,28 +50,35 @@ bool DTLevelSpecificSettingsLayer::init() {
     m_optionUnderline->setContentHeight(1);
     m_mainLayer->addChild(m_optionUnderline);
 
-    auto firstOption = DTLevelSpecificSettingsLayer::createPageBtn("Run", RunOptions::create(ccp(m_size.width - 10, seperator->getPositionY() - 10)));
+    auto pageSize = ccp(m_size.width - 10, seperator->getPositionY() - 10);
+
+    auto firstOption = DTLevelSpecificSettingsLayer::createPageBtn("Run", RunOptions::create(pageSize));
 
     pages->addChild(firstOption);
     pages->addChild(DTLevelSpecificSettingsLayer::createSeperator());
-    pages->addChild(DTLevelSpecificSettingsLayer::createPageBtn("Modify", ModifyOptions::create(ccp(m_size.width - 10, seperator->getPositionY() - 10))));
+    pages->addChild(DTLevelSpecificSettingsLayer::createPageBtn("Modify", ModifyOptions::create(pageSize)));
     pages->addChild(DTLevelSpecificSettingsLayer::createSeperator());
-    pages->addChild(DTLevelSpecificSettingsLayer::createPageBtn("Save", SaveOptions::create(ccp(m_size.width - 10, seperator->getPositionY() - 10))));
+    pages->addChild(DTLevelSpecificSettingsLayer::createPageBtn("Save", SaveOptions::create(pageSize)));
     pages->addChild(DTLevelSpecificSettingsLayer::createSeperator());
-    pages->addChild(DTLevelSpecificSettingsLayer::createPageBtn("Link", LinkOptions::create(ccp(m_size.width - 10, seperator->getPositionY() - 10))));
+    pages->addChild(DTLevelSpecificSettingsLayer::createPageBtn("Link", LinkOptions::create(pageSize)));
     pages->addChild(DTLevelSpecificSettingsLayer::createSeperator());
-    pages->addChild(DTLevelSpecificSettingsLayer::createPageBtn("Section", SectionOptions::create(ccp(m_size.width - 10, seperator->getPositionY() - 10))));
+    pages->addChild(DTLevelSpecificSettingsLayer::createPageBtn("Section", SectionOptions::create(pageSize)));
+
+    m_manPage = ManOptions::create(pageSize);
+
+    insertPage(m_manPage);
 
     pages->updateLayout();
     
     sendUnderlineTo(firstOption, true);
     switchPage(firstOption);
 
+    m_canMan = true;
+
     return true;
 }
 
 CCNode* DTLevelSpecificSettingsLayer::createPageBtn(std::string_view text, OptionsNode* page) {
-
     auto ownedText = std::string(text);
     auto spr = geode::Label::create(ownedText.c_str(), "gjFont17.fnt");
     spr->setScale(.85f);
@@ -79,16 +87,21 @@ CCNode* DTLevelSpecificSettingsLayer::createPageBtn(std::string_view text, Optio
         this,
         menu_selector(DTLevelSpecificSettingsLayer::switchPage)
     );
-    page->setSettingsLayer(this);
     m_pages.insert({button, page});
 
+    insertPage(page);
+
+    return button;
+}
+
+void DTLevelSpecificSettingsLayer::insertPage(OptionsNode* page) {
     if (page != nullptr) {
+        page->setSettingsLayer(this);
+
         page->setZOrder(2);
         page->setPosition({5, 5});
         m_mainLayer->addChild(page);
     }
-
-    return button;
 }
 
 CCNode* DTLevelSpecificSettingsLayer::createSeperator() {
@@ -176,7 +189,12 @@ void DTLevelSpecificSettingsLayer::switchPage(CCObject* sender) {
     if (m_currentPage != nullptr)
         m_currentPage->onClosed();
 
-    m_currentPage = m_pages[sender];
+    bool egg = CCRANDOM_0_1() < .002f && m_manPage && m_canMan;
+
+    if (!egg)
+        m_currentPage = m_pages[sender];
+    else
+        m_currentPage = m_manPage;
 
     if (m_currentPage != nullptr)
         m_currentPage->onOpened();
@@ -184,8 +202,21 @@ void DTLevelSpecificSettingsLayer::switchPage(CCObject* sender) {
 
 void DTLevelSpecificSettingsLayer::onClose(CCObject*) {
     Popup::onClose(nullptr);
+
+    if (m_currentPage) m_currentPage->onClosed();
 }
 
 void DTLevelSpecificSettingsLayer::keyBackClicked() {
     Popup::keyBackClicked();
+}
+
+void DTLevelSpecificSettingsLayer::keyDown(enumKeyCodes key, double timestamp) {
+    Popup::keyDown(key, timestamp);
+    if (m_currentPage != nullptr)
+        m_currentPage->keyDown(key, timestamp);
+}
+
+void DTLevelSpecificSettingsLayer::keyUp(enumKeyCodes key, double timestamp) {
+    if (m_currentPage != nullptr)
+        m_currentPage->keyUp(key, timestamp);
 }
