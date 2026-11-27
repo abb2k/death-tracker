@@ -56,7 +56,7 @@ private:
     CCNodeRGBA* m_world = nullptr;
     CCSprite* m_seekerShadow = nullptr;
     CCDrawNode* m_hitboxDebug = nullptr;
-    cocos2d::CCRect m_hidingHitbox{82.5f, 101.25f, 40.f, 42.5f};
+    cocos2d::CCRect m_hidingHitbox{70.5f, 78.25f, 65.f, 75.5f};
     cocos2d::CCRect m_stampDialogueHitbox{72.5f, 40.25f, 40.f, 32.5f};
     cocos2d::CCRect m_stumpHitbox;
     cocos2d::CCRect m_screenBounds;
