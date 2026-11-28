@@ -55,6 +55,11 @@ void Save::setLastOpenedVersion(const std::string& verion) {
     Mod::get()->setSavedValue("LastOpenedVersion", verion);
 }
 
+// we don't need a getter for now
+void Save::setDidLoadLevelidapi(const bool& b) {
+    Mod::get()->setSavedValue<bool>("level-id-api-installed", b);
+}
+
 stringCustomazations Save::getFrom0Customazations() {
     return Mod::get()->getSavedValue<stringCustomazations>("F0Zustom");
 }

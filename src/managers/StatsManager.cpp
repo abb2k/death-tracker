@@ -750,8 +750,13 @@ Result<std::string> StatsManager::getLevelKey(GJGameLevel* const& level) {
 	std::string levelId;
 
     if (level->m_levelType == GJLevelType::Editor) {
-        auto idRes = EditorIDs::getID(level);
-        levelId += std::to_string(idRes);
+        if (Mod::get()->getSettingValue<bool>("use-legacy-editor-ids")) {
+            auto idRes = EditorIDs::getID(level);
+            levelId += std::to_string(idRes);
+        }
+        else {
+            levelId += level->m_autoBackupID;
+        }
     }
     else {
         levelId += std::to_string(level->m_levelID.value());
