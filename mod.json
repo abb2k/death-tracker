@@ -8,7 +8,7 @@
     },
 	"id": "elohmrow.death_tracker",
 	"name": "Death Tracker",
-	"version": "v3.1.4",
+	"version": "v3.1.5",
 	"developer": "abb2k",
 	"description": "Tracks your deaths at every percentage",
 	"links": {
@@ -171,6 +171,14 @@
 			"name": "Save Path",
 			"default": "{mod_save_dir}/levels"
 		},
+		"use-legacy-editor-ids": {
+			"type": "bool",
+			"default": true,
+			"name": "Use legacy EditorIDs",
+			"description": "Uses the old EditorIDs by Cvolton instead of relying on the newly introduced Editor-Backup-IDs. Disabling this will not show previously recorded progress for editor levels where the old ID system was used and vice versa. Enabled by default for people using Editor Level ID API. Right now there is no option to convert between these.",
+			"enable-if": "saved:level-id-api-installed",
+			"enable-if-description": "Only available when Editor Level ID API is installed."
+		},
 		"customazation-title":{
 			"type": "title",
 			"name": "Customazation"
@@ -236,14 +244,17 @@
 		}
 	},
 	"dependencies": {
-		"geode.node-ids": ">=v1.23.3",
-		"cvolton.level-id-api": ">=v2.0.1",
+		"geode.node-ids": ">=v1.24.0-beta.1",
+		"cvolton.level-id-api": {
+			"version": ">=v2.1.0",
+			"required": false
+		},
 		"alphalaneous.badgify": {
 			"version": ">=v1.0.7",
 			"required": false
 		},
 		"timestepyt.heisbehindthetree": {
-			"version": ">=v1.0.0",
+			"version": ">=v1.0.3",
 			"required": false
 		},
 		"timestepyt.deltarune_textboxes": {

@@ -35,6 +35,8 @@ $execute {
         Save::setDidInitDefaultOverlayLabels(true);
     }
 
+    Save::setDidLoadLevelidapi(Loader::get()->isModLoaded("cvolton.level-id-api"));
+
     if (Settings::getPreloadLinked())
         LinkedLevelsCacheManager::getLinkedLevels();
 };

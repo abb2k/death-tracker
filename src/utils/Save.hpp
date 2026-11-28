@@ -25,6 +25,8 @@ public:
     static std::string getLastOpenedVersion();
     static void setLastOpenedVersion(const std::string& verion);
 
+    static void setDidLoadLevelidapi(const bool& b);
+
     static stringCustomazations getFrom0Customazations();
     static void setFrom0Customazations(const stringCustomazations& from0Custom);
 

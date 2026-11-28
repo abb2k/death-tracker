@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.1.5
+- removed Editor Level ID API as a dependency in favour of the vanilla Backup-ID system for Editor Levels
+- added option to keep using Editor Level ID API as legacy-editor-ids
+
 ## v3.1.4
 - update layout added to level info layer and pause layer
 
